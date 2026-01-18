@@ -13,10 +13,12 @@ RelatedFiles:
     - ui/src/pages/AboutUsPage.tsx:Main React component being audited
     - ui/src/pages/AboutUsPage.stories.tsx:Storybook story for full page render
     - ui/scripts/compare-about-us.ts:Playwright comparison script
+    - ui/scripts/compare-css.ts:CSS computed styles comparison script
+    - ui/.storybook/preview-head.html:Custom CSS overrides for React structure
     - assets/Hairy/page-about-us.html:Original HTML template being compared
 ExternalSources: []
 Summary: "Implementation diary for AboutUsPage React port visual comparison audit"
-LastUpdated: 2026-01-18T18:02:00.000000000-05:00
+LastUpdated: 2026-01-18T19:30:00.000000000-05:00
 WhatFor: "Track the visual comparison audit process"
 WhenToUse: "Reference during port debugging"
 ---
@@ -26,6 +28,8 @@ WhenToUse: "Reference during port debugging"
 ## Goal
 
 Document the step-by-step investigation of visual discrepancies between the original Hairy HTML template `page-about-us.html` and the React port rendered in Storybook.
+
+---
 
 ## Step 1: Initial Exploration and Ticket Setup
 
@@ -124,31 +128,16 @@ Analyzed the automated comparison results revealing critical issues.
 2. **Page Title Hero Height Mismatch** - 870px difference:
    - Original: 466px height
    - React: 1336px height
-   - **Root cause**: The background image is being rendered at full size instead of being cropped/constrained. The original uses `bg-section` with `object-fit: cover` and constrained height.
+   - **Root cause**: The background image is being rendered at full size instead of being cropped/constrained.
 
 3. **Testimonials Section Height Mismatch** - 936px difference:
    - Original: 465.5px height (carousel shows 1 item at a time)
    - React: 1401px height (all items showing vertically)
-   - **Root cause**: The original uses Owl Carousel with data attributes (`data-slide="1"`) to show one testimonial at a time. React version just lists all testimonials without carousel functionality.
+   - **Root cause**: The original uses Owl Carousel. React version just lists all testimonials.
 
 4. **Header Navigation Differences**:
-   - Original: Full mega-menu with dropdowns (HOME, PAGES, ELEMENTS, GALLERY, BLOG, SHOP) + cart + search modules
-   - React: Simplified navigation (home, about, services, contact) + Book Online button only
-   - Missing: Top bar social links, login/register, cart module, search module
-
-### What was tricky to build
-- Understanding that the original template relies on JavaScript plugins (Owl Carousel, magnific-popup) that don't exist in React
-- The `data-*` attributes on carousel are configuration for JS plugins, not pure CSS
-
-### What warrants a second pair of eyes
-- The height mismatches are severe UI regressions
-- Missing sections represent significant content loss
-- Navigation simplification may be intentional or oversight
-
-### Code review instructions
-1. Compare `ui/src/pages/AboutUsPage.tsx` with `assets/Hairy/page-about-us.html` lines 446-723
-2. Look for missing React components: TeamSection, BlogSection
-3. Check TestimonialsSection for carousel implementation
+   - Original: Full mega-menu with dropdowns
+   - React: Simplified navigation
 
 ---
 
@@ -164,52 +153,21 @@ Examined why sections are missing and layout differs.
 ### Root Causes Identified
 
 **1. Missing Content in React Port**
-
-The `AboutUsPage.tsx` component (lines 12-27) only includes:
-```tsx
-<main>
-  <PageTitleSection ... />
-  <VideoSection ... />
-  <CounterSection ... />
-  <TestimonialsSection ... />
-</main>
-```
-
-Missing components that need to be created:
-- `TeamSection` - for Skilled Barbers (#team1)
-- `BlogGridSection` - for Our Blog Posts (#blog)
+The `AboutUsPage.tsx` only includes PageTitleSection, VideoSection, CounterSection, TestimonialsSection.
+Missing: `TeamSection` and `BlogGridSection`
 
 **2. Page Title Hero Layout Issue**
-
-The original HTML uses this structure:
-```html
-<section id="page-title" class="page-title bg-overlay bg-overlay-dark bg-parallax">
-  <div class="bg-section">
-    <img src="..." alt="Background" />
-  </div>
+The original uses CSS adjacent sibling selector:
+```css
+.header-transparent + .page-title {
+  position: relative;
+  margin-top: -140px;
+}
 ```
-
-The React component correctly replicates this, but the CSS may be missing the height constraint. Looking at `page-title` in original CSS:
-- Uses `padding: 120px 0 80px` which creates fixed content height
-- Background is positioned absolutely with `object-fit: cover`
-
-The React version's `theme.css` has similar rules but may have conflicts.
+But React's component structure wraps content in `<main>`, breaking the adjacent sibling relationship.
 
 **3. Testimonials Carousel Not Implemented**
-
-Original uses Owl Carousel with:
-```html
-<div id="testimonial-carousel" class="carousel carousel-dots" 
-     data-slide="1" data-slide-rs="1" data-autoplay="false" ...>
-```
-
-React just renders all testimonials in a vertical list - no carousel library integrated.
-
-### What should be done in the future
-- Add TeamSection and BlogGridSection components
-- Integrate a React carousel (react-slick, swiper, embla-carousel)
-- Fix hero section height constraint
-- Consider progressive port with feature parity checklist
+Original uses Owl Carousel with `data-*` attributes. React just renders all items.
 
 ---
 
@@ -221,38 +179,21 @@ Discovered and tested `pinocchio code professional` for offloading visual compar
 - Tested the `pinocchio` CLI with multiple screenshots
 - Asked broad comparison questions
 - Asked specific section-focused questions
-- Asked component-level comparison questions
 
 ### What worked
 - Successfully identified missing "Skilled Barbers" and "Blog Posts" sections
-- Good at broad categorization (layout differences, missing content blocks)
-- Useful for getting a second opinion on visual issues
+- Good at broad categorization
 
 ### What didn't work / Limitations
-- Some hallucinated details (said breadcrumb was missing when it was actually present)
-- Generic observations when questions are too broad
-- May not catch subtle CSS/positioning differences accurately
+- Some hallucinated details (said breadcrumb was missing when present)
+- Generic observations when questions too broad
 
 ### When to use pinocchio
 | Good For | Not Good For |
 |----------|--------------|
 | Identifying missing sections | Pixel-perfect accuracy |
 | Broad layout differences | Verifying specific CSS values |
-| Quick sanity checks | Definitive proof of issues |
-| Getting fresh perspective | Replacing manual inspection |
-
-### Example commands
-```bash
-# Broad comparison
-pinocchio code professional --images original.png,react.png \
-  "What sections are MISSING from image 2?"
-
-# Component comparison  
-pinocchio code professional --images header1.png,header2.png \
-  "Compare navigation bars: menu items, layout, styling"
-```
-
-**Recommendation**: Use pinocchio as a supplementary tool for initial exploration, but always verify findings with Playwright's computed styles and manual inspection.
+| Quick sanity checks | Definitive proof |
 
 ---
 
@@ -262,54 +203,169 @@ After creating the fix plan document, we implemented all 5 phases.
 
 ### Phase 1: CSS Fixes
 - Added `.page-with-hero` class to `AboutUsPage` main element
-- Added CSS rule in `theme.css`: `.page-with-hero #page-title { margin-top: -140px; position: relative; }`
-- This fixes the hero section overlap issue
+- Added CSS rule in `theme.css`
 
 ### Phase 2: Testimonials Carousel
 - Installed `embla-carousel-react` package
 - Refactored `TestimonialsSection` to use Embla hooks
-- Added carousel dots navigation with active state
-- Added CSS for `.embla__container`, `.embla__slide`, and `.carousel-dots-nav`
+- Added carousel dots navigation
 
 ### Phase 3: TeamSection Component
 - Created `TeamSection.tsx` with `TeamMember` interface
-- Implements hover overlay for social links (Facebook, Twitter, Google+)
-- Created `TeamSection.stories.tsx` for Storybook
-- Uses same Bootstrap grid structure as original
+- Implements hover overlay for social links
+- Created Storybook stories
 
 ### Phase 4: BlogGridSection Component
 - Created `BlogGridSection.tsx` with `BlogEntry` interface
-- Includes entry image, meta, title, excerpt, and "read more" link
-- Optional "View More" button
-- Created `BlogGridSection.stories.tsx` for Storybook
+- Includes entry image, meta, title, excerpt
+- Created Storybook stories
 
 ### Phase 5: Integration
-- Updated `AboutUsPage.tsx` to import and render all sections in correct order
-- Added team members and blog entries data to `aboutUs.ts`
-- Fixed smart quote syntax error that broke Storybook compilation
-- Verified with Playwright screenshot - all sections now render
+- Updated `AboutUsPage.tsx` to import all sections
+- Added data to `aboutUs.ts`
+- Fixed smart quote syntax error
 
 ### Result
-After fixes, the AboutUsPage now renders:
-- ✅ Hero with breadcrumb
-- ✅ Video section
-- ✅ Counter section (18, 140, 370, 16)
-- ✅ Team section with 3 barbers
-- ✅ Testimonials carousel with dots
-- ✅ Blog grid with 3 posts
-- ✅ Footer
+All sections now render, but hero section layout still broken.
 
-Remaining polish: fine-tune font weights, verify hover effects, match header navigation styling.
+---
 
-## Summary of Audit Findings
+## Step 7: CSS Debugging with Computed Styles Comparison
 
-| Issue | Severity | Impact |
-|-------|----------|--------|
-| Missing Team Section | HIGH | 875px of content not rendered |
-| Missing Blog Section | HIGH | 994px of content not rendered |
-| Page Title height wrong | MEDIUM | Visual layout broken |
-| Testimonials not carousel | MEDIUM | All items visible instead of rotating |
-| Header simplified | LOW | Intentional or oversight |
+After components were added, hero section still looked wrong. Created dedicated CSS comparison tool.
 
-Total visual differences: **~2800px of content height difference** between versions.
+### What I did
+- Created `ui/scripts/compare-css.ts` - extracts computed styles from both pages
+- Ran detailed CSS comparison on specific selectors
+- Captured side-by-side section screenshots
+
+### What I found
+
+**CSS Comparison Report showed:**
+
+```
+Page Title Section (#page-title):
+  DIMENSIONS:
+     Original: 1280x466 @ (0, 0)
+     React:    1280x1336 @ (0, 140)
+
+  KEY STYLES:
+     ✗ position: Original=relative, React=static
+     ✗ marginTop: Original=-140px, React=0px
+     ✗ height: Original=466px, React=1336px
+     ✗ zIndex: Original=1, React=auto
+```
+
+### Root Cause Identified
+
+The CSS rule `.page-with-hero #page-title` was in `theme.css`, but **Storybook wasn't loading theme.css**! 
+
+Storybook's `preview-head.html` only loaded:
+```html
+<link rel="stylesheet" href="/hairy/assets/css/external.css" />
+<link rel="stylesheet" href="/hairy/assets/css/bootstrap.min.css" />
+<link rel="stylesheet" href="/hairy/assets/css/style.css" />
+```
+
+It was NOT loading our custom `theme.css` with the React-specific overrides.
+
+### The Fix
+
+Added inline `<style>` block directly to `preview-head.html` with all React-specific CSS overrides:
+
+```html
+<style>
+/* Fix for page-title hero overlap with fixed header */
+.page-with-hero #page-title,
+.page-with-hero .page-title {
+  margin-top: -140px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Fix for bg-section using <img> instead of background-image */
+.page-title .bg-section {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+}
+
+.page-title .bg-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Embla Carousel styles */
+.embla__container { display: flex; }
+.embla__slide { flex: 0 0 100%; min-width: 0; }
+/* ... carousel dots ... */
+</style>
+```
+
+### Result After Fix
+
+```
+Page Title Section (#page-title):
+  DIMENSIONS:
+     Original: 1280x466 @ (0, 0)
+     React:    1280x466 @ (0, 0)   ✅ MATCH!
+```
+
+All critical dimensions now match.
+
+### Key Learnings
+
+1. **CSS loading order matters** - Storybook's preview-head.html determines what CSS is available
+2. **The compare-css.ts script is invaluable** - Quickly pinpoints exact property differences
+3. **Adjacent sibling selectors break with React** - Must use direct class-based selectors instead
+4. **`<img>` in bg-section needs explicit styling** - Original CSS expects background-image property
+
+---
+
+## Step 8: Final Verification
+
+### What I did
+- Ran compare-css.ts to verify dimensions match
+- Used pinocchio to compare full pages
+- Captured final screenshots
+
+### Final Comparison Results
+
+| Section | Original Size | React Size | Match |
+|---------|--------------|------------|-------|
+| Page Title | 1280x466 | 1280x466 | ✅ |
+| Title Heading | 1140x72 @ (70, 220) | 1140x72 @ (70, 220) | ✅ |
+| Breadcrumb | 1140x14 @ (70, 312) | 1140x14 @ (70, 312) | ✅ |
+| Header | 1280x140 | 1280x140 | ✅ |
+| Navbar | 1280x90 @ (0, 50) | 1280x90 @ (0, 50) | ✅ |
+
+### Remaining Minor Differences
+- Navigation menu items differ (original has more items)
+- Background image crop slightly different (object-fit positioning)
+- These are acceptable for MVP
+
+---
+
+## Summary of Tools and Scripts Created
+
+| Tool | Purpose | Location |
+|------|---------|----------|
+| `compare-about-us.ts` | Full visual comparison, captures 18 sections | `ui/scripts/` |
+| `compare-css.ts` | CSS computed styles extraction and diff | `ui/scripts/` |
+| `preview-head.html` | Storybook CSS overrides for React structure | `ui/.storybook/` |
+
+## Key Takeaways
+
+1. **Always verify CSS is actually loaded** - Check browser devtools or use compare-css.ts
+2. **Adjacent sibling selectors don't work with React wrappers** - Use explicit selectors
+3. **`<img>` needs different CSS than background-image** - absolute positioning + object-fit
+4. **Storybook preview-head.html is where CSS overrides go** - Not just theme.css
+5. **pinocchio is great for broad comparisons** - But verify with Playwright for accuracy
+6. **compare-css.ts is the debugging workhorse** - Shows exact property differences
 

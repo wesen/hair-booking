@@ -9,7 +9,7 @@ Topics:
     - visual-testing
 DocType: playbook
 Intent: long-term
-Summary: "Reusable technique for capturing React component screenshots via Storybook/Playwright and analyzing them with AI agents"
+Summary: "Reusable technique for capturing React component screenshots via Storybook/Playwright, comparing CSS computed styles, and analyzing them with AI agents"
 LastUpdated: 2026-01-18
 ---
 
@@ -20,8 +20,10 @@ LastUpdated: 2026-01-18
 A reusable technique for:
 1. Rendering React components in Storybook
 2. Capturing screenshots with Playwright
-3. Analyzing visual differences with AI agents (pinocchio)
-4. Generating comparison reports
+3. **Comparing computed CSS styles between implementations**
+4. Analyzing visual differences with AI agents (pinocchio)
+5. Generating comparison reports
+6. **Debugging CSS issues with the compare-css.ts script**
 
 This playbook can be applied to any React project using Storybook for component development.
 
@@ -38,6 +40,7 @@ This playbook can be applied to any React project using Storybook for component 
 | Playwright | `npm install playwright` | Browser automation |
 | Chromium | `npx playwright install chromium` | Headless browser |
 | pinocchio | (system tool) | AI visual analysis |
+| tsx | `npm install tsx` | TypeScript execution |
 
 ### Project Requirements
 
@@ -49,7 +52,11 @@ your-project/
 │       └── MyComponent.stories.tsx   # ← Required
 ├── .storybook/
 │   ├── main.ts
-│   └── preview.ts
+│   ├── preview.ts
+│   └── preview-head.html              # ← For CSS overrides
+├── scripts/
+│   ├── compare-about-us.ts            # ← Visual comparison
+│   └── compare-css.ts                 # ← CSS debugging
 └── package.json
 ```
 
@@ -83,12 +90,6 @@ export const Default: Story = {
     prop1: 'value1',
   },
 }
-
-export const Variant: Story = {
-  args: {
-    prop1: 'different value',
-  },
-}
 ```
 
 ### 1.2 Running Storybook
@@ -100,7 +101,6 @@ npm run storybook
 
 # Build static version (for CI)
 npm run storybook:build
-# Output in storybook-static/
 ```
 
 ### 1.3 Story URL Patterns
@@ -118,16 +118,37 @@ Examples:
 - `title: 'Components/Button'` + `export const Primary` → `components-button--primary`
 - `title: 'Pages/HomePage'` + `export const Default` → `pages-homepage--default`
 
+### 1.4 CSS Loading in Storybook
+
+**CRITICAL**: Storybook loads CSS from `.storybook/preview-head.html`. If your React components need CSS overrides, add them here:
+
+```html
+<!-- .storybook/preview-head.html -->
+<link rel="stylesheet" href="/assets/css/bootstrap.min.css" />
+<link rel="stylesheet" href="/assets/css/style.css" />
+
+<style>
+/* React-specific CSS overrides go here */
+/* These fix issues where original CSS selectors don't work with React structure */
+
+.page-with-hero #page-title {
+  margin-top: -140px;
+  position: relative;
+  z-index: 1;
+}
+</style>
+```
+
 ---
 
 ## Part 2: Playwright Screenshot Capture
 
 ### 2.1 Basic Setup
 
-Create a scripts directory:
-
 ```bash
 mkdir -p scripts
+npm install playwright
+npx playwright install chromium
 ```
 
 ### 2.2 Single Screenshot Script
@@ -139,496 +160,345 @@ import * as path from 'path';
 import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 
+// ESM module fix for __dirname
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-interface CaptureOptions {
-  storyId: string;
-  outputPath: string;
-  viewport?: { width: number; height: number };
-  fullPage?: boolean;
-  selector?: string;  // Optional: capture specific element
-}
-
-async function captureScreenshot(options: CaptureOptions): Promise<string> {
-  const {
-    storyId,
-    outputPath,
-    viewport = { width: 1920, height: 1080 },
-    fullPage = true,
-    selector,
-  } = options;
-
+async function captureScreenshot(storyId: string, outputPath: string) {
   const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({ viewport });
+  const context = await browser.newContext({
+    viewport: { width: 1280, height: 720 }
+  });
   const page = await context.newPage();
 
   const url = `http://localhost:6006/iframe.html?id=${storyId}&viewMode=story`;
   
-  console.log(`📸 Capturing ${storyId}...`);
   await page.goto(url, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(1000); // Wait for animations
+  await page.waitForTimeout(2000); // Wait for animations/images
+  
+  await page.screenshot({ path: outputPath, fullPage: true });
+  console.log(`✓ Saved: ${outputPath}`);
+  
+  await browser.close();
+}
+```
 
-  // Ensure output directory exists
-  fs.mkdirSync(path.dirname(outputPath), { recursive: true });
+### 2.3 Running Screenshots
 
-  if (selector) {
-    // Capture specific element
-    const element = page.locator(selector).first();
-    await element.screenshot({ path: outputPath });
-  } else {
-    // Capture full page or viewport
-    await page.screenshot({ path: outputPath, fullPage });
+```bash
+# Ensure Storybook is running first!
+npm run storybook &
+sleep 10
+
+# Run the capture script
+npx tsx scripts/capture-screenshot.ts
+
+# Or use Playwright CLI directly
+npx playwright screenshot --full-page --wait-for-timeout=3000 \
+  'http://localhost:6006/iframe.html?id=pages-aboutuspage--full-page&viewMode=story' \
+  screenshot.png
+```
+
+### 2.4 Capturing Specific Elements
+
+```typescript
+// Capture just the hero section
+const element = await page.$('#page-title');
+if (element) {
+  await element.screenshot({ path: 'hero-section.png' });
+}
+```
+
+---
+
+## Part 3: CSS Computed Styles Comparison
+
+**This is the most valuable debugging technique discovered.**
+
+### 3.1 The Problem
+
+When porting HTML to React, CSS often breaks because:
+- Adjacent sibling selectors don't work (`.header + .content`)
+- React wrappers add extra DOM levels
+- Class names may differ
+- CSS isn't loaded in the same order
+
+### 3.2 CSS Comparison Script
+
+Create `scripts/compare-css.ts`:
+
+```typescript
+import { chromium } from 'playwright';
+import * as path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const ORIGINAL_URL = 'http://localhost:8080/page.html';
+const REACT_URL = 'http://localhost:6006/iframe.html?id=pages-mypage--default&viewMode=story';
+
+async function getElementInfo(page: any, selector: string) {
+  return await page.evaluate((sel: string) => {
+    const el = document.querySelector(sel);
+    if (!el) return null;
+    const rect = el.getBoundingClientRect();
+    const styles = window.getComputedStyle(el);
+    return {
+      exists: true,
+      bounds: { 
+        width: rect.width, 
+        height: rect.height, 
+        top: rect.top, 
+        left: rect.left 
+      },
+      computedStyles: {
+        display: styles.display,
+        position: styles.position,
+        marginTop: styles.marginTop,
+        marginBottom: styles.marginBottom,
+        paddingTop: styles.paddingTop,
+        paddingBottom: styles.paddingBottom,
+        height: styles.height,
+        minHeight: styles.minHeight,
+        backgroundColor: styles.backgroundColor,
+        backgroundImage: styles.backgroundImage,
+        backgroundSize: styles.backgroundSize,
+        fontSize: styles.fontSize,
+        fontWeight: styles.fontWeight,
+        color: styles.color,
+        zIndex: styles.zIndex,
+      },
+    };
+  }, selector);
+}
+
+async function main() {
+  const browser = await chromium.launch();
+  const originalPage = await browser.newPage();
+  const reactPage = await browser.newPage();
+
+  await originalPage.goto(ORIGINAL_URL, { waitUntil: 'networkidle' });
+  await reactPage.goto(REACT_URL, { waitUntil: 'networkidle' });
+  await reactPage.waitForTimeout(3000);
+
+  const selectors = [
+    { name: 'Hero Section', selector: '#page-title' },
+    { name: 'Title', selector: '.title--heading h1' },
+    { name: 'Header', selector: 'header' },
+  ];
+
+  console.log('CSS COMPARISON REPORT');
+  console.log('='.repeat(60));
+
+  for (const { name, selector } of selectors) {
+    console.log(`\n### ${name} (${selector})`);
+    
+    const original = await getElementInfo(originalPage, selector);
+    const react = await getElementInfo(reactPage, selector);
+
+    if (!original) { console.log('  ❌ NOT FOUND in original'); continue; }
+    if (!react) { console.log('  ❌ NOT FOUND in React'); continue; }
+
+    // Compare dimensions
+    console.log(`  📐 Original: ${original.bounds.width}x${original.bounds.height}`);
+    console.log(`  📐 React:    ${react.bounds.width}x${react.bounds.height}`);
+
+    // Compare key styles
+    const stylesToCheck = ['position', 'marginTop', 'height', 'zIndex'];
+    for (const prop of stylesToCheck) {
+      const orig = original.computedStyles[prop];
+      const curr = react.computedStyles[prop];
+      if (orig !== curr) {
+        console.log(`  ✗ ${prop}: Original="${orig}" React="${curr}"`);
+      }
+    }
   }
 
   await browser.close();
-  console.log(`  ✓ Saved: ${outputPath}`);
-  return outputPath;
-}
-
-// Example usage
-async function main() {
-  await captureScreenshot({
-    storyId: 'components-button--primary',
-    outputPath: path.join(__dirname, '../screenshots/button-primary.png'),
-  });
 }
 
 main().catch(console.error);
 ```
 
-### 2.3 Running the Script
+### 3.3 Running the Comparison
 
 ```bash
-# Ensure Storybook is running first!
+# Start both servers
+cd original-html && python3 -m http.server 8080 &
 npm run storybook &
+sleep 10
 
-# Run the capture script
-npx tsx scripts/capture-screenshot.ts
+# Run comparison
+npx tsx scripts/compare-css.ts
 ```
 
-### 2.4 Multi-Viewport Capture
+### 3.4 Interpreting Results
 
-```typescript
-// scripts/capture-responsive.ts
-const viewports = [
-  { name: 'mobile', width: 375, height: 667 },
-  { name: 'tablet', width: 768, height: 1024 },
-  { name: 'desktop', width: 1920, height: 1080 },
-];
+```
+### Hero Section (#page-title)
+  📐 Original: 1280x466
+  📐 React:    1280x1336      ← HEIGHT MISMATCH!
+  
+  ✗ position: Original="relative" React="static"
+  ✗ marginTop: Original="-140px" React="0px"
+  ✗ zIndex: Original="1" React="auto"
+```
 
-async function captureResponsive(storyId: string, outputDir: string) {
-  const browser = await chromium.launch({ headless: true });
+This tells you exactly which CSS properties to fix.
 
-  for (const vp of viewports) {
-    const context = await browser.newContext({
-      viewport: { width: vp.width, height: vp.height },
-    });
-    const page = await context.newPage();
-    
-    await page.goto(
-      `http://localhost:6006/iframe.html?id=${storyId}&viewMode=story`,
-      { waitUntil: 'networkidle' }
-    );
-    
-    const outputPath = path.join(outputDir, `${storyId}-${vp.name}.png`);
-    await page.screenshot({ path: outputPath, fullPage: true });
-    console.log(`✓ ${vp.name}: ${outputPath}`);
-    
-    await context.close();
-  }
+---
 
-  await browser.close();
+## Part 4: Common CSS Issues and Fixes
+
+### 4.1 Adjacent Sibling Selector Broken
+
+**Original CSS:**
+```css
+.header-transparent + .page-title {
+  margin-top: -140px;
 }
 ```
 
-### 2.5 Batch Capture All Stories
+**Problem:** React wraps content in `<main>` or other elements, breaking `+` selector.
 
-```typescript
-// scripts/capture-all-stories.ts
-import { chromium } from 'playwright';
+**Fix in preview-head.html:**
+```css
+.page-with-hero #page-title {
+  margin-top: -140px;
+  position: relative;
+}
+```
 
-async function getAllStoryIds(): Promise<string[]> {
-  const response = await fetch('http://localhost:6006/index.json');
-  const data = await response.json();
-  return Object.keys(data.entries).filter(id => 
-    data.entries[id].type === 'story'
-  );
+### 4.2 Background Image via `<img>` Instead of CSS
+
+**Original CSS expects:**
+```css
+.bg-section {
+  background-image: url(...);
+  background-size: cover;
+}
+```
+
+**React uses:**
+```tsx
+<div className="bg-section">
+  <img src={...} />
+</div>
+```
+
+**Fix:**
+```css
+.bg-section {
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
 }
 
-async function captureAllStories(outputDir: string) {
-  const storyIds = await getAllStoryIds();
-  console.log(`Found ${storyIds.length} stories`);
-
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({
-    viewport: { width: 1920, height: 1080 },
-  });
-
-  for (const storyId of storyIds) {
-    const page = await context.newPage();
-    await page.goto(
-      `http://localhost:6006/iframe.html?id=${storyId}&viewMode=story`,
-      { waitUntil: 'networkidle' }
-    );
-    
-    const safeName = storyId.replace(/[^a-z0-9-]/g, '-');
-    await page.screenshot({
-      path: path.join(outputDir, `${safeName}.png`),
-      fullPage: true,
-    });
-    
-    await page.close();
-    console.log(`✓ ${storyId}`);
-  }
-
-  await browser.close();
+.bg-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
+```
+
+### 4.3 CSS Not Loading in Storybook
+
+**Symptom:** Styles work in dev but not Storybook.
+
+**Fix:** Add CSS links to `.storybook/preview-head.html`:
+```html
+<link rel="stylesheet" href="/path/to/styles.css" />
 ```
 
 ---
 
-## Part 3: Comparison Screenshots
+## Part 5: AI Analysis with Pinocchio
 
-### 3.1 Side-by-Side Capture
-
-For comparing implementations (e.g., original HTML vs React):
-
-```typescript
-// scripts/compare-implementations.ts
-interface ComparisonConfig {
-  original: {
-    url: string;
-    selector?: string;
-  };
-  react: {
-    storyId: string;
-    selector?: string;
-  };
-  outputDir: string;
-  viewport: { width: number; height: number };
-}
-
-async function captureComparison(config: ComparisonConfig) {
-  const browser = await chromium.launch({ headless: true });
-  const context = await browser.newContext({ viewport: config.viewport });
-
-  // Capture original
-  const originalPage = await context.newPage();
-  await originalPage.goto(config.original.url, { waitUntil: 'networkidle' });
-  
-  if (config.original.selector) {
-    await originalPage.locator(config.original.selector).first()
-      .screenshot({ path: path.join(config.outputDir, 'original.png') });
-  } else {
-    await originalPage.screenshot({ 
-      path: path.join(config.outputDir, 'original.png'),
-      fullPage: true 
-    });
-  }
-
-  // Capture React
-  const reactPage = await context.newPage();
-  const storyUrl = `http://localhost:6006/iframe.html?id=${config.react.storyId}&viewMode=story`;
-  await reactPage.goto(storyUrl, { waitUntil: 'networkidle' });
-  
-  if (config.react.selector) {
-    await reactPage.locator(config.react.selector).first()
-      .screenshot({ path: path.join(config.outputDir, 'react.png') });
-  } else {
-    await reactPage.screenshot({ 
-      path: path.join(config.outputDir, 'react.png'),
-      fullPage: true 
-    });
-  }
-
-  await browser.close();
-  console.log(`✓ Comparison saved to ${config.outputDir}`);
-}
-```
-
-### 3.2 Extract Element Metadata
-
-```typescript
-async function extractElementInfo(page: Page, selector: string) {
-  const element = page.locator(selector).first();
-  
-  const exists = await element.count() > 0;
-  if (!exists) return { exists: false };
-
-  const visible = await element.isVisible();
-  if (!visible) return { exists: true, visible: false };
-
-  const bounds = await element.boundingBox();
-  
-  const styles = await element.evaluate((el) => {
-    const computed = window.getComputedStyle(el);
-    return {
-      fontFamily: computed.fontFamily,
-      fontSize: computed.fontSize,
-      color: computed.color,
-      backgroundColor: computed.backgroundColor,
-      padding: computed.padding,
-      margin: computed.margin,
-    };
-  });
-
-  return {
-    exists: true,
-    visible: true,
-    bounds,
-    styles,
-  };
-}
-```
-
----
-
-## Part 4: AI Analysis with Pinocchio
-
-### 4.1 Basic Usage
-
-The `pinocchio code professional` command accepts images and questions:
+### 5.1 Basic Usage
 
 ```bash
 pinocchio code professional \
-  --images image1.png,image2.png \
+  --images original.png,react.png \
   "Your question about the images"
 ```
 
-### 4.2 Effective Prompts
+### 5.2 Effective Prompts
 
 | Goal | Prompt Template |
 |------|-----------------|
 | Find missing content | "What sections appear in image 1 but are MISSING from image 2?" |
-| Compare layouts | "Compare the layout of these two screenshots. Focus on: 1) spacing 2) alignment 3) proportions" |
-| Identify style differences | "What are the typography and color differences between these two versions?" |
-| Navigation comparison | "Compare the navigation bars. List differences in: menu items, icons, buttons" |
+| Compare layouts | "Compare the layout of these two screenshots. Focus on spacing, alignment, proportions" |
+| Identify differences | "What are the typography and color differences between these two versions?" |
+| Verify fix | "How close is the React version (image 2) to the original (image 1) now?" |
 
-### 4.3 Scripted AI Analysis
+### 5.3 Strengths and Limitations
 
-```bash
-#!/bin/bash
-# scripts/analyze-screenshots.sh
+| ✅ Good For | ❌ Not Good For |
+|-------------|-----------------|
+| Identifying missing sections | Pixel-perfect accuracy |
+| Broad layout differences | Exact CSS values |
+| Quick sanity checks | Definitive proof |
+| Getting fresh perspective | Replacing compare-css.ts |
 
-SCREENSHOTS_DIR="./screenshots"
-OUTPUT_FILE="./analysis-report.md"
+### 5.4 Best Practice: Combine Both
 
-echo "# Visual Analysis Report" > $OUTPUT_FILE
-echo "" >> $OUTPUT_FILE
-echo "Generated: $(date)" >> $OUTPUT_FILE
-echo "" >> $OUTPUT_FILE
-
-# Compare full pages
-echo "## Full Page Comparison" >> $OUTPUT_FILE
-echo "" >> $OUTPUT_FILE
-
-ANALYSIS=$(pinocchio code professional \
-  --images "$SCREENSHOTS_DIR/original.png,$SCREENSHOTS_DIR/react.png" \
-  "Compare these two website screenshots. List ALL visual differences including: layout, colors, typography, spacing, missing elements, and any other discrepancies.")
-
-echo "$ANALYSIS" >> $OUTPUT_FILE
-echo "" >> $OUTPUT_FILE
-
-# Analyze specific sections
-for section in header hero footer; do
-  if [[ -f "$SCREENSHOTS_DIR/original-$section.png" && -f "$SCREENSHOTS_DIR/react-$section.png" ]]; then
-    echo "## $section Section" >> $OUTPUT_FILE
-    echo "" >> $OUTPUT_FILE
-    
-    SECTION_ANALYSIS=$(pinocchio code professional \
-      --images "$SCREENSHOTS_DIR/original-$section.png,$SCREENSHOTS_DIR/react-$section.png" \
-      "Compare these $section sections. What are the specific differences?")
-    
-    echo "$SECTION_ANALYSIS" >> $OUTPUT_FILE
-    echo "" >> $OUTPUT_FILE
-  fi
-done
-
-echo "Report saved to $OUTPUT_FILE"
-```
-
-### 4.4 TypeScript Integration
-
-```typescript
-// scripts/ai-analyze.ts
-import { execSync } from 'child_process';
-
-interface AnalysisResult {
-  question: string;
-  images: string[];
-  response: string;
-}
-
-function analyzeWithPinocchio(
-  images: string[],
-  question: string
-): AnalysisResult {
-  const imageArg = images.join(',');
-  
-  const response = execSync(
-    `pinocchio code professional --images "${imageArg}" "${question}"`,
-    { encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 }
-  );
-
-  return {
-    question,
-    images,
-    response: response.trim(),
-  };
-}
-
-// Usage
-const result = analyzeWithPinocchio(
-  ['./screenshots/original.png', './screenshots/react.png'],
-  'What content is missing from the second image?'
-);
-
-console.log(result.response);
-```
-
-### 4.5 Best Practices for AI Analysis
-
-| ✅ Do | ❌ Don't |
-|-------|----------|
-| Ask specific, focused questions | Ask vague "what's different?" |
-| Compare similar-sized sections | Compare tiny vs huge images |
-| Verify critical findings manually | Trust AI for pixel-perfect accuracy |
-| Use for broad categorization | Rely on for CSS value extraction |
-| Chain multiple focused questions | Ask everything in one prompt |
-
-### 4.6 Combining Playwright Data + AI Analysis
-
-```typescript
-async function comprehensiveAnalysis(
-  originalUrl: string,
-  storyId: string,
-  sections: Array<{ selector: string; name: string }>
-) {
-  const results = [];
-
-  // 1. Capture screenshots and extract metadata
-  for (const section of sections) {
-    const originalMeta = await extractElementInfo(originalPage, section.selector);
-    const reactMeta = await extractElementInfo(reactPage, section.selector);
-
-    // 2. Use Playwright for quantitative comparison
-    const quantitativeIssues = [];
-    if (!reactMeta.exists && originalMeta.exists) {
-      quantitativeIssues.push(`MISSING: ${section.name} not found in React`);
-    }
-    if (originalMeta.bounds && reactMeta.bounds) {
-      const heightDiff = Math.abs(originalMeta.bounds.height - reactMeta.bounds.height);
-      if (heightDiff > 10) {
-        quantitativeIssues.push(`HEIGHT: ${heightDiff}px difference`);
-      }
-    }
-
-    // 3. Use AI for qualitative comparison (only if screenshots exist)
-    let qualitativeAnalysis = '';
-    if (originalMeta.visible && reactMeta.visible) {
-      qualitativeAnalysis = analyzeWithPinocchio(
-        [`screenshots/original-${section.name}.png`, `screenshots/react-${section.name}.png`],
-        `Compare these ${section.name} sections. What visual differences do you see?`
-      ).response;
-    }
-
-    results.push({
-      section: section.name,
-      quantitative: quantitativeIssues,
-      qualitative: qualitativeAnalysis,
-    });
-  }
-
-  return results;
-}
-```
+1. Use **pinocchio** for initial exploration: "What's different?"
+2. Use **compare-css.ts** to get exact property values
+3. Fix the CSS
+4. Use **pinocchio** to verify: "How close is it now?"
 
 ---
 
-## Part 5: Complete Workflow
+## Part 6: Complete Workflow
 
-### 5.1 Setup Phase
+### 6.1 Setup Phase
 
 ```bash
-# 1. Install dependencies
-cd your-project
+# Install dependencies
 npm install playwright
 npx playwright install chromium
 
-# 2. Create scripts directory
-mkdir -p scripts screenshots
+# Create scripts directory
+mkdir -p scripts
 ```
 
-### 5.2 Capture Phase
+### 6.2 Discovery Phase
 
 ```bash
-# 1. Start Storybook
+# Start both servers
+cd original-html && python3 -m http.server 8080 &
 npm run storybook &
-sleep 10  # Wait for startup
 
-# 2. (Optional) Start server for original HTML
-cd original-templates && python3 -m http.server 8080 &
-cd ..
+# Take initial screenshots
+npx playwright screenshot --full-page \
+  'http://localhost:8080/page.html' original.png
+npx playwright screenshot --full-page --wait-for-timeout=3000 \
+  'http://localhost:6006/iframe.html?id=pages-mypage--default&viewMode=story' react.png
 
-# 3. Run capture script
-npx tsx scripts/capture-comparison.ts
+# Get AI overview
+pinocchio code professional --images original.png,react.png \
+  "What are the major visual differences between these two pages?"
 ```
 
-### 5.3 Analysis Phase
+### 6.3 Debugging Phase
 
 ```bash
-# 1. Run Playwright comparison (quantitative)
-npx tsx scripts/analyze-dimensions.ts > reports/playwright-analysis.json
+# Run CSS comparison
+npx tsx scripts/compare-css.ts
 
-# 2. Run AI analysis (qualitative)
-./scripts/analyze-screenshots.sh
-
-# 3. Generate combined report
-npx tsx scripts/generate-report.ts
+# Identify which properties differ
+# Fix CSS in preview-head.html or component styles
 ```
 
-### 5.4 CI Integration
+### 6.4 Verification Phase
 
-```yaml
-# .github/workflows/visual-test.yml
-name: Visual Regression
+```bash
+# Re-run comparison
+npx tsx scripts/compare-css.ts
 
-on: [pull_request]
-
-jobs:
-  visual-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Install Playwright
-        run: npx playwright install chromium
-        
-      - name: Build Storybook
-        run: npm run storybook:build
-        
-      - name: Start Storybook
-        run: npx serve storybook-static -p 6006 &
-        
-      - name: Wait for Storybook
-        run: npx wait-on http://localhost:6006
-        
-      - name: Capture screenshots
-        run: npx tsx scripts/capture-all-stories.ts
-        
-      - name: Upload screenshots
-        uses: actions/upload-artifact@v4
-        with:
-          name: screenshots
-          path: screenshots/
+# Verify dimensions match
+# Take new screenshots
+# Use pinocchio to confirm fix
 ```
 
 ---
@@ -641,20 +511,22 @@ jobs:
 # Start Storybook
 npm run storybook
 
+# Start original HTML server
+python3 -m http.server 8080
+
 # Install Playwright browser
 npx playwright install chromium
 
-# Capture single screenshot
-npx tsx scripts/capture-screenshot.ts
+# Single screenshot with wait
+npx playwright screenshot --full-page --wait-for-timeout=3000 \
+  'http://localhost:6006/iframe.html?id=story-id&viewMode=story' output.png
 
-# Run comparison
-npx tsx scripts/compare-implementations.ts
+# Run comparison scripts
+npx tsx scripts/compare-css.ts
+npx tsx scripts/compare-about-us.ts
 
 # AI analysis
 pinocchio code professional --images img1.png,img2.png "Your question"
-
-# List all story IDs
-curl http://localhost:6006/index.json | jq '.entries | keys'
 ```
 
 ### Story URL Template
@@ -663,13 +535,13 @@ curl http://localhost:6006/index.json | jq '.entries | keys'
 http://localhost:6006/iframe.html?id={story-id}&viewMode=story
 ```
 
-### Viewport Presets
+### Key Files
 
-| Name | Width | Height |
-|------|-------|--------|
-| Mobile | 375 | 667 |
-| Tablet | 768 | 1024 |
-| Desktop | 1920 | 1080 |
+| File | Purpose |
+|------|---------|
+| `.storybook/preview-head.html` | CSS loading and overrides |
+| `scripts/compare-css.ts` | CSS property comparison |
+| `scripts/compare-about-us.ts` | Full visual comparison |
 
 ---
 
@@ -678,7 +550,18 @@ http://localhost:6006/iframe.html?id={story-id}&viewMode=story
 | Issue | Solution |
 |-------|----------|
 | "Executable doesn't exist" | `npx playwright install chromium` |
-| "__dirname not defined" | Add ESM shim (see Part 2.2) |
-| Blank screenshots | Increase `waitForTimeout()` |
+| "__dirname not defined" | Add ESM shim with `fileURLToPath(import.meta.url)` |
+| Blank/loading screenshots | Increase `waitForTimeout()` to 3000+ |
 | Story not found | Check story ID format (kebab-case) |
-| pinocchio hangs | Check image paths are correct |
+| CSS not applying | Check preview-head.html loads CSS |
+| Adjacent sibling broken | Use direct class selector instead |
+| Background image wrong | Add absolute positioning + object-fit |
+
+---
+
+## Files to Copy to New Projects
+
+1. **`scripts/compare-css.ts`** - The CSS debugging workhorse
+2. **`.storybook/preview-head.html`** - Template for CSS overrides
+3. **This playbook** - Reference documentation
+
