@@ -31,6 +31,10 @@ func Open(path string) (*Store, error) {
 	db.SetMaxOpenConns(1)
 	db.SetMaxIdleConns(1)
 
+	if _, err := db.Exec(`PRAGMA foreign_keys = ON`); err != nil {
+		return nil, err
+	}
+
 	if err := ensureSchema(db); err != nil {
 		return nil, err
 	}
@@ -44,6 +48,21 @@ func (s *Store) Close() error {
 		return nil
 	}
 	return s.db.Close()
+}
+
+// Reset removes all bookings and decision trees.
+func (s *Store) Reset() error {
+	if s == nil || s.db == nil {
+		return errors.New("store not initialized")
+	}
+
+	if _, err := s.db.Exec(`DELETE FROM bookings`); err != nil {
+		return err
+	}
+	if _, err := s.db.Exec(`DELETE FROM decision_trees`); err != nil {
+		return err
+	}
+	return nil
 }
 
 // DecisionTree represents a decision tree record.

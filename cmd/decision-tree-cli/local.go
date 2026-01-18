@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-go-golems/XXX/internal/cli"
 	"github.com/go-go-golems/XXX/internal/dsl"
+	"github.com/go-go-golems/XXX/internal/store"
 )
 
 func newLocalCommand() *cobra.Command {
@@ -19,6 +20,7 @@ func newLocalCommand() *cobra.Command {
 
 	localCmd.AddCommand(newLocalParseCommand())
 	localCmd.AddCommand(newLocalRunCommand())
+	localCmd.AddCommand(newLocalResetCommand())
 
 	return localCmd
 }
@@ -83,6 +85,33 @@ func newLocalRunCommand() *cobra.Command {
 	cmd.Flags().StringArrayVar(&selections, "select", nil, "option labels to select in order")
 	_ = cmd.MarkFlagRequired("file")
 	_ = cmd.MarkFlagRequired("select")
+
+	return cmd
+}
+
+func newLocalResetCommand() *cobra.Command {
+	var dbPath string
+
+	cmd := &cobra.Command{
+		Use:   "reset-db",
+		Short: "Delete all decision trees and bookings from the SQLite DB",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			store, err := store.Open(dbPath)
+			if err != nil {
+				return err
+			}
+			defer func() { _ = store.Close() }()
+
+			if err := store.Reset(); err != nil {
+				return err
+			}
+
+			fmt.Fprintln(cmd.OutOrStdout(), "OK")
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&dbPath, "db-path", "decision-tree.db", "sqlite database path")
 
 	return cmd
 }

@@ -39,8 +39,12 @@ func newRestCommand() *cobra.Command {
 	restCmd.AddCommand(newRestCreateTreeCommand(cfg))
 	restCmd.AddCommand(newRestListTreesCommand(cfg))
 	restCmd.AddCommand(newRestGetTreeCommand(cfg))
+	restCmd.AddCommand(newRestDeleteTreeCommand(cfg))
 	restCmd.AddCommand(newRestValidateTreeCommand(cfg))
 	restCmd.AddCommand(newRestRunCommand(cfg))
+	restCmd.AddCommand(newRestListBookingsCommand(cfg))
+	restCmd.AddCommand(newRestGetBookingCommand(cfg))
+	restCmd.AddCommand(newRestResetTreesCommand(cfg))
 
 	return restCmd
 }
@@ -134,6 +138,28 @@ func newRestGetTreeCommand(cfg *restConfig) *cobra.Command {
 	return cmd
 }
 
+func newRestDeleteTreeCommand(cfg *restConfig) *cobra.Command {
+	var id int64
+
+	cmd := &cobra.Command{
+		Use:   "delete-tree",
+		Short: "Delete a decision tree by ID",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var response any
+			if err := restDoJSON(cfg, http.MethodDelete, fmt.Sprintf("/api/decision-trees/%d", id), nil, &response); err != nil {
+				return err
+			}
+			prettyPrint(cmd.OutOrStdout(), response)
+			return nil
+		},
+	}
+
+	cmd.Flags().Int64Var(&id, "id", 0, "decision tree ID")
+	_ = cmd.MarkFlagRequired("id")
+
+	return cmd
+}
+
 func newRestValidateTreeCommand(cfg *restConfig) *cobra.Command {
 	var filePath string
 
@@ -164,6 +190,11 @@ func newRestValidateTreeCommand(cfg *restConfig) *cobra.Command {
 func newRestRunCommand(cfg *restConfig) *cobra.Command {
 	var treeID int64
 	var selections []string
+	var clientName string
+	var clientEmail string
+	var clientPhone string
+	var preferredDateTime string
+	var notes string
 
 	cmd := &cobra.Command{
 		Use:   "run",
@@ -198,8 +229,16 @@ func newRestRunCommand(cfg *restConfig) *cobra.Command {
 				"selectedServices": string(selectedBytes),
 				"totalPrice":       state.TotalPrice,
 				"totalDuration":    state.TotalDuration,
-				"appliedRules":     strings.Join(state.AppliedRules, "; "),
 			}
+			if len(state.AppliedRules) > 0 {
+				payload["appliedRules"] = strings.Join(state.AppliedRules, "; ")
+			}
+			setOptional(payload, "clientName", clientName)
+			setOptional(payload, "clientEmail", clientEmail)
+			setOptional(payload, "clientPhone", clientPhone)
+			setOptional(payload, "preferredDateTime", preferredDateTime)
+			setOptional(payload, "notes", notes)
+
 			var response any
 			if err := restDoJSON(cfg, http.MethodPost, "/api/bookings", payload, &response); err != nil {
 				return err
@@ -216,12 +255,91 @@ func newRestRunCommand(cfg *restConfig) *cobra.Command {
 
 	cmd.Flags().Int64Var(&treeID, "tree-id", 0, "decision tree ID")
 	cmd.Flags().StringArrayVar(&selections, "select", nil, "option labels to select in order")
+	cmd.Flags().StringVar(&clientName, "client-name", "", "booking client name")
+	cmd.Flags().StringVar(&clientEmail, "client-email", "", "booking client email")
+	cmd.Flags().StringVar(&clientPhone, "client-phone", "", "booking client phone")
+	cmd.Flags().StringVar(&preferredDateTime, "preferred-datetime", "", "preferred RFC3339 datetime")
+	cmd.Flags().StringVar(&notes, "notes", "", "booking notes")
 	_ = cmd.MarkFlagRequired("tree-id")
 	_ = cmd.MarkFlagRequired("select")
 
 	return cmd
 }
 
+func newRestListBookingsCommand(cfg *restConfig) *cobra.Command {
+	cmd := &cobra.Command{
+		Use:   "list-bookings",
+		Short: "List bookings",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var response any
+			if err := restDoJSON(cfg, http.MethodGet, "/api/bookings", nil, &response); err != nil {
+				return err
+			}
+			prettyPrint(cmd.OutOrStdout(), response)
+			return nil
+		},
+	}
+
+	return cmd
+}
+
+func newRestGetBookingCommand(cfg *restConfig) *cobra.Command {
+	var id int64
+
+	cmd := &cobra.Command{
+		Use:   "get-booking",
+		Short: "Get a booking by ID",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			var response any
+			if err := restDoJSON(cfg, http.MethodGet, fmt.Sprintf("/api/bookings/%d", id), nil, &response); err != nil {
+				return err
+			}
+			prettyPrint(cmd.OutOrStdout(), response)
+			return nil
+		},
+	}
+
+	cmd.Flags().Int64Var(&id, "id", 0, "booking ID")
+	_ = cmd.MarkFlagRequired("id")
+
+	return cmd
+}
+
+func newRestResetTreesCommand(cfg *restConfig) *cobra.Command {
+	var yes bool
+
+	cmd := &cobra.Command{
+		Use:   "reset-trees",
+		Short: "Delete all decision trees (and their bookings)",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if !yes {
+				return fmt.Errorf("pass --yes to confirm reset")
+			}
+
+			var trees []struct {
+				ID int64 `json:"id"`
+			}
+			if err := restDoJSON(cfg, http.MethodGet, "/api/decision-trees/all", nil, &trees); err != nil {
+				return err
+			}
+
+			deleted := 0
+			for _, tree := range trees {
+				var response any
+				if err := restDoJSON(cfg, http.MethodDelete, fmt.Sprintf("/api/decision-trees/%d", tree.ID), nil, &response); err != nil {
+					return err
+				}
+				deleted++
+			}
+			prettyPrint(cmd.OutOrStdout(), map[string]any{"deletedTrees": deleted})
+			return nil
+		},
+	}
+
+	cmd.Flags().BoolVar(&yes, "yes", false, "confirm reset")
+
+	return cmd
+}
 func restDoJSON(cfg *restConfig, method, path string, body any, out any) error {
 	url := strings.TrimRight(cfg.baseURL, "/") + path
 
@@ -266,4 +384,11 @@ func prettyPrint(w io.Writer, payload any) {
 		return
 	}
 	fmt.Fprintln(w, string(data))
+}
+
+func setOptional(payload map[string]any, key, value string) {
+	if strings.TrimSpace(value) == "" {
+		return
+	}
+	payload[key] = value
 }
