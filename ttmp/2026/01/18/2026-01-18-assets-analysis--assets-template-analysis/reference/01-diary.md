@@ -9,7 +9,7 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: "Implementation diary for assets template analysis."
-LastUpdated: 2026-01-18T17:48:00-05:00
+LastUpdated: 2026-01-18T17:56:00-05:00
 WhatFor: "Record work steps, decisions, and validation for the assets template analysis."
 WhenToUse: "Update after each research/analysis milestone."
 ---
@@ -426,3 +426,83 @@ I copied the original Hairy assets into the React UI’s public folder and rewir
 ### Technical details
 - Commands run:
   - `rsync -a assets/Hairy/assets/ ui/public/hairy/assets/`
+
+## Step 10: Commit UI + ticket documentation changes
+
+After aligning the UI with the original template and updating the ticket docs, I staged the `ui/` and `ttmp/` changes and created a commit. This captures the asset copy, widget refactors, Storybook stories, and doc updates in a single checkpoint so the work can be reviewed or rolled forward cleanly.
+
+### What I did
+- Staged `ui/` and `ttmp/` with `git add ui ttmp`.
+- Committed changes with `git commit -m "UI: add Storybook + About Us widgets with template assets"`.
+- Noted Git warnings about CRLF → LF normalization on template asset files.
+
+### Why
+- Lock in a reproducible checkpoint after significant UI and documentation updates.
+- Keep the ticket docs and UI changes in sync.
+
+### What worked
+- The commit completed successfully and includes the copied template assets, widget refactors, and Storybook stories.
+
+### What didn't work
+- Git emitted line-ending warnings during staging, e.g. `CRLF will be replaced by LF` for several template asset files.
+
+### What I learned
+- Staging large vendor assets triggers line-ending normalization warnings; this is expected but noisy.
+
+### What was tricky to build
+- N/A.
+
+### What warrants a second pair of eyes
+- Confirm the commit scope is acceptable given it includes large static assets plus docs.
+
+### What should be done in the future
+- If asset diffs become too noisy, consider storing them in a dedicated static assets commit or LFS.
+
+### Code review instructions
+- Review commit `0171724` and focus on `ui/` component changes and `ttmp/` doc updates.
+- No automated tests were run.
+
+### Technical details
+- Commands run:
+  - `git add ui ttmp`
+  - `git commit -m "UI: add Storybook + About Us widgets with template assets"`
+
+## Step 11: Restart Storybook in tmux to reload template CSS
+
+I restarted the Storybook tmux session to ensure it picked up the updated preview head and template CSS assets. This guarantees the widget and page stories render with the same styling as the app.
+
+### What I did
+- Killed the existing `storybook` tmux session.
+- Started a new `storybook` tmux session running `bun run storybook`.
+- Confirmed Storybook booted and is serving on port 6006.
+
+### Why
+- Storybook needs a restart to load new preview head assets.
+
+### What worked
+- Storybook restarted cleanly and is serving at `http://localhost:6006/`.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Restarting Storybook after CSS changes avoids stale preview head configuration.
+
+### What was tricky to build
+- N/A.
+
+### What warrants a second pair of eyes
+- Confirm Storybook visuals now match the original template for the About Us page and widgets.
+
+### What should be done in the future
+- If CSS changes are frequent, document a restart step in the developer workflow.
+
+### Code review instructions
+- Attach to tmux: `tmux attach -t storybook` and verify the Storybook logs.
+- Open the `Pages/AboutUsPage` story and compare to the original HTML.
+
+### Technical details
+- Commands run:
+  - `tmux kill-session -t storybook`
+  - `tmux new-session -d -s storybook 'cd /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ui && bun run storybook'`
+  - `tmux capture-pane -pt storybook -S -200`
