@@ -95,3 +95,12 @@ Step 11: structured DSL validation issues (commit 14fdd829).
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/dsl/parser.go — Structured validation issues.
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/server/handlers.go — Validate endpoint returns issues.
 
+
+## 2026-01-18
+
+Step 12: add line/column metadata to validation issues (commit 908ab7c4).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/dsl/parser.go — Position extraction for validation issues.
+

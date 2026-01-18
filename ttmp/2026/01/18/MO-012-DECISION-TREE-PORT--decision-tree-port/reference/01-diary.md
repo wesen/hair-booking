@@ -27,7 +27,9 @@ RelatedFiles:
     - Path: internal/cli/runner.go
       Note: Selection runner used by CLI.
     - Path: internal/dsl/parser.go
-      Note: Added ValidationIssue and multi-issue validation.
+      Note: |-
+        Added ValidationIssue and multi-issue validation.
+        Position-aware validation logic.
     - Path: internal/server/handlers.go
       Note: Validation endpoint returns structured issues.
     - Path: internal/server/handlers_test.go
@@ -38,10 +40,11 @@ RelatedFiles:
       Note: Primary analysis document created in this diary.
 ExternalSources: []
 Summary: Step-by-step analysis log for porting hair-stylist-intake to Go + React/RTK with embedded frontend.
-LastUpdated: 2026-01-18T17:51:38-05:00
+LastUpdated: 2026-01-18T18:00:52-05:00
 WhatFor: Capture the analysis workflow and key decisions for the Decision Tree port.
 WhenToUse: Use when continuing the port or reviewing analysis choices.
 ---
+
 
 
 
@@ -489,3 +492,42 @@ I expanded DSL validation to return structured issue objects (code + context) an
 
 ### Technical details
 - Sample output includes `ROOT_NOT_FOUND` and `OPTIONS_REQUIRED` issues.
+
+## Step 12: Line/column metadata for validation issues
+
+I augmented the DSL validator to capture YAML line/column positions for key fields (root, node IDs, option labels). This makes validation responses actionable in editors that want to highlight where an error originates.
+
+**Commit (code):** 908ab7c4d9f36bf2e0ec4a60a1d1e3ad85a7b3c4 — "Validation: add line/column positions"
+
+### What I did
+- Parsed the YAML into a `yaml.Node` to extract field positions.
+- Attached line/column info to validation issues when the source location is known.
+- Added fallback logic for missing labels to use option index positions.
+
+### Why
+- The frontend and CLI need precise error locations to highlight invalid DSL sections.
+
+### What worked
+- `rest validate` now returns `line` and `column` fields for root and option-related issues.
+
+### What didn't work
+- First validation attempt failed because the server was not running; restarted via tmux and retried.
+
+### What I learned
+- `yaml.Node` provides reliable positions for mapping keys and values; missing fields require best-effort location heuristics.
+
+### What was tricky to build
+- Aligning positions with human-readable errors when a field is missing or a node is absent.
+
+### What warrants a second pair of eyes
+- Confirm that position mapping uses the correct nodes (value vs key) for highlighting in the UI.
+
+### What should be done in the future
+- Consider adding path metadata for nested errors if the UI needs richer highlighting.
+
+### Code review instructions
+- Review `internal/dsl/parser.go` (position extraction and validation).
+- Validate with `go run ./cmd/decision-tree-cli rest validate --file examples/decision-trees/invalid.yaml`.
+
+### Technical details
+- Positions are derived from the YAML mapping nodes for `name`, `root`, `nodes`, and `options`.
