@@ -14,22 +14,29 @@ RelatedFiles:
       Note: Embedded frontend guidance referenced for the port plan.
     - Path: assets/hair-stylist-intake/docs/README.md
       Note: Asset overview used to scope the analysis.
+    - Path: cmd/decision-tree-cli/local.go
+      Note: Added local reset-db command.
     - Path: cmd/decision-tree-cli/rest.go
-      Note: REST exerciser commands.
+      Note: |-
+        REST exerciser commands.
+        Added booking metadata flags and reset/list commands.
     - Path: examples/decision-trees/color.yaml
       Note: Sample DSL used for local and REST runs.
     - Path: internal/cli/runner.go
       Note: Selection runner used by CLI.
     - Path: internal/server/handlers_test.go
       Note: End-to-end REST test coverage.
+    - Path: internal/store/store.go
+      Note: Enabled foreign key enforcement and added Reset().
     - Path: ttmp/2026/01/18/MO-012-DECISION-TREE-PORT--decision-tree-port/analysis/01-hair-stylist-intake-asset-analysis.md
       Note: Primary analysis document created in this diary.
 ExternalSources: []
 Summary: Step-by-step analysis log for porting hair-stylist-intake to Go + React/RTK with embedded frontend.
-LastUpdated: 2026-01-18T17:38:10-05:00
+LastUpdated: 2026-01-18T17:44:37-05:00
 WhatFor: Capture the analysis workflow and key decisions for the Decision Tree port.
 WhenToUse: Use when continuing the port or reviewing analysis choices.
 ---
+
 
 
 
@@ -393,3 +400,45 @@ I added a CLI that can run decision trees locally and over REST, plus example DS
 - REST exercises:
   - `go run ./cmd/decision-tree-cli rest create-tree --file examples/decision-trees/basic.yaml --publish`
   - `go run ./cmd/decision-tree-cli rest run --tree-id 1 --select "Men's Cut"`
+
+## Step 10: CLI booking metadata, reset helpers, and foreign key enforcement
+
+I extended the CLI to include booking metadata flags, booking listing/getting, and a reset command to wipe trees via REST. I also added a local reset subcommand and enabled SQLite foreign keys on startup so deletes cascade correctly.
+
+**Commit (code):** 3002c5765a3ac057a23d09c5cb802599a35b42be — "CLI: add booking metadata and reset helpers"
+
+### What I did
+- Added REST flags for `client-name`, `client-email`, `client-phone`, `preferred-datetime`, and `notes`.
+- Added REST commands to delete trees, list/get bookings, and reset trees (`--yes`).
+- Added local `reset-db` command that clears bookings and decision trees.
+- Enabled `PRAGMA foreign_keys = ON` in the SQLite store.
+
+### Why
+- Support more realistic booking runs and allow quick cleanup during repeated tests.
+
+### What worked
+- REST runs accepted booking metadata and stored it as expected.
+- `reset-trees --yes` successfully removed prior trees during testing.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Foreign key enforcement must be enabled explicitly for SQLite to honor cascading deletes.
+
+### What was tricky to build
+- Ensuring optional booking fields only send when set to avoid accidental blank updates.
+
+### What warrants a second pair of eyes
+- Confirm reset behavior is acceptable without auth in a dev environment.
+
+### What should be done in the future
+- Consider adding a CLI command to wipe bookings explicitly if needed.
+
+### Code review instructions
+- Review `cmd/decision-tree-cli/rest.go` for REST flags and reset behavior.
+- Review `internal/store/store.go` for `PRAGMA foreign_keys` and reset logic.
+
+### Technical details
+- REST run example:
+  - `go run ./cmd/decision-tree-cli rest run --tree-id 4 --select "Women's Cut" --select "Full Highlights" --client-name "Ada Lovelace" --client-email "ada@example.com"`

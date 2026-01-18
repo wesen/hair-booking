@@ -75,3 +75,13 @@ Step 9: CLI exercisers + REST tests (commit 5ae3e1a6).
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/cmd/decision-tree-cli/rest.go — REST CLI tooling.
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/server/handlers_test.go — Server test coverage.
 
+
+## 2026-01-18
+
+Step 10: CLI metadata + reset helpers (commit 3002c576).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/cmd/decision-tree-cli/rest.go — REST CLI enhancements.
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/store/store.go — SQLite FK enforcement + reset.
+
