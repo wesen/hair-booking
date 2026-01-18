@@ -1,3 +1,6 @@
+import useEmblaCarousel from 'embla-carousel-react'
+import { useCallback, useEffect, useState } from 'react'
+
 export interface Testimonial {
   quote: string
   name: string
@@ -18,8 +21,28 @@ export function TestimonialsSection({
   backgroundImageUrl,
   items,
 }: TestimonialsSectionProps) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true })
+  const [selectedIndex, setSelectedIndex] = useState(0)
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return
+    setSelectedIndex(emblaApi.selectedScrollSnap())
+  }, [emblaApi])
+
+  useEffect(() => {
+    if (!emblaApi) return
+    onSelect()
+    emblaApi.on('select', onSelect)
+    return () => {
+      emblaApi.off('select', onSelect)
+    }
+  }, [emblaApi, onSelect])
+
   return (
-    <section id="testimonial2" className="testimonial testimonial-2 bg-overlay bg-overlay-dark bg-parallax text-center">
+    <section
+      id="testimonial2"
+      className="testimonial testimonial-2 bg-overlay bg-overlay-dark bg-parallax text-center"
+    >
       {backgroundImageUrl ? (
         <div className="bg-section">
           <img src={backgroundImageUrl} alt="Background" />
@@ -42,24 +65,33 @@ export function TestimonialsSection({
             <div
               id="testimonial-carousel"
               className="carousel carousel-dots carousel-white"
-              data-slide="1"
-              data-slide-rs="1"
-              data-autoplay="false"
-              data-nav="false"
-              data-dots="true"
-              data-space="30"
-              data-loop="true"
-              data-speed="800"
+              ref={emblaRef}
             >
-              {items.map((item, index) => (
-                <div key={`${item.name}-${index}`} className="testimonial-panel">
-                  <div className="testimonial--body">
-                    <p>“{item.quote}”</p>
+              <div className="embla__container">
+                {items.map((item, index) => (
+                  <div key={`${item.name}-${index}`} className="embla__slide">
+                    <div className="testimonial-panel">
+                      <div className="testimonial--body">
+                        <p>"{item.quote}"</p>
+                      </div>
+                      <div className="testimonial--meta-content">
+                        <h4>– {item.name}</h4>
+                      </div>
+                    </div>
                   </div>
-                  <div className="testimonial--meta-content">
-                    <h4>– {item.name}</h4>
-                  </div>
-                </div>
+                ))}
+              </div>
+            </div>
+            {/* Carousel dots navigation */}
+            <div className="carousel-dots-nav">
+              {items.map((_, index) => (
+                <button
+                  key={index}
+                  type="button"
+                  className={`dot ${index === selectedIndex ? 'active' : ''}`}
+                  onClick={() => emblaApi?.scrollTo(index)}
+                  aria-label={`Go to testimonial ${index + 1}`}
+                />
               ))}
             </div>
           </div>

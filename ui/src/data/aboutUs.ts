@@ -2,6 +2,8 @@ import type { BreadcrumbItem } from '../components/sections/PageTitleSection'
 import type { CounterItem } from '../components/sections/CounterSection'
 import type { Testimonial } from '../components/sections/TestimonialsSection'
 import type { VideoSectionProps } from '../components/sections/VideoSection'
+import type { TeamMember } from '../components/sections/TeamSection'
+import type { BlogEntry } from '../components/sections/BlogGridSection'
 
 export const aboutUsBreadcrumbs: BreadcrumbItem[] = [
   { label: 'Home', href: '/' },
@@ -43,7 +45,7 @@ export const aboutUsCounters: CounterItem[] = [
 export const aboutUsTestimonials: Testimonial[] = [
   {
     quote:
-      'It’s just brilliant. I will recommend Hairy to everyone I know! I’m really glad to these guys got Hairy out there.',
+      "It's just brilliant. I will recommend Hairy to everyone I know! I'm really glad to these guys got Hairy out there.",
     name: 'Steve Martin',
   },
   {
@@ -55,5 +57,53 @@ export const aboutUsTestimonials: Testimonial[] = [
     quote:
       'Cillum dolore eu fugiat nulla pariatur occaecat cupidatat non proident sunt in culpa.',
     name: 'Steve Martin',
+  },
+]
+
+export const aboutUsTeamMembers: TeamMember[] = [
+  {
+    name: 'Ryan Printz',
+    role: 'Barber',
+    imageUrl: '/hairy/assets/images/team/grid/1.jpg',
+    socialLinks: { facebook: '#', twitter: '#', googlePlus: '#' },
+  },
+  {
+    name: 'Steve Martin',
+    role: 'Barber',
+    imageUrl: '/hairy/assets/images/team/grid/2.jpg',
+    socialLinks: { facebook: '#', twitter: '#', googlePlus: '#' },
+  },
+  {
+    name: 'Bruce Sam',
+    role: 'Barber',
+    imageUrl: '/hairy/assets/images/team/grid/3.jpg',
+    socialLinks: { facebook: '#', twitter: '#', googlePlus: '#' },
+  },
+]
+
+export const aboutUsBlogEntries: BlogEntry[] = [
+  {
+    title: 'Foil shaver versus clippers & trimmers',
+    excerpt:
+      'Are you a dedicated razor shaver? dude who hasn\'t really thought about trying a different..',
+    imageUrl: '/hairy/assets/images/blog/grid/1.jpg',
+    date: 'Oct 20, 2017',
+    category: 'barbers',
+  },
+  {
+    title: 'Men\'s hairstyles for all face shapes',
+    excerpt:
+      'Most of the time, men don\'t know the haircuts that suit their face shape - but don\'t worry, we\'re here to..',
+    imageUrl: '/hairy/assets/images/blog/grid/2.jpg',
+    date: 'Oct 15, 2017',
+    category: 'Styles',
+  },
+  {
+    title: 'Basic tips for styling men\'s hair',
+    excerpt:
+      'The first tip is to choose a hairstyle that\'s realistic for your lifestyle, hair type, and general image..',
+    imageUrl: '/hairy/assets/images/blog/grid/3.jpg',
+    date: 'Oct 25, 2017',
+    category: 'Haircut',
   },
 ]

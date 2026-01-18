@@ -124,3 +124,45 @@ body {
 .footer a {
   color: inherit;
 }
+
+/* Fix for page-title hero overlap with fixed header */
+.page-with-hero #page-title {
+  margin-top: -140px;
+  position: relative;
+}
+
+/* Embla Carousel styles for testimonials */
+.embla__container {
+  display: flex;
+}
+
+.embla__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+.carousel-dots-nav {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 30px;
+}
+
+.carousel-dots-nav .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.3s ease;
+}
+
+.carousel-dots-nav .dot:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.carousel-dots-nav .dot.active {
+  background: #ffffff;
+}

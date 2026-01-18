@@ -23,28 +23,12 @@
       "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/original-page-title-hero.png"
     },
     "react": {
-      "exists": true,
-      "visible": true,
-      "computedStyles": {
-        "fontFamily": "\"Open Sans\", sans-serif",
-        "fontSize": "13px",
-        "color": "rgb(153, 153, 153)",
-        "backgroundColor": "rgba(0, 0, 0, 0)",
-        "padding": "0px",
-        "margin": "0px",
-        "display": "block",
-        "position": "static"
-      },
-      "bounds": {
-        "width": 1920,
-        "height": 1336,
-        "x": 0,
-        "y": 140
-      },
-      "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/react-page-title-hero.png"
+      "exists": false,
+      "visible": false
     },
     "issues": [
-      "HEIGHT MISMATCH: \"page-title-hero\" - Original: 466px, React: 1336px (diff: 870px)"
+      "MISSING: Section \"page-title-hero\" exists in original but NOT in React port",
+      "INVISIBLE: Section \"page-title-hero\" is visible in original but hidden in React port"
     ]
   },
   {
@@ -71,27 +55,13 @@
       "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/original-page-title-heading.png"
     },
     "react": {
-      "exists": true,
-      "visible": true,
-      "computedStyles": {
-        "fontFamily": "\"Playfair Display\", serif",
-        "fontSize": "60px",
-        "color": "rgb(255, 255, 255)",
-        "backgroundColor": "rgba(0, 0, 0, 0)",
-        "padding": "0px",
-        "margin": "0px",
-        "display": "block",
-        "position": "static"
-      },
-      "bounds": {
-        "width": 1140,
-        "height": 72,
-        "x": 390,
-        "y": 1090
-      },
-      "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/react-page-title-heading.png"
+      "exists": false,
+      "visible": false
     },
-    "issues": []
+    "issues": [
+      "MISSING: Section \"page-title-heading\" exists in original but NOT in React port",
+      "INVISIBLE: Section \"page-title-heading\" is visible in original but hidden in React port"
+    ]
   },
   {
     "section": "breadcrumb",
@@ -117,27 +87,13 @@
       "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/original-breadcrumb.png"
     },
     "react": {
-      "exists": true,
-      "visible": true,
-      "computedStyles": {
-        "fontFamily": "\"Open Sans\", sans-serif",
-        "fontSize": "14px",
-        "color": "rgb(255, 255, 255)",
-        "backgroundColor": "rgba(0, 0, 0, 0)",
-        "padding": "0px",
-        "margin": "0px",
-        "display": "block",
-        "position": "static"
-      },
-      "bounds": {
-        "width": 1140,
-        "height": 14,
-        "x": 390,
-        "y": 596
-      },
-      "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/react-breadcrumb.png"
+      "exists": false,
+      "visible": false
     },
-    "issues": []
+    "issues": [
+      "MISSING: Section \"breadcrumb\" exists in original but NOT in React port",
+      "INVISIBLE: Section \"breadcrumb\" is visible in original but hidden in React port"
+    ]
   },
   {
     "section": "video-section",
@@ -163,27 +119,13 @@
       "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/original-video-section.png"
     },
     "react": {
-      "exists": true,
-      "visible": true,
-      "computedStyles": {
-        "fontFamily": "\"Open Sans\", sans-serif",
-        "fontSize": "13px",
-        "color": "rgb(153, 153, 153)",
-        "backgroundColor": "rgba(0, 0, 0, 0)",
-        "padding": "100px 0px",
-        "margin": "0px",
-        "display": "block",
-        "position": "static"
-      },
-      "bounds": {
-        "width": 1920,
-        "height": 540,
-        "x": 0,
-        "y": 750
-      },
-      "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/react-video-section.png"
+      "exists": false,
+      "visible": false
     },
-    "issues": []
+    "issues": [
+      "MISSING: Section \"video-section\" exists in original but NOT in React port",
+      "INVISIBLE: Section \"video-section\" is visible in original but hidden in React port"
+    ]
   },
   {
     "section": "video-heading",
@@ -209,27 +151,13 @@
       "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/original-video-heading.png"
     },
     "react": {
-      "exists": true,
-      "visible": true,
-      "computedStyles": {
-        "fontFamily": "\"Playfair Display\", serif",
-        "fontSize": "36px",
-        "color": "rgb(68, 68, 68)",
-        "backgroundColor": "rgba(0, 0, 0, 0)",
-        "padding": "0px",
-        "margin": "0px 0px 29px",
-        "display": "block",
-        "position": "static"
-      },
-      "bounds": {
-        "width": 555,
-        "height": 96,
-        "x": 390,
-        "y": 682
-      },
-      "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/react-video-heading.png"
+      "exists": false,
+      "visible": false
     },
-    "issues": []
+    "issues": [
+      "MISSING: Section \"video-heading\" exists in original but NOT in React port",
+      "INVISIBLE: Section \"video-heading\" is visible in original but hidden in React port"
+    ]
   },
   {
     "section": "video-player-area",
@@ -255,27 +183,13 @@
       "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/original-video-player-area.png"
     },
     "react": {
-      "exists": true,
-      "visible": true,
-      "computedStyles": {
-        "fontFamily": "\"Open Sans\", sans-serif",
-        "fontSize": "13px",
-        "color": "rgb(153, 153, 153)",
-        "backgroundColor": "rgba(0, 0, 0, 0)",
-        "padding": "0px",
-        "margin": "0px",
-        "display": "block",
-        "position": "static"
-      },
-      "bounds": {
-        "width": 540,
-        "height": 340,
-        "x": 975,
-        "y": 640
-      },
-      "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/react-video-player-area.png"
+      "exists": false,
+      "visible": false
     },
-    "issues": []
+    "issues": [
+      "MISSING: Section \"video-player-area\" exists in original but NOT in React port",
+      "INVISIBLE: Section \"video-player-area\" is visible in original but hidden in React port"
+    ]
   },
   {
     "section": "counter-section",
@@ -301,27 +215,13 @@
       "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/original-counter-section.png"
     },
     "react": {
-      "exists": true,
-      "visible": true,
-      "computedStyles": {
-        "fontFamily": "\"Open Sans\", sans-serif",
-        "fontSize": "13px",
-        "color": "rgb(153, 153, 153)",
-        "backgroundColor": "rgb(248, 248, 248)",
-        "padding": "90px 0px",
-        "margin": "0px",
-        "display": "block",
-        "position": "static"
-      },
-      "bounds": {
-        "width": 1920,
-        "height": 323,
-        "x": 0,
-        "y": 1080
-      },
-      "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/react-counter-section.png"
+      "exists": false,
+      "visible": false
     },
-    "issues": []
+    "issues": [
+      "MISSING: Section \"counter-section\" exists in original but NOT in React port",
+      "INVISIBLE: Section \"counter-section\" is visible in original but hidden in React port"
+    ]
   },
   {
     "section": "count-box-first",
@@ -347,27 +247,13 @@
       "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/original-count-box-first.png"
     },
     "react": {
-      "exists": true,
-      "visible": true,
-      "computedStyles": {
-        "fontFamily": "\"Open Sans\", sans-serif",
-        "fontSize": "13px",
-        "color": "rgb(153, 153, 153)",
-        "backgroundColor": "rgba(0, 0, 0, 0)",
-        "padding": "0px",
-        "margin": "0px",
-        "display": "block",
-        "position": "static"
-      },
-      "bounds": {
-        "width": 262.5,
-        "height": 143,
-        "x": 390,
-        "y": 468
-      },
-      "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/react-count-box-first.png"
+      "exists": false,
+      "visible": false
     },
-    "issues": []
+    "issues": [
+      "MISSING: Section \"count-box-first\" exists in original but NOT in React port",
+      "INVISIBLE: Section \"count-box-first\" is visible in original but hidden in React port"
+    ]
   },
   {
     "section": "testimonials-section",
@@ -393,28 +279,12 @@
       "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/original-testimonials-section.png"
     },
     "react": {
-      "exists": true,
-      "visible": true,
-      "computedStyles": {
-        "fontFamily": "\"Open Sans\", sans-serif",
-        "fontSize": "13px",
-        "color": "rgb(153, 153, 153)",
-        "backgroundColor": "rgba(0, 0, 0, 0)",
-        "padding": "130px 0px 120px",
-        "margin": "0px",
-        "display": "block",
-        "position": "static"
-      },
-      "bounds": {
-        "width": 1920,
-        "height": 1401,
-        "x": 0,
-        "y": 701
-      },
-      "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/react-testimonials-section.png"
+      "exists": false,
+      "visible": false
     },
     "issues": [
-      "HEIGHT MISMATCH: \"testimonials-section\" - Original: 465.5px, React: 1401px (diff: 935.5px)"
+      "MISSING: Section \"testimonials-section\" exists in original but NOT in React port",
+      "INVISIBLE: Section \"testimonials-section\" is visible in original but hidden in React port"
     ]
   },
   {
@@ -441,27 +311,13 @@
       "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/original-testimonial-card.png"
     },
     "react": {
-      "exists": true,
-      "visible": true,
-      "computedStyles": {
-        "fontFamily": "\"Open Sans\", sans-serif",
-        "fontSize": "13px",
-        "color": "rgb(153, 153, 153)",
-        "backgroundColor": "rgba(0, 0, 0, 0)",
-        "padding": "0px",
-        "margin": "0px",
-        "display": "block",
-        "position": "relative"
-      },
-      "bounds": {
-        "width": 750,
-        "height": 130,
-        "x": 585,
-        "y": 891
-      },
-      "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/react-testimonial-card.png"
+      "exists": false,
+      "visible": false
     },
-    "issues": []
+    "issues": [
+      "MISSING: Section \"testimonial-card\" exists in original but NOT in React port",
+      "INVISIBLE: Section \"testimonial-card\" is visible in original but hidden in React port"
+    ]
   },
   {
     "section": "team-section",
@@ -615,27 +471,13 @@
       "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/original-footer.png"
     },
     "react": {
-      "exists": true,
-      "visible": true,
-      "computedStyles": {
-        "fontFamily": "\"Open Sans\", sans-serif",
-        "fontSize": "13px",
-        "color": "rgb(153, 153, 153)",
-        "backgroundColor": "rgb(37, 37, 37)",
-        "padding": "0px",
-        "margin": "0px",
-        "display": "block",
-        "position": "static"
-      },
-      "bounds": {
-        "width": 1920,
-        "height": 629,
-        "x": 0,
-        "y": 1401
-      },
-      "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/react-footer.png"
+      "exists": false,
+      "visible": false
     },
-    "issues": []
+    "issues": [
+      "MISSING: Section \"footer\" exists in original but NOT in React port",
+      "INVISIBLE: Section \"footer\" is visible in original but hidden in React port"
+    ]
   },
   {
     "section": "footer-widgets",
@@ -661,27 +503,13 @@
       "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/original-footer-widgets.png"
     },
     "react": {
-      "exists": true,
-      "visible": true,
-      "computedStyles": {
-        "fontFamily": "\"Open Sans\", sans-serif",
-        "fontSize": "13px",
-        "color": "rgb(153, 153, 153)",
-        "backgroundColor": "rgba(0, 0, 0, 0)",
-        "padding": "110px 0px 100px",
-        "margin": "0px",
-        "display": "block",
-        "position": "static"
-      },
-      "bounds": {
-        "width": 1920,
-        "height": 548,
-        "x": 0,
-        "y": 451
-      },
-      "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/react-footer-widgets.png"
+      "exists": false,
+      "visible": false
     },
-    "issues": []
+    "issues": [
+      "MISSING: Section \"footer-widgets\" exists in original but NOT in React port",
+      "INVISIBLE: Section \"footer-widgets\" is visible in original but hidden in React port"
+    ]
   },
   {
     "section": "header",
@@ -707,27 +535,13 @@
       "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/original-header.png"
     },
     "react": {
-      "exists": true,
-      "visible": true,
-      "computedStyles": {
-        "fontFamily": "\"Open Sans\", sans-serif",
-        "fontSize": "13px",
-        "color": "rgb(153, 153, 153)",
-        "backgroundColor": "rgba(0, 0, 0, 0)",
-        "padding": "0px",
-        "margin": "0px",
-        "display": "block",
-        "position": "relative"
-      },
-      "bounds": {
-        "width": 1920,
-        "height": 140,
-        "x": 0,
-        "y": -3289
-      },
-      "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/react-header.png"
+      "exists": false,
+      "visible": false
     },
-    "issues": []
+    "issues": [
+      "MISSING: Section \"header\" exists in original but NOT in React port",
+      "INVISIBLE: Section \"header\" is visible in original but hidden in React port"
+    ]
   },
   {
     "section": "navbar",
@@ -753,26 +567,12 @@
       "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/original-navbar.png"
     },
     "react": {
-      "exists": true,
-      "visible": true,
-      "computedStyles": {
-        "fontFamily": "\"Open Sans\", sans-serif",
-        "fontSize": "13px",
-        "color": "rgb(153, 153, 153)",
-        "backgroundColor": "rgba(0, 0, 0, 0)",
-        "padding": "0px",
-        "margin": "0px",
-        "display": "block",
-        "position": "fixed"
-      },
-      "bounds": {
-        "width": 1920,
-        "height": 90,
-        "x": 0,
-        "y": 50
-      },
-      "screenshot": "/home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/HAIRY-AUDIT--aboutuspage-react-port-visual-comparison-audit/sources/react-navbar.png"
+      "exists": false,
+      "visible": false
     },
-    "issues": []
+    "issues": [
+      "MISSING: Section \"navbar\" exists in original but NOT in React port",
+      "INVISIBLE: Section \"navbar\" is visible in original but hidden in React port"
+    ]
   }
 ]
