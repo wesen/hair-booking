@@ -31,7 +31,7 @@ func New(store *store.Store, logger zerolog.Logger) *Server {
 	h.registerRoutes(apiRouter)
 
 	mux := http.NewServeMux()
-	mux.Handle("/api/", apiRouter)
+	mux.Handle("/api/", http.StripPrefix("/api", apiRouter))
 	web.RegisterSPA(mux, web.PublicFS, web.SPAOptions{APIPrefix: "/api"})
 
 	return &Server{store: store, logger: logger, mux: mux}

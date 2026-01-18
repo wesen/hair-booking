@@ -1,0 +1,37 @@
+name: Cut and Color
+root: haircut
+nodes:
+  haircut:
+    question: "Choose a haircut"
+    options:
+      - label: "Women's Cut"
+        price: 8500
+        duration: 1hr
+        next: color
+      - label: "Men's Cut"
+        price: 5500
+        duration: 45min
+        next: color
+      - label: "No cut"
+        next: color
+  color:
+    question: "Add color service?"
+    options:
+      - label: "No color"
+        next: end
+      - label: "Full Highlights"
+        price: 17500
+        price_with_cut: 20500
+        duration: 2hr
+        next: end
+      - label: "Partial Highlights"
+        price: 12000
+        price_with_cut: 15500
+        duration: 90min
+        next: end
+  end:
+    type: terminal
+    action: book_appointment
+rules:
+  - if_service_includes: [cut, color]
+    then: apply_combo_pricing

@@ -1,0 +1,17 @@
+name: Basic Cuts
+root: cuts
+nodes:
+  cuts:
+    question: "What type of cut?"
+    options:
+      - label: "Men's Cut"
+        price: 5500
+        duration: 45min
+        next: end
+      - label: "Women's Cut"
+        price: 8500
+        duration: 1hr
+        next: end
+  end:
+    type: terminal
+    action: book_appointment
