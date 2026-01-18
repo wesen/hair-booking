@@ -256,6 +256,51 @@ pinocchio code professional --images header1.png,header2.png \
 
 ---
 
+## Step 6: Implementing the Fix Plan
+
+After creating the fix plan document, we implemented all 5 phases.
+
+### Phase 1: CSS Fixes
+- Added `.page-with-hero` class to `AboutUsPage` main element
+- Added CSS rule in `theme.css`: `.page-with-hero #page-title { margin-top: -140px; position: relative; }`
+- This fixes the hero section overlap issue
+
+### Phase 2: Testimonials Carousel
+- Installed `embla-carousel-react` package
+- Refactored `TestimonialsSection` to use Embla hooks
+- Added carousel dots navigation with active state
+- Added CSS for `.embla__container`, `.embla__slide`, and `.carousel-dots-nav`
+
+### Phase 3: TeamSection Component
+- Created `TeamSection.tsx` with `TeamMember` interface
+- Implements hover overlay for social links (Facebook, Twitter, Google+)
+- Created `TeamSection.stories.tsx` for Storybook
+- Uses same Bootstrap grid structure as original
+
+### Phase 4: BlogGridSection Component
+- Created `BlogGridSection.tsx` with `BlogEntry` interface
+- Includes entry image, meta, title, excerpt, and "read more" link
+- Optional "View More" button
+- Created `BlogGridSection.stories.tsx` for Storybook
+
+### Phase 5: Integration
+- Updated `AboutUsPage.tsx` to import and render all sections in correct order
+- Added team members and blog entries data to `aboutUs.ts`
+- Fixed smart quote syntax error that broke Storybook compilation
+- Verified with Playwright screenshot - all sections now render
+
+### Result
+After fixes, the AboutUsPage now renders:
+- ✅ Hero with breadcrumb
+- ✅ Video section
+- ✅ Counter section (18, 140, 370, 16)
+- ✅ Team section with 3 barbers
+- ✅ Testimonials carousel with dots
+- ✅ Blog grid with 3 posts
+- ✅ Footer
+
+Remaining polish: fine-tune font weights, verify hover effects, match header navigation styling.
+
 ## Summary of Audit Findings
 
 | Issue | Severity | Impact |
