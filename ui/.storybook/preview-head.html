@@ -1,3 +1,68 @@
 <link rel="stylesheet" href="/hairy/assets/css/external.css" />
 <link rel="stylesheet" href="/hairy/assets/css/bootstrap.min.css" />
 <link rel="stylesheet" href="/hairy/assets/css/style.css" />
+<style>
+/* React component fixes - these override issues with the original CSS when used with React component structure */
+
+/* Fix for page-title hero overlap with fixed header */
+.page-with-hero #page-title,
+.page-with-hero .page-title {
+  margin-top: -140px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Fix for bg-section using img instead of background-image CSS property */
+.page-title .bg-section {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+}
+
+.page-title .bg-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Embla Carousel styles for testimonials */
+.embla__container {
+  display: flex;
+}
+
+.embla__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+}
+
+.carousel-dots-nav {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 30px;
+}
+
+.carousel-dots-nav .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.3s ease;
+}
+
+.carousel-dots-nav .dot:hover {
+  background: rgba(255, 255, 255, 0.7);
+}
+
+.carousel-dots-nav .dot.active {
+  background: #ffffff;
+}
+</style>

@@ -126,9 +126,31 @@ body {
 }
 
 /* Fix for page-title hero overlap with fixed header */
-.page-with-hero #page-title {
+/* The original CSS uses .header-transparent + .page-title but React's component structure
+   breaks this adjacent sibling relationship. We apply the same styles directly. */
+.page-with-hero #page-title,
+.page-with-hero .page-title {
   margin-top: -140px;
   position: relative;
+  z-index: 1;
+}
+
+/* Fix for bg-section using <img> instead of background-image CSS property */
+.page-title .bg-section {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -2;
+}
+
+.page-title .bg-section img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Embla Carousel styles for testimonials */
