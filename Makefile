@@ -34,6 +34,19 @@ build:
 	GOWORK=off go generate ./...
 	GOWORK=off go build ./...
 
+dev-backend:
+	GOWORK=off go run ./cmd/decision-tree-server --addr :3001
+
+dev-frontend:
+	bun -C ui run dev
+
+frontend-check:
+	bun -C ui run typecheck
+
+build-embed:
+	GOWORK=off go generate ./...
+	GOWORK=off go build -tags embed ./cmd/decision-tree-server
+
 goreleaser:
 	GOWORK=off goreleaser release $(GORELEASER_ARGS) $(GORELEASER_TARGET)
 
