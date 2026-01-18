@@ -91,8 +91,8 @@ func (h *handler) createTree(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusBadRequest, "name and dslContent are required")
 		return
 	}
-	if _, err := dsl.ParseDSL(req.DSLContent); err != nil {
-		writeError(w, http.StatusBadRequest, err.Error())
+	if valid, issues := dsl.ValidateDSLWithIssues(req.DSLContent); !valid {
+		writeValidationError(w, issues)
 		return
 	}
 
@@ -133,8 +133,8 @@ func (h *handler) updateTree(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if req.DSLContent != nil {
-		if _, err := dsl.ParseDSL(*req.DSLContent); err != nil {
-			writeError(w, http.StatusBadRequest, err.Error())
+		if valid, issues := dsl.ValidateDSLWithIssues(*req.DSLContent); !valid {
+			writeValidationError(w, issues)
 			return
 		}
 	}
@@ -184,10 +184,10 @@ func (h *handler) validateTree(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	valid, errors := dsl.ValidateDSL(req.DSLContent)
+	valid, issues := dsl.ValidateDSLWithIssues(req.DSLContent)
 	writeJSON(w, http.StatusOK, map[string]any{
 		"valid":  valid,
-		"errors": errors,
+		"issues": issues,
 	})
 }
 
@@ -298,4 +298,11 @@ func writeJSON(w http.ResponseWriter, status int, payload any) {
 
 func writeError(w http.ResponseWriter, status int, message string) {
 	writeJSON(w, status, map[string]string{"error": message})
+}
+
+func writeValidationError(w http.ResponseWriter, issues []dsl.ValidationIssue) {
+	writeJSON(w, http.StatusBadRequest, map[string]any{
+		"error":  "invalid DSL",
+		"issues": issues,
+	})
 }

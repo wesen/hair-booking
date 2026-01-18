@@ -1,0 +1,5 @@
+name: Invalid Example
+root: missing_root
+nodes:
+  node1:
+    question: "This node is missing options"

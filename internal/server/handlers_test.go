@@ -45,6 +45,9 @@ func TestDecisionTreeFlow(t *testing.T) {
 	if valid, ok := validateResp["valid"].(bool); !ok || !valid {
 		t.Fatalf("expected valid response, got %+v", validateResp)
 	}
+	if issues, ok := validateResp["issues"].([]any); ok && len(issues) != 0 {
+		t.Fatalf("expected no issues, got %+v", validateResp)
+	}
 
 	createPayload := map[string]any{
 		"name":        "Test",
