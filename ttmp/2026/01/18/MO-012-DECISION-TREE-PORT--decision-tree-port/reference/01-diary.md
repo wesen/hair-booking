@@ -22,8 +22,14 @@ RelatedFiles:
         Added booking metadata flags and reset/list commands.
     - Path: examples/decision-trees/color.yaml
       Note: Sample DSL used for local and REST runs.
+    - Path: examples/decision-trees/invalid.yaml
+      Note: Sample invalid DSL for validation output.
     - Path: internal/cli/runner.go
       Note: Selection runner used by CLI.
+    - Path: internal/dsl/parser.go
+      Note: Added ValidationIssue and multi-issue validation.
+    - Path: internal/server/handlers.go
+      Note: Validation endpoint returns structured issues.
     - Path: internal/server/handlers_test.go
       Note: End-to-end REST test coverage.
     - Path: internal/store/store.go
@@ -32,10 +38,11 @@ RelatedFiles:
       Note: Primary analysis document created in this diary.
 ExternalSources: []
 Summary: Step-by-step analysis log for porting hair-stylist-intake to Go + React/RTK with embedded frontend.
-LastUpdated: 2026-01-18T17:44:37-05:00
+LastUpdated: 2026-01-18T17:51:38-05:00
 WhatFor: Capture the analysis workflow and key decisions for the Decision Tree port.
 WhenToUse: Use when continuing the port or reviewing analysis choices.
 ---
+
 
 
 
@@ -442,3 +449,43 @@ I extended the CLI to include booking metadata flags, booking listing/getting, a
 ### Technical details
 - REST run example:
   - `go run ./cmd/decision-tree-cli rest run --tree-id 4 --select "Women's Cut" --select "Full Highlights" --client-name "Ada Lovelace" --client-email "ada@example.com"`
+
+## Step 11: Structured validation responses
+
+I expanded DSL validation to return structured issue objects (code + context) and updated the REST validate endpoint to surface them. This allows the CLI and future UI to display multiple errors at once.
+
+**Commit (code):** 14fdd829a6036e2baf5db5fc41965b899d3a9845 — "Validation: return structured DSL issues"
+
+### What I did
+- Added `ValidationIssue` and `ValidateDSLWithIssues` to the DSL parser.
+- Updated `POST /api/decision-trees/validate` to return `{valid, issues}`.
+- Returned validation issues on create/update failures (HTTP 400).
+- Added `examples/decision-trees/invalid.yaml` to demo multi-issue responses.
+
+### Why
+- The previous boolean + string list was too sparse for UI validation; structured issues are more actionable.
+
+### What worked
+- REST validation now returns multiple issues with error codes.
+
+### What didn't work
+- The first validation attempt failed because the server wasn’t running; reran with tmux session.
+
+### What I learned
+- YAML parse errors can only provide line/column heuristics from error text; structural issues still need explicit context fields.
+
+### What was tricky to build
+- Ensuring the existing ParseDSL flow still returns a single error for create/update while the validator returns full issue lists.
+
+### What warrants a second pair of eyes
+- Confirm error codes and messages are stable enough for frontend consumption.
+
+### What should be done in the future
+- If needed, add path/line metadata by parsing YAML nodes directly.
+
+### Code review instructions
+- Review `internal/dsl/parser.go` and `internal/server/handlers.go`.
+- Validate with: `go run ./cmd/decision-tree-cli rest validate --file examples/decision-trees/invalid.yaml`.
+
+### Technical details
+- Sample output includes `ROOT_NOT_FOUND` and `OPTIONS_REQUIRED` issues.

@@ -85,3 +85,13 @@ Step 10: CLI metadata + reset helpers (commit 3002c576).
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/cmd/decision-tree-cli/rest.go — REST CLI enhancements.
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/store/store.go — SQLite FK enforcement + reset.
 
+
+## 2026-01-18
+
+Step 11: structured DSL validation issues (commit 14fdd829).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/dsl/parser.go — Structured validation issues.
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/server/handlers.go — Validate endpoint returns issues.
+
