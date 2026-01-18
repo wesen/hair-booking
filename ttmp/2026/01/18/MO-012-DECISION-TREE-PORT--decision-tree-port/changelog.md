@@ -104,3 +104,23 @@ Step 12: add line/column metadata to validation issues (commit 908ab7c4).
 
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/dsl/parser.go — Position extraction for validation issues.
 
+
+## 2026-01-18
+
+Added CLI and DSL playbooks.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/MO-012-DECISION-TREE-PORT--decision-tree-port/playbook/01-cli-tool-playbook.md — CLI usage procedures.
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/MO-012-DECISION-TREE-PORT--decision-tree-port/playbook/02-decision-tree-dsl-playbook.md — DSL authoring guide.
+
+
+## 2026-01-18
+
+Step 13: add CLI + DSL playbooks.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/MO-012-DECISION-TREE-PORT--decision-tree-port/playbook/01-cli-tool-playbook.md — CLI playbook added.
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/18/MO-012-DECISION-TREE-PORT--decision-tree-port/playbook/02-decision-tree-dsl-playbook.md — DSL playbook added.
+

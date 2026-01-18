@@ -38,12 +38,17 @@ RelatedFiles:
       Note: Enabled foreign key enforcement and added Reset().
     - Path: ttmp/2026/01/18/MO-012-DECISION-TREE-PORT--decision-tree-port/analysis/01-hair-stylist-intake-asset-analysis.md
       Note: Primary analysis document created in this diary.
+    - Path: ttmp/2026/01/18/MO-012-DECISION-TREE-PORT--decision-tree-port/playbook/01-cli-tool-playbook.md
+      Note: CLI playbook created.
+    - Path: ttmp/2026/01/18/MO-012-DECISION-TREE-PORT--decision-tree-port/playbook/02-decision-tree-dsl-playbook.md
+      Note: DSL playbook created.
 ExternalSources: []
 Summary: Step-by-step analysis log for porting hair-stylist-intake to Go + React/RTK with embedded frontend.
-LastUpdated: 2026-01-18T18:00:52-05:00
+LastUpdated: 2026-01-18T18:04:13-05:00
 WhatFor: Capture the analysis workflow and key decisions for the Decision Tree port.
 WhenToUse: Use when continuing the port or reviewing analysis choices.
 ---
+
 
 
 
@@ -531,3 +536,41 @@ I augmented the DSL validator to capture YAML line/column positions for key fiel
 
 ### Technical details
 - Positions are derived from the YAML mapping nodes for `name`, `root`, `nodes`, and `options`.
+
+## Step 13: CLI and DSL playbooks
+
+I added two playbooks to the ticket: one covering end-to-end CLI usage (local + REST), and another documenting the decision tree DSL with reference tables and examples. This provides a repeatable operational guide and a self-contained DSL authoring reference.
+
+**Commit (code):** N/A
+
+### What I did
+- Wrote `playbook/01-cli-tool-playbook.md` with tmux server start/stop, validation, REST runs, and cleanup sequences.
+- Wrote `playbook/02-decision-tree-dsl-playbook.md` with DSL reference tables and example trees.
+- Related playbooks to CLI and DSL source files via docmgr.
+
+### Why
+- Users asked for full playbooks to standardize usage and DSL authoring without hunting through code.
+
+### What worked
+- Playbooks created cleanly and linked to the relevant source files.
+
+### What didn't work
+- N/A
+
+### What I learned
+- N/A
+
+### What was tricky to build
+- Balancing detail and brevity while keeping playbooks copy/paste friendly.
+
+### What warrants a second pair of eyes
+- Confirm the command sequences reflect the current CLI flags and example filenames.
+
+### What should be done in the future
+- Update playbooks if CLI flags or DSL schema changes.
+
+### Code review instructions
+- Review `ttmp/2026/01/18/MO-012-DECISION-TREE-PORT--decision-tree-port/playbook/01-cli-tool-playbook.md` and `ttmp/2026/01/18/MO-012-DECISION-TREE-PORT--decision-tree-port/playbook/02-decision-tree-dsl-playbook.md`.
+
+### Technical details
+- Playbooks reference example DSL files in `examples/decision-trees/`.
