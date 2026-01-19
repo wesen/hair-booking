@@ -13,3 +13,13 @@ Step 1: review current matched-styles winner logic and document cascade gaps
 
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/matched_styles.go — Baseline review of current winner selection
 
+
+## 2026-01-19
+
+Step 2: implement cascade winner logic + tests (commit d49d6d8)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/matched_styles.go — Cascade candidates
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/matched_styles_test.go — Specificity and winner tests
+
