@@ -8,7 +8,7 @@ import (
 )
 
 func Capture(ctx context.Context, cfg *config.Config) error {
-	return fmt.Errorf("capture mode not implemented yet")
+	return RunCapture(ctx, cfg)
 }
 
 func CSSDiff(ctx context.Context, cfg *config.Config) error {
