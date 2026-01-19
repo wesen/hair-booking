@@ -8,13 +8,19 @@ Intent: long-term
 Owners: []
 RelatedFiles:
     - Path: cmd/sbcap/main.go
-      Note: Glazed CLI entrypoint for sbcap
+      Note: |-
+        Glazed CLI entrypoint for sbcap
+        Glazed output rows for coverage/stories
     - Path: go.mod
       Note: New dependencies for sbcap
+    - Path: internal/sbcap/ai/client.go
+      Note: AI client interface and noop implementation
     - Path: internal/sbcap/config/config.go
       Note: sbcap YAML schema and validation
     - Path: internal/sbcap/driver/chrome.go
       Note: Chromedp driver abstraction
+    - Path: internal/sbcap/modes/ai_review.go
+      Note: AI review mode
     - Path: internal/sbcap/modes/capture.go
       Note: Capture mode implementation
     - Path: internal/sbcap/modes/cssdiff.go
@@ -23,6 +29,8 @@ RelatedFiles:
       Note: Matched-styles mode with CDP and winners
     - Path: internal/sbcap/modes/modes.go
       Note: Mode stubs for capture/cssdiff/matched-styles/ai
+    - Path: internal/sbcap/modes/stories.go
+      Note: Story discovery mode
     - Path: internal/sbcap/runner/runner.go
       Note: Mode normalization and execution
     - Path: ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/design-doc/01-sbcap-tool-implementation-overview.md
@@ -35,6 +43,7 @@ LastUpdated: 2026-01-19T15:03:46.925982931-05:00
 WhatFor: Track incremental implementation steps, decisions, and validation for sbcap.
 WhenToUse: Update after each implementation milestone or task completion.
 ---
+
 
 
 
@@ -286,3 +295,61 @@ I implemented matched-styles mode using CDP calls to enumerate matched CSS rules
   - `internal/sbcap/modes/matched_styles.go`
 - Files updated:
   - `internal/sbcap/modes/modes.go`
+
+## Step 6: Add AI review + story discovery + coverage outputs
+
+I implemented the AI review mode scaffolding, a Storybook story discovery mode, and a coverage summary that surfaces missing/hidden selectors. I also wired coverage and story outputs into the Glazed command output so they can be consumed in structured form. This completes the workflow feature set for sbcap.
+
+**Commit (code):** c8aa458 — "feat(sbcap): add ai review and story discovery modes"
+**Commit (code):** 793a593 — "feat(sbcap): add ai review, story discovery, and coverage output"
+
+### What I did
+- Added `internal/sbcap/ai/client.go` with a no-op AI client interface.
+- Implemented `ai-review` mode that reads `capture.json`, attaches OCR questions, and writes AI review reports.
+- Implemented `story-discovery` mode that fetches Storybook `index.json` and writes reports.
+- Added coverage summary counts to capture output and Markdown report.
+- Emitted coverage and story rows in the Glazed output of `sbcap run`.
+- Fixed a vet failure by switching from `fmt.Errorf` to `errors.New` in the no-op AI client.
+- Ran `go test ./...`.
+
+### Why
+- AI review and story discovery are required workflow features in the sbcap spec.
+- Coverage summaries and Glazed outputs allow quick CLI inspection without opening reports.
+
+### What worked
+- Story discovery via `index.json` is simple and robust.
+- Coverage rows show missing selectors immediately in CLI output.
+
+### What didn't work
+- Initial `go test ./...` failed due to a non-constant format string in `fmt.Errorf`; fixed by using `errors.New`.
+
+### What I learned
+- Keeping AI review as a stub with explicit errors is better than silent no-op behavior.
+
+### What was tricky to build
+- Coordinating capture output with AI review inputs without re-running capture.
+
+### What warrants a second pair of eyes
+- Validate the Storybook `index.json` schema assumptions across Storybook versions.
+- Confirm Glazed output rows align with downstream automation needs.
+
+### What should be done in the future
+- Replace the no-op AI client with a real backend and add confidence metadata.
+
+### Code review instructions
+- Start at `internal/sbcap/modes/ai_review.go` and `internal/sbcap/modes/stories.go`.
+- Review coverage integration in `internal/sbcap/modes/capture.go` and CLI output in `cmd/sbcap/main.go`.
+- Run tests: `go test ./...`.
+
+### Technical details
+- Commands run:
+  - `gofmt -w internal/sbcap/ai/client.go internal/sbcap/modes/ai_review.go internal/sbcap/modes/stories.go internal/sbcap/modes/capture.go internal/sbcap/runner/runner.go cmd/sbcap/main.go`
+  - `go test ./...`
+- Files added:
+  - `internal/sbcap/ai/client.go`
+  - `internal/sbcap/modes/ai_review.go`
+  - `internal/sbcap/modes/stories.go`
+- Files updated:
+  - `internal/sbcap/modes/capture.go`
+  - `internal/sbcap/runner/runner.go`
+  - `cmd/sbcap/main.go`

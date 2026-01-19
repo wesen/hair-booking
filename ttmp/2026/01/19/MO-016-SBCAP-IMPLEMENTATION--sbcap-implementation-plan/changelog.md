@@ -74,3 +74,15 @@ Step 5: implement matched-styles mode (commit 11994af)
 
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/matched_styles.go — CDP matched rules and winners
 
+
+## 2026-01-19
+
+Step 6: add AI review, story discovery, and coverage outputs (commits c8aa458, 793a593)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/cmd/sbcap/main.go — Coverage/story Glazed output
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/ai/client.go — AI client stub
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/ai_review.go — AI review mode
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/stories.go — Story discovery mode
+

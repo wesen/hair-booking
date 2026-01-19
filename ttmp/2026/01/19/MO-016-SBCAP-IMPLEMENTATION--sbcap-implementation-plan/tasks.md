@@ -26,10 +26,10 @@
 - [x] 5.2 Implement winner summary per property (original vs react).
 - [x] 5.3 Render matched-styles JSON + Markdown report.
 
-- [ ] 6.1 Implement AI review mode stub (ocr_question wiring, output schema).
-- [ ] 6.2 Add AI client interface and no-op implementation with explicit errors.
-- [ ] 6.3 Render AI review Markdown + JSON.
+- [x] 6.1 Implement AI review mode stub (ocr_question wiring, output schema).
+- [x] 6.2 Add AI client interface and no-op implementation with explicit errors.
+- [x] 6.3 Render AI review Markdown + JSON.
 
-- [ ] 7.1 Add selector coverage audit summary (missing/hidden/stale).
-- [ ] 7.2 Add Storybook story discovery (index.json fetch + list command).
-- [ ] 7.3 Integrate coverage + story discovery into Glazed outputs.
+- [x] 7.1 Add selector coverage audit summary (missing/hidden/stale).
+- [x] 7.2 Add Storybook story discovery (index.json fetch + list command).
+- [x] 7.3 Integrate coverage + story discovery into Glazed outputs.
