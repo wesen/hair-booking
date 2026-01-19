@@ -12,7 +12,7 @@ func Capture(ctx context.Context, cfg *config.Config) error {
 }
 
 func MatchedStyles(ctx context.Context, cfg *config.Config) error {
-	return fmt.Errorf("matched-styles mode not implemented yet")
+	return RunMatchedStyles(ctx, cfg)
 }
 
 func AIReview(ctx context.Context, cfg *config.Config) error {
