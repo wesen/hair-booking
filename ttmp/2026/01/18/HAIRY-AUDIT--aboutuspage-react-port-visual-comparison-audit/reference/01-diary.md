@@ -369,3 +369,101 @@ All critical dimensions now match.
 5. **pinocchio is great for broad comparisons** - But verify with Playwright for accuracy
 6. **compare-css.ts is the debugging workhorse** - Shows exact property differences
 
+---
+
+## Step 9: Manual Visual Analysis - Component by Component
+
+Performed a thorough manual visual inspection of each section by looking at screenshots myself.
+
+### What I did
+- Created `capture-sections.ts` script to capture individual section screenshots
+- Captured 8 sections from both original and React: header, page-title, video, counter, team, testimonials, blog, footer
+- Manually examined each screenshot pair and documented differences
+- Wrote comprehensive visual analysis report
+
+### Sections Analyzed
+
+| Section | Status | Key Issues |
+|---------|--------|------------|
+| Header | PARTIAL | Missing nav items (6→4), no cart/search |
+| Page Title | GOOD | Minor image crop difference |
+| Video | POOR | No play button, broken signature |
+| Counter | POOR | All 4 icons broken/not rendering |
+| Team | FAIR | Names not italic, misplaced logo |
+| Testimonials | CRITICAL | Content completely missing! |
+| Blog | FAIR | Titles not bold, heading not italic |
+| Footer | GOOD | Minor image issues |
+
+### Critical Findings
+
+1. **Testimonials Section BROKEN** - The testimonial quote text and attribution are completely invisible. Only the background image renders. This needs immediate debugging.
+
+2. **Counter Icons Not Loading** - All four counter icons (scissors, mirror, trimmer, razor) appear as blurry beige squares instead of the gold line-art illustrations.
+
+3. **Video Play Button Missing** - The circular play button overlay is completely absent from the video thumbnail.
+
+4. **Typography Inconsistencies** - Multiple elements should be italic that aren't:
+   - Video section heading
+   - Team member names
+   - Blog section heading
+
+### Root Causes to Investigate
+
+1. **Testimonials**: Check if content is rendering but hidden (z-index issue), or if props aren't being passed correctly
+2. **Icons**: Verify image paths exist in public folder, check img src attributes
+3. **Video**: Missing overlay markup in VideoSection component
+4. **Typography**: CSS not applying italic styles, may need explicit font-style rules
+
+### Screenshots Captured
+- `sources/visual-analysis/original-*.png` - 9 screenshots
+- `sources/visual-analysis/react-*.png` - 9 screenshots
+- Full pages + 8 individual sections each
+
+---
+
+## Step 9: Manual Visual Analysis - Component by Component
+
+Performed a thorough manual visual inspection of each section by looking at screenshots myself.
+
+### What I did
+- Created `capture-sections.ts` script to capture individual section screenshots
+- Captured 8 sections from both original and React: header, page-title, video, counter, team, testimonials, blog, footer
+- Manually examined each screenshot pair and documented differences
+- Wrote comprehensive visual analysis report
+
+### Sections Analyzed
+
+| Section | Status | Key Issues |
+|---------|--------|------------|
+| Header | PARTIAL | Missing nav items (6→4), no cart/search |
+| Page Title | GOOD | Minor image crop difference |
+| Video | POOR | No play button, broken signature |
+| Counter | POOR | All 4 icons broken/not rendering |
+| Team | FAIR | Names not italic, misplaced logo |
+| Testimonials | CRITICAL | Content completely missing! |
+| Blog | FAIR | Titles not bold, heading not italic |
+| Footer | GOOD | Minor image issues |
+
+### Critical Findings
+
+1. **Testimonials Section BROKEN** - The testimonial quote text and attribution are completely invisible. Only the background image renders. This needs immediate debugging.
+
+2. **Counter Icons Not Loading** - All four counter icons (scissors, mirror, trimmer, razor) appear as blurry beige squares instead of the gold line-art illustrations.
+
+3. **Video Play Button Missing** - The circular play button overlay is completely absent from the video thumbnail.
+
+4. **Typography Inconsistencies** - Multiple elements should be italic that arent:
+   - Video section heading
+   - Team member names
+   - Blog section heading
+
+### Root Causes to Investigate
+
+1. **Testimonials**: Check if content is rendering but hidden (z-index issue), or if props arent being passed correctly
+2. **Icons**: Verify image paths exist in public folder, check img src attributes
+3. **Video**: Missing overlay markup in VideoSection component
+4. **Typography**: CSS not applying italic styles, may need explicit font-style rules
+
+### Output
+- Created comprehensive report: `reference/03-visual-analysis-report-component-by-component.md`
+- Captured 18 screenshots in `sources/visual-analysis/`
