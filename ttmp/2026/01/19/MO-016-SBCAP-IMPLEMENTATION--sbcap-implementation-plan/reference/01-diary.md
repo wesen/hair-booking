@@ -13,6 +13,10 @@ RelatedFiles:
       Note: New dependencies for sbcap
     - Path: internal/sbcap/config/config.go
       Note: sbcap YAML schema and validation
+    - Path: internal/sbcap/driver/chrome.go
+      Note: Chromedp driver abstraction
+    - Path: internal/sbcap/modes/capture.go
+      Note: Capture mode implementation
     - Path: internal/sbcap/modes/modes.go
       Note: Mode stubs for capture/cssdiff/matched-styles/ai
     - Path: internal/sbcap/runner/runner.go
@@ -27,6 +31,7 @@ LastUpdated: 2026-01-19T15:03:46.925982931-05:00
 WhatFor: Track incremental implementation steps, decisions, and validation for sbcap.
 WhenToUse: Update after each implementation milestone or task completion.
 ---
+
 
 
 
@@ -131,4 +136,55 @@ I added the initial sbcap code scaffolding: configuration schema/validation, mod
   - `cmd/sbcap/main.go`
   - `internal/sbcap/config/config.go`
   - `internal/sbcap/runner/runner.go`
+  - `internal/sbcap/modes/modes.go`
+
+## Step 3: Implement capture mode (driver + screenshots)
+
+I implemented the first functional sbcap mode: capture. This includes a chromedp-based browser driver, full-page screenshots, per-section screenshots, and a JSON/Markdown capture report. The result is a working baseline that can audit presence and visibility before CSS diffing is added.
+
+**Commit (code):** 39e7946 — "feat(sbcap): add chromedp driver and capture mode"
+
+### What I did
+- Added a chromedp driver wrapper with page navigation, viewport control, and screenshot helpers.
+- Implemented capture mode to collect full-page and per-section screenshots.
+- Added JSON and Markdown capture reports (presence/visibility table).
+- Added DOM existence/visibility checks via `getComputedStyle` and bounding rect.
+- Ran `go test ./...`.
+
+### Why
+- Capture mode is the core of the visual audit workflow and unblocks manual comparison and AI review.
+- A driver abstraction is required for future CDP and cssdiff features.
+
+### What worked
+- The capture mode compiles and uses chromedp primitives cleanly.
+- Reports are emitted in both JSON and Markdown for docmgr workflows.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- A simple DOM visibility check catches missing or hidden elements early without pixel analysis.
+
+### What was tricky to build
+- Mapping selectors to screenshots while keeping failures explicit and non-fatal.
+
+### What warrants a second pair of eyes
+- Verify that the visibility heuristic (display/visibility/rect size) is sufficient and does not misclassify offscreen elements.
+
+### What should be done in the future
+- Add retry/wait logic for dynamic content to stabilize captures.
+
+### Code review instructions
+- Start at `internal/sbcap/driver/chrome.go` for driver primitives.
+- Review `internal/sbcap/modes/capture.go` for capture flow and report output.
+- Run tests: `go test ./...`.
+
+### Technical details
+- Commands run:
+  - `gofmt -w internal/sbcap/driver/chrome.go internal/sbcap/modes/capture.go internal/sbcap/modes/modes.go`
+  - `go test ./...`
+- Files added:
+  - `internal/sbcap/driver/chrome.go`
+  - `internal/sbcap/modes/capture.go`
+- Files updated:
   - `internal/sbcap/modes/modes.go`

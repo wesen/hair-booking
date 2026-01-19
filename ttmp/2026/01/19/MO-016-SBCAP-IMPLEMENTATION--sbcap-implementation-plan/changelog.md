@@ -46,3 +46,13 @@ Step 2: scaffold sbcap config and CLI skeleton (commit 3522d7e)
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/config/config.go — Config schema
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/runner/runner.go — Mode orchestration
 
+
+## 2026-01-19
+
+Step 3: implement capture mode (commit 39e7946)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/driver/chrome.go — Chromedp driver
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/capture.go — Capture mode
+
