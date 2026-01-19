@@ -247,6 +247,8 @@ This alignment is captured by `--modes` which lets a user run one or multiple st
 
 ### matched-styles mode
 - Each property includes a list of candidate declarations and the winning rule.
+- Winners are resolved using the CSS cascade (`!important` → origin inline/author/user-agent → specificity → source order).
+- Winner summaries include origin + specificity context to explain why a declaration won.
 - If no matched rule exists, record as `source=none`.
 
 ### ai-review mode
