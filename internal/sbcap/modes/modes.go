@@ -11,10 +11,6 @@ func Capture(ctx context.Context, cfg *config.Config) error {
 	return RunCapture(ctx, cfg)
 }
 
-func CSSDiff(ctx context.Context, cfg *config.Config) error {
-	return fmt.Errorf("cssdiff mode not implemented yet")
-}
-
 func MatchedStyles(ctx context.Context, cfg *config.Config) error {
 	return fmt.Errorf("matched-styles mode not implemented yet")
 }
