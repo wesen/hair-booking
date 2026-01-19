@@ -13,12 +13,15 @@ RelatedFiles:
         Implemented cascade candidate model and winner selection (commit d49d6d8)
     - Path: internal/sbcap/modes/matched_styles_test.go
       Note: Added specificity and winner tests (commit d49d6d8)
+    - Path: ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/design-doc/01-sbcap-tool-implementation-overview.md
+      Note: Documented cascade winner ordering (commit ccf2f35)
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-01-19T17:28:41.959388275-05:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 
@@ -109,3 +112,39 @@ This step upgrades the matched-styles output to include origin and specificity c
 ### Technical details
 - Candidate order uses the CDP matched-rule order plus property index as the final tie-breaker.
 - Inline styles are treated as `OriginInline` with a high precedence in origin ranking.
+
+## Step 3: Document cascade behavior in sbcap docs
+
+I updated the sbcap implementation overview to call out the new cascade winner ordering and the additional context provided in matched-styles summaries. This keeps the documentation aligned with the behavior now emitted by the matched-styles report.
+
+**Commit (code):** ccf2f35 — "docs(sbcap): describe cascade winner ordering"
+
+### What I did
+- Added cascade ordering details and origin/specificity context to the matched-styles documentation section.
+
+### Why
+- Keep sbcap docs accurate for users relying on matched-styles winner explanations.
+
+### What worked
+- The matched-styles docs now describe the cascade rules used for winner selection.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- N/A.
+
+### What was tricky to build
+- N/A.
+
+### What warrants a second pair of eyes
+- Ensure the doc wording matches actual origin ordering (inline > author > user-agent).
+
+### What should be done in the future
+- N/A.
+
+### Code review instructions
+- Review `ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/design-doc/01-sbcap-tool-implementation-overview.md` for the updated matched-styles bullets.
+
+### Technical details
+- The doc now explicitly lists the cascade precedence used by the matched-styles winner selection.

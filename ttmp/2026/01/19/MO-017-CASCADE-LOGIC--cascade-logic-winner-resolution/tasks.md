@@ -10,4 +10,4 @@
 - [x] 1.6 Replace `findWinner` with cascade winner resolution.
 - [x] 1.7 Update matched-styles Markdown output to include specificity + origin context.
 - [x] 1.8 Add tests for specificity and winner selection (table-driven).
-- [ ] 1.9 Update sbcap docs to describe cascade behavior.
+- [x] 1.9 Update sbcap docs to describe cascade behavior.
