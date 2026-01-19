@@ -47,7 +47,7 @@ func NewRunCommand() (*RunCommand, error) {
 		cmds.WithFlags(
 			fields.New(
 				"config",
-				fields.TypeFile,
+				fields.TypeString,
 				fields.WithHelp("Path to sbcap YAML config"),
 			),
 			fields.New(
