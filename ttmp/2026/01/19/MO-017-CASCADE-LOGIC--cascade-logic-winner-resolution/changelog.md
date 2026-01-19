@@ -32,3 +32,12 @@ Step 3: document cascade winner ordering in sbcap docs (commit ccf2f35)
 
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/design-doc/01-sbcap-tool-implementation-overview.md — Matched-styles doc updated for cascade behavior
 
+
+## 2026-01-19
+
+Step 4: attempted sbcap validation playbook (config parsing + invalid context errors)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/playbook/01-sbcap-validation-playbook.md — Validation steps executed and errors recorded
+
