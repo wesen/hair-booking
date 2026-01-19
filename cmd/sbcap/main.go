@@ -2,10 +2,13 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/go-go-golems/XXX/internal/sbcap/config"
+	"github.com/go-go-golems/XXX/internal/sbcap/modes"
 	"github.com/go-go-golems/XXX/internal/sbcap/runner"
 	"github.com/go-go-golems/glazed/pkg/cli"
 	"github.com/go-go-golems/glazed/pkg/cmds"
@@ -110,6 +113,19 @@ func (c *RunCommand) RunIntoGlazeProcessor(
 		}
 	}
 
+	if !settings.DryRun {
+		if containsMode(modesList, "capture") {
+			if err := emitCoverageRows(ctx, gp, cfg.Output.Dir); err != nil {
+				return err
+			}
+		}
+		if containsMode(modesList, "story-discovery") {
+			if err := emitStoryRows(ctx, gp, cfg.Output.Dir); err != nil {
+				return err
+			}
+		}
+	}
+
 	return err
 }
 
@@ -123,6 +139,58 @@ func joinModes(modes []string) string {
 		out += "," + m
 	}
 	return out
+}
+
+func containsMode(modesList []string, value string) bool {
+	for _, m := range modesList {
+		if m == value {
+			return true
+		}
+	}
+	return false
+}
+
+func emitCoverageRows(ctx context.Context, gp middlewares.Processor, outDir string) error {
+	data, err := os.ReadFile(filepath.Join(outDir, "capture.json"))
+	if err != nil {
+		return err
+	}
+	var capture modes.CaptureResult
+	if err := json.Unmarshal(data, &capture); err != nil {
+		return err
+	}
+	row := types.NewRow(
+		types.MRP("type", "coverage"),
+		types.MRP("total", capture.Coverage.Total),
+		types.MRP("original_missing", capture.Coverage.OriginalMissing),
+		types.MRP("react_missing", capture.Coverage.ReactMissing),
+		types.MRP("original_hidden", capture.Coverage.OriginalHidden),
+		types.MRP("react_hidden", capture.Coverage.ReactHidden),
+	)
+	return gp.AddRow(ctx, row)
+}
+
+func emitStoryRows(ctx context.Context, gp middlewares.Processor, outDir string) error {
+	data, err := os.ReadFile(filepath.Join(outDir, "stories.json"))
+	if err != nil {
+		return err
+	}
+	var stories modes.StoryDiscoveryResult
+	if err := json.Unmarshal(data, &stories); err != nil {
+		return err
+	}
+	for _, entry := range stories.Entries {
+		row := types.NewRow(
+			types.MRP("type", "story"),
+			types.MRP("id", entry.ID),
+			types.MRP("title", entry.Title),
+			types.MRP("name", entry.Name),
+		)
+		if err := gp.AddRow(ctx, row); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func main() {
