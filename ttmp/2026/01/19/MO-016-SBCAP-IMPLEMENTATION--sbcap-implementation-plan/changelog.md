@@ -65,3 +65,12 @@ Step 4: implement cssdiff mode (commit fdaa198)
 
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/cssdiff.go — CSS diff mode
 
+
+## 2026-01-19
+
+Step 5: implement matched-styles mode (commit 11994af)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/matched_styles.go — CDP matched rules and winners
+

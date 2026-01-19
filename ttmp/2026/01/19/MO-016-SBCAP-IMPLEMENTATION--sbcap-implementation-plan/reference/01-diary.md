@@ -19,6 +19,8 @@ RelatedFiles:
       Note: Capture mode implementation
     - Path: internal/sbcap/modes/cssdiff.go
       Note: CSS diff mode implementation
+    - Path: internal/sbcap/modes/matched_styles.go
+      Note: Matched-styles mode with CDP and winners
     - Path: internal/sbcap/modes/modes.go
       Note: Mode stubs for capture/cssdiff/matched-styles/ai
     - Path: internal/sbcap/runner/runner.go
@@ -33,6 +35,7 @@ LastUpdated: 2026-01-19T15:03:46.925982931-05:00
 WhatFor: Track incremental implementation steps, decisions, and validation for sbcap.
 WhenToUse: Update after each implementation milestone or task completion.
 ---
+
 
 
 
@@ -235,5 +238,51 @@ I implemented cssdiff mode to collect computed CSS properties, optional bounds, 
   - `go test ./...`
 - Files added:
   - `internal/sbcap/modes/cssdiff.go`
+- Files updated:
+  - `internal/sbcap/modes/modes.go`
+
+## Step 5: Implement matched-styles mode (CDP rules + winners)
+
+I implemented matched-styles mode using CDP calls to enumerate matched CSS rules, capture computed styles, and build a winner summary for key properties. This provides the DevTools-style "why" layer needed for CSS debugging.
+
+**Commit (code):** 11994af — "feat(sbcap): add matched-styles mode"
+
+### What I did
+- Added `internal/sbcap/modes/matched_styles.go` using CDP APIs (`CSS.getMatchedStylesForNode`, `CSS.getComputedStyleForNode`, `DOM.getBoxModel`).
+- Implemented winner selection per property (basic important-aware cascade).
+- Emitted JSON (`matched-styles.json`) and Markdown (`matched-styles.md`) reports.
+- Ran `go test ./...` after fixing CDP API usage.
+
+### Why
+- The matched-styles report provides the missing "why" explanation for computed style differences.
+
+### What worked
+- CDP APIs exposed matched rules and computed styles reliably.
+
+### What didn't work
+- Initial CDP call usage was wrong (multiple return values); corrected after inspecting `cdproto` signatures.
+
+### What I learned
+- `css.GetMatchedStylesForNode(...).Do(...)` returns multiple values, not a struct, and computed styles return a slice directly.
+
+### What was tricky to build
+- Constructing a winner summary without full cascade fidelity while keeping the logic simple.
+
+### What warrants a second pair of eyes
+- Validate that the winner selection logic is sufficient for the intended debugging use cases (important vs non-important).
+
+### What should be done in the future
+- Consider enhancing winner selection with specificity and source order metadata.
+
+### Code review instructions
+- Start at `internal/sbcap/modes/matched_styles.go` for CDP integration and winner logic.
+- Run tests: `go test ./...`.
+
+### Technical details
+- Commands run:
+  - `gofmt -w internal/sbcap/modes/matched_styles.go internal/sbcap/modes/modes.go`
+  - `go test ./...`
+- Files added:
+  - `internal/sbcap/modes/matched_styles.go`
 - Files updated:
   - `internal/sbcap/modes/modes.go`

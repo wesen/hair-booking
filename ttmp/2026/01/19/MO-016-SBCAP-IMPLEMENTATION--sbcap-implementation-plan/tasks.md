@@ -22,9 +22,9 @@
 - [x] 4.2 Implement bounds + attributes capture (getBoundingClientRect + getAttribute).
 - [x] 4.3 Render cssdiff JSON + Markdown diff table.
 
-- [ ] 5.1 Implement matched-styles mode (CDP CSS.getMatchedStylesForNode).
-- [ ] 5.2 Implement winner summary per property (original vs react).
-- [ ] 5.3 Render matched-styles JSON + Markdown report.
+- [x] 5.1 Implement matched-styles mode (CDP CSS.getMatchedStylesForNode).
+- [x] 5.2 Implement winner summary per property (original vs react).
+- [x] 5.3 Render matched-styles JSON + Markdown report.
 
 - [ ] 6.1 Implement AI review mode stub (ocr_question wiring, output schema).
 - [ ] 6.2 Add AI client interface and no-op implementation with explicit errors.
