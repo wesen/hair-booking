@@ -13,8 +13,9 @@ import (
 )
 
 type CaptureResult struct {
-	Original PageResult `json:"original"`
-	React    PageResult `json:"react"`
+	Original PageResult      `json:"original"`
+	React    PageResult      `json:"react"`
+	Coverage CoverageSummary `json:"coverage"`
 }
 
 type PageResult struct {
@@ -30,6 +31,14 @@ type SectionResult struct {
 	Exists     bool   `json:"exists"`
 	Visible    bool   `json:"visible"`
 	Screenshot string `json:"screenshot"`
+}
+
+type CoverageSummary struct {
+	Total           int `json:"total"`
+	OriginalMissing int `json:"original_missing"`
+	ReactMissing    int `json:"react_missing"`
+	OriginalHidden  int `json:"original_hidden"`
+	ReactHidden     int `json:"react_hidden"`
 }
 
 type domCheck struct {
@@ -63,6 +72,7 @@ func RunCapture(ctx context.Context, cfg *config.Config) error {
 	}
 
 	result := CaptureResult{Original: original, React: react}
+	result.Coverage = computeCoverage(original, react)
 
 	if cfg.Output.WriteJSON {
 		if err := writeJSON(filepath.Join(cfg.Output.Dir, "capture.json"), result); err != nil {
@@ -140,6 +150,12 @@ func writeJSON(path string, data any) error {
 
 func writeMarkdown(path string, result CaptureResult) error {
 	content := "# sbcap Capture Report\n\n"
+	content += "## Coverage Summary\n\n"
+	content += fmt.Sprintf("- Total selectors: %d\n", result.Coverage.Total)
+	content += fmt.Sprintf("- Original missing: %d\n", result.Coverage.OriginalMissing)
+	content += fmt.Sprintf("- React missing: %d\n", result.Coverage.ReactMissing)
+	content += fmt.Sprintf("- Original hidden: %d\n", result.Coverage.OriginalHidden)
+	content += fmt.Sprintf("- React hidden: %d\n\n", result.Coverage.ReactHidden)
 	content += formatPageResult("Original", result.Original)
 	content += "\n"
 	content += formatPageResult("React", result.React)
@@ -157,6 +173,27 @@ func formatPageResult(label string, page PageResult) string {
 	}
 	content += "\n"
 	return content
+}
+
+func computeCoverage(original PageResult, react PageResult) CoverageSummary {
+	summary := CoverageSummary{Total: len(original.Sections)}
+	for i, section := range original.Sections {
+		if !section.Exists {
+			summary.OriginalMissing++
+		}
+		if section.Exists && !section.Visible {
+			summary.OriginalHidden++
+		}
+		if i < len(react.Sections) {
+			if !react.Sections[i].Exists {
+				summary.ReactMissing++
+			}
+			if react.Sections[i].Exists && !react.Sections[i].Visible {
+				summary.ReactHidden++
+			}
+		}
+	}
+	return summary
 }
 
 func evaluateDOMCheck(page *driver.Page, selector string, out *domCheck) error {

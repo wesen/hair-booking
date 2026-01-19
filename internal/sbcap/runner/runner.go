@@ -72,6 +72,8 @@ func Run(ctx context.Context, cfg *config.Config, modesList []string, dryRun boo
 			err = modes.CSSDiff(ctx, cfg)
 		case "matched-styles":
 			err = modes.MatchedStyles(ctx, cfg)
+		case "story-discovery":
+			err = modes.StoryDiscovery(ctx, cfg)
 		case "ai-review":
 			err = modes.AIReview(ctx, cfg)
 		default:
