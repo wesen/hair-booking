@@ -7,6 +7,8 @@ DocType: reference
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: cmd/sbcap/main.go
+      Note: Fix config flag to accept path (commit 4c5cebc)
     - Path: internal/sbcap/modes/matched_styles.go
       Note: |-
         Reviewed current winner selection logic and gaps
@@ -23,6 +25,7 @@ LastUpdated: 2026-01-19T17:28:41.959388275-05:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 
@@ -198,3 +201,46 @@ The end-to-end sbcap run did not complete due to CLI config handling and a subse
 ### Technical details
 - Storybook bound to `http://localhost:6007/` because port 6006 was busy.
 - Template server ran on `http://localhost:8080/`.
+
+## Step 5: Fix sbcap config flag type and re-run validation (partial)
+
+I corrected the sbcap CLI config flag to accept a path string instead of a file-contents parameter, aligning the CLI behavior with `config.Load` and the validation playbook. I reran `go test ./...` and rebuilt the sbcap binary, then attempted the capture/cssdiff/matched-styles run again with the path-based config.
+
+The end-to-end run still failed with `Error: invalid context` from chromedp; per debugging rules I stopped after the second failure and recorded the error.
+
+**Commit (code):** 4c5cebc — "fix(sbcap): treat --config as path"
+
+### What I did
+- Changed `cmd/sbcap/main.go` to use `fields.TypeString` for the `config` flag.
+- Ran `go test ./...` and `go build -o /tmp/sbcap ./cmd/sbcap`.
+- Started Storybook and the HTML template server; reran sbcap capture/cssdiff/matched-styles.
+
+### Why
+- Ensure `--config` is treated as a file path, not file contents, which matches `config.Load` expectations.
+
+### What worked
+- Tests passed and the sbcap binary rebuilt cleanly.
+- Storybook started on port 6007 and the HTML template server on 8080.
+
+### What didn't work
+- `/tmp/sbcap run --config /tmp/sbcap.yaml --modes capture,cssdiff,matched-styles` failed with:
+  - `Error: invalid context`
+
+### What I learned
+- Fixing the config flag type alone does not resolve the chromedp context error.
+
+### What was tricky to build
+- N/A (simple CLI change).
+
+### What warrants a second pair of eyes
+- Root cause of the `invalid context` failure in chromedp.
+
+### What should be done in the future
+- Investigate the chromedp `invalid context` failure and rerun the validation playbook.
+
+### Code review instructions
+- Review `cmd/sbcap/main.go` for the config flag type change.
+- Validate with `go test ./...`.
+
+### Technical details
+- Storybook again bound to `http://localhost:6007/` due to 6006 being busy.

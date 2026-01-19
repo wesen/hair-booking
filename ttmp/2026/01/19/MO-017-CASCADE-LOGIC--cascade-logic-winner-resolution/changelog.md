@@ -41,3 +41,12 @@ Step 4: attempted sbcap validation playbook (config parsing + invalid context er
 
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/playbook/01-sbcap-validation-playbook.md — Validation steps executed and errors recorded
 
+
+## 2026-01-19
+
+Step 5: fix sbcap --config flag type and retry validation (commit 4c5cebc)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/cmd/sbcap/main.go — Config flag now expects a path string
+
