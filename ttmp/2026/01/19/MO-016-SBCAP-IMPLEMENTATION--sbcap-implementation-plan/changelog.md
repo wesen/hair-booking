@@ -56,3 +56,12 @@ Step 3: implement capture mode (commit 39e7946)
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/driver/chrome.go — Chromedp driver
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/capture.go — Capture mode
 
+
+## 2026-01-19
+
+Step 4: implement cssdiff mode (commit fdaa198)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/cssdiff.go — CSS diff mode
+

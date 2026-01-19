@@ -18,9 +18,9 @@
 - [x] 3.3 Implement capture mode: per-section screenshots + presence/visibility checks.
 - [x] 3.4 Write capture JSON manifest and minimal Markdown summary.
 
-- [ ] 4.1 Implement cssdiff mode: computed styles via getComputedStyle.
-- [ ] 4.2 Implement bounds + attributes capture (getBoundingClientRect + getAttribute).
-- [ ] 4.3 Render cssdiff JSON + Markdown diff table.
+- [x] 4.1 Implement cssdiff mode: computed styles via getComputedStyle.
+- [x] 4.2 Implement bounds + attributes capture (getBoundingClientRect + getAttribute).
+- [x] 4.3 Render cssdiff JSON + Markdown diff table.
 
 - [ ] 5.1 Implement matched-styles mode (CDP CSS.getMatchedStylesForNode).
 - [ ] 5.2 Implement winner summary per property (original vs react).

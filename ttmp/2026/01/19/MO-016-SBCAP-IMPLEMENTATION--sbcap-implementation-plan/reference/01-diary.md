@@ -17,6 +17,8 @@ RelatedFiles:
       Note: Chromedp driver abstraction
     - Path: internal/sbcap/modes/capture.go
       Note: Capture mode implementation
+    - Path: internal/sbcap/modes/cssdiff.go
+      Note: CSS diff mode implementation
     - Path: internal/sbcap/modes/modes.go
       Note: Mode stubs for capture/cssdiff/matched-styles/ai
     - Path: internal/sbcap/runner/runner.go
@@ -31,6 +33,7 @@ LastUpdated: 2026-01-19T15:03:46.925982931-05:00
 WhatFor: Track incremental implementation steps, decisions, and validation for sbcap.
 WhenToUse: Update after each implementation milestone or task completion.
 ---
+
 
 
 
@@ -186,5 +189,51 @@ I implemented the first functional sbcap mode: capture. This includes a chromedp
 - Files added:
   - `internal/sbcap/driver/chrome.go`
   - `internal/sbcap/modes/capture.go`
+- Files updated:
+  - `internal/sbcap/modes/modes.go`
+
+## Step 4: Implement cssdiff mode (computed styles + bounds)
+
+I implemented cssdiff mode to collect computed CSS properties, optional bounds, and attribute values for each selector, and to emit JSON and Markdown diff reports. This matches the workflow requirement for systematic CSS debugging across original and React pages.
+
+**Commit (code):** fdaa198 — "feat(sbcap): add cssdiff mode"
+
+### What I did
+- Added `internal/sbcap/modes/cssdiff.go` with computed-style capture and diffing.
+- Implemented JSON output (`cssdiff.json`) and Markdown report (`cssdiff.md`).
+- Updated mode dispatch to use the real cssdiff implementation.
+- Ran `go test ./...`.
+
+### Why
+- CSS diffs are the fastest way to pinpoint layout regressions caused by missing selectors or DOM changes.
+
+### What worked
+- The js evaluation approach returns computed values, bounds, and attributes in a single call.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Packing props and attributes into the JS evaluation keeps cross-language plumbing simple.
+
+### What was tricky to build
+- Keeping diff output readable while still preserving enough detail for debugging.
+
+### What warrants a second pair of eyes
+- Validate that property comparisons should trim whitespace and how to handle missing properties.
+
+### What should be done in the future
+- Add severity ranking for diffs (layout vs cosmetic).
+
+### Code review instructions
+- Start at `internal/sbcap/modes/cssdiff.go` for computed style extraction and diff output.
+- Run tests: `go test ./...`.
+
+### Technical details
+- Commands run:
+  - `gofmt -w internal/sbcap/modes/cssdiff.go internal/sbcap/modes/modes.go`
+  - `go test ./...`
+- Files added:
+  - `internal/sbcap/modes/cssdiff.go`
 - Files updated:
   - `internal/sbcap/modes/modes.go`
