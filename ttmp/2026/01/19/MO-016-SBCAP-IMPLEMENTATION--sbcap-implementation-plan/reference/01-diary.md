@@ -393,3 +393,40 @@ I added the ticket scaffold documents (README, index, and the sbcap implementati
   - `ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/README.md`
   - `ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/index.md`
   - `ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/design-doc/01-sbcap-tool-implementation-overview.md`
+
+## Step 8: Add sbcap validation playbook
+
+I created a validation playbook that describes how to test sbcap end-to-end with Storybook and the original HTML template. The playbook includes concrete commands, expected outputs, and exit criteria so we can run real-world checks after future changes.
+
+### What I did
+- Added `playbook/01-sbcap-validation-playbook.md` with commands for capture, cssdiff, matched-styles, story discovery, and AI review.
+- Related the playbook to the sbcap mode implementations.
+
+### Why
+- We need a repeatable validation procedure before shipping sbcap changes.
+
+### What worked
+- The playbook covers all existing modes and aligns with the workflow docs.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- N/A.
+
+### What was tricky to build
+- N/A.
+
+### What warrants a second pair of eyes
+- Validate that the Storybook URL and selectors in the sample config match current stories.
+
+### What should be done in the future
+- Add AI backend validation steps once a real AI client is configured.
+
+### Code review instructions
+- Review `ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/playbook/01-sbcap-validation-playbook.md`.
+- No tests were run (documentation-only change).
+
+### Technical details
+- Edited files:
+  - `ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/playbook/01-sbcap-validation-playbook.md`
