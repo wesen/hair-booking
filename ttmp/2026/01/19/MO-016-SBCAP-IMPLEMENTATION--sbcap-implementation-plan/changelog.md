@@ -34,3 +34,15 @@ Step 1: initialize tasks and diary (commit fee172f)
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/reference/01-diary.md — Implementation diary
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/tasks.md — Detailed task breakdown
 
+
+## 2026-01-19
+
+Step 2: scaffold sbcap config and CLI skeleton (commit 3522d7e)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/cmd/sbcap/main.go — Glazed CLI
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/go.mod — Added sbcap dependencies
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/config/config.go — Config schema
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/runner/runner.go — Mode orchestration
+
