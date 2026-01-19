@@ -353,3 +353,43 @@ I implemented the AI review mode scaffolding, a Storybook story discovery mode, 
   - `internal/sbcap/modes/capture.go`
   - `internal/sbcap/runner/runner.go`
   - `cmd/sbcap/main.go`
+
+## Step 7: Add MO-016 ticket overview docs
+
+I added the ticket scaffold documents (README, index, and the sbcap implementation overview design doc) to version control so the ticket workspace is complete and reviewable alongside the implementation history.
+
+**Commit (code):** 9e9a1c9 — "docs: add MO-016 ticket overview"
+
+### What I did
+- Added `README.md`, `index.md`, and the design doc to the git history for MO-016.
+
+### Why
+- These docs are part of the ticket scaffolding and should be tracked for review and collaboration.
+
+### What worked
+- The ticket overview docs were added cleanly without conflicting with implementation commits.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- N/A.
+
+### What was tricky to build
+- N/A.
+
+### What warrants a second pair of eyes
+- Confirm the design doc aligns with the actual implementation status after recent changes.
+
+### What should be done in the future
+- N/A.
+
+### Code review instructions
+- Review `ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/design-doc/01-sbcap-tool-implementation-overview.md`.
+- No tests were run (documentation-only change).
+
+### Technical details
+- Files added:
+  - `ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/README.md`
+  - `ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/index.md`
+  - `ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/design-doc/01-sbcap-tool-implementation-overview.md`

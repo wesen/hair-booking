@@ -86,3 +86,12 @@ Step 6: add AI review, story discovery, and coverage outputs (commits c8aa458, 7
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/ai_review.go — AI review mode
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/stories.go — Story discovery mode
 
+
+## 2026-01-19
+
+Step 7: add ticket overview docs (commit 9e9a1c9)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/design-doc/01-sbcap-tool-implementation-overview.md — Implementation overview
+
