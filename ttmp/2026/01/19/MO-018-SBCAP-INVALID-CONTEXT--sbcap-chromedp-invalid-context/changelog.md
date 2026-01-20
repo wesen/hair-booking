@@ -51,3 +51,8 @@ Step 2: wrap matched-styles CDP calls with chromedp.Run to fix invalid context (
 
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/matched_styles.go — CDP calls wrapped to preserve executor
 
+
+## 2026-01-19
+
+Ticket closed
+

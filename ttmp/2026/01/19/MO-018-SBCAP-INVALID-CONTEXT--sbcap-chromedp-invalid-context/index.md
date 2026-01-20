@@ -1,7 +1,7 @@
 ---
 Title: sbcap chromedp invalid context
 Ticket: MO-018-SBCAP-INVALID-CONTEXT
-Status: active
+Status: complete
 Topics:
     - sbcap
     - chromedp
@@ -12,10 +12,11 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: ""
-LastUpdated: 2026-01-19T18:13:47.367826707-05:00
+LastUpdated: 2026-01-19T21:03:47.340872158-05:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 # sbcap chromedp invalid context
 
