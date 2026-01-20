@@ -206,26 +206,18 @@ func RunMatchedStyles(ctx context.Context, cfg *config.Config) error {
 
 func evaluateMatched(page *driver.Page, spec config.StyleSpec) (MatchedSnapshot, error) {
 	var nodeIDs []cdp.NodeID
-	if driver.DebugEnabled() {
-		log.Info().Str("selector", spec.Selector).Msg("sbcap matched-styles: query node IDs")
-	}
+	log.Info().Str("selector", spec.Selector).Msg("sbcap matched-styles: query node IDs")
 	if err := chromedp.Run(page.Context(), chromedp.NodeIDs(spec.Selector, &nodeIDs, chromedp.ByQuery)); err != nil {
-		if driver.DebugEnabled() {
-			log.Error().Err(err).Str("selector", spec.Selector).Msg("sbcap matched-styles: query node IDs failed")
-		}
+		log.Error().Err(err).Str("selector", spec.Selector).Msg("sbcap matched-styles: query node IDs failed")
 		return MatchedSnapshot{}, err
 	}
 	if len(nodeIDs) == 0 {
-		if driver.DebugEnabled() {
-			log.Info().Str("selector", spec.Selector).Msg("sbcap matched-styles: selector not found")
-		}
+		log.Info().Str("selector", spec.Selector).Msg("sbcap matched-styles: selector not found")
 		return MatchedSnapshot{Exists: false, Rules: []MatchedRule{}, Computed: map[string]string{}}, nil
 	}
 	nodeID := nodeIDs[0]
 
-	if driver.DebugEnabled() {
-		log.Info().Int64("node_id", int64(nodeID)).Msg("sbcap matched-styles: get matched styles")
-	}
+	log.Info().Int64("node_id", int64(nodeID)).Msg("sbcap matched-styles: get matched styles")
 	var inlineStyle *css.Style
 	var matchedRules []*css.RuleMatch
 	if err := chromedp.Run(page.Context(), chromedp.ActionFunc(func(ctx context.Context) error {
@@ -233,23 +225,17 @@ func evaluateMatched(page *driver.Page, spec config.StyleSpec) (MatchedSnapshot,
 		inlineStyle, _, matchedRules, _, _, _, _, _, _, _, _, _, _, _, err = css.GetMatchedStylesForNode(nodeID).Do(ctx)
 		return err
 	})); err != nil {
-		if driver.DebugEnabled() {
-			log.Error().Err(err).Int64("node_id", int64(nodeID)).Msg("sbcap matched-styles: get matched styles failed")
-		}
+		log.Error().Err(err).Int64("node_id", int64(nodeID)).Msg("sbcap matched-styles: get matched styles failed")
 		return MatchedSnapshot{}, err
 	}
-	if driver.DebugEnabled() {
-		log.Info().Int64("node_id", int64(nodeID)).Msg("sbcap matched-styles: get computed styles")
-	}
+	log.Info().Int64("node_id", int64(nodeID)).Msg("sbcap matched-styles: get computed styles")
 	var computedProps []*css.ComputedStyleProperty
 	if err := chromedp.Run(page.Context(), chromedp.ActionFunc(func(ctx context.Context) error {
 		var err error
 		computedProps, err = css.GetComputedStyleForNode(nodeID).Do(ctx)
 		return err
 	})); err != nil {
-		if driver.DebugEnabled() {
-			log.Error().Err(err).Int64("node_id", int64(nodeID)).Msg("sbcap matched-styles: get computed styles failed")
-		}
+		log.Error().Err(err).Int64("node_id", int64(nodeID)).Msg("sbcap matched-styles: get computed styles failed")
 		return MatchedSnapshot{}, err
 	}
 
