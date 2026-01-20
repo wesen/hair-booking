@@ -117,6 +117,27 @@ Error: open metadata:
 
 Root cause: `--config` was declared as `fields.TypeFile`, which passes file contents to `RunSettings.Config` (string). `config.Load` treated the contents as a file path. This was fixed by switching to `fields.TypeString` for `config` in `cmd/sbcap/main.go` (commit `4c5cebc`).
 
+## Latest Findings (2026-01-19)
+
+The new `chromedp-probe` CLI command successfully navigates to both the HTML template and the Storybook iframe, suggesting chromedp itself can start and evaluate pages in this environment.
+
+Probe commands (all returned `chromedp ok`):
+
+```bash
+/tmp/sbcap chromedp-probe --url http://localhost:8080/page-about-us.html --wait-ms 1000 --selector "#page-title"
+/tmp/sbcap chromedp-probe --url "http://localhost:6007/iframe.html?id=pages-aboutuspage--full-page&viewMode=story" --wait-ms 3000 --selector "#page-title"
+/tmp/sbcap chromedp-probe --url "http://localhost:6007/iframe.html?id=pages-aboutuspage--full-page&viewMode=story" --wait-ms 3000 --selector "#page-title, .page-title"
+```
+
+Full sbcap run still fails:
+
+```bash
+/tmp/sbcap run --config /tmp/sbcap.yaml --modes capture,cssdiff,matched-styles
+# Error: invalid context
+```
+
+Implication: the `invalid context` error is likely inside sbcap’s multi-page lifecycle or specific mode logic (capture/cssdiff/matched-styles), not basic chromedp startup.
+
 ## Config Used
 
 ```yaml
@@ -243,4 +264,3 @@ Collect relevant issues, especially around:
 ## Related Commits
 
 - `4c5cebc` — “fix(sbcap): treat --config as path”
-
