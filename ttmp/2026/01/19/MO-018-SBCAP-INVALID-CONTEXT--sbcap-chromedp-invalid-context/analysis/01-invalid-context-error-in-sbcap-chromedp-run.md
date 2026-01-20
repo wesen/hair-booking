@@ -14,6 +14,7 @@ RelatedFiles:
       Note: |-
         CLI config flag and mode selection
         Config flag handling affects CLI run
+        chromedp-probe CLI command to isolate browser issues
     - Path: internal/sbcap/driver/chrome.go
       Note: |-
         chromedp browser/page context creation
@@ -44,6 +45,7 @@ LastUpdated: 2026-01-19T00:00:00Z
 WhatFor: Provide a full bug report and investigation guide for the intern, including reproduction steps, hypotheses, and internet research targets.
 WhenToUse: Use when debugging sbcap end-to-end runs that error with chromedp invalid context.
 ---
+
 
 
 # Invalid context error in sbcap chromedp run

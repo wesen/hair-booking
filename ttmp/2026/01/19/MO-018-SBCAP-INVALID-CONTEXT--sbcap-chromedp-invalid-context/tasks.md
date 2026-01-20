@@ -9,3 +9,5 @@
 - [ ] Check chromedp/Chrome version compatibility and test ExecPath override
 - [ ] Add temporary logging around chromedp calls to find the failing step
 - [ ] Search internet for chromedp 'invalid context' reports and summarize likely causes
+- [ ] Add CLI chromedp probe command to validate browser startup and navigation
+- [ ] Add structured logging around chromedp browser/page lifecycle
