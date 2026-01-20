@@ -6,8 +6,12 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
+	"github.com/chromedp/cdproto/cdp"
+	"github.com/chromedp/chromedp"
 	"github.com/go-go-golems/XXX/internal/sbcap/config"
+	"github.com/go-go-golems/XXX/internal/sbcap/driver"
 	"github.com/go-go-golems/XXX/internal/sbcap/modes"
 	"github.com/go-go-golems/XXX/internal/sbcap/runner"
 	"github.com/go-go-golems/glazed/pkg/cli"
@@ -208,9 +212,87 @@ func main() {
 
 	rootCmd := &cobra.Command{Use: "sbcap"}
 	rootCmd.AddCommand(cobraRunCmd)
+	rootCmd.AddCommand(newChromedpProbeCommand())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
+}
+
+type chromedpProbeSettings struct {
+	URL       string
+	Selector  string
+	WaitMS    int
+	ViewportW int
+	ViewportH int
+	TimeoutMS int
+}
+
+func newChromedpProbeCommand() *cobra.Command {
+	settings := &chromedpProbeSettings{}
+	cmd := &cobra.Command{
+		Use:   "chromedp-probe",
+		Short: "Run a minimal chromedp probe against a URL",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			if settings.URL == "" {
+				return fmt.Errorf("--url is required")
+			}
+			timeout := time.Duration(settings.TimeoutMS) * time.Millisecond
+			ctx, cancel := context.WithTimeout(context.Background(), timeout)
+			defer cancel()
+
+			browser, err := driver.NewBrowser(ctx)
+			if err != nil {
+				return err
+			}
+			defer browser.Close()
+
+			page, err := browser.NewPage()
+			if err != nil {
+				return err
+			}
+			defer page.Close()
+
+			if err := page.SetViewport(settings.ViewportW, settings.ViewportH); err != nil {
+				return err
+			}
+			if err := page.Goto(settings.URL); err != nil {
+				return err
+			}
+			if settings.WaitMS > 0 {
+				page.Wait(time.Duration(settings.WaitMS) * time.Millisecond)
+			}
+
+			var title string
+			if err := page.Evaluate("document.title", &title); err != nil {
+				return err
+			}
+
+			selectorMatches := -1
+			if settings.Selector != "" {
+				var nodeIDs []cdp.NodeID
+				if err := chromedp.Run(page.Context(), chromedp.NodeIDs(settings.Selector, &nodeIDs, chromedp.ByQuery)); err != nil {
+					return err
+				}
+				selectorMatches = len(nodeIDs)
+			}
+
+			if settings.Selector != "" {
+				fmt.Printf("chromedp ok url=%s title=%q selector=%s matches=%d\n", settings.URL, title, settings.Selector, selectorMatches)
+				return nil
+			}
+			fmt.Printf("chromedp ok url=%s title=%q\n", settings.URL, title)
+			return nil
+		},
+	}
+
+	cmd.Flags().StringVar(&settings.URL, "url", "", "URL to navigate to")
+	cmd.Flags().StringVar(&settings.Selector, "selector", "", "Optional CSS selector to verify")
+	cmd.Flags().IntVar(&settings.WaitMS, "wait-ms", 0, "Wait time in milliseconds after navigation")
+	cmd.Flags().IntVar(&settings.ViewportW, "viewport-width", 1280, "Viewport width")
+	cmd.Flags().IntVar(&settings.ViewportH, "viewport-height", 720, "Viewport height")
+	cmd.Flags().IntVar(&settings.TimeoutMS, "timeout-ms", 30000, "Overall timeout in milliseconds")
+
+	return cmd
 }
