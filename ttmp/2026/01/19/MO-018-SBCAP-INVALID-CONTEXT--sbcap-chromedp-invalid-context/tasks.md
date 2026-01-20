@@ -4,10 +4,10 @@
 
 - [ ] Add tasks here
 
-- [ ] Reproduce invalid context with capture/cssdiff/matched-styles and record exact failing call
-- [ ] Isolate failing mode by running each mode independently
+- [x] Reproduce invalid context with capture/cssdiff/matched-styles and record exact failing call
+- [x] Isolate failing mode by running each mode independently
 - [ ] Check chromedp/Chrome version compatibility and test ExecPath override
-- [ ] Add temporary logging around chromedp calls to find the failing step
+- [x] Add temporary logging around chromedp calls to find the failing step
 - [ ] Search internet for chromedp 'invalid context' reports and summarize likely causes
-- [ ] Add CLI chromedp probe command to validate browser startup and navigation
-- [ ] Add structured logging around chromedp browser/page lifecycle
+- [x] Add CLI chromedp probe command to validate browser startup and navigation
+- [x] Add structured logging around chromedp browser/page lifecycle

@@ -32,3 +32,13 @@ Record chromedp probe success + sbcap run still failing
 
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/ttmp/2026/01/19/MO-018-SBCAP-INVALID-CONTEXT--sbcap-chromedp-invalid-context/analysis/01-invalid-context-error-in-sbcap-chromedp-run.md — Added latest findings section
 
+
+## 2026-01-19
+
+Step 1: add chromedp lifecycle + matched-styles logging; isolate failure to CSS.getMatchedStylesForNode (commit 4104963)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/driver/chrome.go — Lifecycle logging for chromedp
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/matched_styles.go — Matched-styles CDP logging
+

@@ -138,6 +138,18 @@ Full sbcap run still fails:
 
 Implication: the `invalid context` error is likely inside sbcap’s multi-page lifecycle or specific mode logic (capture/cssdiff/matched-styles), not basic chromedp startup.
 
+## Failure Location (2026-01-19)
+
+With additional logging, the failure occurs on the first call to `css.GetMatchedStylesForNode` inside matched-styles evaluation. The selector lookup succeeds, but the CDP call fails:
+
+```
+sbcap matched-styles: query node IDs
+sbcap matched-styles: get matched styles
+sbcap matched-styles: get matched styles failed (error=invalid context)
+```
+
+This suggests the issue is specifically tied to `CSS.getMatchedStylesForNode` on the original page, not node selection or navigation.
+
 ## Config Used
 
 ```yaml
