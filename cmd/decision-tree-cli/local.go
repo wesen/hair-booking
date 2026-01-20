@@ -7,9 +7,9 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/go-go-golems/XXX/internal/cli"
-	"github.com/go-go-golems/XXX/internal/dsl"
-	"github.com/go-go-golems/XXX/internal/store"
+	"github.com/go-go-golems/sbcap/internal/cli"
+	"github.com/go-go-golems/sbcap/internal/dsl"
+	"github.com/go-go-golems/sbcap/internal/store"
 )
 
 func newLocalCommand() *cobra.Command {

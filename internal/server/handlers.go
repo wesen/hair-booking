@@ -9,8 +9,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/rs/zerolog"
 
-	"github.com/go-go-golems/XXX/internal/dsl"
-	"github.com/go-go-golems/XXX/internal/store"
+	"github.com/go-go-golems/sbcap/internal/dsl"
+	"github.com/go-go-golems/sbcap/internal/store"
 )
 
 type handler struct {

@@ -10,7 +10,7 @@ import (
 
 	"github.com/rs/zerolog"
 
-	"github.com/go-go-golems/XXX/internal/store"
+	"github.com/go-go-golems/sbcap/internal/store"
 )
 
 const testDSL = `name: Test

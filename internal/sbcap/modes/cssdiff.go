@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-go-golems/XXX/internal/sbcap/config"
-	"github.com/go-go-golems/XXX/internal/sbcap/driver"
+	"github.com/go-go-golems/sbcap/internal/sbcap/config"
+	"github.com/go-go-golems/sbcap/internal/sbcap/driver"
 )
 
 type CSSDiffResult struct {

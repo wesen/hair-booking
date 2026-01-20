@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-go-golems/XXX/internal/sbcap/config"
-	"github.com/go-go-golems/XXX/internal/sbcap/modes"
+	"github.com/go-go-golems/sbcap/internal/sbcap/config"
+	"github.com/go-go-golems/sbcap/internal/sbcap/modes"
 )
 
 type ModeResult struct {

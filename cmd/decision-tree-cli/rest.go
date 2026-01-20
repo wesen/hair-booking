@@ -12,8 +12,8 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/go-go-golems/XXX/internal/cli"
-	"github.com/go-go-golems/XXX/internal/dsl"
+	"github.com/go-go-golems/sbcap/internal/cli"
+	"github.com/go-go-golems/sbcap/internal/dsl"
 )
 
 type restConfig struct {

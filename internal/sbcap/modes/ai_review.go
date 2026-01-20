@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/go-go-golems/XXX/internal/sbcap/ai"
-	"github.com/go-go-golems/XXX/internal/sbcap/config"
+	"github.com/go-go-golems/sbcap/internal/sbcap/ai"
+	"github.com/go-go-golems/sbcap/internal/sbcap/config"
 )
 
 type AIReviewResult struct {

@@ -3,7 +3,7 @@ package cli
 import (
 	"testing"
 
-	"github.com/go-go-golems/XXX/internal/dsl"
+	"github.com/go-go-golems/sbcap/internal/dsl"
 )
 
 const simpleTree = `name: Simple

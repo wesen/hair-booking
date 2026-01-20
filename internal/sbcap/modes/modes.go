@@ -3,7 +3,7 @@ package modes
 import (
 	"context"
 
-	"github.com/go-go-golems/XXX/internal/sbcap/config"
+	"github.com/go-go-golems/sbcap/internal/sbcap/config"
 )
 
 func Capture(ctx context.Context, cfg *config.Config) error {

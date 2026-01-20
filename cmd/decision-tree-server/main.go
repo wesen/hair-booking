@@ -8,8 +8,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/go-go-golems/XXX/internal/server"
-	"github.com/go-go-golems/XXX/internal/store"
+	"github.com/go-go-golems/sbcap/internal/server"
+	"github.com/go-go-golems/sbcap/internal/store"
 )
 
 func main() {

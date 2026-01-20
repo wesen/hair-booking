@@ -9,8 +9,8 @@ import (
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 
-	"github.com/go-go-golems/XXX/internal/store"
-	"github.com/go-go-golems/XXX/internal/web"
+	"github.com/go-go-golems/sbcap/internal/store"
+	"github.com/go-go-golems/sbcap/internal/web"
 )
 
 // Server wires HTTP handlers and dependencies.

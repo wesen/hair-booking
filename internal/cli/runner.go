@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/go-go-golems/XXX/internal/dsl"
+	"github.com/go-go-golems/sbcap/internal/dsl"
 )
 
 // RunSelections walks a decision tree by matching option labels in order.
