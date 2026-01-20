@@ -42,3 +42,12 @@ Step 1: add chromedp lifecycle + matched-styles logging; isolate failure to CSS.
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/driver/chrome.go — Lifecycle logging for chromedp
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/matched_styles.go — Matched-styles CDP logging
 
+
+## 2026-01-19
+
+Step 2: wrap matched-styles CDP calls with chromedp.Run to fix invalid context (commit 8615b1d)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/matched_styles.go — CDP calls wrapped to preserve executor
+

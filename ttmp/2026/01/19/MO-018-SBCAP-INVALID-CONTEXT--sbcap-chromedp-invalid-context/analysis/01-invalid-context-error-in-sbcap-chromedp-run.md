@@ -150,6 +150,17 @@ sbcap matched-styles: get matched styles failed (error=invalid context)
 
 This suggests the issue is specifically tied to `CSS.getMatchedStylesForNode` on the original page, not node selection or navigation.
 
+## Resolution (2026-01-19)
+
+Root cause: `CSS.getMatchedStylesForNode` and `CSS.getComputedStyleForNode` were called directly via `.Do(ctx)` without wrapping in `chromedp.Run`. Although the context had already been used for other actions, the CDP call returned `invalid context` in this flow. Wrapping the calls in `chromedp.Run` with `chromedp.ActionFunc` resolves the issue and preserves the proper executor on the context.
+
+After this change:
+- `matched-styles` mode completes successfully.
+- Full run `capture,cssdiff,matched-styles` completes successfully.
+
+Patch location:
+- `internal/sbcap/modes/matched_styles.go` (wrap `GetMatchedStylesForNode` and `GetComputedStyleForNode` inside `chromedp.Run`)
+
 ## Config Used
 
 ```yaml
