@@ -6,14 +6,11 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/chromedp/cdproto/cdp"
 	"github.com/chromedp/chromedp"
-	"github.com/go-go-golems/sbcap/internal/sbcap/config"
-	"github.com/go-go-golems/sbcap/internal/sbcap/driver"
-	"github.com/go-go-golems/sbcap/internal/sbcap/modes"
-	"github.com/go-go-golems/sbcap/internal/sbcap/runner"
 	"github.com/go-go-golems/glazed/pkg/cli"
 	"github.com/go-go-golems/glazed/pkg/cmds"
 	"github.com/go-go-golems/glazed/pkg/cmds/fields"
@@ -21,6 +18,10 @@ import (
 	"github.com/go-go-golems/glazed/pkg/cmds/values"
 	"github.com/go-go-golems/glazed/pkg/middlewares"
 	"github.com/go-go-golems/glazed/pkg/types"
+	"github.com/go-go-golems/sbcap/internal/sbcap/config"
+	"github.com/go-go-golems/sbcap/internal/sbcap/driver"
+	"github.com/go-go-golems/sbcap/internal/sbcap/modes"
+	"github.com/go-go-golems/sbcap/internal/sbcap/runner"
 	"github.com/spf13/cobra"
 )
 
@@ -212,12 +213,150 @@ func main() {
 
 	rootCmd := &cobra.Command{Use: "sbcap"}
 	rootCmd.AddCommand(cobraRunCmd)
+	rootCmd.AddCommand(newCompareCommand())
 	rootCmd.AddCommand(newChromedpProbeCommand())
 
 	if err := rootCmd.Execute(); err != nil {
 		fmt.Fprintf(os.Stderr, "%v\n", err)
 		os.Exit(1)
 	}
+}
+
+type compareSettings struct {
+	URL1      string
+	Selector1 string
+	WaitMS1   int
+
+	URL2      string
+	Selector2 string
+	WaitMS2   int
+
+	ViewportW int
+	ViewportH int
+
+	Props string
+	Attrs string
+
+	OutDir string
+
+	WriteJSON     bool
+	WriteMarkdown bool
+	WritePNGs     bool
+
+	Threshold int
+}
+
+func newCompareCommand() *cobra.Command {
+	settings := &compareSettings{}
+	cmd := &cobra.Command{
+		Use:   "compare",
+		Short: "Compare a single element between two URLs (screenshots + CSS + pixel diff)",
+		RunE: func(cmd *cobra.Command, args []string) error {
+			props := parseCSV(settings.Props)
+			if len(props) == 0 {
+				props = []string{
+					"display",
+					"position",
+					"top",
+					"right",
+					"bottom",
+					"left",
+					"width",
+					"height",
+					"margin-top",
+					"margin-right",
+					"margin-bottom",
+					"margin-left",
+					"padding-top",
+					"padding-right",
+					"padding-bottom",
+					"padding-left",
+					"font-family",
+					"font-size",
+					"font-weight",
+					"line-height",
+					"color",
+					"background-color",
+					"background-image",
+					"border-radius",
+					"box-shadow",
+					"z-index",
+				}
+			}
+
+			attrs := parseCSV(settings.Attrs)
+			if len(attrs) == 0 {
+				attrs = []string{"id", "class"}
+			}
+
+			return modes.Compare(cmd.Context(), modes.CompareSettings{
+				URL1:               settings.URL1,
+				Selector1:          settings.Selector1,
+				WaitMS1:            settings.WaitMS1,
+				URL2:               settings.URL2,
+				Selector2:          settings.Selector2,
+				WaitMS2:            settings.WaitMS2,
+				ViewportW:          settings.ViewportW,
+				ViewportH:          settings.ViewportH,
+				Props:              props,
+				Attributes:         attrs,
+				OutDir:             settings.OutDir,
+				WriteJSON:          settings.WriteJSON,
+				WriteMarkdown:      settings.WriteMarkdown,
+				WritePNGs:          settings.WritePNGs,
+				PixelDiffThreshold: settings.Threshold,
+			})
+		},
+	}
+
+	cmd.Flags().StringVar(&settings.URL1, "url1", "", "First URL to compare")
+	cmd.Flags().StringVar(&settings.Selector1, "selector1", "", "CSS selector for URL1 element")
+	cmd.Flags().IntVar(&settings.WaitMS1, "wait-ms1", 0, "Wait after navigation for URL1 (ms)")
+
+	cmd.Flags().StringVar(&settings.URL2, "url2", "", "Second URL to compare")
+	cmd.Flags().StringVar(&settings.Selector2, "selector2", "", "CSS selector for URL2 element (defaults to selector1)")
+	cmd.Flags().IntVar(&settings.WaitMS2, "wait-ms2", 0, "Wait after navigation for URL2 (ms)")
+
+	cmd.Flags().IntVar(&settings.ViewportW, "viewport-w", 1280, "Viewport width")
+	cmd.Flags().IntVar(&settings.ViewportH, "viewport-h", 720, "Viewport height")
+
+	cmd.Flags().StringVar(&settings.Props, "props", "", "Comma-delimited CSS properties to compare (default: a curated list)")
+	cmd.Flags().StringVar(&settings.Attrs, "attrs", "id,class", "Comma-delimited attributes to capture (default: id,class)")
+
+	cmd.Flags().StringVar(&settings.OutDir, "out", "", "Output directory (default: ./sbcap-compare-YYYYMMDD_HHMMSS)")
+	cmd.Flags().IntVar(&settings.Threshold, "threshold", 30, "Pixel diff threshold (0-255)")
+
+	cmd.Flags().BoolVar(&settings.WriteJSON, "write-json", true, "Write compare.json")
+	cmd.Flags().BoolVar(&settings.WriteMarkdown, "write-markdown", true, "Write compare.md")
+	cmd.Flags().BoolVar(&settings.WritePNGs, "write-pngs", true, "Write screenshots and diff images")
+
+	_ = cmd.MarkFlagRequired("url1")
+	_ = cmd.MarkFlagRequired("selector1")
+	_ = cmd.MarkFlagRequired("url2")
+
+	return cmd
+}
+
+func parseCSV(raw string) []string {
+	raw = strings.TrimSpace(raw)
+	if raw == "" {
+		return nil
+	}
+	parts := strings.Split(raw, ",")
+	out := make([]string, 0, len(parts))
+	seen := map[string]bool{}
+	for _, p := range parts {
+		item := strings.TrimSpace(p)
+		if item == "" {
+			continue
+		}
+		if seen[item] {
+			continue
+		}
+		seen[item] = true
+		out = append(out, item)
+	}
+	return out
 }
 
 type chromedpProbeSettings struct {
