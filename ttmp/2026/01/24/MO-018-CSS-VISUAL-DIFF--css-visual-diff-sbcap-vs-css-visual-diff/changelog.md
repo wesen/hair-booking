@@ -22,3 +22,12 @@ Implemented ergonomic sbcap compare command (no AI): screenshots, computed diffs
 
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/compare.go — new compare engine and pixel-diff implementation (commit 79d5c32)
 
+
+## 2026-01-24
+
+Added pixeldiff mode to sbcap run (batch from capture.json) + run flag --pixeldiff-threshold (commit 7914245).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/pixeldiff.go — pixeldiff mode implementation (commit 7914245)
+

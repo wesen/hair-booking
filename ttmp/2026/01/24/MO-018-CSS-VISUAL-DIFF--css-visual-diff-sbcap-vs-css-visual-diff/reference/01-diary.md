@@ -444,3 +444,76 @@ This step creates a fast path for the exact workflow shape that css-visual-diff 
   - `url1_screenshot.png`, `url2_screenshot.png`
   - `diff_only.png`, `diff_comparison.png`
   - `compare.json`, `compare.md`
+
+## Step 7: Add `pixeldiff` mode to `sbcap run` (batch over capture sections)
+
+I extended the `sbcap run` mode pipeline with a new `pixeldiff` mode that consumes `capture.json` and generates per-section pixel-diff artifacts and statistics. This is the “batch version” of the pixel diff capability used by `sbcap compare`, and it is intentionally AI-free.
+
+This step closes the biggest workflow gap: after running `capture` across many sections, we can immediately see which sections diverged most (and where) without manually opening pairs of PNGs.
+
+**Commit (code):** 7914245 — "feat(sbcap): add pixeldiff mode"
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, continue."
+
+**Assistant interpretation:** Implement the next recommended step: bring pixel-diff artifacts into the core `sbcap run` workflow (batch), keep it deterministic, and keep tracking via tasks/diary/commits.
+
+**Inferred user intent:** Improve the feedback loop for many-section audits: get “where to look” immediately after capture, using sbcap’s existing output structure.
+
+### What I did
+- Added a `pixeldiff` mode to the runner and full-mode expansion:
+  - `hair-booking/internal/sbcap/runner/runner.go`
+- Added `sbcap run --pixeldiff-threshold` flag (default 30) so pixel-diff sensitivity is configurable:
+  - `hair-booking/cmd/sbcap/main.go`
+- Implemented `pixeldiff` mode:
+  - reads `capture.json`,
+  - for each section with screenshots on both sides:
+    - pads images to the same size,
+    - computes a correct per-pixel distance mask (integer math, no overflow),
+    - writes `pixeldiff_<section>_diff_only.png` and `pixeldiff_<section>_diff_comparison.png`,
+  - writes summary artifacts:
+    - `pixeldiff.json`
+    - `pixeldiff.md` (sorted by changed-percent, non-skipped first)
+  - file: `hair-booking/internal/sbcap/modes/pixeldiff.go`
+- Refactored shared pixel-diff helpers so both `compare` and `pixeldiff` use the same implementation:
+  - `hair-booking/internal/sbcap/modes/pixeldiff_util.go`
+  - updated: `hair-booking/internal/sbcap/modes/compare.go`
+- Added an integration-style unit test for pixeldiff output generation:
+  - `hair-booking/internal/sbcap/modes/pixeldiff_test.go`
+- Ran `gofmt` and `go test ./...`.
+
+### Why
+- `capture` produces many section screenshots; humans need a “diff hotspot map” to know where to focus.
+- Pixel diffs are the fastest first triage signal, and they complement sbcap’s “why” tools (`cssdiff`, `matched-styles`).
+
+### What worked
+- `go test ./...` passed after adding the new mode and tests.
+- The pixeldiff test validates that changed pixels are detected even when deltas would overflow in a `uint8` squaring implementation.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Treat “threshold 0” carefully if we ever need it: the current runner option uses `0` as “unset” and defaults to 30, which makes “exactly 0” not expressible via flag. (Probably fine for now.)
+
+### What was tricky to build
+- Keeping the pixel-diff computation dependency-free but correct:
+  - compute squared RGB distance in `int` and compare to `threshold^2`.
+
+### What warrants a second pair of eyes
+- Naming conventions for diff images (whether we want `pixeldiff_...` prefixes or a nested output folder).
+- Whether pixeldiff should include full-page diffs as well as per-section diffs.
+
+### What should be done in the future
+- Consider adding a “diff bounding boxes” output (connected components) so the report can point to exact regions, not only a percent.
+
+### Code review instructions
+- Start at `hair-booking/internal/sbcap/modes/pixeldiff.go` and verify file naming + sort order.
+- Review `hair-booking/internal/sbcap/modes/pixeldiff_util.go` for correctness and reuse by `compare`.
+- Validate with:
+  - `go test ./...`
+  - `sbcap run --config <plan> --modes capture,pixeldiff --pixeldiff-threshold 30`
+
+### Technical details
+- `pixeldiff` depends on `capture` having been run first (it requires `capture.json`).

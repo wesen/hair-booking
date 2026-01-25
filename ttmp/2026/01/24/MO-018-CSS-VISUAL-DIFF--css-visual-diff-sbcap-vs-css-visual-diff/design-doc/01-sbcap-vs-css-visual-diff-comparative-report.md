@@ -22,6 +22,10 @@ RelatedFiles:
       Note: ergonomic sbcap compare command implementation (commit 79d5c32)
     - Path: hair-booking/internal/sbcap/modes/matched_styles.go
       Note: CDP matched-styles extraction + cascade winner logic + chromedp.Run wrapping
+    - Path: hair-booking/internal/sbcap/modes/pixeldiff.go
+      Note: pixeldiff mode for sbcap run (commit 7914245)
+    - Path: hair-booking/internal/sbcap/runner/runner.go
+      Note: pixeldiff wired into mode runner and full expansion (commit 7914245)
     - Path: hair-booking/ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/reference/01-diary.md
       Note: sbcap implementation diary (modes and commits)
     - Path: hair-booking/ttmp/2026/01/19/MO-018-SBCAP-INVALID-CONTEXT--sbcap-chromedp-invalid-context/analysis/01-invalid-context-error-in-sbcap-chromedp-run.md
@@ -32,6 +36,7 @@ LastUpdated: 2026-01-24T19:12:40.817290237-05:00
 WhatFor: Provide an exhaustive, implementation-aware comparison between sbcap and the freelancer-built css-visual-diff tool; recommend cross-pollination and a development cycle that yields high-quality feedback.
 WhenToUse: Use when deciding whether to extend sbcap with pixel-diff + vision analysis features, whether to adopt ideas from css-visual-diff, and how to build a reliable feedback loop for template-porting visual audits.
 ---
+
 
 
 
