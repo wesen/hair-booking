@@ -18,3 +18,6 @@
 - [x] Update capture/cssdiff/matched-styles to use per-target selectors; include per-side selectors in outputs
 - [x] Add config validation tests for selector mapping
 - [x] Run gofmt + go test; update diary/changelog; commit
+- [x] Create sbcap diff-gym fixtures (HTML original/react pairs + sbcap.yaml templates)
+- [x] Add runner script to execute diff-gym via local HTTP server and sbcap modes
+- [x] Smoke test diff-gym runner; update diary/changelog; commit

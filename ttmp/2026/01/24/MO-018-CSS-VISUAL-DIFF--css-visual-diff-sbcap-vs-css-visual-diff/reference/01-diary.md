@@ -584,3 +584,72 @@ This step stays AI-free and focuses on making the inspection pipeline more accur
   - `hair-booking/internal/sbcap/modes/cssdiff.go`
   - `hair-booking/internal/sbcap/modes/matched_styles.go`
 - Run: `go test ./...`.
+
+## Step 9: Create a fixture-based “diff gym” and a runner script
+
+I added a small set of deterministic HTML fixture pairs (“diff gym”) plus a runner script that starts a local HTTP server and runs sbcap modes (`capture`, `pixeldiff`, `cssdiff`, `matched-styles`) against each case. Outputs are written to `/tmp/sbcap-diff-gym/<timestamp>/<case>/` with per-case logs, so we can iterate on sbcap with a stable, repeatable exercise set.
+
+This step operationalizes the feedback-quality loop: instead of relying on Storybook setup every time, we have a minimal local fixture battery that exercises spacing, typography, paint, and cascade winner behavior.
+
+### Prompt Context
+
+**User prompt (verbatim):** "yes go ahead."
+
+**Assistant interpretation:** Implement the next recommended step: build a small fixture suite and a single command to exercise the core sbcap pipeline end-to-end.
+
+**Inferred user intent:** Establish a high-signal, low-friction development loop where improvements to sbcap can be validated quickly and repeatably.
+
+### What I did
+- Added fixture suite under:
+  - `hair-booking/fixtures/sbcap-diff-gym/README.md`
+  - `hair-booking/fixtures/sbcap-diff-gym/case-01-spacing/*`
+  - `hair-booking/fixtures/sbcap-diff-gym/case-02-typography/*`
+  - `hair-booking/fixtures/sbcap-diff-gym/case-03-color/*`
+  - `hair-booking/fixtures/sbcap-diff-gym/case-04-cascade/*`
+- Each case includes:
+  - `original.html`
+  - `react.html`
+  - `sbcap.yaml.tmpl` (uses `__BASE_URL__` and `__OUT_DIR__` placeholders)
+- Added runner script:
+  - `hair-booking/scripts/run-sbcap-diff-gym.sh`
+  - starts `python3 -m http.server` on a free local port
+  - generates a concrete `sbcap.yaml` per case by substituting placeholders
+  - runs sbcap in repo root via `go run ./cmd/sbcap run ...`
+  - writes per-case log to `<out>/sbcap.log`
+- Smoke-tested runner successfully (multiple cases, end-to-end artifacts written).
+
+### Why
+- We need stable examples to exercise sbcap changes without repeatedly booting Storybook.
+- The cases are designed to cover the highest-signal categories:
+  - spacing/layout (padding/margins/width),
+  - typography (font-size/weight/line-height),
+  - color/paint (gradients/border-radius),
+  - cascade/winner logic (`!important` vs ID specificity).
+
+### What worked
+- Runner produced artifacts for all cases and completed without errors.
+- Per-target selector mapping is exercised in multiple cases (IDs vs classes differ).
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Even a small fixture battery is enough to catch regressions in: selector mapping, screenshot capture, pixel diff correctness, and winner logic plumbing.
+
+### What was tricky to build
+- Avoiding invalid URLs in committed configs: solved by templating `sbcap.yaml` and generating a concrete config per run (since sbcap requires absolute URLs).
+
+### What warrants a second pair of eyes
+- Fixture case design: ensure each case remains minimal but meaningfully exercises its target behavior (avoid “too pretty” fixtures that accidentally depend on fonts/assets).
+
+### What should be done in the future
+- Add one responsive/breakpoint case (run at two viewports) once sbcap supports multi-viewport execution.
+
+### Code review instructions
+- Start at `hair-booking/scripts/run-sbcap-diff-gym.sh` and run it locally.
+- Inspect one output folder in `/tmp/sbcap-diff-gym/.../<case>/`:
+  - `capture.json`, `pixeldiff.json`, `cssdiff.json`, `matched-styles.json`
+  - `pixeldiff_*_diff_only.png`, `pixeldiff_*_diff_comparison.png`
+
+### Technical details
+- The runner uses `python3 -m http.server` to satisfy sbcap’s URL validation (scheme+host required).

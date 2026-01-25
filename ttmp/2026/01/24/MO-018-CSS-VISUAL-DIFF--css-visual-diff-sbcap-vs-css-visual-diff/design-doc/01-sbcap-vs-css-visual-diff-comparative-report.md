@@ -16,6 +16,8 @@ RelatedFiles:
       Note: pixel diff algorithm and the uint8 overflow defect
     - Path: hair-booking/cmd/sbcap/main.go
       Note: sbcap CLI entrypoint and command surface (run + chromedp-probe)
+    - Path: hair-booking/fixtures/sbcap-diff-gym/README.md
+      Note: fixture battery to exercise sbcap pipeline
     - Path: hair-booking/internal/sbcap/config/config.go
       Note: per-target selectors selector_original/selector_react (commit 8a84e9f)
     - Path: hair-booking/internal/sbcap/modes/capture.go
@@ -28,6 +30,8 @@ RelatedFiles:
       Note: pixeldiff mode for sbcap run (commit 7914245)
     - Path: hair-booking/internal/sbcap/runner/runner.go
       Note: pixeldiff wired into mode runner and full expansion (commit 7914245)
+    - Path: hair-booking/scripts/run-sbcap-diff-gym.sh
+      Note: runner script for fixture battery
     - Path: hair-booking/ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/reference/01-diary.md
       Note: sbcap implementation diary (modes and commits)
     - Path: hair-booking/ttmp/2026/01/19/MO-018-SBCAP-INVALID-CONTEXT--sbcap-chromedp-invalid-context/analysis/01-invalid-context-error-in-sbcap-chromedp-run.md
@@ -38,6 +42,7 @@ LastUpdated: 2026-01-24T19:12:40.817290237-05:00
 WhatFor: Provide an exhaustive, implementation-aware comparison between sbcap and the freelancer-built css-visual-diff tool; recommend cross-pollination and a development cycle that yields high-quality feedback.
 WhenToUse: Use when deciding whether to extend sbcap with pixel-diff + vision analysis features, whether to adopt ideas from css-visual-diff, and how to build a reliable feedback loop for template-porting visual audits.
 ---
+
 
 
 

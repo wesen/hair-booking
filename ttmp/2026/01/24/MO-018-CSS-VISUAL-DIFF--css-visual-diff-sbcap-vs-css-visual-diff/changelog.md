@@ -40,3 +40,12 @@ Added per-target selector mapping (selector_original/selector_react) across capt
 
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/config/config.go — schema+validation for per-target selectors (commit 8a84e9f)
 
+
+## 2026-01-24
+
+Added sbcap diff-gym fixtures + runner script; smoke-tested end-to-end outputs.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/scripts/run-sbcap-diff-gym.sh — one-command fixture runner
+
