@@ -23,11 +23,13 @@ type MatchedStylesResult struct {
 }
 
 type MatchedStyleEntry struct {
-	Name     string          `json:"name"`
-	Selector string          `json:"selector"`
-	Original MatchedSnapshot `json:"original"`
-	React    MatchedSnapshot `json:"react"`
-	Winners  []WinnerDiff    `json:"winners"`
+	Name             string          `json:"name"`
+	Selector         string          `json:"selector,omitempty"`
+	OriginalSelector string          `json:"original_selector,omitempty"`
+	ReactSelector    string          `json:"react_selector,omitempty"`
+	Original         MatchedSnapshot `json:"original"`
+	React            MatchedSnapshot `json:"react"`
+	Winners          []WinnerDiff    `json:"winners"`
 }
 
 type MatchedSnapshot struct {
@@ -172,21 +174,31 @@ func RunMatchedStyles(ctx context.Context, cfg *config.Config) error {
 
 	result := MatchedStylesResult{}
 	for _, style := range cfg.Styles {
-		origSnap, err := evaluateMatched(originalPage, style)
+		origSelector := selectorForTarget(style.Selector, style.SelectorOriginal)
+		reactSelector := selectorForTarget(style.Selector, style.SelectorReact)
+
+		origSpec := style
+		origSpec.Selector = origSelector
+		reactSpec := style
+		reactSpec.Selector = reactSelector
+
+		origSnap, err := evaluateMatched(originalPage, origSpec)
 		if err != nil {
 			return err
 		}
-		reactSnap, err := evaluateMatched(reactPage, style)
+		reactSnap, err := evaluateMatched(reactPage, reactSpec)
 		if err != nil {
 			return err
 		}
 		winners := buildWinnerDiffs(style.Props, origSnap, reactSnap)
 		result.Styles = append(result.Styles, MatchedStyleEntry{
-			Name:     style.Name,
-			Selector: style.Selector,
-			Original: origSnap,
-			React:    reactSnap,
-			Winners:  winners,
+			Name:             style.Name,
+			Selector:         style.Selector,
+			OriginalSelector: origSelector,
+			ReactSelector:    reactSelector,
+			Original:         origSnap,
+			React:            reactSnap,
+			Winners:          winners,
 		})
 	}
 
@@ -389,7 +401,14 @@ func writeMatchedMarkdown(path string, result MatchedStylesResult) error {
 	content += "Winners are resolved using CSS cascade rules: `!important` first, then origin (inline > author > user-agent), then selector specificity, then source order.\n\n"
 	for _, s := range result.Styles {
 		content += fmt.Sprintf("## %s\n\n", s.Name)
-		content += fmt.Sprintf("Selector: `%s`\n\n", s.Selector)
+		if s.OriginalSelector != "" && s.ReactSelector != "" && s.OriginalSelector != s.ReactSelector {
+			content += fmt.Sprintf("Selector (original): `%s`\n\n", s.OriginalSelector)
+			content += fmt.Sprintf("Selector (react): `%s`\n\n", s.ReactSelector)
+		} else if s.Selector != "" {
+			content += fmt.Sprintf("Selector: `%s`\n\n", s.Selector)
+		} else if s.OriginalSelector != "" {
+			content += fmt.Sprintf("Selector: `%s`\n\n", s.OriginalSelector)
+		}
 		content += "### Winner Summary\n\n"
 		content += "| Property | Original Winner | React Winner |\n"
 		content += "| --- | --- | --- |\n"

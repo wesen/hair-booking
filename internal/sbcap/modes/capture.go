@@ -116,20 +116,36 @@ func captureTarget(browser *driver.Browser, target config.Target, sections []con
 	pageResult.FullScreenshot = fullPath
 
 	for _, section := range sections {
+		selector := section.Selector
+		if selector == "" {
+			if prefix == "original" {
+				selector = section.SelectorOriginal
+			} else if prefix == "react" {
+				selector = section.SelectorReact
+			}
+		} else {
+			if prefix == "original" && section.SelectorOriginal != "" {
+				selector = section.SelectorOriginal
+			}
+			if prefix == "react" && section.SelectorReact != "" {
+				selector = section.SelectorReact
+			}
+		}
+
 		check := domCheck{}
-		err := evaluateDOMCheck(page, section.Selector, &check)
+		err := evaluateDOMCheck(page, selector, &check)
 		if err != nil {
 			return PageResult{}, err
 		}
 		result := SectionResult{
 			Name:     section.Name,
-			Selector: section.Selector,
+			Selector: selector,
 			Exists:   check.Exists,
 			Visible:  check.Visible,
 		}
 		if check.Exists {
 			screenshotPath := filepath.Join(outDir, fmt.Sprintf("%s-%s.png", prefix, section.Name))
-			if err := page.Screenshot(section.Selector, screenshotPath); err != nil {
+			if err := page.Screenshot(selector, screenshotPath); err != nil {
 				return PageResult{}, err
 			}
 			result.Screenshot = screenshotPath

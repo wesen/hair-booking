@@ -44,18 +44,22 @@ type Viewport struct {
 }
 
 type SectionSpec struct {
-	Name        string `yaml:"name"`
-	Selector    string `yaml:"selector"`
-	OCRQuestion string `yaml:"ocr_question"`
+	Name             string `yaml:"name"`
+	Selector         string `yaml:"selector"`
+	SelectorOriginal string `yaml:"selector_original"`
+	SelectorReact    string `yaml:"selector_react"`
+	OCRQuestion      string `yaml:"ocr_question"`
 }
 
 type StyleSpec struct {
-	Name          string   `yaml:"name"`
-	Selector      string   `yaml:"selector"`
-	Props         []string `yaml:"props"`
-	IncludeBounds bool     `yaml:"include_bounds"`
-	Attributes    []string `yaml:"attributes"`
-	Report        []string `yaml:"report"`
+	Name             string   `yaml:"name"`
+	Selector         string   `yaml:"selector"`
+	SelectorOriginal string   `yaml:"selector_original"`
+	SelectorReact    string   `yaml:"selector_react"`
+	Props            []string `yaml:"props"`
+	IncludeBounds    bool     `yaml:"include_bounds"`
+	Attributes       []string `yaml:"attributes"`
+	Report           []string `yaml:"report"`
 }
 
 type OutputSpec struct {
@@ -110,13 +114,33 @@ func (c *Config) Validate() error {
 		errs = append(errs, "output.dir is required")
 	}
 	for i, s := range c.Sections {
-		if strings.TrimSpace(s.Name) == "" || strings.TrimSpace(s.Selector) == "" {
-			errs = append(errs, fmt.Sprintf("sections[%d] must include name and selector", i))
+		if strings.TrimSpace(s.Name) == "" {
+			errs = append(errs, fmt.Sprintf("sections[%d] must include name", i))
+			continue
+		}
+		if strings.TrimSpace(s.Selector) == "" && strings.TrimSpace(s.SelectorOriginal) == "" && strings.TrimSpace(s.SelectorReact) == "" {
+			errs = append(errs, fmt.Sprintf("sections[%d] must include selector or selector_original/selector_react", i))
+			continue
+		}
+		if strings.TrimSpace(s.Selector) == "" {
+			if strings.TrimSpace(s.SelectorOriginal) == "" || strings.TrimSpace(s.SelectorReact) == "" {
+				errs = append(errs, fmt.Sprintf("sections[%d] must include both selector_original and selector_react when selector is omitted", i))
+			}
 		}
 	}
 	for i, s := range c.Styles {
-		if strings.TrimSpace(s.Name) == "" || strings.TrimSpace(s.Selector) == "" {
-			errs = append(errs, fmt.Sprintf("styles[%d] must include name and selector", i))
+		if strings.TrimSpace(s.Name) == "" {
+			errs = append(errs, fmt.Sprintf("styles[%d] must include name", i))
+			continue
+		}
+		if strings.TrimSpace(s.Selector) == "" && strings.TrimSpace(s.SelectorOriginal) == "" && strings.TrimSpace(s.SelectorReact) == "" {
+			errs = append(errs, fmt.Sprintf("styles[%d] must include selector or selector_original/selector_react", i))
+			continue
+		}
+		if strings.TrimSpace(s.Selector) == "" {
+			if strings.TrimSpace(s.SelectorOriginal) == "" || strings.TrimSpace(s.SelectorReact) == "" {
+				errs = append(errs, fmt.Sprintf("styles[%d] must include both selector_original and selector_react when selector is omitted", i))
+			}
 		}
 	}
 	if len(errs) > 0 {

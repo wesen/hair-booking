@@ -18,11 +18,13 @@ type CSSDiffResult struct {
 }
 
 type StyleResult struct {
-	Name     string        `json:"name"`
-	Selector string        `json:"selector"`
-	Original StyleSnapshot `json:"original"`
-	React    StyleSnapshot `json:"react"`
-	Diffs    []StyleDiff   `json:"diffs"`
+	Name             string        `json:"name"`
+	Selector         string        `json:"selector,omitempty"`
+	OriginalSelector string        `json:"original_selector,omitempty"`
+	ReactSelector    string        `json:"react_selector,omitempty"`
+	Original         StyleSnapshot `json:"original"`
+	React            StyleSnapshot `json:"react"`
+	Diffs            []StyleDiff   `json:"diffs"`
 }
 
 type StyleSnapshot struct {
@@ -102,21 +104,31 @@ func CSSDiff(ctx context.Context, cfg *config.Config) error {
 
 	result := CSSDiffResult{}
 	for _, style := range cfg.Styles {
-		origSnap, err := evaluateStyle(originalPage, style)
+		origSelector := selectorForTarget(style.Selector, style.SelectorOriginal)
+		reactSelector := selectorForTarget(style.Selector, style.SelectorReact)
+
+		origSpec := style
+		origSpec.Selector = origSelector
+		reactSpec := style
+		reactSpec.Selector = reactSelector
+
+		origSnap, err := evaluateStyle(originalPage, origSpec)
 		if err != nil {
 			return err
 		}
-		reactSnap, err := evaluateStyle(reactPage, style)
+		reactSnap, err := evaluateStyle(reactPage, reactSpec)
 		if err != nil {
 			return err
 		}
 		diffs := buildDiffs(style.Props, origSnap, reactSnap)
 		result.Styles = append(result.Styles, StyleResult{
-			Name:     style.Name,
-			Selector: style.Selector,
-			Original: origSnap,
-			React:    reactSnap,
-			Diffs:    diffs,
+			Name:             style.Name,
+			Selector:         style.Selector,
+			OriginalSelector: origSelector,
+			ReactSelector:    reactSelector,
+			Original:         origSnap,
+			React:            reactSnap,
+			Diffs:            diffs,
 		})
 	}
 
@@ -188,7 +200,14 @@ func writeCSSMarkdown(path string, result CSSDiffResult) error {
 	content := "# sbcap CSS Diff Report\n\n"
 	for _, s := range result.Styles {
 		content += fmt.Sprintf("## %s\n\n", s.Name)
-		content += fmt.Sprintf("Selector: `%s`\n\n", s.Selector)
+		if s.OriginalSelector != "" && s.ReactSelector != "" && s.OriginalSelector != s.ReactSelector {
+			content += fmt.Sprintf("Selector (original): `%s`\n\n", s.OriginalSelector)
+			content += fmt.Sprintf("Selector (react): `%s`\n\n", s.ReactSelector)
+		} else if s.Selector != "" {
+			content += fmt.Sprintf("Selector: `%s`\n\n", s.Selector)
+		} else if s.OriginalSelector != "" {
+			content += fmt.Sprintf("Selector: `%s`\n\n", s.OriginalSelector)
+		}
 		if !s.Original.Exists && !s.React.Exists {
 			content += "Both original and react are missing this selector.\n\n"
 			continue
@@ -201,4 +220,11 @@ func writeCSSMarkdown(path string, result CSSDiffResult) error {
 		content += "\n"
 	}
 	return os.WriteFile(path, []byte(content), 0o644)
+}
+
+func selectorForTarget(defaultSelector, override string) string {
+	if override != "" {
+		return override
+	}
+	return defaultSelector
 }
