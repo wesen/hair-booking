@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Case 01 (react) — spacing</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        padding: 24px;
+        background: #f6f7fb;
+      }
+      .Hero {
+        background: white;
+        border-radius: 12px;
+        /* Intentional difference: more padding + width change */
+        padding: 34px 40px;
+        box-shadow: 0 8px 18px rgba(0, 0, 0, 0.08);
+        width: 620px;
+      }
+      .Hero h1 {
+        margin: 0 0 16px 0;
+        font-size: 26px;
+        font-weight: 700;
+      }
+      .Hero p {
+        margin: 0;
+        color: #4a5568;
+        line-height: 1.5;
+      }
+      .CTA {
+        margin-top: 28px;
+        display: inline-block;
+        padding: 10px 16px;
+        border-radius: 10px;
+        background: #4c6fff;
+        color: white;
+        font-weight: 600;
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="Hero">
+      <h1 class="Title">Spacing Baseline</h1>
+      <p>This case changes padding/margins to create visible layout shifts.</p>
+      <a class="CTA" href="#">Call to action</a>
+    </div>
+  </body>
+</html>
+

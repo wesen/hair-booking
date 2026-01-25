@@ -1,0 +1,41 @@
+metadata:
+  slug: case-02-typography
+  title: "Case 02: Typography"
+  description: "Exercises font-size/weight/line-height diffs + pixel diffs."
+  goal: "Ensure pixeldiff highlights text rendering differences and cssdiff captures key properties."
+original:
+  name: original
+  url: __BASE_URL__/case-02-typography/original.html
+  wait_ms: 50
+  viewport: { width: 900, height: 720 }
+react:
+  name: react
+  url: __BASE_URL__/case-02-typography/react.html
+  wait_ms: 50
+  viewport: { width: 900, height: 720 }
+sections:
+  - name: card
+    selector_original: "#card"
+    selector_react: ".Card"
+styles:
+  - name: heading
+    selector_original: "#card h2"
+    selector_react: ".Card h2"
+    props: [font-size, font-weight, line-height, letter-spacing, color]
+    include_bounds: true
+    attributes: [id, class]
+    report: [box_model]
+  - name: subtitle
+    selector_original: "#subtitle"
+    selector_react: ".Subtitle"
+    props: [font-size, font-weight, line-height, letter-spacing, color]
+    include_bounds: true
+    attributes: [id, class]
+    report: [box_model]
+output:
+  dir: __OUT_DIR__
+  write_json: true
+  write_markdown: true
+  write_pngs: true
+modes: [capture, pixeldiff, cssdiff, matched-styles]
+

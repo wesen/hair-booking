@@ -1,0 +1,34 @@
+metadata:
+  slug: case-04-cascade
+  title: "Case 04: Cascade"
+  description: "Exercises specificity vs !important for matched-styles winner explanations."
+  goal: "Ensure matched-styles winner logic is visible and pixeldiff highlights text/border differences."
+original:
+  name: original
+  url: __BASE_URL__/case-04-cascade/original.html
+  wait_ms: 50
+  viewport: { width: 1000, height: 720 }
+react:
+  name: react
+  url: __BASE_URL__/case-04-cascade/react.html
+  wait_ms: 50
+  viewport: { width: 1000, height: 720 }
+sections:
+  - name: box
+    selector_original: "#box"
+    selector_react: "#box2"
+styles:
+  - name: box
+    selector_original: "#box"
+    selector_react: "#box2"
+    props: [color, border-top-color, border-left-color, border-right-color, border-bottom-color]
+    include_bounds: true
+    attributes: [id, class]
+    report: [box_model]
+output:
+  dir: __OUT_DIR__
+  write_json: true
+  write_markdown: true
+  write_pngs: true
+modes: [capture, pixeldiff, cssdiff, matched-styles]
+

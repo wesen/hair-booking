@@ -1,0 +1,34 @@
+metadata:
+  slug: case-03-color
+  title: "Case 03: Color"
+  description: "Exercises background gradient + border radius diffs."
+  goal: "Ensure pixeldiff strongly highlights paint differences and matched-styles identifies winners."
+original:
+  name: original
+  url: __BASE_URL__/case-03-color/original.html
+  wait_ms: 50
+  viewport: { width: 1000, height: 720 }
+react:
+  name: react
+  url: __BASE_URL__/case-03-color/react.html
+  wait_ms: 50
+  viewport: { width: 1000, height: 720 }
+sections:
+  - name: banner
+    selector_original: "#banner"
+    selector_react: ".Banner"
+styles:
+  - name: banner
+    selector_original: "#banner"
+    selector_react: ".Banner"
+    props: [background-image, background-color, border-radius, box-shadow]
+    include_bounds: true
+    attributes: [id, class]
+    report: [box_model]
+output:
+  dir: __OUT_DIR__
+  write_json: true
+  write_markdown: true
+  write_pngs: true
+modes: [capture, pixeldiff, cssdiff, matched-styles]
+

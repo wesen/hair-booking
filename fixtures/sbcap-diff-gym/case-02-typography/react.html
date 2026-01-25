@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Case 02 (react) — typography</title>
+    <style>
+      body {
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+        padding: 24px;
+        background: #0b1220;
+      }
+      .Card {
+        width: 640px;
+        background: #111b30;
+        color: #e7eefc;
+        border-radius: 16px;
+        padding: 26px 28px;
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.35);
+      }
+      .Card h2 {
+        margin: 0;
+        /* Intentional differences: font-size + weight */
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: -0.2px;
+      }
+      .Card .Subtitle {
+        margin-top: 12px;
+        font-size: 16px;
+        line-height: 1.7;
+        color: #b7c4e3;
+      }
+    </style>
+  </head>
+  <body>
+    <section class="Card">
+      <h2 class="Heading">Typography Baseline</h2>
+      <div class="Subtitle">
+        This case changes font-size/weight/line-height to create subtle, widespread diffs.
+      </div>
+    </section>
+  </body>
+</html>
+

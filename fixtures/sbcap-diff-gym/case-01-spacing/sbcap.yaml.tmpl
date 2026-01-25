@@ -1,0 +1,44 @@
+metadata:
+  slug: case-01-spacing
+  title: "Case 01: Spacing"
+  description: "Exercises padding/margin/width diffs + per-target selector mapping."
+  goal: "Verify capture + pixeldiff + cssdiff + matched-styles produce clear artifacts."
+original:
+  name: original
+  url: __BASE_URL__/case-01-spacing/original.html
+  wait_ms: 50
+  viewport: { width: 900, height: 720 }
+react:
+  name: react
+  url: __BASE_URL__/case-01-spacing/react.html
+  wait_ms: 50
+  viewport: { width: 900, height: 720 }
+sections:
+  - name: hero
+    selector_original: "#hero"
+    selector_react: ".Hero"
+  - name: cta
+    selector_original: "#cta"
+    selector_react: ".CTA"
+styles:
+  - name: hero
+    selector_original: "#hero"
+    selector_react: ".Hero"
+    props: [width, padding-top, padding-right, padding-bottom, padding-left, margin-top]
+    include_bounds: true
+    attributes: [id, class]
+    report: [box_model]
+  - name: cta
+    selector_original: "#cta"
+    selector_react: ".CTA"
+    props: [margin-top, padding-top, padding-right, padding-bottom, padding-left, border-radius]
+    include_bounds: true
+    attributes: [id, class]
+    report: [box_model]
+output:
+  dir: __OUT_DIR__
+  write_json: true
+  write_markdown: true
+  write_pngs: true
+modes: [capture, pixeldiff, cssdiff, matched-styles]
+
