@@ -517,3 +517,70 @@ This step closes the biggest workflow gap: after running `capture` across many s
 
 ### Technical details
 - `pixeldiff` depends on `capture` having been run first (it requires `capture.json`).
+
+## Step 8: Add per-target selector mapping to sbcap YAML (no AI)
+
+I added first-class per-target selector mapping to the sbcap YAML schema (`selector_original` / `selector_react`) for both `sections[]` and `styles[]`, and updated the relevant modes to use the per-target selector when provided. This eliminates a major source of friction and ambiguity: having to write “union selectors” that happen to match both DOMs (`#id, .class`) even when the port intentionally changes structure and class names.
+
+This step stays AI-free and focuses on making the inspection pipeline more accurate and ergonomic by binding “what element do we mean” explicitly per target.
+
+**Commit (code):** 8a84e9f — "feat(sbcap): support per-target selectors"
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Implement the next ergonomic improvement: make sbcap plans express different selectors for original vs react, and ensure capture/cssdiff/matched-styles respect it.
+
+**Inferred user intent:** Reduce config friction and eliminate union-selector ambiguity, so diffs and winner explanations refer to the intended element on each side.
+
+### What I did
+- Extended YAML schema:
+  - `hair-booking/internal/sbcap/config/config.go`
+    - `SectionSpec`: added `selector_original`, `selector_react`
+    - `StyleSpec`: added `selector_original`, `selector_react`
+    - Validation rules:
+      - require either `selector` OR both `selector_original` and `selector_react`
+- Updated capture mode to use per-target selectors when present:
+  - `hair-booking/internal/sbcap/modes/capture.go`
+  - The per-target selector used is recorded in each page’s `SectionResult.Selector` field.
+- Updated cssdiff to use per-target selectors and include both selectors in outputs:
+  - `hair-booking/internal/sbcap/modes/cssdiff.go`
+  - Added `original_selector` and `react_selector` to the JSON output (additive fields).
+- Updated matched-styles to use per-target selectors and include both selectors in outputs:
+  - `hair-booking/internal/sbcap/modes/matched_styles.go`
+  - Added `original_selector` and `react_selector` to the JSON output (additive fields).
+- Added config validation tests:
+  - `hair-booking/internal/sbcap/config/config_test.go`
+- Ran `gofmt` and `go test ./...`.
+
+### Why
+- Union selectors (`#page-title, .page-title`) can match unintended elements and hide drift.
+- Explicit selector mapping makes the audit evidence more trustworthy and lowers the config authoring burden.
+
+### What worked
+- Validation tests confirm per-target selectors are accepted and that omitting one side is rejected when `selector` is empty.
+- All packages build/tests passed after the change.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Adding mapping is easiest as two explicit fields rather than a union-typed YAML value (string-or-object), which would complicate unmarshalling and validation.
+
+### What was tricky to build
+- Deciding output semantics: keep existing `selector` field (when provided) but also surface `original_selector`/`react_selector` so reports are explicit about which selector was used per side.
+
+### What warrants a second pair of eyes
+- Whether we should also add per-target selector mapping to any future higher-level “fixture” conventions (so fixtures don’t regress into union-selector usage).
+
+### What should be done in the future
+- Consider updating the sbcap validation playbook sample config to demonstrate `selector_original`/`selector_react` usage (documentation-only follow-up).
+
+### Code review instructions
+- Review schema + validation in `hair-booking/internal/sbcap/config/config.go`.
+- Review per-mode selector application in:
+  - `hair-booking/internal/sbcap/modes/capture.go`
+  - `hair-booking/internal/sbcap/modes/cssdiff.go`
+  - `hair-booking/internal/sbcap/modes/matched_styles.go`
+- Run: `go test ./...`.

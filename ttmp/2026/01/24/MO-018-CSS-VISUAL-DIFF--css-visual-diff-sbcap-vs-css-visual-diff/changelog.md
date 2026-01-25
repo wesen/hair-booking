@@ -31,3 +31,12 @@ Added pixeldiff mode to sbcap run (batch from capture.json) + run flag --pixeldi
 
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/modes/pixeldiff.go — pixeldiff mode implementation (commit 7914245)
 
+
+## 2026-01-24
+
+Added per-target selector mapping (selector_original/selector_react) across capture/cssdiff/matched-styles (commit 8a84e9f).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/internal/sbcap/config/config.go — schema+validation for per-target selectors (commit 8a84e9f)
+
