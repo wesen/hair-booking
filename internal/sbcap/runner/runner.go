@@ -19,6 +19,10 @@ type RunResult struct {
 	Results []ModeResult
 }
 
+type RunOptions struct {
+	PixelDiffThreshold int
+}
+
 var defaultModes = []string{"capture", "cssdiff"}
 
 func NormalizeModes(raw string) ([]string, error) {
@@ -35,7 +39,7 @@ func NormalizeModes(raw string) ([]string, error) {
 			continue
 		}
 		if m == "full" {
-			for _, fullMode := range []string{"capture", "cssdiff", "matched-styles", "ai-review"} {
+			for _, fullMode := range []string{"capture", "pixeldiff", "cssdiff", "matched-styles", "ai-review"} {
 				if !seen[fullMode] {
 					modesOut = append(modesOut, fullMode)
 					seen[fullMode] = true
@@ -54,7 +58,7 @@ func NormalizeModes(raw string) ([]string, error) {
 	return modesOut, nil
 }
 
-func Run(ctx context.Context, cfg *config.Config, modesList []string, dryRun bool) (RunResult, error) {
+func Run(ctx context.Context, cfg *config.Config, modesList []string, dryRun bool, options RunOptions) (RunResult, error) {
 	results := RunResult{}
 	if dryRun {
 		for _, m := range modesList {
@@ -68,6 +72,12 @@ func Run(ctx context.Context, cfg *config.Config, modesList []string, dryRun boo
 		switch mode {
 		case "capture":
 			err = modes.Capture(ctx, cfg)
+		case "pixeldiff":
+			threshold := options.PixelDiffThreshold
+			if threshold == 0 {
+				threshold = 30
+			}
+			err = modes.PixelDiff(ctx, cfg, threshold)
 		case "cssdiff":
 			err = modes.CSSDiff(ctx, cfg)
 		case "matched-styles":

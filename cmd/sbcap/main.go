@@ -30,9 +30,10 @@ type RunCommand struct {
 }
 
 type RunSettings struct {
-	Config string `glazed.parameter:"config"`
-	Modes  string `glazed.parameter:"modes"`
-	DryRun bool   `glazed.parameter:"dry-run"`
+	Config             string `glazed.parameter:"config"`
+	Modes              string `glazed.parameter:"modes"`
+	DryRun             bool   `glazed.parameter:"dry-run"`
+	PixelDiffThreshold int    `glazed.parameter:"pixeldiff-threshold"`
 }
 
 func NewRunCommand() (*RunCommand, error) {
@@ -66,6 +67,12 @@ func NewRunCommand() (*RunCommand, error) {
 				fields.TypeBool,
 				fields.WithDefault(false),
 				fields.WithHelp("Validate config and modes without running browser actions"),
+			),
+			fields.New(
+				"pixeldiff-threshold",
+				fields.TypeInteger,
+				fields.WithDefault(30),
+				fields.WithHelp("Pixel diff threshold (0-255) used by pixeldiff mode"),
 			),
 		),
 		cmds.WithLayersList(glazedLayer, commandSettingsLayer),
@@ -102,7 +109,9 @@ func (c *RunCommand) RunIntoGlazeProcessor(
 		return err
 	}
 
-	result, err := runner.Run(ctx, cfg, modesList, settings.DryRun)
+	result, err := runner.Run(ctx, cfg, modesList, settings.DryRun, runner.RunOptions{
+		PixelDiffThreshold: settings.PixelDiffThreshold,
+	})
 	if err != nil && settings.DryRun {
 		return err
 	}
