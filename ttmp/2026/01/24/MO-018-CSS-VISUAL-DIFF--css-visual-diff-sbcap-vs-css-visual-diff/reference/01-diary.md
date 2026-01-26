@@ -653,3 +653,50 @@ This step operationalizes the feedback-quality loop: instead of relying on Story
 
 ### Technical details
 - The runner uses `python3 -m http.server` to satisfy sbcap’s URL validation (scheme+host required).
+
+## Step 10: Add user-facing sbcap documentation
+
+I added a concise user guide for sbcap (focused on how to run and review outputs) and linked it from the repo README. I also updated the existing sbcap validation playbook (MO-016) to reflect the current sbcap features: per-target selectors (`selector_original`/`selector_react`) and the `pixeldiff` mode.
+
+This step is meant to reduce “tribal knowledge” by giving users a single doc that answers: “what command do I run, and what files do I look at first?”
+
+### Prompt Context
+
+**User prompt (verbatim):** "yes go ahead."
+
+**Assistant interpretation:** Write the missing user-facing docs: sbcap getting started, recommended review order, and update the validation playbook examples to match new config fields and modes.
+
+**Inferred user intent:** Make sbcap usable by someone who did not read tickets/diaries and just wants a reliable workflow.
+
+### What I did
+- Added user guide: `hair-booking/docs/sbcap.md`
+- Linked from repo README: `hair-booking/README.md`
+- Updated validation playbook config example:
+  - `hair-booking/ttmp/2026/01/19/MO-016-SBCAP-IMPLEMENTATION--sbcap-implementation-plan/playbook/01-sbcap-validation-playbook.md`
+
+### Why
+- Users should not need to open docmgr tickets to know:
+  - which command to run (`compare` vs `run`),
+  - which artifacts to look at first (`pixeldiff.md`),
+  - how to express per-target selectors cleanly.
+
+### What worked
+- The new doc provides a single entry point and includes the diff gym runner.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The most useful user doc is opinionated about review order and workflow, not just a list of flags.
+
+### What was tricky to build
+- N/A.
+
+### What warrants a second pair of eyes
+- Ensure the recommended review order matches how people actually debug regressions.
+
+### What should be done in the future
+- Consider adding a short “examples” folder with a real Storybook+template plan file checked into the repo (separate from /tmp-based instructions).
+
+### Code review instructions
+- Start with `hair-booking/docs/sbcap.md` and follow the commands end-to-end.

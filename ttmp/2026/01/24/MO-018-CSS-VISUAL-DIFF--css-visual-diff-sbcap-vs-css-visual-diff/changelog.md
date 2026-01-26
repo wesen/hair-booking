@@ -49,3 +49,12 @@ Added sbcap diff-gym fixtures + runner script; smoke-tested end-to-end outputs.
 
 - /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/scripts/run-sbcap-diff-gym.sh — one-command fixture runner
 
+
+## 2026-01-25
+
+Added user-facing sbcap docs (docs/sbcap.md) and linked from repo README; updated MO-016 validation playbook to demonstrate selector_original/selector_react and pixeldiff.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-01-18/hair-booking-start/hair-booking/docs/sbcap.md — user guide for sbcap
+
