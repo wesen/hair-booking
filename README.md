@@ -17,6 +17,23 @@
   |___|  |_______||_|   |_||___|    |_______||__| |__|  |___|  |_______|
 ```
 
+## sbcap
+
+User guide: `docs/sbcap.md`.
+
+Quick commands:
+
+```bash
+# One-off element comparison (no YAML)
+go run ./cmd/sbcap compare --url1 <URL> --selector1 "<SEL>" --url2 <URL> [--selector2 "<SEL2>"]
+
+# Plan-based run (recommended review order: pixeldiff.md -> cssdiff.md -> matched-styles.md -> capture.md)
+go run ./cmd/sbcap run --config /path/to/sbcap.yaml --modes capture,pixeldiff,cssdiff,matched-styles
+
+# Fixture battery (no Storybook required)
+./scripts/run-sbcap-diff-gym.sh
+```
+
 ---
 
 ```
