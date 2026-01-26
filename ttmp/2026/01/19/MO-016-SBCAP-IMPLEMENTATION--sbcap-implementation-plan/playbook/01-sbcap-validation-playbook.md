@@ -115,13 +115,16 @@ react:
   viewport: { width: 1280, height: 720 }
 sections:
   - name: page-title
-    selector: "#page-title, .page-title"
+    selector_original: "#page-title"
+    selector_react: ".page-title"
     ocr_question: "Is the title visible and centered?"
   - name: video
-    selector: "#video2, .video"
+    selector_original: "#video2"
+    selector_react: ".video"
 styles:
   - name: page-title
-    selector: "#page-title, .page-title"
+    selector_original: "#page-title"
+    selector_react: ".page-title"
     props: [position, marginTop, height, zIndex]
     include_bounds: true
     attributes: [id, class]
@@ -131,18 +134,20 @@ output:
   write_json: true
   write_markdown: true
   write_pngs: true
+modes: [capture, pixeldiff, cssdiff, matched-styles]
 ```
 
-### Step 5: Run sbcap capture + cssdiff + matched-styles
+### Step 5: Run sbcap capture + pixeldiff + cssdiff + matched-styles
 
 ```bash
-/tmp/sbcap run --config /tmp/sbcap.yaml --modes capture,cssdiff,matched-styles
+/tmp/sbcap run --config /tmp/sbcap.yaml --modes capture,pixeldiff,cssdiff,matched-styles --pixeldiff-threshold 30
 ```
 
 Expected outputs in `/tmp/sbcap-output`:
 - `original-full.png`, `react-full.png`
 - `original-page-title.png`, `react-page-title.png`
 - `capture.json`, `capture.md`
+- `pixeldiff.json`, `pixeldiff.md` and `pixeldiff_*_diff_comparison.png` images
 - `cssdiff.json`, `cssdiff.md`
 - `matched-styles.json`, `matched-styles.md`
 
