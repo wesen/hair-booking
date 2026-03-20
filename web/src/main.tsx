@@ -1,7 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
-import { store } from "./stylist/store";
+import { runtimeStore } from "./stylist/store";
 import { StylistApp } from "./stylist/StylistApp";
 import { ClientBookingApp } from "./stylist/ClientBookingApp";
 import { ClientPortalApp } from "./stylist/ClientPortalApp";
@@ -72,7 +72,7 @@ if (resolvedApp.canonicalPath) {
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <Provider store={store}>
+    <Provider store={runtimeStore}>
       {resolvedApp.app === "portal" ? <ClientPortalApp showNonMvpFeatures={false} /> : null}
       {resolvedApp.app === "booking" ? <ClientBookingApp showDepositOption={false} /> : null}
       {resolvedApp.app === "stylist" ? <StylistRuntimeApp /> : null}

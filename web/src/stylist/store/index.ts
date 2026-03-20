@@ -22,6 +22,15 @@ export const rootReducer = combineReducers({
 
 export type RootState = ReturnType<typeof rootReducer>;
 
+export const runtimeReducer = combineReducers({
+  consultation: consultationReducer,
+  auth: authReducer,
+  portal: portalReducer,
+  [stylistApi.reducerPath]: stylistApi.reducer,
+});
+
+export type RuntimeRootState = ReturnType<typeof runtimeReducer>;
+
 export function createAppStore(preloadedState?: Partial<RootState>) {
   return configureStore({
     reducer: rootReducer,
@@ -30,10 +39,21 @@ export function createAppStore(preloadedState?: Partial<RootState>) {
   });
 }
 
+export function createRuntimeStore(preloadedState?: Partial<RuntimeRootState>) {
+  return configureStore({
+    reducer: runtimeReducer,
+    middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(stylistApi.middleware),
+    preloadedState: preloadedState as RuntimeRootState | undefined,
+  });
+}
+
 export const store = createAppStore();
+export const runtimeStore = createRuntimeStore();
 
 export type AppStore = ReturnType<typeof createAppStore>;
 export type AppDispatch = AppStore["dispatch"];
+export type RuntimeAppStore = ReturnType<typeof createRuntimeStore>;
+export type RuntimeAppDispatch = RuntimeAppStore["dispatch"];
 
 export const useAppDispatch = useDispatch.withTypes<AppDispatch>();
 export const useAppSelector = useSelector.withTypes<RootState>();

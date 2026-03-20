@@ -61,9 +61,9 @@ export { ConsultCalendarPage } from "./pages/ConsultCalendarPage";
 export { ConsultConfirmPage } from "./pages/ConsultConfirmPage";
 
 // Store
-export { store, useAppDispatch, useAppSelector } from "./store";
-export { createAppStore, stylistApi } from "./store";
-export type { RootState, AppDispatch, AppStore } from "./store";
+export { store, runtimeStore, useAppDispatch, useAppSelector } from "./store";
+export { createAppStore, createRuntimeStore, stylistApi } from "./store";
+export type { RootState, RuntimeRootState, AppDispatch, AppStore, RuntimeAppDispatch, RuntimeAppStore } from "./store";
 export * from "./store/api";
 
 // Types
