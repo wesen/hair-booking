@@ -24,10 +24,10 @@
 
 ## Non-MVP Scope Cleanup
 
-- [ ] Remove rewards tab and navigation entrypoints from production runtime
-- [ ] Remove referral flows from production runtime
-- [ ] Remove loyalty tiers and points from runtime-facing screens
-- [ ] Remove deposit/payment sheet from booking runtime
+- [ ] Remove rewards tab and navigation entrypoints from production runtime while keeping the underlying screens/components available to Storybook
+- [ ] Remove referral flows from production runtime while preserving Storybook/demo artifacts where useful
+- [ ] Remove loyalty tiers and points from runtime-facing screens while preserving Storybook/demo artifacts where useful
+- [ ] Remove deposit/payment sheet from booking runtime while preserving the component and stories for design reference
 - [ ] Remove any copy that implies real Stripe-backed payment processing
 - [ ] Remove marketing preference UI if it remains visible
 

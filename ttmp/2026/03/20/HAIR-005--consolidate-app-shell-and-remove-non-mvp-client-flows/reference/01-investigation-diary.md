@@ -37,3 +37,10 @@ The key review findings were:
 - visible rewards and payment UI make the MVP story inaccurate
 
 This ticket therefore exists to restore product coherence before deeper stylist execution work continues.
+
+An explicit execution constraint was added before implementation started:
+
+- non-MVP screens should remain available in Storybook when they are still useful as design references
+- those same screens should stop being visible in the runtime app shell and navigation
+
+That constraint matters because it changes the implementation approach. This is not a delete-the-widgets ticket. It is a remove-them-from-runtime ticket.

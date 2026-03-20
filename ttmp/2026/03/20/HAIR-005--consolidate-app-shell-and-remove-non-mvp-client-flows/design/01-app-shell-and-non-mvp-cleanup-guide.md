@@ -161,6 +161,11 @@ That means runtime UI should not show:
 
 Keep stories if useful for design history, but do not keep them in the production runtime.
 
+That is the intended rule for this ticket:
+
+- preserve non-MVP screens and components in Storybook if they still provide design value
+- remove their runtime navigation, route entrypoints, and product copy from the actual app
+
 ### 4. Clarify Runtime State Ownership
 
 Current rule of thumb:
@@ -174,6 +179,24 @@ Practical cleanup targets:
 - shrink `portalSlice`
 - retire runtime dependence on `data/constants.ts`
 - keep only local booking draft state where it is still useful
+
+### 5. Treat Storybook As An Archive, Not As Runtime
+
+The imported widget library is still useful for:
+
+- design reference
+- visual regression via stories
+- preserving UI experiments that may return later
+
+It should not define what the runtime app offers today.
+
+Working rule:
+
+```text
+if a screen is out of MVP scope:
+  keep it in Storybook if useful
+  remove it from runtime navigation and shell
+```
 
 ## Suggested Task Order
 
