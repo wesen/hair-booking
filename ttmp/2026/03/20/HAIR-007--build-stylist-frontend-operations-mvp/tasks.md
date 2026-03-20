@@ -23,18 +23,18 @@
 ## Intake Queue And Detail
 
 - [x] Build stylist intake list page
-- [ ] Add filter controls for status and priority
+- [x] Add filter controls for status and priority
 - [x] Build stylist intake detail page
 - [x] Show intake answers, uploaded photos, linked client info, and current review state
-- [ ] Wire review mutation
+- [x] Wire review mutation
 
 ## Appointment Views
 
 - [x] Build stylist appointment list page
-- [ ] Add filter controls for date, status, and client
+- [x] Add filter controls for date, status, and client
 - [x] Build stylist appointment detail page
 - [x] Show service, client, intake summary, and notes/prep fields
-- [ ] Wire appointment update mutation
+- [x] Wire appointment update mutation
 
 ## Client Views
 

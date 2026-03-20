@@ -105,3 +105,45 @@ The next HAIR-007 slice should focus on depth rather than breadth:
 - wire appointment update mutation
 - add filters for queue/list pages
 - then run a real browser-backed stylist smoke
+
+The next slice did exactly that.
+
+This pass stayed inside the new route-aware runtime shell from the first HAIR-007 slice and deliberately did not touch the older mock `StylistApp` tree. That separation is important now: the live `/stylist` path should keep moving toward real operations, while Storybook/demo surfaces can be cleaned up later without blocking delivery.
+
+The intake queue/detail changes were:
+
+- backend-backed status filter on the queue
+- client-side priority filter on the queue
+- a real inline review form on the detail route
+- save action wired to `PATCH /api/stylist/intakes/:id/review`
+
+The queue still does not have URL-persisted filter state, but that is acceptable for this phase. The important change is that the stylist can now use the live runtime to review an intake instead of only reading it.
+
+The appointment changes were:
+
+- backend-backed status filter on the list
+- client-side date and client filters on the list
+- a real inline update form on the detail route
+- save action wired to `PATCH /api/stylist/appointments/:id`
+
+I also tightened invalidation in the stylist RTK Query layer so appointment updates now invalidate the specific affected client detail when the backend returns `client_id`. That matters because the stylist client detail screen already shows recent appointments and should not drift stale after an operational update.
+
+One implementation choice worth noting is that the list-page filters are split intentionally:
+
+- status filters go through the backend because the API already supports them
+- priority, date, and client-name filters stay client-side for now because the backend contract does not yet expose those query parameters
+
+That keeps this slice small and aligned with the current backend instead of inventing new API surface in the middle of frontend integration.
+
+Validation in this slice was compile-level again:
+
+- `npm --prefix web run typecheck`
+
+I did not run the browser-backed stylist smoke in this pass because the local runtime shells were not up and I wanted to keep this slice focused on wiring and compile correctness. The next useful validation pass should be a real browser smoke against the seeded HAIR-006 backend data, specifically:
+
+- open `/stylist/intakes`
+- filter to `in_review`
+- open one intake and save a review change
+- open `/stylist/appointments`
+- filter by status or client
+- open one appointment and save note/status changes

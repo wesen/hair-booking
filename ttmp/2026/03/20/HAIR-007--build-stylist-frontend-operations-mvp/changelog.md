@@ -11,3 +11,7 @@
 - Added real dashboard, intake list/detail, appointment list/detail, and client list/detail skeleton pages with loading and error states
 - Removed seeded stylist runtime data from the live `/stylist` route while keeping the imported Storybook app intact
 - Validated the slice with `npm --prefix web run typecheck`
+- Added intake status/priority filters plus a real inline review form backed by `PATCH /api/stylist/intakes/:id/review`
+- Added appointment status/date/client filters plus a real inline operational update form backed by `PATCH /api/stylist/appointments/:id`
+- Kept the live stylist runtime on direct RTK Query data instead of reintroducing the old seeded Redux demo slices
+- Validated the mutation/filter slice with `npm --prefix web run typecheck`
