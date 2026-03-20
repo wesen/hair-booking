@@ -41,6 +41,12 @@ export interface StylistListRowView {
   badge?: string;
 }
 
+export interface StylistPhotoCardView {
+  id: string;
+  title: string;
+  url: string;
+}
+
 export interface StylistKeyValueView {
   label: string;
   value: string;
@@ -74,7 +80,7 @@ export interface StylistIntakeListRowView extends StylistListRowView {
 
 export interface StylistIntakeDetailViewModel {
   summaryItems: StylistKeyValueView[];
-  photoRows: StylistListRowView[];
+  photoCards: StylistPhotoCardView[];
   reviewDefaults: StylistReviewFormDefaults;
 }
 
@@ -165,8 +171,12 @@ function mapIntakeListRow(intake: StylistIntakeListItemDto): StylistIntakeListRo
   };
 }
 
-function mapIntakePhotoRow(photo: IntakePhotoDto): StylistListRowView {
-  return createListRow(photo.id, photo.slot, photo.url);
+function mapIntakePhotoCard(photo: IntakePhotoDto): StylistPhotoCardView {
+  return {
+    id: photo.id,
+    title: photo.slot,
+    url: photo.url,
+  };
 }
 
 function mapIntakeDetailView(intake: StylistIntakeDetailDto): StylistIntakeDetailViewModel {
@@ -180,7 +190,7 @@ function mapIntakeDetailView(intake: StylistIntakeDetailDto): StylistIntakeDetai
       { label: "Review Status", value: intake.review.status },
       { label: "Priority", value: intake.review.priority },
     ],
-    photoRows: intake.photos.map(mapIntakePhotoRow),
+    photoCards: intake.photos.map(mapIntakePhotoCard),
     reviewDefaults: mapReviewDefaults(intake.review),
   };
 }

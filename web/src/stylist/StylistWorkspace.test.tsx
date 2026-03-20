@@ -111,8 +111,8 @@ describe("StylistWorkspace", () => {
           { label: "Service Type", value: "extensions" },
           { label: "Estimate", value: "$950-$1350" },
         ],
-        photoRows: [
-          { id: "photo-1", title: "front", meta: "https://example.com/front.jpg" },
+        photoCards: [
+          { id: "photo-1", title: "front", url: "https://example.com/front.jpg" },
         ],
         reviewDefaults: {
           status: "approved_to_book",
@@ -135,6 +135,7 @@ describe("StylistWorkspace", () => {
     expect(screen.getByLabelText("Priority")).toHaveValue("urgent");
     expect(screen.getByLabelText("Summary")).toHaveValue("Approved after hair history review.");
     expect(screen.getByText("front")).toBeInTheDocument();
+    expect(screen.getByAltText("front intake photo")).toBeInTheDocument();
   });
 
   it("renders the appointment detail route with mapped detail content and form defaults", () => {

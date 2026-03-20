@@ -244,12 +244,14 @@ function IntakesPage({ intakeId }: { intakeId?: string }) {
           />
         </ListBlock>
         <ListBlock title="Uploaded Photos">
-          {view.photoRows.length === 0 ? (
+          {view.photoCards.length === 0 ? (
             <EmptyState message="No intake photos uploaded yet." />
           ) : (
-            view.photoRows.map((photo) => (
-              <ListRow key={photo.id} title={photo.title} meta={photo.meta} />
-            ))
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12 }}>
+              {view.photoCards.map((photo) => (
+                <PhotoCard key={photo.id} title={photo.title} url={photo.url} />
+              ))}
+            </div>
           )}
         </ListBlock>
       </WorkspaceSection>
@@ -602,6 +604,36 @@ function ListBlock({ title, children }: { title: string; children: React.ReactNo
     <div style={{ marginBottom: 18 }}>
       <div data-part="section-label" style={{ marginBottom: 8 }}>{title}</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{children}</div>
+    </div>
+  );
+}
+
+function PhotoCard({ title, url }: { title: string; url: string }) {
+  return (
+    <div
+      style={{
+        border: "1px solid var(--color-border)",
+        borderRadius: 16,
+        background: "var(--color-surface)",
+        padding: 12,
+      }}
+    >
+      <div data-part="section-label" style={{ marginBottom: 8, textTransform: "capitalize" }}>{title}</div>
+      <img
+        src={url}
+        alt={`${title} intake photo`}
+        style={{
+          width: "100%",
+          aspectRatio: "1 / 1",
+          objectFit: "cover",
+          borderRadius: 12,
+          background: "var(--color-surface-raised, #f5f0eb)",
+          display: "block",
+        }}
+      />
+      <div style={{ fontSize: 12, color: "var(--color-text-muted)", lineHeight: 1.4, marginTop: 8, wordBreak: "break-all" }}>
+        {url}
+      </div>
     </div>
   );
 }

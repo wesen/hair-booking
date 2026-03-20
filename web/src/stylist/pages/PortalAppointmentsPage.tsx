@@ -5,6 +5,7 @@ import { SegmentToggle } from "../components/SegmentToggle";
 import { PortalAppointmentCard } from "../components/PortalAppointmentCard";
 import { getApiErrorMessage, useCancelMyAppointmentMutation, usePortalAppointmentsView } from "../store/api";
 import { AppointmentReschedulePanel } from "../components/AppointmentReschedulePanel";
+import { PortalAppointmentPhotoSection } from "../components/PortalAppointmentPhotoSection";
 
 export function PortalAppointmentsPage() {
   const dispatch = useAppDispatch();
@@ -67,6 +68,7 @@ export function PortalAppointmentsPage() {
                 onClose={() => setRescheduleAppointmentId(null)}
               />
             ) : null}
+            {filter === "past" ? <PortalAppointmentPhotoSection appointment={a} /> : null}
           </div>
         ))
       )}
