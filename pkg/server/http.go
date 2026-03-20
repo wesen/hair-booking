@@ -303,6 +303,10 @@ func registerWeb(mux *http.ServeMux, publicFS fs.FS, localUploadsDir, frontendDe
 			http.NotFound(w, r)
 			return
 		}
+		if r.URL.Path == "/" {
+			http.Redirect(w, r, "/booking", http.StatusTemporaryRedirect)
+			return
+		}
 		if frontendDevProxy != nil {
 			frontendDevProxy.ServeHTTP(w, r)
 			return

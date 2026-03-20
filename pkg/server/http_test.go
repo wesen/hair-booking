@@ -101,6 +101,31 @@ func TestRootServesSPAIndex(t *testing.T) {
 	}
 }
 
+func TestRootRedirectsToBooking(t *testing.T) {
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>landing</body></html>")},
+		},
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/", nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusTemporaryRedirect {
+		t.Fatalf("expected 307, got %d", recorder.Code)
+	}
+	if location := recorder.Header().Get("Location"); location != "/booking" {
+		t.Fatalf("expected redirect to /booking, got %q", location)
+	}
+}
+
 func TestRootProxiesToFrontendDevServerWhenConfigured(t *testing.T) {
 	frontend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/portal" {

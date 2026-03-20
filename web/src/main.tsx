@@ -2,7 +2,6 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
 import { runtimeStore } from "./stylist/store";
-import { StylistApp } from "./stylist/StylistApp";
 import { ClientBookingApp } from "./stylist/ClientBookingApp";
 import { ClientPortalApp } from "./stylist/ClientPortalApp";
 import { StylistRuntimeApp } from "./stylist/StylistRuntimeApp";
@@ -43,7 +42,10 @@ function resolveApp(): ResolvedRuntime {
   }
 
   if (pathname === "" || pathname === "/") {
-    return { app: "booking" };
+    return {
+      app: "booking",
+      canonicalPath: "/booking",
+    };
   }
 
   if (pathname === "/booking" || pathname.startsWith("/booking/")) {

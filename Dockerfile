@@ -1,3 +1,13 @@
+FROM node:22-bookworm AS web-builder
+
+WORKDIR /src/web
+
+COPY web/package.json web/package-lock.json ./
+RUN npm ci
+
+COPY web/ ./
+RUN npm run build
+
 FROM golang:1.25.8-bookworm AS builder
 
 WORKDIR /src
@@ -6,8 +16,10 @@ COPY go.mod go.sum ./
 RUN go mod download
 
 COPY . .
+COPY --from=web-builder /src/web/dist ./web/dist
 
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+RUN HAIR_BOOKING_SKIP_FRONTEND_BUILD=1 GOWORK=off go generate ./pkg/web && \
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
     go build -trimpath -ldflags="-s -w" -o /out/hair-booking ./cmd/hair-booking
 
 FROM debian:bookworm-slim
