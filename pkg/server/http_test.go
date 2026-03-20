@@ -3,6 +3,7 @@ package server
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	hairintake "github.com/go-go-golems/hair-booking/pkg/intake"
 	hairservices "github.com/go-go-golems/hair-booking/pkg/services"
 	hairstorage "github.com/go-go-golems/hair-booking/pkg/storage"
+	hairstylist "github.com/go-go-golems/hair-booking/pkg/stylist"
 	"github.com/google/uuid"
 )
 
@@ -274,7 +276,162 @@ func TestHandleStylistMeOIDCAllowsConfiguredStylist(t *testing.T) {
 	}
 }
 
+func TestHandleStylistIntakesDevMode(t *testing.T) {
+	service := hairstylist.NewService(&fakeStylistRepo{
+		items: []hairstylist.IntakeListItem{
+			{
+				ID:          uuid.New(),
+				ServiceType: "extensions",
+				Review: hairstylist.IntakeReview{
+					Status:   hairstylist.ReviewStatusNew,
+					Priority: hairstylist.ReviewPriorityNormal,
+				},
+			},
+		},
+	})
+
+	handler := NewHandler(HandlerOptions{
+		Version:        "dev",
+		StartedAt:      time.Now().UTC(),
+		AuthSettings:   &hairauth.Settings{Mode: hairauth.AuthModeDev, DevUserID: "intern"},
+		StylistService: service,
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/stylist/intakes", nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"intakes\"") {
+		t.Fatalf("expected intakes payload, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandleStylistIntakeDetailNotFound(t *testing.T) {
+	service := hairstylist.NewService(&fakeStylistRepo{detailErr: hairstylist.ErrNotFound})
+	handler := NewHandler(HandlerOptions{
+		Version:        "dev",
+		StartedAt:      time.Now().UTC(),
+		AuthSettings:   &hairauth.Settings{Mode: hairauth.AuthModeDev, DevUserID: "intern"},
+		StylistService: service,
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/stylist/intakes/"+uuid.NewString(), nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusNotFound {
+		t.Fatalf("expected 404, got %d", recorder.Code)
+	}
+}
+
+func TestHandleStylistIntakeReviewRejectsInvalidPayload(t *testing.T) {
+	service := hairstylist.NewService(&fakeStylistRepo{})
+	handler := NewHandler(HandlerOptions{
+		Version:        "dev",
+		StartedAt:      time.Now().UTC(),
+		AuthSettings:   &hairauth.Settings{Mode: hairauth.AuthModeDev, DevUserID: "intern"},
+		StylistService: service,
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+	})
+
+	request := httptest.NewRequest(http.MethodPatch, "/api/stylist/intakes/"+uuid.NewString()+"/review", strings.NewReader(`{"status":"bogus"}`))
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", recorder.Code)
+	}
+}
+
+func TestHandleStylistIntakeReviewReturnsReview(t *testing.T) {
+	review := &hairstylist.IntakeReview{
+		ID:       uuid.New(),
+		IntakeID: uuid.New(),
+		Status:   hairstylist.ReviewStatusApprovedToBook,
+		Priority: hairstylist.ReviewPriorityUrgent,
+	}
+	service := hairstylist.NewService(&fakeStylistRepo{upserted: review})
+	handler := NewHandler(HandlerOptions{
+		Version:        "dev",
+		StartedAt:      time.Now().UTC(),
+		AuthSettings:   &hairauth.Settings{Mode: hairauth.AuthModeDev, DevUserID: "intern"},
+		StylistService: service,
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+	})
+
+	bodyBytes, err := json.Marshal(map[string]any{
+		"status":   hairstylist.ReviewStatusApprovedToBook,
+		"priority": hairstylist.ReviewPriorityUrgent,
+	})
+	if err != nil {
+		t.Fatalf("json.Marshal returned error: %v", err)
+	}
+
+	request := httptest.NewRequest(http.MethodPatch, "/api/stylist/intakes/"+review.IntakeID.String()+"/review", strings.NewReader(string(bodyBytes)))
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), review.Status) {
+		t.Fatalf("expected review payload, got %s", recorder.Body.String())
+	}
+}
+
 type fakeClientServiceRepo struct{}
+
+type fakeStylistRepo struct {
+	items     []hairstylist.IntakeListItem
+	detail    *hairstylist.IntakeDetail
+	upserted  *hairstylist.IntakeReview
+	detailErr error
+	updateErr error
+}
+
+func (f *fakeStylistRepo) ListIntakes(ctx context.Context, filter hairstylist.IntakeListFilter) ([]hairstylist.IntakeListItem, error) {
+	return f.items, nil
+}
+
+func (f *fakeStylistRepo) GetIntake(ctx context.Context, intakeID uuid.UUID) (*hairstylist.IntakeDetail, error) {
+	if f.detailErr != nil {
+		return nil, f.detailErr
+	}
+	if f.detail != nil {
+		return f.detail, nil
+	}
+	return &hairstylist.IntakeDetail{
+		Submission: &hairintake.Submission{ID: intakeID, ServiceType: "extensions"},
+	}, nil
+}
+
+func (f *fakeStylistRepo) UpsertIntakeReview(ctx context.Context, intakeID uuid.UUID, update hairstylist.IntakeReviewUpdate, reviewedAt time.Time) (*hairstylist.IntakeReview, error) {
+	if f.updateErr != nil {
+		return nil, f.updateErr
+	}
+	if f.upserted != nil {
+		return f.upserted, nil
+	}
+	return &hairstylist.IntakeReview{
+		ID:       uuid.New(),
+		IntakeID: intakeID,
+		Status:   hairstylist.ReviewStatusInReview,
+		Priority: hairstylist.ReviewPriorityNormal,
+	}, nil
+}
 
 func mustSessionManager(t *testing.T) *hairauth.SessionManager {
 	t.Helper()

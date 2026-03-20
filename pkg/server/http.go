@@ -35,6 +35,7 @@ type ServerOptions struct {
 	ClientService       *hairclients.Service
 	CatalogService      *hairservices.Service
 	IntakeService       *hairintake.Service
+	StylistService      *hairstylist.Service
 	LocalUploadsDir     string
 	FrontendDevProxyURL string
 }
@@ -52,6 +53,7 @@ type HandlerOptions struct {
 	ClientService       *hairclients.Service
 	CatalogService      *hairservices.Service
 	IntakeService       *hairintake.Service
+	StylistService      *hairstylist.Service
 	LocalUploadsDir     string
 	FrontendDevProxyURL string
 }
@@ -79,6 +81,7 @@ type appHandler struct {
 	clientService      *hairclients.Service
 	catalogService     *hairservices.Service
 	intakeService      *hairintake.Service
+	stylistService     *hairstylist.Service
 	localUploadsDir    string
 	stylistAuthorizer  *hairstylist.Authorizer
 }
@@ -128,6 +131,7 @@ func NewHTTPServer(ctx context.Context, options ServerOptions) (*http.Server, er
 	catalogService := options.CatalogService
 	intakeService := options.IntakeService
 	appointmentService := options.AppointmentService
+	stylistService := options.StylistService
 	if options.Database != nil && options.Database.Pool() != nil {
 		if appointmentService == nil {
 			appointmentService = hairappointments.NewService(hairappointments.NewPostgresRepository(options.Database.Pool()))
@@ -140,6 +144,9 @@ func NewHTTPServer(ctx context.Context, options ServerOptions) (*http.Server, er
 		}
 		if intakeService == nil && options.Storage != nil {
 			intakeService = hairintake.NewService(hairintake.NewPostgresRepository(options.Database.Pool()), options.Storage)
+		}
+		if stylistService == nil {
+			stylistService = hairstylist.NewService(hairstylist.NewPostgresRepository(options.Database.Pool()))
 		}
 	}
 
@@ -158,6 +165,7 @@ func NewHTTPServer(ctx context.Context, options ServerOptions) (*http.Server, er
 			ClientService:       clientService,
 			CatalogService:      catalogService,
 			IntakeService:       intakeService,
+			StylistService:      stylistService,
 			LocalUploadsDir:     options.LocalUploadsDir,
 			FrontendDevProxyURL: options.FrontendDevProxyURL,
 		}),
@@ -186,6 +194,7 @@ func NewHandler(options HandlerOptions) http.Handler {
 		clientService:      options.ClientService,
 		catalogService:     options.CatalogService,
 		intakeService:      options.IntakeService,
+		stylistService:     options.StylistService,
 		localUploadsDir:    options.LocalUploadsDir,
 		stylistAuthorizer:  hairstylist.NewAuthorizer(authSettings),
 	}
@@ -209,6 +218,9 @@ func NewHandler(options HandlerOptions) http.Handler {
 	mux.HandleFunc("GET /api/availability", h.handleAvailability)
 	mux.HandleFunc("POST /api/appointments", h.handleCreateAppointment)
 	mux.HandleFunc("GET /api/stylist/me", h.handleStylistMe)
+	mux.HandleFunc("GET /api/stylist/intakes", h.handleStylistIntakes)
+	mux.HandleFunc("GET /api/stylist/intakes/{id}", h.handleStylistIntakeDetail)
+	mux.HandleFunc("PATCH /api/stylist/intakes/{id}/review", h.handleStylistIntakeReview)
 
 	if options.WebAuth != nil {
 		mux.HandleFunc("GET /auth/login", options.WebAuth.HandleLogin)
