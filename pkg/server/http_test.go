@@ -1,7 +1,10 @@
 package server
 
 import (
+	"bytes"
 	"context"
+	"io"
+	"mime/multipart"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -11,7 +14,9 @@ import (
 
 	hairauth "github.com/go-go-golems/hair-booking/pkg/auth"
 	hairclients "github.com/go-go-golems/hair-booking/pkg/clients"
+	hairintake "github.com/go-go-golems/hair-booking/pkg/intake"
 	hairservices "github.com/go-go-golems/hair-booking/pkg/services"
+	hairstorage "github.com/go-go-golems/hair-booking/pkg/storage"
 	"github.com/google/uuid"
 )
 
@@ -136,6 +141,32 @@ func (f *fakeCatalogRepo) ListActive(ctx context.Context, category string) ([]ha
 	return f.items, nil
 }
 
+type fakeIntakeRepo struct{}
+
+func (f *fakeIntakeRepo) CreateSubmission(ctx context.Context, submission hairintake.Submission) (*hairintake.Submission, error) {
+	submission.ID = uuid.New()
+	return &submission, nil
+}
+
+func (f *fakeIntakeRepo) AddPhoto(ctx context.Context, intakeID uuid.UUID, slot, storageKey, url string) (*hairintake.Photo, error) {
+	return &hairintake.Photo{
+		ID:         uuid.New(),
+		IntakeID:   intakeID,
+		Slot:       slot,
+		StorageKey: storageKey,
+		URL:        url,
+	}, nil
+}
+
+type fakeBlobStore struct{}
+
+func (f *fakeBlobStore) Save(ctx context.Context, key string, reader io.Reader) (*hairstorage.SavedObject, error) {
+	return &hairstorage.SavedObject{
+		StorageKey: key,
+		URL:        "http://127.0.0.1:8080/uploads/" + key,
+	}, nil
+}
+
 func TestHandleMeReturnsBootstrappedClient(t *testing.T) {
 	handler := NewHandler(HandlerOptions{
 		Version:   "dev",
@@ -199,5 +230,79 @@ func TestHandleServicesReturnsCatalog(t *testing.T) {
 	}
 	if !strings.Contains(recorder.Body.String(), "Gloss / Toner") {
 		t.Fatalf("expected response to include seeded service name, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandleIntakeCreatesSubmission(t *testing.T) {
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html":    &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+			"static/app.js": &fstest.MapFile{Data: []byte("console.log('ok');")},
+		},
+		IntakeService: hairintake.NewService(&fakeIntakeRepo{}, &fakeBlobStore{}),
+	})
+
+	request := httptest.NewRequest(http.MethodPost, "/api/intake", strings.NewReader(`{"service_type":"extensions","desired_length":4,"ext_type":"ktip"}`))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"estimate_low\"") {
+		t.Fatalf("expected response body to include estimate fields, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandleIntakePhotoUploadsFile(t *testing.T) {
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html":    &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+			"static/app.js": &fstest.MapFile{Data: []byte("console.log('ok');")},
+		},
+		IntakeService: hairintake.NewService(&fakeIntakeRepo{}, &fakeBlobStore{}),
+	})
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	if err := writer.WriteField("slot", "front"); err != nil {
+		t.Fatalf("WriteField returned error: %v", err)
+	}
+	part, err := writer.CreateFormFile("file", "hair.png")
+	if err != nil {
+		t.Fatalf("CreateFormFile returned error: %v", err)
+	}
+	if _, err := part.Write([]byte("png")); err != nil {
+		t.Fatalf("failed to write multipart file: %v", err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatalf("Close returned error: %v", err)
+	}
+
+	intakeID := uuid.New()
+	request := httptest.NewRequest(http.MethodPost, "/api/intake/"+intakeID.String()+"/photos", body)
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+	request.SetPathValue("id", intakeID.String())
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"url\"") {
+		t.Fatalf("expected response body to include photo URL, got %s", recorder.Body.String())
 	}
 }

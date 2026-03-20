@@ -7,36 +7,45 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
 	hairauth "github.com/go-go-golems/hair-booking/pkg/auth"
 	hairclients "github.com/go-go-golems/hair-booking/pkg/clients"
 	hairdb "github.com/go-go-golems/hair-booking/pkg/db"
+	hairintake "github.com/go-go-golems/hair-booking/pkg/intake"
 	hairservices "github.com/go-go-golems/hair-booking/pkg/services"
+	hairstorage "github.com/go-go-golems/hair-booking/pkg/storage"
 	"github.com/go-go-golems/hair-booking/pkg/web"
 )
 
 type ServerOptions struct {
-	Host           string
-	Port           int
-	Version        string
-	AuthSettings   *hairauth.Settings
-	Database       *hairdb.DB
-	ClientService  *hairclients.Service
-	CatalogService *hairservices.Service
+	Host            string
+	Port            int
+	Version         string
+	AuthSettings    *hairauth.Settings
+	Database        *hairdb.DB
+	Storage         hairstorage.BlobStore
+	ClientService   *hairclients.Service
+	CatalogService  *hairservices.Service
+	IntakeService   *hairintake.Service
+	LocalUploadsDir string
 }
 
 type HandlerOptions struct {
-	Version        string
-	StartedAt      time.Time
-	AuthSettings   *hairauth.Settings
-	SessionManager *hairauth.SessionManager
-	WebAuth        hairauth.WebHandler
-	PublicFS       fs.FS
-	Database       *hairdb.DB
-	ClientService  *hairclients.Service
-	CatalogService *hairservices.Service
+	Version         string
+	StartedAt       time.Time
+	AuthSettings    *hairauth.Settings
+	SessionManager  *hairauth.SessionManager
+	WebAuth         hairauth.WebHandler
+	PublicFS        fs.FS
+	Database        *hairdb.DB
+	Storage         hairstorage.BlobStore
+	ClientService   *hairclients.Service
+	CatalogService  *hairservices.Service
+	IntakeService   *hairintake.Service
+	LocalUploadsDir string
 }
 
 type infoResponse struct {
@@ -53,13 +62,15 @@ type infoResponse struct {
 }
 
 type appHandler struct {
-	version        string
-	startedAt      time.Time
-	authSettings   *hairauth.Settings
-	sessionManager *hairauth.SessionManager
-	database       *hairdb.DB
-	clientService  *hairclients.Service
-	catalogService *hairservices.Service
+	version         string
+	startedAt       time.Time
+	authSettings    *hairauth.Settings
+	sessionManager  *hairauth.SessionManager
+	database        *hairdb.DB
+	clientService   *hairclients.Service
+	catalogService  *hairservices.Service
+	intakeService   *hairintake.Service
+	localUploadsDir string
 }
 
 type apiEnvelope struct {
@@ -105,6 +116,7 @@ func NewHTTPServer(ctx context.Context, options ServerOptions) (*http.Server, er
 
 	clientService := options.ClientService
 	catalogService := options.CatalogService
+	intakeService := options.IntakeService
 	if options.Database != nil && options.Database.Pool() != nil {
 		if clientService == nil {
 			clientService = hairclients.NewService(hairclients.NewPostgresRepository(options.Database.Pool()))
@@ -112,20 +124,26 @@ func NewHTTPServer(ctx context.Context, options ServerOptions) (*http.Server, er
 		if catalogService == nil {
 			catalogService = hairservices.NewService(hairservices.NewPostgresRepository(options.Database.Pool()))
 		}
+		if intakeService == nil && options.Storage != nil {
+			intakeService = hairintake.NewService(hairintake.NewPostgresRepository(options.Database.Pool()), options.Storage)
+		}
 	}
 
 	return &http.Server{
 		Addr: fmt.Sprintf("%s:%d", options.Host, options.Port),
 		Handler: NewHandler(HandlerOptions{
-			Version:        options.Version,
-			StartedAt:      time.Now().UTC(),
-			AuthSettings:   authSettings,
-			SessionManager: sessionManager,
-			WebAuth:        webAuth,
-			PublicFS:       web.PublicFS,
-			Database:       options.Database,
-			ClientService:  clientService,
-			CatalogService: catalogService,
+			Version:         options.Version,
+			StartedAt:       time.Now().UTC(),
+			AuthSettings:    authSettings,
+			SessionManager:  sessionManager,
+			WebAuth:         webAuth,
+			PublicFS:        web.PublicFS,
+			Database:        options.Database,
+			Storage:         options.Storage,
+			ClientService:   clientService,
+			CatalogService:  catalogService,
+			IntakeService:   intakeService,
+			LocalUploadsDir: options.LocalUploadsDir,
 		}),
 		ReadHeaderTimeout: 10 * time.Second,
 	}, nil
@@ -143,13 +161,15 @@ func NewHandler(options HandlerOptions) http.Handler {
 	}
 
 	h := &appHandler{
-		version:        options.Version,
-		startedAt:      options.StartedAt,
-		authSettings:   authSettings,
-		sessionManager: options.SessionManager,
-		database:       options.Database,
-		clientService:  options.ClientService,
-		catalogService: options.CatalogService,
+		version:         options.Version,
+		startedAt:       options.StartedAt,
+		authSettings:    authSettings,
+		sessionManager:  options.SessionManager,
+		database:        options.Database,
+		clientService:   options.ClientService,
+		catalogService:  options.CatalogService,
+		intakeService:   options.IntakeService,
+		localUploadsDir: options.LocalUploadsDir,
 	}
 
 	mux := http.NewServeMux()
@@ -159,6 +179,8 @@ func NewHandler(options HandlerOptions) http.Handler {
 	mux.HandleFunc("GET /api/info", h.handleInfo)
 	mux.HandleFunc("GET /api/me", h.handleMe)
 	mux.HandleFunc("GET /api/services", h.handleServices)
+	mux.HandleFunc("POST /api/intake", h.handleIntake)
+	mux.HandleFunc("POST /api/intake/{id}/photos", h.handleIntakePhoto)
 
 	if options.WebAuth != nil {
 		mux.HandleFunc("GET /auth/login", options.WebAuth.HandleLogin)
@@ -166,7 +188,7 @@ func NewHandler(options HandlerOptions) http.Handler {
 		mux.HandleFunc("GET /auth/logout", options.WebAuth.HandleLogout)
 	}
 
-	registerWeb(mux, publicFS)
+	registerWeb(mux, publicFS, options.LocalUploadsDir)
 	return mux
 }
 
@@ -199,9 +221,16 @@ func timeNowUTC() time.Time {
 	return time.Now().UTC()
 }
 
-func registerWeb(mux *http.ServeMux, publicFS fs.FS) {
+func registerWeb(mux *http.ServeMux, publicFS fs.FS, localUploadsDir string) {
 	if mux == nil || publicFS == nil {
 		return
+	}
+
+	if strings.TrimSpace(localUploadsDir) != "" {
+		if _, err := os.Stat(localUploadsDir); err == nil || os.IsNotExist(err) {
+			fileServer := http.FileServer(http.Dir(localUploadsDir))
+			mux.Handle("/uploads/", http.StripPrefix("/uploads/", fileServer))
+		}
 	}
 
 	staticFS, err := fs.Sub(publicFS, "static")

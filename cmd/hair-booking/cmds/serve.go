@@ -19,6 +19,7 @@ import (
 	hairconfig "github.com/go-go-golems/hair-booking/pkg/config"
 	hairdb "github.com/go-go-golems/hair-booking/pkg/db"
 	"github.com/go-go-golems/hair-booking/pkg/server"
+	hairstorage "github.com/go-go-golems/hair-booking/pkg/storage"
 	pkgerrors "github.com/pkg/errors"
 	"github.com/rs/zerolog/log"
 )
@@ -126,15 +127,27 @@ func (c *ServeCommand) Run(ctx context.Context, parsedValues *values.Values) err
 		}
 	}
 
+	var blobStore hairstorage.BlobStore
+	switch backendSettings.StorageMode {
+	case hairconfig.StorageModeLocal:
+		blobStore = hairstorage.NewLocalStore(backendSettings.StorageLocalDir, backendSettings.PublicBaseURL)
+	case hairconfig.StorageModeS3:
+		return errors.New("s3 storage mode is not implemented yet")
+	default:
+		return pkgerrors.Errorf("unsupported storage mode %q", backendSettings.StorageMode)
+	}
+
 	serverCtx, stop := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
 	httpServer, err := server.NewHTTPServer(serverCtx, server.ServerOptions{
-		Host:         settings.ListenHost,
-		Port:         settings.ListenPort,
-		Version:      c.version,
-		AuthSettings: authSettings,
-		Database:     applicationDB,
+		Host:            settings.ListenHost,
+		Port:            settings.ListenPort,
+		Version:         c.version,
+		AuthSettings:    authSettings,
+		Database:        applicationDB,
+		Storage:         blobStore,
+		LocalUploadsDir: backendSettings.StorageLocalDir,
 	})
 	if err != nil {
 		return pkgerrors.Wrap(err, "failed to create http server")
