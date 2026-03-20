@@ -98,7 +98,7 @@ RelatedFiles:
       Note: Added local proxying for backend API
 ExternalSources: []
 Summary: Chronological diary for the frontend integration planning and early implementation work that moves the hair-booking app from mocks to RTK Query-backed backend calls.
-LastUpdated: 2026-03-20T03:05:00-04:00
+LastUpdated: 2026-03-20T11:40:00-04:00
 WhatFor: Use this diary to understand why the frontend integration ticket exists, what evidence drove the plan, and how to continue implementation.
 WhenToUse: Use when continuing HAIR-003 or reviewing the reasoning behind the RTK Query migration order.
 ---
@@ -1421,3 +1421,159 @@ npm --prefix web run typecheck
   - `remind2hr` → `remind_2hr`
   - `maintAlerts` → `maint_alerts`
 - The fake marketing preference row has been removed from the live mapping because there is no backend field for it.
+
+## Step 11: Make Portal Appointment Cancellation Real
+
+After the notification preference mutation landed, the next obvious fake path was appointment cancellation. The portal already showed live appointments, but the cancel affordance was still a dead-end for backend truth. I used that gap to wire the first appointment mutation path rather than jumping straight to rescheduling, because the existing widget set already exposes cancel actions on the home card and the appointments list.
+
+This slice also tightened the smoke testing playbook. The browser run surfaced a real product rule: the backend blocks changes within 24 hours of the appointment start time. That policy needed to become part of the long-lived smoke instructions instead of staying buried in browser console history.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue with the normal integration, making sure to commit at appropriate intervals, checking off tasks in the task list (or adding them if they are not yet present), and keeping a detailed diary"
+
+**Assistant interpretation:** Keep progressing through HAIR-003 in disciplined feature slices, commit each slice separately, and make sure the ticket documents stay in sync.
+
+**Inferred user intent:** Continue replacing mock-backed portal behavior with real backend integration while preserving a reviewable paper trail.
+
+**Commit (code):** `5a4fbf3` — `feat: allow portal appointment cancellation`
+
+### What I did
+
+- Added `remoteId?: string` to `AppointmentDetail` so the portal view model can carry the backend UUID required for mutation routes.
+- Updated the portal appointment mapper to preserve the backend appointment identifier alongside the display-friendly local shape.
+- Wired the cancel mutation into `PortalHomePage.tsx` so the home-screen next-appointment card can cancel the live appointment when one exists and policy allows it.
+- Wired the cancel mutation into `PortalAppointmentsPage.tsx` so upcoming appointments can also be cancelled from the list view.
+- Tightened `NextAppointmentCard.tsx` so it only renders action buttons when a real handler exists, which avoids lying about a reschedule action that is not wired yet.
+- Updated `docs/smoke-testing-playbook.md` with:
+  - the 24-hour appointment policy failure signature
+  - the exact portal cancellation validation sequence
+  - the new minimum pass criteria for a successful portal mutation smoke
+- Re-ran:
+
+```bash
+npm --prefix web run typecheck
+```
+
+- Seeded future appointments for Alice so the portal had real upcoming records to act on:
+
+```bash
+curl -sS -X POST 'http://127.0.0.1:8080/api/appointments' -H 'content-type: application/json' --data '{"service_id":"4a3d3653-fd03-4f0e-9be8-9d7a4bce33a1","date":"2026-03-21","start_time":"9:30 AM","client_name":"Alice Example","client_email":"alice@example.com","client_phone":"401-555-0123"}'
+curl -sS -X POST 'http://127.0.0.1:8080/api/appointments' -H 'content-type: application/json' --data '{"service_id":"4a3d3653-fd03-4f0e-9be8-9d7a4bce33a1","date":"2026-03-23","start_time":"10:00 AM","client_name":"Alice Example","client_email":"alice@example.com","client_phone":"401-555-0123"}'
+```
+
+- Ran the focused portal smoke in the browser:
+  - opened `http://127.0.0.1:5175/?app=portal`
+  - confirmed the March 21 appointment produced the policy error
+  - confirmed the March 23 appointment cancelled successfully
+  - queried the portal appointment APIs afterward to confirm the backend state
+
+### Why
+
+- Cancellation is already represented in the current widgets, so this was a cheaper truthful mutation than inventing a new edit or detail surface.
+- Wiring cancellation proves the portal’s appointment list and home summary are not only live reads; they now also refetch correctly after a write.
+- The 24-hour rule is operationally important and needed to be captured in the shared smoke runbook immediately.
+
+### What worked
+
+- The home card and appointments list both reached the real `POST /api/me/appointments/:id/cancel` route.
+- The March 23 appointment (`d22eeb33-e9ed-4731-a28f-9cff4cd7557f`) cancelled successfully and the portal home refetched to show the March 21 appointment as the next one.
+- A browser-side check of the backend confirmed the new state:
+
+```json
+{
+  "upcoming": {
+    "data": {
+      "appointments": [
+        {
+          "id": "e0e5eb9e-f883-4192-bdcc-0914664a5ca7",
+          "date": "2026-03-21",
+          "status": "pending"
+        }
+      ]
+    }
+  },
+  "past": {
+    "data": {
+      "appointments": [
+        {
+          "id": "d22eeb33-e9ed-4731-a28f-9cff4cd7557f",
+          "date": "2026-03-23",
+          "status": "cancelled",
+          "cancel_reason": "Cancelled from client portal"
+        }
+      ]
+    }
+  }
+}
+```
+
+- Typechecking stayed clean:
+
+```bash
+npm --prefix web run typecheck
+```
+
+### What didn't work
+
+- The first seeded upcoming appointment (`e0e5eb9e-f883-4192-bdcc-0914664a5ca7`) could not be changed because it was within the backend’s 24-hour policy window. The UI surfaced the backend error text:
+
+```text
+appointments cannot be changed within 24 hours: appointment policy violation
+```
+
+- That failure was expected once the rule was understood, but it initially blocked the “successful cancel” smoke until I seeded a later appointment outside the policy window.
+
+### What I learned
+
+- The portal needs the backend UUID preserved in the view model even when most of the widgets still prefer display-first local shapes.
+- Real smoke testing of portal mutations needs seeded data that is outside the backend policy window, otherwise the browser exercise can fail for correct business reasons.
+- The playbook should document not only happy paths, but also the expected policy failure messages that prove the backend is enforcing rules correctly.
+
+### What was tricky to build
+
+- The tricky part was keeping the widget surface honest while only one of the two appointment actions is currently real. The symptom was a card that visually invited both cancel and reschedule even though only cancel had an implementation behind it. I addressed that by making `NextAppointmentCard` render action buttons only when handlers are actually passed in, rather than showing a dead reschedule affordance.
+
+### What warrants a second pair of eyes
+
+- Review whether cancelled future appointments should remain in the `past` filter or move to a dedicated cancelled grouping in the product UX. The backend response is correct, but the display policy is still a product decision.
+- Review whether the home screen should show a more specific success or toast treatment after cancellation instead of relying only on the refetched card state.
+
+### What should be done in the future
+
+- Wire the remaining Phase 5 mutations:
+  - `PATCH /api/me`
+  - `PATCH /api/me/appointments/:id`
+- Add explicit frontend tests for cancellation success and policy-failure rendering once the test harness exists.
+- Keep expanding the smoke playbook as new mutation paths land.
+
+### Code review instructions
+
+- Start with:
+  - `web/src/stylist/types.ts`
+  - `web/src/stylist/store/api/mappers.ts`
+  - `web/src/stylist/pages/PortalHomePage.tsx`
+  - `web/src/stylist/pages/PortalAppointmentsPage.tsx`
+  - `web/src/stylist/components/NextAppointmentCard.tsx`
+- Then review the long-lived runbook update:
+  - `docs/smoke-testing-playbook.md`
+- Validate with:
+
+```bash
+npm --prefix web run typecheck
+```
+
+- Then repeat the portal cancel smoke with:
+  1. one appointment inside the 24-hour policy window
+  2. one appointment outside the policy window
+  3. confirmation that the first fails with the expected error
+  4. confirmation that the second succeeds and refetches the portal state
+
+### Technical details
+
+- Backend mutation route exercised:
+  - `POST /api/me/appointments/:id/cancel`
+- Backend IDs used during validation:
+  - policy-blocked appointment: `e0e5eb9e-f883-4192-bdcc-0914664a5ca7`
+  - successfully cancelled appointment: `d22eeb33-e9ed-4731-a28f-9cff4cd7557f`
+- The portal now depends on preserved backend appointment identifiers even for display-oriented widgets.

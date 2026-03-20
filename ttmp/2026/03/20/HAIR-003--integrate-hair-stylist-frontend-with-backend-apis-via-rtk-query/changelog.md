@@ -2,6 +2,19 @@
 
 ## 2026-03-20
 
+Implemented the next Phase 5 portal write slice and committed it as `5a4fbf3`. Upcoming portal appointments can now be cancelled through the real `POST /api/me/appointments/:id/cancel` mutation, the home screen refetches when a cancellation succeeds, and the appointment view model now carries the backend UUID needed for mutation routes. I also updated the repo-level smoke playbook with the 24-hour policy failure case and the successful cancel-validation procedure.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PortalHomePage.tsx — Wired the home-screen cancel action to the real appointment cancel mutation
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PortalAppointmentsPage.tsx — Wired the appointments-screen cancel action to the real appointment cancel mutation
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/store/api/mappers.ts — Preserved backend appointment UUIDs in the view model for mutation usage
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/types.ts — Added the backend appointment identifier to the frontend appointment detail type
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/components/NextAppointmentCard.tsx — Stopped rendering dead reschedule UI when no handler is available
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/smoke-testing-playbook.md — Added the real portal cancel validation flow and the 24-hour policy error signature
+
+## 2026-03-20
+
 Implemented the first Phase 5 portal write slice and committed it as `6876704`. The profile page now reads notification preferences from live `/api/me` data and writes changes through `PATCH /api/me/notification-prefs`, with the updated backend state surviving a page reload. This removes the fake notification-toggle path from `portalSlice` and makes the preference switches the first fully live portal mutation in the React app.
 
 ### Related Files

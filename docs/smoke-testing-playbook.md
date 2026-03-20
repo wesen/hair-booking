@@ -381,9 +381,12 @@ This flow currently validates:
 - Keycloak callback
 - browser session cookie
 - `/api/me` success after login
+- portal home/profile/appointments live reads
+- notification preference mutation
+- appointment cancellation mutation
 - logout
 
-This flow does not yet fully validate the visible portal body because the deeper portal reads are still partially mock-backed.
+This flow still does not fully validate every portal surface. Rewards and photos remain mock-backed.
 
 ### Portal entry URL
 
@@ -407,32 +410,60 @@ http://127.0.0.1:8080/
 
 6. Navigate back to the Vite portal URL.
 7. Confirm the sign-in gate is gone.
-8. Verify the live session directly from the browser:
+8. Confirm the portal home now greets the real client.
+9. Verify the live session directly from the browser:
 
 ```js
 fetch('/api/me', { credentials: 'include' }).then(r => r.json())
 ```
 
-9. Confirm `/api/me` returns `200` and includes the authenticated client.
-10. Click the avatar and sign out.
-11. Complete the Keycloak logout confirmation.
-12. Return to the Vite portal URL.
-13. Confirm the unauthenticated sign-in gate is back.
+10. Confirm `/api/me` returns `200` and includes the authenticated client.
+11. Open the appointments tab and confirm the real consult history appears.
+12. Open the profile page and confirm the live client contact fields appear.
+13. Toggle one notification preference and verify `/api/me` reflects the updated backend value.
+14. If there is an upcoming appointment outside the 24-hour policy window, cancel it and verify the portal refetches.
+15. Click the avatar and sign out.
+16. Complete the Keycloak logout confirmation.
+17. Return to the Vite portal URL.
+18. Confirm the unauthenticated sign-in gate is back.
 
 ### Important current limitation
 
-After login, the portal shell is authenticated, but the main portal body may still show mock records such as:
+Rewards and photos still remain mock-backed. The live portal surfaces are currently:
 
-- `Mia Kovacs`
-- `K-Tip Move-Up`
+- home greeting
+- appointments
+- profile identity
+- notification preferences
 
-This is expected until Phase 4 replaces the portal read paths with live backend data.
+The still-mock portal surfaces are currently:
+
+- rewards
+- photos
+
+This is expected until those later slices land.
+
+### Portal mutation policy note
+
+Appointment cancellation and reschedule behavior is policy-gated.
+
+During a verified smoke run, cancelling an appointment within 24 hours returned:
+
+```text
+appointments cannot be changed within 24 hours: appointment policy violation
+```
+
+That is an expected backend-enforced rule, not a frontend bug.
 
 ### Minimum pass criteria for portal auth smoke
 
 - portal shows sign-in gate before login
 - Keycloak login succeeds
 - `/api/me` returns `200` after login
+- home greeting reflects the authenticated client
+- profile page reflects the authenticated client
+- notification preference changes persist through `/api/me`
+- appointment cancellation outside the policy window refetches the portal state
 - logout succeeds
 - portal returns to sign-in gate after logout
 
@@ -489,6 +520,25 @@ Meaning:
 
 - either nullable client columns are being scanned unsafely
 - or an authenticated identity is colliding with an existing guest-booking client row and needs linking
+
+### Failure: appointment policy violation on cancel
+
+Error:
+
+```text
+appointments cannot be changed within 24 hours: appointment policy violation
+```
+
+Where to inspect:
+
+- [pkg/appointments/service.go](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/service.go)
+- [web/src/stylist/pages/PortalHomePage.tsx](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PortalHomePage.tsx)
+- [web/src/stylist/pages/PortalAppointmentsPage.tsx](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PortalAppointmentsPage.tsx)
+
+Meaning:
+
+- the frontend successfully reached the real cancel mutation
+- the backend rejected the request because the appointment was too close to start time
 
 ## Evidence You Must Capture For Any Failed Smoke Test
 
