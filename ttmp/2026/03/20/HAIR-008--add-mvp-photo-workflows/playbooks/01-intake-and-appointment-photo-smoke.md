@@ -21,7 +21,7 @@ RelatedFiles:
       Note: Appointment photo write path and storage key generation
 ExternalSources: []
 Summary: Manual smoke steps for verifying intake photo uploads, retry behavior, and stylist appointment photo uploads.
-LastUpdated: 2026-03-20T14:07:42-04:00
+LastUpdated: 2026-03-20T14:14:01-04:00
 WhatFor: Use this to replay the HAIR-008 backend photo upload slice.
 WhenToUse: Use after changing photo validation, upload handlers, or photo-related runtime wiring.
 ---
@@ -71,6 +71,12 @@ What to verify:
 - only unfinished uploads remain pending
 
 If you are testing manually and cannot force a network failure easily, this can still be checked by watching the confirmation screen and Redux-backed flow behavior after a partial failure is introduced during development.
+
+Initial HAIR-008 browser result:
+
+- one intake create request
+- one intake ID reused across the failed upload and retry
+- successful recovery back into the booking flow after retry
 
 ## Stylist Appointment Photo Smoke
 

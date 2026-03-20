@@ -15,7 +15,7 @@ RelatedFiles:
       Note: Review context for what the MVP still needs
 ExternalSources: []
 Summary: Diary for the deferred MVP photo execution track.
-LastUpdated: 2026-03-20T14:07:42-04:00
+LastUpdated: 2026-03-20T14:14:01-04:00
 WhatFor: Use this to understand why photos were split into a dedicated follow-up ticket.
 WhenToUse: Use while implementing or reviewing HAIR-008.
 ---
@@ -197,3 +197,26 @@ The remaining HAIR-008 work is now very small:
 
 - run a real browser smoke of the booking retry flow
 - optionally add richer client-side previews/progress affordances later
+
+The final validation slice used a real Playwright browser run against the local stack rather than stopping at unit/type checks.
+
+The smoke deliberately forced the first intake photo upload to fail while the estimate step was saving the booking intake. That let the test answer the real operational question:
+
+- does retry create a duplicate intake, or reuse the original one?
+
+Observed result from the browser run:
+
+- intake create requests: `1`
+- intake photo upload requests across failure + retry: `3`
+- distinct intake IDs used by those upload requests: `1`
+- the flow recovered to the calendar step after retry
+
+That is the exact behavior we wanted. The intake save happened once, the retry stayed attached to the same intake, and the client could keep moving through the funnel instead of silently forking records in the database.
+
+With that smoke complete, HAIR-008 is effectively done for MVP scope.
+
+The remaining future improvements are no longer blockers:
+
+- richer pre-upload previews
+- nicer per-file progress indicators
+- signed/protected photo URLs beyond MVP

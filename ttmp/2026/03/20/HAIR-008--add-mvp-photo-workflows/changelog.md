@@ -18,3 +18,4 @@
 - Added backend and frontend tests covering stylist appointment photo detail rendering
 - Prevented duplicate intake creation when booking photo uploads are retried after a partial failure
 - Added clearer booking-step retry copy explaining that retries reuse the saved intake
+- Ran a real Playwright smoke proving booking retries reuse the same saved intake instead of creating a duplicate

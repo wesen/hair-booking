@@ -26,6 +26,6 @@
 ## Validation
 
 - [x] Add manual smoke steps for intake photos and appointment photos
-- [ ] Run a real browser smoke of the booking retry flow
+- [x] Run a real browser smoke of the booking retry flow
 - [x] Run `go test ./...`
 - [x] Run `npm --prefix web run typecheck`
