@@ -26,7 +26,9 @@ RelatedFiles:
     - Path: web/src/main.tsx
       Note: Added Vite app selection for booking and portal smoke testing
     - Path: web/src/stylist/ClientPortalApp.tsx
-      Note: Recorded authenticated portal gate for Phase 2 (commit dd3bcda)
+      Note: |-
+        Recorded authenticated portal gate for Phase 2 (commit dd3bcda)
+        Stopped deriving top-bar initials from the mock portal user in Phase 4 (commit f546c57)
     - Path: web/src/stylist/components/CalendarGrid.tsx
       Note: Recorded controlled calendar month integration for Phase 3 (commit a49a02a)
     - Path: web/src/stylist/data/portal-data.ts
@@ -39,8 +41,14 @@ RelatedFiles:
       Note: Recorded intake creation and photo upload orchestration for Phase 3 (commit a49a02a)
     - Path: web/src/stylist/pages/PhotosPage.tsx
       Note: Recorded file selection and pending upload capture for Phase 3 (commit a49a02a)
+    - Path: web/src/stylist/pages/PortalAppointmentsPage.tsx
+      Note: Appointments screen switched to live backend reads in Phase 4 (commit f546c57)
+    - Path: web/src/stylist/pages/PortalHomePage.tsx
+      Note: Home screen switched to live portal summary data in Phase 4 (commit f546c57)
     - Path: web/src/stylist/pages/PortalProfilePage.tsx
-      Note: Recorded logout wiring against the browser auth session for Phase 2 (commit dd3bcda)
+      Note: |-
+        Recorded logout wiring against the browser auth session for Phase 2 (commit dd3bcda)
+        Profile identity fields switched to live /api/me data in Phase 4 (commit f546c57)
     - Path: web/src/stylist/pages/SignInPage.tsx
       Note: Recorded Keycloak login initiation UI for Phase 2 (commit dd3bcda)
     - Path: web/src/stylist/pages/VerifyCodePage.tsx
@@ -57,6 +65,8 @@ RelatedFiles:
         Recorded consultation-to-intake mapping and consult-service selection for Phase 3 (commit a49a02a)
     - Path: web/src/stylist/store/api/portalApi.ts
       Note: Recorded portal endpoint definitions for Phase 1 (commit bb46c1b)
+    - Path: web/src/stylist/store/api/portalView.ts
+      Note: Live portal view hooks introduced for Phase 4 portal reads (commit f546c57)
     - Path: web/src/stylist/store/api/servicesApi.ts
       Note: Fixed service catalog response transform for the live calendar path
     - Path: web/src/stylist/store/api/types.ts
@@ -74,7 +84,9 @@ RelatedFiles:
         Current Redux store wiring that will host RTK Query reducer and middleware
         Recorded RTK Query reducer and middleware wiring for Phase 1 (commit bb46c1b)
     - Path: web/src/stylist/store/portalSlice.ts
-      Note: Portal mock state that should shrink once server state moves to RTK Query
+      Note: |-
+        Portal mock state that should shrink once server state moves to RTK Query
+        Reduced portal slice responsibilities after live portal reads landed in Phase 4 (commit f546c57)
     - Path: web/src/stylist/store/test-utils.ts
       Note: Recorded test-store wiring through createAppStore for Phase 1 (commit bb46c1b)
     - Path: web/vite.config.ts
@@ -85,6 +97,7 @@ LastUpdated: 2026-03-20T03:05:00-04:00
 WhatFor: Use this diary to understand why the frontend integration ticket exists, what evidence drove the plan, and how to continue implementation.
 WhenToUse: Use when continuing HAIR-003 or reviewing the reasoning behind the RTK Query migration order.
 ---
+
 
 
 
@@ -1156,3 +1169,133 @@ I therefore promoted the smoke procedure into a durable repo-level playbook unde
 
 - The playbook is intended to become the canonical local smoke runbook for this repo.
 - Ticket diaries should continue to record chronological findings, but the stable procedure should now live in `docs/smoke-testing-playbook.md`.
+
+## Step 9: Replace Portal Read Paths With Live Backend Data
+
+After the smoke-test fixes, the portal had an obvious truth gap: the auth shell was real, but the body still showed `Mia Kovacs` and mock appointments. That was no longer acceptable because it made the app look authenticated while still presenting fake client data. I treated this as the next normal integration slice and moved the portal home, appointments, and profile reads over to RTK Query-backed view hooks.
+
+I deliberately kept the scope tight. Rewards and photos still do not have matching backend support, so I left those sections on their mock path for now. The goal in this slice was to stop lying about the signed-in client and stop reading canonical appointment and maintenance data from `portalSlice`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue with the normal integration, making sure to commit at appropriate intervals, checking off tasks in the task list (or adding them if they are not yet present), and keeping a detailed diary"
+
+**Assistant interpretation:** Continue the planned frontend integration work in the next logical slice, keep commits focused, update the ticket tasks as the work becomes concrete, and record the reasoning and outcomes in detail.
+
+**Inferred user intent:** Make steady, disciplined progress on HAIR-003 without losing operational traceability or letting the ticket drift from the actual implementation state.
+
+**Commit (code):** `f546c57` — `feat: load portal reads from backend APIs`
+
+### What I did
+
+- Read the current portal surfaces and confirmed the problem:
+  - `PortalHomePage.tsx`
+  - `PortalAppointmentsPage.tsx`
+  - `PortalProfilePage.tsx`
+  - `portalSlice.ts`
+  - `portal-data.ts`
+- Added `web/src/stylist/store/api/portalView.ts` with dedicated live view hooks:
+  - `usePortalProfileView()`
+  - `usePortalHomeView()`
+  - `usePortalAppointmentsView()`
+- Updated `PortalHomePage.tsx` to use live profile, upcoming-appointment, and maintenance-plan reads.
+- Updated `PortalAppointmentsPage.tsx` to use live `/api/me/appointments` data keyed by the existing upcoming/past filter.
+- Updated `PortalProfilePage.tsx` to use live `/api/me` identity data.
+- Updated `ClientPortalApp.tsx` so the top-bar initials no longer depend on the mock slice user.
+- Reduced `portalSlice.ts` by removing mock canonical appointment and maintenance state plus the fake cancel reducer.
+- Re-ran:
+
+```bash
+npm --prefix web run typecheck
+```
+
+- Re-ran a focused portal browser smoke:
+  - logged in through Keycloak as `alice`
+  - returned to `http://127.0.0.1:5175/?app=portal`
+  - verified `Hi, Alice`
+  - verified the past appointments view showed the real March 19 consult
+  - verified the profile page showed `Alice Example`, `alice@example.com`, and `401-555-0123`
+
+### Why
+
+- Once `/api/me` and appointment reads were already available, keeping home/profile/appointments on mock data made the portal actively misleading.
+- `portalSlice` needed to shrink so it stopped acting like a second fake backend for screens that now have real queries.
+- The widget set still has no standalone appointment-detail screen, so the detail endpoint should remain available but does not need forced UI usage yet.
+
+### What worked
+
+- The portal home greeting now reflects the authenticated client instead of the mock profile.
+- The appointments tab now switches between live upcoming and live past appointments from the backend.
+- The profile page now shows the real client name, email, phone, and derived “client since” date from `/api/me`.
+- The slice reduction did not break typechecking:
+
+```bash
+npm --prefix web run typecheck
+```
+
+- The browser smoke confirmed the change with visible evidence:
+  - home: `Hi, Alice`
+  - appointments/past: `Extensions Consultation` on `Mar 19`
+  - profile: `Alice Example`
+
+### What didn't work
+
+- There was no new implementation failure in this slice, but the live smoke clarified one important product limitation: Alice’s only appointment is now in the past relative to the current local date (`March 20, 2026`), so the home screen has no “next appointment” card. That is expected data behavior, not a regression.
+
+- The portal still shows mock-backed rewards and photos. That is also expected for this slice and is now more visible because the profile and appointments are no longer mock-backed.
+
+### What I learned
+
+- A small view-hook layer is enough to preserve the existing widget props while moving read ownership out of `portalSlice`.
+- The app does not currently have a true standalone appointment-detail page, so the `GET /api/me/appointments/:id` endpoint is ready for later use but not yet consumable in the current UI.
+- The portal can be partially real in a controlled way if the boundaries are explicit: profile/home/appointments live, rewards/photos still mock.
+
+### What was tricky to build
+
+- The tricky part was deciding how much of `portalSlice` to remove without destabilizing later slices. The symptoms were mixed responsibilities: UI tab state, filter state, rewards mock data, photo mock data, and canonical appointment/profile data all lived together. I approached that by removing only the clearly backend-owned appointment and maintenance records now, while leaving rewards/photos and remaining local UI state intact until their backend slices land.
+
+### What warrants a second pair of eyes
+
+- Review the UX of the appointments “Past” tab showing a `PENDING` status for a past consult. That reflects the backend status plus date-based filtering, but it may not be the final product wording the team wants.
+- Review whether the empty maintenance-plan rendering on the portal home should get a dedicated empty-state treatment once more real client data exists.
+- Review whether the current portal top bar should eventually derive more than initials from the authenticated session now that the rest of the portal is becoming live.
+
+### What should be done in the future
+
+- Phase 5 should wire the existing profile/preferences/appointment write endpoints so the now-live portal reads are paired with real mutations.
+- Phase 6 should replace the photo timeline mocks.
+- Add a dedicated appointment-detail surface only when the widget set actually includes one; do not force the endpoint into fake usage earlier than that.
+
+### Code review instructions
+
+- Start with the new live-read hook layer:
+  - `web/src/stylist/store/api/portalView.ts`
+- Then review the portal screens:
+  - `web/src/stylist/pages/PortalHomePage.tsx`
+  - `web/src/stylist/pages/PortalAppointmentsPage.tsx`
+  - `web/src/stylist/pages/PortalProfilePage.tsx`
+- Then review the slice reduction:
+  - `web/src/stylist/store/portalSlice.ts`
+  - `web/src/stylist/ClientPortalApp.tsx`
+- Validate with:
+
+```bash
+npm --prefix web run typecheck
+```
+
+- Then run the focused browser smoke:
+  1. log in through Keycloak
+  2. open `http://127.0.0.1:5175/?app=portal`
+  3. confirm `Hi, Alice`
+  4. open `Past` appointments and confirm the March 19 consult
+  5. open profile and confirm live contact details
+
+### Technical details
+
+- New file added in this slice:
+  - `web/src/stylist/store/api/portalView.ts`
+- Query sources used:
+  - `GET /api/me`
+  - `GET /api/me/appointments`
+  - `GET /api/me/maintenance-plan`
+- The appointment-detail endpoint remains available in RTK Query but intentionally unused because the current widget set has no standalone detail screen.

@@ -43,12 +43,13 @@
 
 ## Phase 4: Portal Reads
 
-- [ ] Replace mocked portal user hydration with `/api/me`
-- [ ] Replace mocked appointment list with `GET /api/me/appointments`
-- [ ] Replace mocked maintenance plan with `GET /api/me/maintenance-plan`
+- [x] Replace mocked portal user hydration with `/api/me`
+- [x] Replace mocked appointment list with `GET /api/me/appointments`
+- [x] Replace mocked maintenance plan with `GET /api/me/maintenance-plan`
 - [ ] Replace portal appointment detail usage with `GET /api/me/appointments/:id`
-- [ ] Build selectors/adapters that preserve current widget prop shapes
-- [ ] Remove `portal-data.ts` dependencies from portal read paths
+- [x] Build selectors/adapters that preserve current widget prop shapes
+- [x] Remove `portal-data.ts` dependencies from portal read paths
+- [x] Record that the current widget set has no standalone appointment detail screen yet, so `GET /api/me/appointments/:id` remains available but unused
 - [ ] Add tests for loading, empty, populated, and error states in portal pages
 
 ## Phase 5: Portal Writes

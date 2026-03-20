@@ -2,6 +2,19 @@
 
 ## 2026-03-20
 
+Implemented the Phase 4 portal read slice and committed it as `f546c57`. The portal home, appointments, and profile screens now read live backend data through RTK Query-backed view hooks instead of pulling canonical records from `portalSlice`. The authenticated portal now greets the real signed-in client, shows real appointment history, and shows real profile contact data from `/api/me`. Rewards and photos remain on their mock-backed path for now, and the standalone appointment-detail endpoint remains unused because the current widget set does not expose a separate detail screen yet.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/store/api/portalView.ts — Added query-backed portal view hooks for profile, home, appointments, and maintenance
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PortalHomePage.tsx — Switched home summary to live profile, appointment, and maintenance data
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PortalAppointmentsPage.tsx — Switched appointment lists to live backend reads
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PortalProfilePage.tsx — Switched profile identity fields to live `/api/me` data
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/ClientPortalApp.tsx — Stopped deriving portal initials from mock slice data
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/store/portalSlice.ts — Reduced portal slice responsibilities by dropping mock appointment and maintenance state
+
+## 2026-03-20
+
 Ran a real smoke test against local Postgres, Keycloak, the Go backend, and the Vite-hosted React app. Added a dev harness for exposing the booking and portal apps under Vite, added ticket-local scripts for stack startup, DB inspection, and Playwright replay, fixed the defects the smoke pass exposed, and wrote a repo-level playbook in `docs/smoke-testing-playbook.md` so the smoke procedure can keep evolving beyond this ticket. The browser booking flow now completes end to end and persists matching DB rows, while portal auth now succeeds even though the main portal body is still mock-backed pending Phase 4.
 
 ### Related Files
