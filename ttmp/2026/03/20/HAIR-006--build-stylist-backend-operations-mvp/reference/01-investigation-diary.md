@@ -90,3 +90,33 @@ Validation for the migration used two layers:
 - a disposable Postgres database to apply all embedded migrations in order, including `0004_add_intake_reviews.sql`
 
 The first attempt at the disposable migration check prompted for a password because the shell did not have `PGPASSWORD` set. The rerun succeeded once the local dev password was exported explicitly. That is worth keeping in the diary because the same issue can make future migration validation look like a SQL problem when it is really just shell configuration.
+
+The next major slice made intake review real end-to-end.
+
+Backend additions:
+
+- `pkg/stylist/service.go` for queue/detail/review validation rules
+- `pkg/stylist/postgres.go` for intake list, intake detail, and review upsert queries
+- `GET /api/stylist/intakes`
+- `GET /api/stylist/intakes/:id`
+- `PATCH /api/stylist/intakes/:id/review`
+
+This was the first slice in HAIR-006 where a real stylist workflow became visible instead of just a capability check.
+
+The most important debugging note from the slice is that the first browser-backed smoke returned `500` even though `go test ./...` was green. The cause was nullable left-joined `clients` and `intake_reviews` columns in the repository scan path.
+
+That bug mattered because stylist queue data is built from public intake submissions, and those rows do not always have:
+
+- an authenticated client row
+- an intake review row yet
+
+The repository code had to normalize null IDs, auth fields, and timestamps before building Go aggregates. This is exactly the kind of issue that the live smoke was supposed to catch.
+
+Final validation for the slice included:
+
+- `go test ./...`
+- real OIDC browser session as `alice`
+- `GET /api/stylist/intakes` returning `200`
+- `GET /api/stylist/intakes/:id` returning `200`
+- `PATCH /api/stylist/intakes/:id/review` returning `200`
+- `GET /api/stylist/intakes?status=in_review` returning the updated review row

@@ -22,12 +22,12 @@
 
 ## Intake Review APIs
 
-- [ ] Add stylist intake list repository query
-- [ ] Add stylist intake detail aggregate query
-- [ ] Add stylist intake review upsert/update path
-- [ ] Add `GET /api/stylist/intakes`
-- [ ] Add `GET /api/stylist/intakes/:id`
-- [ ] Add `PATCH /api/stylist/intakes/:id/review`
+- [x] Add stylist intake list repository query
+- [x] Add stylist intake detail aggregate query
+- [x] Add stylist intake review upsert/update path
+- [x] Add `GET /api/stylist/intakes`
+- [x] Add `GET /api/stylist/intakes/:id`
+- [x] Add `PATCH /api/stylist/intakes/:id/review`
 
 ## Dashboard APIs
 
@@ -53,7 +53,7 @@
 ## Testing And Validation
 
 - [x] Add service tests for stylist bootstrap/authz
-- [ ] Add service tests for intake review transitions
+- [x] Add service tests for intake review transitions
 - [ ] Add service tests for stylist appointment updates
-- [ ] Add HTTP tests for authorization and handler validation
+- [x] Add HTTP tests for authorization and handler validation
 - [x] Run `go test ./...`
