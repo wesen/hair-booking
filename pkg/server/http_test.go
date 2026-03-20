@@ -12,6 +12,7 @@ import (
 	"testing/fstest"
 	"time"
 
+	hairappointments "github.com/go-go-golems/hair-booking/pkg/appointments"
 	hairauth "github.com/go-go-golems/hair-booking/pkg/auth"
 	hairclients "github.com/go-go-golems/hair-booking/pkg/clients"
 	hairintake "github.com/go-go-golems/hair-booking/pkg/intake"
@@ -167,6 +168,48 @@ func (f *fakeBlobStore) Save(ctx context.Context, key string, reader io.Reader) 
 	}, nil
 }
 
+type fakeAppointmentRepo struct {
+	service *hairappointments.ServiceInfo
+	client  *hairappointments.Client
+}
+
+func (f *fakeAppointmentRepo) ListScheduleBlocks(ctx context.Context) ([]hairappointments.ScheduleBlock, error) {
+	return []hairappointments.ScheduleBlock{
+		{DayOfWeek: 1, StartTime: "09:00", EndTime: "11:00", IsAvailable: true},
+	}, nil
+}
+
+func (f *fakeAppointmentRepo) ListScheduleOverrides(ctx context.Context, startDate, endDate time.Time) ([]hairappointments.ScheduleOverride, error) {
+	return nil, nil
+}
+
+func (f *fakeAppointmentRepo) ListBookedAppointments(ctx context.Context, startDate, endDate time.Time) ([]hairappointments.Appointment, error) {
+	return nil, nil
+}
+
+func (f *fakeAppointmentRepo) GetService(ctx context.Context, serviceID uuid.UUID) (*hairappointments.ServiceInfo, error) {
+	if f.service != nil && f.service.ID == serviceID {
+		return f.service, nil
+	}
+	return nil, hairappointments.ErrNotFound
+}
+
+func (f *fakeAppointmentRepo) FindOrCreateBookingClient(ctx context.Context, name, email, phone string) (*hairappointments.Client, error) {
+	if f.client != nil {
+		return f.client, nil
+	}
+	return &hairappointments.Client{ID: uuid.New(), Name: name, Email: email, Phone: phone}, nil
+}
+
+func (f *fakeAppointmentRepo) CreateAppointment(ctx context.Context, appointment hairappointments.Appointment) (*hairappointments.Appointment, error) {
+	if appointment.ID == uuid.Nil {
+		appointment.ID = uuid.New()
+	}
+	appointment.CreatedAt = time.Now().UTC()
+	appointment.UpdatedAt = appointment.CreatedAt
+	return &appointment, nil
+}
+
 func TestHandleMeReturnsBootstrappedClient(t *testing.T) {
 	handler := NewHandler(HandlerOptions{
 		Version:   "dev",
@@ -304,5 +347,90 @@ func TestHandleIntakePhotoUploadsFile(t *testing.T) {
 	}
 	if !strings.Contains(recorder.Body.String(), "\"url\"") {
 		t.Fatalf("expected response body to include photo URL, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandleAvailabilityReturnsSlots(t *testing.T) {
+	serviceID := uuid.New()
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html":    &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+			"static/app.js": &fstest.MapFile{Data: []byte("console.log('ok');")},
+		},
+		AppointmentService: hairappointments.NewService(&fakeAppointmentRepo{
+			service: &hairappointments.ServiceInfo{
+				ID:          serviceID,
+				Name:        "Extensions Consultation",
+				DurationMin: 30,
+				IsActive:    true,
+			},
+		}),
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/availability?month=2026-03&service_id="+serviceID.String(), nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"2026-03-02\"") {
+		t.Fatalf("expected response body to include a March availability date, got %s", recorder.Body.String())
+	}
+	if !strings.Contains(recorder.Body.String(), "9:00 AM") {
+		t.Fatalf("expected response body to include a time slot, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandleCreateAppointmentReturnsPendingAppointment(t *testing.T) {
+	serviceID := uuid.New()
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html":    &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+			"static/app.js": &fstest.MapFile{Data: []byte("console.log('ok');")},
+		},
+		AppointmentService: hairappointments.NewService(&fakeAppointmentRepo{
+			service: &hairappointments.ServiceInfo{
+				ID:          serviceID,
+				Name:        "Extensions Consultation",
+				DurationMin: 30,
+				IsActive:    true,
+			},
+			client: &hairappointments.Client{
+				ID:    uuid.New(),
+				Name:  "Mia Kovacs",
+				Email: "mia@example.com",
+			},
+		}),
+	})
+
+	request := httptest.NewRequest(http.MethodPost, "/api/appointments", strings.NewReader(`{
+		"service_id":"`+serviceID.String()+`",
+		"date":"2026-03-02",
+		"start_time":"10:00 AM",
+		"client_name":"Mia Kovacs",
+		"client_email":"mia@example.com"
+	}`))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"status\":\"pending\"") {
+		t.Fatalf("expected response body to include pending appointment status, got %s", recorder.Body.String())
 	}
 }

@@ -2,8 +2,10 @@ package server
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
+	hairappointments "github.com/go-go-golems/hair-booking/pkg/appointments"
 	hairintake "github.com/go-go-golems/hair-booking/pkg/intake"
 	hairservices "github.com/go-go-golems/hair-booking/pkg/services"
 	"github.com/google/uuid"
@@ -41,6 +43,24 @@ type intakeCreateResponse struct {
 type intakePhotoResponse struct {
 	ID  uuid.UUID `json:"id"`
 	URL string    `json:"url"`
+}
+
+type availabilityResponse struct {
+	Availability map[string][]string `json:"availability"`
+}
+
+type appointmentCreateRequest struct {
+	IntakeID    string `json:"intake_id"`
+	ServiceID   string `json:"service_id"`
+	Date        string `json:"date"`
+	StartTime   string `json:"start_time"`
+	ClientName  string `json:"client_name"`
+	ClientEmail string `json:"client_email"`
+	ClientPhone string `json:"client_phone"`
+}
+
+type appointmentCreateResponse struct {
+	Appointment *hairappointments.Appointment `json:"appointment"`
 }
 
 func (h *appHandler) handleServices(w http.ResponseWriter, r *http.Request) {
@@ -135,4 +155,90 @@ func (h *appHandler) handleIntakePhoto(w http.ResponseWriter, r *http.Request) {
 		ID:  photo.ID,
 		URL: photo.URL,
 	}})
+}
+
+func (h *appHandler) handleAvailability(w http.ResponseWriter, r *http.Request) {
+	if h.appointmentService == nil {
+		writeAPIError(w, http.StatusInternalServerError, "backend-not-configured", "Appointment service is not configured.")
+		return
+	}
+
+	var serviceID *uuid.UUID
+	if rawServiceID := r.URL.Query().Get("service_id"); rawServiceID != "" {
+		parsed, err := uuid.Parse(rawServiceID)
+		if err != nil {
+			writeAPIError(w, http.StatusBadRequest, "invalid-service-id", "service_id must be a valid UUID.")
+			return
+		}
+		serviceID = &parsed
+	}
+
+	availability, err := h.appointmentService.Availability(r.Context(), r.URL.Query().Get("month"), serviceID)
+	if err != nil {
+		switch {
+		case errors.Is(err, hairappointments.ErrInvalidInput):
+			writeAPIError(w, http.StatusBadRequest, "invalid-availability-query", err.Error())
+		case errors.Is(err, hairappointments.ErrNotFound):
+			writeAPIError(w, http.StatusNotFound, "service-not-found", err.Error())
+		default:
+			writeAPIError(w, http.StatusInternalServerError, "availability-query-failed", "Failed to calculate availability.")
+		}
+		return
+	}
+
+	writeJSON(w, http.StatusOK, apiEnvelope{Data: availabilityResponse{Availability: availability}})
+}
+
+func (h *appHandler) handleCreateAppointment(w http.ResponseWriter, r *http.Request) {
+	if h.appointmentService == nil {
+		writeAPIError(w, http.StatusInternalServerError, "backend-not-configured", "Appointment service is not configured.")
+		return
+	}
+
+	request := appointmentCreateRequest{}
+	if err := json.NewDecoder(r.Body).Decode(&request); err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid-json", "Request body must be valid JSON.")
+		return
+	}
+
+	var intakeID *uuid.UUID
+	if request.IntakeID != "" {
+		parsed, err := uuid.Parse(request.IntakeID)
+		if err != nil {
+			writeAPIError(w, http.StatusBadRequest, "invalid-intake-id", "intake_id must be a valid UUID.")
+			return
+		}
+		intakeID = &parsed
+	}
+
+	serviceID, err := uuid.Parse(request.ServiceID)
+	if err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid-service-id", "service_id must be a valid UUID.")
+		return
+	}
+
+	appointment, err := h.appointmentService.CreatePublicAppointment(r.Context(), hairappointments.CreatePublicAppointmentInput{
+		IntakeID:    intakeID,
+		ServiceID:   serviceID,
+		Date:        request.Date,
+		StartTime:   request.StartTime,
+		ClientName:  request.ClientName,
+		ClientEmail: request.ClientEmail,
+		ClientPhone: request.ClientPhone,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, hairappointments.ErrInvalidInput):
+			writeAPIError(w, http.StatusBadRequest, "invalid-appointment", err.Error())
+		case errors.Is(err, hairappointments.ErrNotFound):
+			writeAPIError(w, http.StatusNotFound, "appointment-resource-not-found", err.Error())
+		case errors.Is(err, hairappointments.ErrSlotUnavailable):
+			writeAPIError(w, http.StatusConflict, "slot-unavailable", err.Error())
+		default:
+			writeAPIError(w, http.StatusInternalServerError, "appointment-create-failed", "Failed to create appointment.")
+		}
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, apiEnvelope{Data: appointmentCreateResponse{Appointment: appointment}})
 }
