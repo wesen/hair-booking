@@ -131,10 +131,6 @@ export interface ConsultationData {
   selectedDate: string | null;
   selectedTime: string | null;
   depositPaid: boolean;
-  // Auth
-  loginIdentifier: string;
-  verifyCode: string;
-  isAuthenticated: boolean;
   // Payment
   cardNumber: string;
   cardExpiry: string;

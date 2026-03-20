@@ -6,4 +6,3 @@ export * from "./mappers";
 export * from "./portalApi";
 export * from "./servicesApi";
 export type * from "./types";
-

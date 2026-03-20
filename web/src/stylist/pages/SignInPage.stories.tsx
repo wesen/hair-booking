@@ -25,10 +25,13 @@ export const Default: Story = {
   ],
 };
 
-export const WithEmail: Story = {
+export const PortalContext: Story = {
+  args: {
+    context: "portal",
+  },
   decorators: [
     (Story) => (
-      <Provider store={createTestStore({ auth: { loginIdentifier: "mia.k@email.com", codeSentTo: "", codeDigits: ["", "", "", "", "", ""], isVerifying: false, isAuthenticated: false, error: null, resendCooldown: 0, showDepositSheet: false, cardNumber: "", cardExpiry: "", cardCvc: "", cardZip: "", paymentError: null, paymentProcessing: false } })}>
+      <Provider store={createTestStore()}>
         <div data-widget="stylist" style={{ maxWidth: 430 }}>
           <Story />
         </div>

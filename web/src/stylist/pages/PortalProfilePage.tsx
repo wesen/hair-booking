@@ -1,6 +1,7 @@
 import { useAppSelector, useAppDispatch } from "../store";
 import { goBackFromProfile, toggleNotificationPref } from "../store/portalSlice";
 import { goToScreen } from "../store/consultationSlice";
+import { useSessionBootstrap } from "../store/api";
 import { NotificationPrefs } from "../components/NotificationPrefs";
 import { Icon } from "../components/Icon";
 
@@ -8,6 +9,7 @@ export function PortalProfilePage() {
   const dispatch = useAppDispatch();
   const user = useAppSelector(s => s.portal.user);
   const notifPrefs = useAppSelector(s => s.portal.notificationPrefs);
+  const session = useSessionBootstrap();
 
   return (
     <div data-part="page-content">
@@ -59,7 +61,13 @@ export function PortalProfilePage() {
         <div data-part="profile-action-list">
           <button data-part="profile-action-item">Edit Profile</button>
           <button data-part="profile-action-item">Payment Methods</button>
-          <button data-part="profile-action-item" data-danger>Sign Out</button>
+          <button
+            data-part="profile-action-item"
+            data-danger
+            onClick={() => window.location.assign(session.logoutPath)}
+          >
+            Sign Out
+          </button>
         </div>
       </div>
     </div>
