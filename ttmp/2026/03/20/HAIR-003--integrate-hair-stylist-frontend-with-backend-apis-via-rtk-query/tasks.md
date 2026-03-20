@@ -19,12 +19,12 @@
 
 ## Phase 2: Auth And Session Integration
 
-- [ ] Remove OTP-only sign-in assumptions from `authSlice`
-- [ ] Replace `SignInPage` with Keycloak login initiation UI
-- [ ] Remove or repurpose `VerifyCodePage`
-- [ ] Add a lightweight session bootstrap query for `/api/me`
-- [ ] Add authenticated/unauthenticated gating helpers for booking and portal flows
-- [ ] Decide what temporary local UI state remains in `authSlice` after OTP removal
+- [x] Remove OTP-only sign-in assumptions from `authSlice`
+- [x] Replace `SignInPage` with Keycloak login initiation UI
+- [x] Remove or repurpose `VerifyCodePage`
+- [x] Add a lightweight session bootstrap query for `/api/me`
+- [x] Add authenticated/unauthenticated gating helpers for booking and portal flows
+- [x] Decide what temporary local UI state remains in `authSlice` after OTP removal
 - [ ] Add tests for unauthenticated, loading, and authenticated app states
 
 ## Phase 3: Public Consultation Flow

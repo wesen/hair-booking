@@ -11,8 +11,18 @@ DocType: reference
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: web/src/stylist/ClientPortalApp.tsx
+      Note: Recorded authenticated portal gate for Phase 2 (commit dd3bcda)
     - Path: web/src/stylist/data/portal-data.ts
       Note: Mock portal fixtures that currently block realistic backend testing
+    - Path: web/src/stylist/pages/PortalProfilePage.tsx
+      Note: Recorded logout wiring against the browser auth session for Phase 2 (commit dd3bcda)
+    - Path: web/src/stylist/pages/SignInPage.tsx
+      Note: Recorded Keycloak login initiation UI for Phase 2 (commit dd3bcda)
+    - Path: web/src/stylist/pages/VerifyCodePage.tsx
+      Note: Recorded verify-code compatibility stub for Phase 2 (commit dd3bcda)
+    - Path: web/src/stylist/store/api/authApi.ts
+      Note: Recorded session bootstrap hook over /api/info and /api/me for Phase 2 (commit dd3bcda)
     - Path: web/src/stylist/store/api/base.ts
       Note: Recorded shared fetchBaseQuery envelope normalization and tag setup for Phase 1 (commit bb46c1b)
     - Path: web/src/stylist/store/api/bookingApi.ts
@@ -24,7 +34,9 @@ RelatedFiles:
     - Path: web/src/stylist/store/api/types.ts
       Note: Recorded backend DTO definitions for Phase 1 (commit bb46c1b)
     - Path: web/src/stylist/store/authSlice.ts
-      Note: Current OTP-shaped auth state that must be retired or reduced
+      Note: |-
+        Current OTP-shaped auth state that must be retired or reduced
+        Recorded OTP removal and payment-only auth UI state for Phase 2 (commit dd3bcda)
     - Path: web/src/stylist/store/consultationSlice.ts
       Note: Booking draft state that should remain client-owned
     - Path: web/src/stylist/store/index.ts
@@ -36,11 +48,12 @@ RelatedFiles:
     - Path: web/src/stylist/store/test-utils.ts
       Note: Recorded test-store wiring through createAppStore for Phase 1 (commit bb46c1b)
 ExternalSources: []
-Summary: Chronological diary for the frontend integration planning and Phase 1 implementation work that moves the hair-booking app from mocks to RTK Query-backed backend calls.
-LastUpdated: 2026-03-20T01:15:00-04:00
+Summary: Chronological diary for the frontend integration planning and early implementation work that moves the hair-booking app from mocks to RTK Query-backed backend calls.
+LastUpdated: 2026-03-20T02:05:00-04:00
 WhatFor: Use this diary to understand why the frontend integration ticket exists, what evidence drove the plan, and how to continue implementation.
 WhenToUse: Use when continuing HAIR-003 or reviewing the reasoning behind the RTK Query migration order.
 ---
+
 
 
 
@@ -444,3 +457,134 @@ git commit -m "feat: add RTK Query frontend foundation"
   - `web/src/stylist/store/api/bookingApi.ts`
   - `web/src/stylist/store/api/portalApi.ts`
   - `web/src/stylist/store/api/index.ts`
+
+## Step 4: Replace The Fake OTP Flow With Browser Session Bootstrap
+
+The second code slice focused on auth only. I did not try to wire real portal profile data or booking data in the same commit, because that would have mixed three changes at once: auth cutover, portal-data cutover, and booking cutover. Instead, I treated auth as a shell concern. The app now asks the backend whether a session exists, starts browser login through Keycloak, and gates the portal accordingly.
+
+That changed the frontend in two important ways. First, the fake login-code state machine is gone from `authSlice`, which now holds only local deposit/payment UI state. Second, the portal no longer assumes that a user is authenticated just because the widget rendered. It now shows loading, unauthenticated, and authenticated states based on `/api/info` plus `/api/me`.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 3)
+
+**Assistant interpretation:** Continue from the RTK Query foundation into the next smallest production-facing slice, which is auth/session integration.
+
+**Inferred user intent:** Start making the frontend behave like the real app without yet rewriting every booking and portal page to consume live backend data.
+
+**Commit (code):** dd3bcda — "feat: add OIDC session bootstrap to frontend"
+
+### What I did
+
+- Reduced `web/src/stylist/store/authSlice.ts` to payment and deposit UI state only.
+- Removed the OTP-only auth fields from the consultation draft model in:
+  - `web/src/stylist/types.ts`
+  - `web/src/stylist/data/consultation-constants.ts`
+- Added a `useSessionBootstrap()` helper in `web/src/stylist/store/api/authApi.ts` that combines:
+  - `GET /api/info`
+  - `GET /api/me`
+- Implemented status interpretation in that helper for:
+  - loading
+  - authenticated
+  - unauthenticated (`401` from `/api/me`)
+  - non-auth backend failures
+- Replaced the old `SignInPage` code-entry UI with a Keycloak/OIDC initiation screen that:
+  - checks whether the browser is already signed in
+  - starts login through `loginPath`
+  - starts logout through `logoutPath`
+  - exposes loading and retry states
+- Repurposed `VerifyCodePage` into a compatibility wrapper that points back to the new sign-in flow instead of simulating code entry.
+- Added portal auth gating in `web/src/stylist/ClientPortalApp.tsx` so the portal now shows:
+  - loading while session state is being checked
+  - sign-in UI when unauthenticated
+  - the existing portal shell when authenticated
+- Wired the portal profile sign-out button to the browser logout path.
+- Updated the sign-in and verify-code stories so Storybook no longer advertises the deleted OTP flow.
+
+### Why
+
+- The app had already committed to Keycloak/OIDC on the backend side, so leaving a fake OTP flow in the frontend would have created direct product drift.
+- Session bootstrap belongs in a thin frontend shell layer before deeper data migration work, because the portal should not render as authenticated if the backend does not agree.
+- Removing the dead OTP fields now makes the later booking and portal slices easier to reason about.
+
+### What worked
+
+- `/api/info` and `/api/me` were enough to derive a useful frontend session model without adding any new backend routes.
+- The portal auth gate fit cleanly into `ClientPortalApp.tsx` without forcing the portal pages themselves to change yet.
+- Reducing `authSlice` made the state model clearer immediately: server session state comes from RTK Query, local payment sheet state stays in Redux.
+- The phase still compiled cleanly after the story alignment work:
+
+```bash
+npm --prefix web run typecheck
+```
+
+### What didn't work
+
+- There was no new compile failure in this slice, but one subtle issue emerged during implementation: the unauthenticated portal state originally returned the sign-in page without the widget root wrapper, which would have broken the themed shell layout. I fixed that before final validation by wrapping the unauthenticated sign-in state in the same `data-widget="stylist"` root container used by the authenticated portal.
+
+- A second design limitation remains intentionally unresolved: in `dev` auth mode, the backend still reports login/logout paths even though the browser auth handlers are not wired. That does not break the current session bootstrap because `/api/me` succeeds in dev mode, but it means the UI should continue to be tested primarily in OIDC mode for real auth flows.
+
+### What I learned
+
+- The frontend can get a lot of real behavior from a very small auth contract if it cleanly separates session state from local UI state.
+- It is worth aligning Storybook stories as part of the same auth slice when a user-facing flow is being removed, otherwise the widget package keeps documenting the wrong product.
+- The real migration path is: auth shell first, then page data reads, then page writes.
+
+### What was tricky to build
+
+- The tricky part was avoiding a half-real, half-fake auth model. If I had only changed the sign-in page copy but kept `authSlice` pretending to own authentication, the app would still have had two incompatible sources of truth. The symptoms were already present in the old state shape: Redux tracked `isAuthenticated`, while the backend tracked sessions independently. I resolved that by deleting the OTP state machine entirely and making authentication a derived RTK Query concern.
+
+### What warrants a second pair of eyes
+
+- Review the session bootstrap contract in `web/src/stylist/store/api/authApi.ts`, especially the interpretation of `401` from `/api/me` as unauthenticated rather than as a general app error.
+- Review the sign-in page behavior in `web/src/stylist/pages/SignInPage.tsx` for UX clarity, because it now doubles as both a booking-side sign-in screen and a portal entry screen.
+- Review whether the portal should show any authenticated client details before Phase 4 replaces the mock profile data with `/api/me`.
+
+### What should be done in the future
+
+- Phase 3 should start moving public booking pages onto live backend reads and writes.
+- Phase 4 should replace the mock portal user and appointment data so the authenticated portal shell no longer renders fake records after login.
+- A real frontend test runner is still needed before the auth states can be covered by component or integration tests.
+
+### Code review instructions
+
+- Start with:
+  - `web/src/stylist/store/authSlice.ts`
+  - `web/src/stylist/store/api/authApi.ts`
+- Then review the UI entrypoints:
+  - `web/src/stylist/pages/SignInPage.tsx`
+  - `web/src/stylist/pages/VerifyCodePage.tsx`
+  - `web/src/stylist/ClientPortalApp.tsx`
+  - `web/src/stylist/pages/PortalProfilePage.tsx`
+- Then confirm the deleted auth-draft fields in:
+  - `web/src/stylist/types.ts`
+  - `web/src/stylist/data/consultation-constants.ts`
+- Validate with:
+
+```bash
+npm --prefix web run typecheck
+```
+
+### Technical details
+
+- Commands run during this slice:
+
+```bash
+rg -n "setLoginIdentifier|sendCode|setCodeDigit|clearCode|verifySuccess|verifyFail|decrementCooldown|resendCode|loginIdentifier|codeSentTo|codeDigits|isVerifying|isAuthenticated|resendCooldown" web/src/stylist
+rg -n "sign-in|verify-code" web/src/stylist
+npm --prefix web run typecheck
+git add web/src/stylist/ClientPortalApp.tsx web/src/stylist/data/consultation-constants.ts web/src/stylist/pages/PortalProfilePage.tsx web/src/stylist/pages/SignInPage.stories.tsx web/src/stylist/pages/SignInPage.tsx web/src/stylist/pages/VerifyCodePage.stories.tsx web/src/stylist/pages/VerifyCodePage.tsx web/src/stylist/store/api/authApi.ts web/src/stylist/store/api/index.ts web/src/stylist/store/authSlice.ts web/src/stylist/types.ts
+git commit -m "feat: add OIDC session bootstrap to frontend"
+```
+
+- Files changed in the code slice:
+  - `web/src/stylist/store/authSlice.ts`
+  - `web/src/stylist/store/api/authApi.ts`
+  - `web/src/stylist/pages/SignInPage.tsx`
+  - `web/src/stylist/pages/VerifyCodePage.tsx`
+  - `web/src/stylist/ClientPortalApp.tsx`
+  - `web/src/stylist/pages/PortalProfilePage.tsx`
+  - `web/src/stylist/types.ts`
+  - `web/src/stylist/data/consultation-constants.ts`
+  - `web/src/stylist/pages/SignInPage.stories.tsx`
+  - `web/src/stylist/pages/VerifyCodePage.stories.tsx`

@@ -2,6 +2,21 @@
 
 ## 2026-03-20
 
+Implemented the Phase 2 auth and session integration slice and committed it as `dd3bcda`. Replaced the fake login-code flow with a real browser-session bootstrap over `/api/info` and `/api/me`, reduced `authSlice` to payment and deposit UI concerns, and added portal gating so the portal no longer assumes an authenticated user exists. The sign-in and sign-out actions now point at the Keycloak-backed browser flow instead of mutating fake OTP state in Redux.
+
+This slice intentionally stopped short of replacing portal profile data or booking data with live records. The visible auth shell now reflects the real session state, but the deeper portal records are still mock-backed until Phase 4.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/store/authSlice.ts — Removed OTP-only state and kept only local payment/deposit UI concerns
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/store/api/authApi.ts — Added `/api/info` plus `/api/me` session bootstrap helper
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/SignInPage.tsx — Replaced code-entry UI with Keycloak/OIDC login initiation and session-state messaging
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/VerifyCodePage.tsx — Repurposed the legacy verify page as a compatibility stub
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/ClientPortalApp.tsx — Added portal auth gating for loading, unauthenticated, and authenticated states
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PortalProfilePage.tsx — Wired sign-out to the browser auth logout path
+
+## 2026-03-20
+
 Implemented Phase 1 of the frontend integration plan and committed it as `bb46c1b`. Added the shared RTK Query package under `web/src/stylist/store/api/`, registered the API reducer and middleware in the main store, exported a reusable `createAppStore`, and wired test-store scaffolding through the same store factory. Also encoded the backend DTOs and cache tags up front so later booking and portal slices can consume stable hooks instead of inventing endpoint shapes ad hoc.
 
 Validation for this slice required one environment fix: `npm --prefix web run typecheck` initially failed with `sh: 1: tsc: not found` because the workspace did not have `web/node_modules` installed yet. Running `npm --prefix web ci` fixed that, and the follow-up typecheck passed cleanly.
