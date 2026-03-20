@@ -386,6 +386,7 @@ This flow currently validates:
 - portal home/profile/appointments live reads
 - profile edit mutation
 - notification preference mutation
+- appointment reschedule mutation
 - appointment cancellation mutation
 - logout
 
@@ -427,12 +428,15 @@ fetch('/api/me', { credentials: 'include' }).then(r => r.json())
 14. Change at least one field and click `Save Profile`.
 15. Confirm the form closes and the updated value appears on the profile page.
 16. Reload the portal, reopen profile, and confirm the value persisted.
-17. Toggle one notification preference and verify `/api/me` reflects the updated backend value.
-18. If there is an upcoming appointment outside the 24-hour policy window, cancel it and verify the portal refetches.
-19. Click the avatar and sign out.
-20. Complete the Keycloak logout confirmation.
-21. Return to the Vite portal URL.
-22. Confirm the unauthenticated sign-in gate is back.
+17. Open an upcoming appointment outside the 24-hour policy window and click `Reschedule`.
+18. Pick a new available date and time, confirm the reschedule, and verify the updated slot appears on the page.
+19. Reload the portal and confirm the new appointment slot persisted.
+20. Toggle one notification preference and verify `/api/me` reflects the updated backend value.
+21. If there is an upcoming appointment outside the 24-hour policy window, cancel it and verify the portal refetches.
+22. Click the avatar and sign out.
+23. Complete the Keycloak logout confirmation.
+24. Return to the Vite portal URL.
+25. Confirm the unauthenticated sign-in gate is back.
 
 ### Important current limitation
 
@@ -443,6 +447,7 @@ Rewards and photos still remain mock-backed. The live portal surfaces are curren
 - profile identity
 - profile edits
 - notification preferences
+- appointment rescheduling
 
 The still-mock portal surfaces are currently:
 
@@ -463,6 +468,8 @@ appointments cannot be changed within 24 hours: appointment policy violation
 
 That is an expected backend-enforced rule, not a frontend bug.
 
+The same policy also applies to rescheduling.
+
 ### Minimum pass criteria for portal auth smoke
 
 - portal shows sign-in gate before login
@@ -472,6 +479,7 @@ That is an expected backend-enforced rule, not a frontend bug.
 - profile page reflects the authenticated client
 - profile edits persist through reload and `/api/me`
 - notification preference changes persist through `/api/me`
+- appointment reschedules persist through reload and `/api/me/appointments`
 - appointment cancellation outside the policy window refetches the portal state
 - logout succeeds
 - portal returns to sign-in gate after logout
@@ -593,6 +601,26 @@ Meaning:
 - the frontend successfully reached the real cancel mutation
 - the backend rejected the request because the appointment was too close to start time
 
+### Failure: appointment policy violation on reschedule
+
+Error:
+
+```text
+appointments cannot be changed within 24 hours: appointment policy violation
+```
+
+Where to inspect:
+
+- [pkg/appointments/service.go](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/service.go)
+- [web/src/stylist/components/AppointmentReschedulePanel.tsx](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/components/AppointmentReschedulePanel.tsx)
+- [web/src/stylist/pages/PortalHomePage.tsx](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PortalHomePage.tsx)
+- [web/src/stylist/pages/PortalAppointmentsPage.tsx](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PortalAppointmentsPage.tsx)
+
+Meaning:
+
+- the frontend successfully reached the real reschedule mutation
+- the backend rejected the change because the appointment was too close to start time
+
 ## Evidence You Must Capture For Any Failed Smoke Test
 
 If the smoke test fails, capture all of the following before you start patching:
@@ -652,6 +680,7 @@ Right now, a good local smoke pass means:
 - portal sign-in works
 - `/api/me` succeeds after login
 - profile edit saves and survives reload
+- appointment reschedule saves and survives reload
 - logout works
 
 It does not yet require:

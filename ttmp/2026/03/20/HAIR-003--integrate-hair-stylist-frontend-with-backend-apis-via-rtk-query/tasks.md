@@ -57,7 +57,8 @@
 - [x] Wire `PATCH /api/me`
 - [x] Replace the dead `Edit Profile` button with a real mutation-backed editor
 - [x] Wire `PATCH /api/me/notification-prefs`
-- [ ] Wire `PATCH /api/me/appointments/:id` for rescheduling
+- [x] Wire `PATCH /api/me/appointments/:id` for rescheduling
+- [x] Replace the dead reschedule affordances with a real availability-backed picker
 - [x] Wire `POST /api/me/appointments/:id/cancel`
 - [x] Invalidate/refetch RTK Query caches after portal mutations
 - [x] Replace slice-local cancel/toggle reducers with mutation-driven updates
@@ -91,5 +92,6 @@
 - [x] Verify booking flow end-to-end with real intake, availability, and appointment creation
 - [x] Verify portal flow end-to-end for profile, prefs, appointments, and maintenance
 - [x] Verify profile edits persist through `/api/me` and a full page reload
+- [x] Verify appointment reschedules persist through `/api/me/appointments` and a full page reload
 - [x] Update HAIR-003 diary with exact commands and outcomes
 - [x] Re-run `docmgr doctor --ticket HAIR-003 --stale-after 30`

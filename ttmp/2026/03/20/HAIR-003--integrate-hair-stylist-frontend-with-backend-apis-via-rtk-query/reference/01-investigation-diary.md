@@ -46,9 +46,13 @@ RelatedFiles:
     - Path: web/src/stylist/pages/PhotosPage.tsx
       Note: Recorded file selection and pending upload capture for Phase 3 (commit a49a02a)
     - Path: web/src/stylist/pages/PortalAppointmentsPage.tsx
-      Note: Appointments screen switched to live backend reads in Phase 4 (commit f546c57)
+      Note: |-
+        Appointments screen switched to live backend reads in Phase 4 (commit f546c57)
+        Added the inline reschedule panel path in Phase 5 (commit a1d33d1)
     - Path: web/src/stylist/pages/PortalHomePage.tsx
-      Note: Home screen switched to live portal summary data in Phase 4 (commit f546c57)
+      Note: |-
+        Home screen switched to live portal summary data in Phase 4 (commit f546c57)
+        Added the inline reschedule panel path in Phase 5 (commit a1d33d1)
     - Path: web/src/stylist/pages/PortalProfilePage.tsx
       Note: |-
         Recorded logout wiring against the browser auth session for Phase 2 (commit dd3bcda)
@@ -70,6 +74,7 @@ RelatedFiles:
         Recorded backend-to-widget mapping helpers for Phase 1 (commit bb46c1b)
         Recorded consultation-to-intake mapping and consult-service selection for Phase 3 (commit a49a02a)
         Removed the fake marketing row from the live notification preference mapping in Phase 5 (commit 6876704)
+        Preserved raw service/date fields for the portal reschedule panel in Phase 5 (commit a1d33d1)
     - Path: web/src/stylist/store/api/portalApi.ts
       Note: Recorded portal endpoint definitions for Phase 1 (commit bb46c1b)
     - Path: web/src/stylist/store/api/portalView.ts
@@ -81,6 +86,8 @@ RelatedFiles:
       Note: Fixed service catalog response transform for the live calendar path
     - Path: web/src/stylist/store/api/types.ts
       Note: Recorded backend DTO definitions for Phase 1 (commit bb46c1b)
+    - Path: web/src/stylist/components/AppointmentReschedulePanel.tsx
+      Note: Shared live availability-backed reschedule panel introduced in Phase 5 (commit a1d33d1)
     - Path: web/src/stylist/store/authSlice.ts
       Note: |-
         Current OTP-shaped auth state that must be retired or reduced
@@ -104,7 +111,7 @@ RelatedFiles:
       Note: Added local proxying for backend API
 ExternalSources: []
 Summary: Chronological diary for the frontend integration planning and early implementation work that moves the hair-booking app from mocks to RTK Query-backed backend calls.
-LastUpdated: 2026-03-20T12:35:00-04:00
+LastUpdated: 2026-03-20T12:50:00-04:00
 WhatFor: Use this diary to understand why the frontend integration ticket exists, what evidence drove the plan, and how to continue implementation.
 WhenToUse: Use when continuing HAIR-003 or reviewing the reasoning behind the RTK Query migration order.
 ---
@@ -1767,3 +1774,161 @@ npm --prefix web run typecheck
   - `ERROR: could not determine data type of parameter $3 (SQLSTATE 42P08)`
 - Validated live frontend port:
   - `http://127.0.0.1:5175/?app=portal`
+
+## Step 13: Make Portal Appointment Rescheduling Real
+
+After profile editing was live, the last major Phase 5 portal write was rescheduling. The backend route and RTK Query mutation already existed, and both the home card and the appointment cards already had reschedule affordances in their component interfaces. What was missing was the real picker UI and the state needed to connect those affordances to live availability.
+
+I kept this slice intentionally small: build one shared inline reschedule panel, reuse the existing availability query and calendar/time-slot widgets, wire it into both portal surfaces, and validate the mutation against a seeded future appointment outside the 24-hour policy window.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue with the normal integration, making sure to commit at appropriate intervals, checking off tasks in the task list (or adding them if they are not yet present), and keeping a detailed diary"
+
+**Assistant interpretation:** Continue the next meaningful integration slice after the profile editor checkpoint and keep the commit/doc rhythm intact.
+
+**Inferred user intent:** Finish the remaining core portal write surfaces before moving on to lower-priority cleanup or photo work.
+
+**Commit (code):** `a1d33d1` — `feat: add portal appointment rescheduling`
+
+### What I did
+
+- Extended `AppointmentDetail` and the portal appointment mapper so the frontend retains:
+  - backend appointment UUID
+  - backend service UUID
+  - raw scheduled date
+  - raw scheduled time
+- Added `AppointmentReschedulePanel.tsx`, a shared inline component that:
+  - queries `GET /api/availability`
+  - shows the existing `CalendarGrid`
+  - shows `TimeSlot` choices for the selected day
+  - submits `PATCH /api/me/appointments/:id`
+  - surfaces backend errors through `getApiErrorMessage()`
+- Wired the new panel into:
+  - `PortalHomePage.tsx`
+  - `PortalAppointmentsPage.tsx`
+- Re-ran:
+
+```bash
+go test ./...
+npm --prefix web run typecheck
+```
+
+- Seeded a future appointment for Alice specifically for the reschedule smoke:
+
+```bash
+curl -sS -X POST 'http://127.0.0.1:8080/api/appointments' -H 'content-type: application/json' --data '{"service_id":"4a3d3653-fd03-4f0e-9be8-9d7a4bce33a1","date":"2026-03-24","start_time":"10:00 AM","client_name":"Alice Example","client_email":"alice@example.com","client_phone":"401-555-0123"}'
+```
+
+- Used Playwright against `http://127.0.0.1:5175/?app=portal` and:
+  - opened the home-card reschedule panel
+  - selected `March 25`
+  - selected `9:30 AM`
+  - confirmed the save
+  - reloaded the portal
+  - verified the updated time still showed on the home card
+- Verified the backend state after the mutation:
+
+```json
+{
+  "data": {
+    "appointments": [
+      {
+        "id": "41b3e2af-3d27-4dff-a14f-07b752760071",
+        "date": "2026-03-25",
+        "start_time": "09:30 AM",
+        "status": "pending"
+      }
+    ]
+  }
+}
+```
+
+### Why
+
+- Rescheduling was the last large portal write path still represented by dead UI.
+- The imported widgets already provided the right interaction points, so this slice could stay focused on backend truth instead of inventing new product structure.
+- Reusing the booking calendar and availability contracts reduces frontend drift and keeps scheduling rules centralized.
+
+### What worked
+
+- The same inline reschedule panel worked on both the home summary and the appointments list.
+- The mutation path was fully live:
+  - availability loaded
+  - the new slot saved
+  - the home card refetched
+  - the change survived a full reload
+- The seeded appointment moved from:
+  - `2026-03-24 10:00 AM`
+  - to `2026-03-25 09:30 AM`
+- Validation stayed clean:
+
+```bash
+go test ./...
+npm --prefix web run typecheck
+```
+
+### What didn't work
+
+- There was no new code defect in this slice, but the smoke reinforced a product/data caveat: appointments inside the 24-hour policy window will still reject reschedules, so the smoke procedure needs a deliberately seeded future appointment to validate the happy path.
+
+### What I learned
+
+- The portal appointment view model needs to preserve a little more backend truth than the read-only widgets initially needed. Display-only fields were no longer enough once mutations depended on service/date identifiers.
+- A shared inline panel is the right abstraction for now. It avoids duplicating scheduling logic between the home card and the appointment list while keeping the UX within the current widget set.
+- The current portal home appears to prioritize the most recently created upcoming appointment rather than the chronologically earliest one. That was acceptable for this slice but is worth future product review.
+
+### What was tricky to build
+
+- The tricky part was designing a reschedule experience that did not accidentally fork the scheduling rules. The symptoms were easy to foresee: a special-case portal picker could have drifted from the booking calendar, availability query, or mutation contract. I avoided that by building the panel almost entirely from the existing booking primitives instead of creating a second scheduling UI from scratch.
+
+### What warrants a second pair of eyes
+
+- Review whether the home card should always show the chronologically next appointment or whether the current backend/list ordering is acceptable.
+- Review whether the reschedule panel should show a success treatment instead of only closing and relying on the refetched time.
+- Review whether the appointments list should expose the panel inline per-card forever or eventually move rescheduling into a dedicated detail surface once that screen exists.
+
+### What should be done in the future
+
+- Phase 5’s core portal writes are now essentially complete; the next likely work is:
+  - tests for portal write flows
+  - Phase 6 portal photos once the backend routes land
+  - Phase 7 cleanup of remaining mock-only portal state
+- Keep updating the smoke playbook with any reschedule-policy or redirect changes.
+
+### Code review instructions
+
+- Start with:
+  - `web/src/stylist/components/AppointmentReschedulePanel.tsx`
+  - `web/src/stylist/pages/PortalHomePage.tsx`
+  - `web/src/stylist/pages/PortalAppointmentsPage.tsx`
+- Then review the appointment type/mapping changes:
+  - `web/src/stylist/types.ts`
+  - `web/src/stylist/store/api/mappers.ts`
+- Then review the smoke runbook update:
+  - `docs/smoke-testing-playbook.md`
+- Validate with:
+
+```bash
+go test ./...
+npm --prefix web run typecheck
+```
+
+- Then repeat the live reschedule smoke:
+  1. seed an appointment outside the 24-hour window
+  2. open portal
+  3. click `Reschedule`
+  4. choose a new date and time
+  5. save
+  6. reload
+  7. confirm the new slot persists in both the UI and `/api/me/appointments`
+
+### Technical details
+
+- Backend mutation route exercised:
+  - `PATCH /api/me/appointments/:id`
+- Appointment rescheduled during validation:
+  - `41b3e2af-3d27-4dff-a14f-07b752760071`
+- Validated move:
+  - from `2026-03-24 10:00 AM`
+  - to `2026-03-25 09:30 AM`

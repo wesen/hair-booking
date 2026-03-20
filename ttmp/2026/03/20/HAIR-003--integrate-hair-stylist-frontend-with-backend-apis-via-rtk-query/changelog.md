@@ -2,6 +2,19 @@
 
 ## 2026-03-20
 
+Implemented the next Phase 5 portal write slice and committed it as `a1d33d1`. Portal rescheduling is now live through a shared inline availability picker wired to `PATCH /api/me/appointments/:id`, and the browser smoke confirmed a real appointment moved from `2026-03-24 10:00 AM` to `2026-03-25 09:30 AM` and survived a full reload. I also updated the smoke playbook so the intern runbook now includes the reschedule path and the matching policy-failure signature.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/components/AppointmentReschedulePanel.tsx — Added a shared availability-backed reschedule panel for portal appointment mutations
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PortalHomePage.tsx — Wired the home-card reschedule affordance to the live reschedule panel
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PortalAppointmentsPage.tsx — Wired the appointments-list reschedule affordance to the live reschedule panel
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/store/api/mappers.ts — Preserved raw appointment service/date fields needed by the reschedule UI
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/types.ts — Extended appointment detail types with backend scheduling identifiers
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/smoke-testing-playbook.md — Added the reschedule smoke path and policy-failure notes
+
+## 2026-03-20
+
 Implemented the next Phase 5 portal write slice and committed it as `de5351a`. The profile page now exposes a real inline editor backed by `PATCH /api/me`, and the same smoke run that validated the UI also exposed and fixed a backend repository defect in the profile update query. I updated the smoke playbook with the new profile-edit validation steps, the “wrong Vite app on 5173” failure mode, and the `profile-update-failed` backend signature.
 
 ### Related Files
