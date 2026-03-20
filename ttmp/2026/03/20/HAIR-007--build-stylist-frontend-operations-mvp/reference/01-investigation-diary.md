@@ -20,7 +20,7 @@ RelatedFiles:
       Note: Seeded runtime data to retire
 ExternalSources: []
 Summary: Short diary describing why HAIR-007 was created and how the plan was simplified for a single-stylist MVP.
-LastUpdated: 2026-03-20T19:00:00-04:00
+LastUpdated: 2026-03-20T19:25:00-04:00
 WhatFor: Use this diary to understand the purpose and boundary of the stylist frontend ticket.
 WhenToUse: Use while implementing or reviewing HAIR-007.
 ---
@@ -276,3 +276,63 @@ Validation for the slice was:
 The remaining cleanup task is narrower now:
 
 - retire or shrink the legacy slices once we decide how much of the old stylist demo app we still want to keep around as design reference
+
+The next slice focused on test coverage for the live stylist runtime.
+
+At this point HAIR-007 had already achieved three things:
+
+- real backend reads
+- real backend writes
+- a route-aware runtime shell
+
+What it still lacked was a frontend safety net. The repo had no web test runner configured at all, so the first part of this slice was infrastructure:
+
+- `vitest`
+- `jsdom`
+- `@testing-library/react`
+- `@testing-library/jest-dom`
+
+I kept the setup deliberately small:
+
+- a `test` script in `web/package.json`
+- a `jsdom` test block in `web/vite.config.ts`
+- one shared setup file in `web/src/test/setup.ts`
+
+That was enough to add component-level tests without starting a large tooling migration.
+
+The test target was `StylistWorkspace.tsx`, because that component is now the live runtime shell for:
+
+- `/stylist`
+- `/stylist/intakes/:id`
+- `/stylist/appointments/:id`
+- `/stylist/clients/:id`
+
+The tests mock the stylist API hook layer instead of spinning up Redux or a real backend. That keeps the scope tight: the browser smoke already proved the live network path, while these tests prove that the runtime renderer handles the mapped view models correctly.
+
+Added coverage now checks:
+
+- dashboard rendering from mapped summary/list data
+- intake detail rendering from mapped summary, photos, and review defaults
+- appointment detail rendering from mapped detail and form defaults
+- client detail rendering from mapped appointments, intakes, and maintenance sections
+
+The first test run failed, but for a good reason:
+
+- duplicate route titles like `Stylist Dashboard` and `Appointment Detail` exist both in the top page header and the inner section heading
+
+That was not a product bug. It just meant the tests needed to use more intentional assertions than naive single-element text queries.
+
+The second failure pass caught another test-specific issue:
+
+- `getByDisplayValue` was not the right assertion for the select fields
+
+I switched those checks to accessible form queries like `getByLabelText("Status")`, which is both more stable and a better test of the actual form controls.
+
+Final validation for the slice:
+
+- `npm --prefix web run typecheck`
+- `npm --prefix web test`
+
+With this slice complete, the only open HAIR-007 task is the product-cleanup one:
+
+- decide how much of the old stylist demo slice state should be retired versus preserved as Storybook/design-reference code

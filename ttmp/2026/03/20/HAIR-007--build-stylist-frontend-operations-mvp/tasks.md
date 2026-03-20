@@ -50,6 +50,6 @@
 
 ## Testing And Validation
 
-- [ ] Add route/component tests for dashboard and detail pages
+- [x] Add route/component tests for dashboard and detail pages
 - [x] Run frontend typecheck
 - [x] Run manual stylist smoke flow

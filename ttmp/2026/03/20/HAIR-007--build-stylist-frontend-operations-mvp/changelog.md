@@ -19,3 +19,4 @@
 - Fixed a backend nullable-detail bug exposed by that smoke and revalidated appointment and client detail loading
 - Added explicit stylist view-model mappers so `StylistWorkspace` renders pre-shaped dashboard, intake, appointment, and client view data instead of reinterpreting raw DTOs inline
 - Split the live runtime onto a minimal Redux store so `/booking`, `/portal`, and `/stylist` no longer hydrate the old stylist demo reducers while Storybook keeps the legacy store
+- Added a minimal Vitest + jsdom frontend test harness and route/component coverage for the live stylist dashboard, intake detail, appointment detail, and client detail pages
