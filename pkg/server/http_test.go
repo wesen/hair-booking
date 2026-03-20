@@ -312,6 +312,46 @@ func TestHandleStylistIntakesDevMode(t *testing.T) {
 	}
 }
 
+func TestHandleStylistDashboardDevMode(t *testing.T) {
+	service := hairstylist.NewService(&fakeStylistRepo{
+		stats: &hairstylist.DashboardIntakeStats{
+			NewCount:      2,
+			InReviewCount: 1,
+		},
+		dashboardAppointments: []hairstylist.DashboardAppointment{
+			{
+				AppointmentID: uuid.New(),
+				Date:          time.Now().UTC().Format(time.DateOnly),
+				StartTime:     "09:00 AM",
+				ClientName:    "Alice Example",
+				ServiceName:   "Extensions Consultation",
+				Status:        "pending",
+			},
+		},
+	})
+
+	handler := NewHandler(HandlerOptions{
+		Version:        "dev",
+		StartedAt:      time.Now().UTC(),
+		AuthSettings:   &hairauth.Settings{Mode: hairauth.AuthModeDev, DevUserID: "intern"},
+		StylistService: service,
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/stylist/dashboard", nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"dashboard\"") {
+		t.Fatalf("expected dashboard payload, got %s", recorder.Body.String())
+	}
+}
+
 func TestHandleStylistIntakeDetailNotFound(t *testing.T) {
 	service := hairstylist.NewService(&fakeStylistRepo{detailErr: hairstylist.ErrNotFound})
 	handler := NewHandler(HandlerOptions{
@@ -395,15 +435,25 @@ func TestHandleStylistIntakeReviewReturnsReview(t *testing.T) {
 type fakeClientServiceRepo struct{}
 
 type fakeStylistRepo struct {
-	items     []hairstylist.IntakeListItem
-	detail    *hairstylist.IntakeDetail
-	upserted  *hairstylist.IntakeReview
-	detailErr error
-	updateErr error
+	items                 []hairstylist.IntakeListItem
+	detail                *hairstylist.IntakeDetail
+	upserted              *hairstylist.IntakeReview
+	stats                 *hairstylist.DashboardIntakeStats
+	dashboardAppointments []hairstylist.DashboardAppointment
+	detailErr             error
+	updateErr             error
 }
 
 func (f *fakeStylistRepo) ListIntakes(ctx context.Context, filter hairstylist.IntakeListFilter) ([]hairstylist.IntakeListItem, error) {
 	return f.items, nil
+}
+
+func (f *fakeStylistRepo) GetDashboardIntakeStats(ctx context.Context) (*hairstylist.DashboardIntakeStats, error) {
+	return f.stats, nil
+}
+
+func (f *fakeStylistRepo) ListDashboardAppointments(ctx context.Context, startDate time.Time, limit int) ([]hairstylist.DashboardAppointment, error) {
+	return f.dashboardAppointments, nil
 }
 
 func (f *fakeStylistRepo) GetIntake(ctx context.Context, intakeID uuid.UUID) (*hairstylist.IntakeDetail, error) {

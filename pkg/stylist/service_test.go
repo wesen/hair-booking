@@ -14,6 +14,8 @@ type fakeRepository struct {
 	items        []IntakeListItem
 	detail       *IntakeDetail
 	upserted     *IntakeReview
+	intakeStats  *DashboardIntakeStats
+	appointments []DashboardAppointment
 	listFilter   IntakeListFilter
 	lastUpdate   IntakeReviewUpdate
 	lastIntakeID uuid.UUID
@@ -43,6 +45,14 @@ func (f *fakeRepository) UpsertIntakeReview(ctx context.Context, intakeID uuid.U
 		Status:   ReviewStatusInReview,
 		Priority: ReviewPriorityNormal,
 	}, nil
+}
+
+func (f *fakeRepository) GetDashboardIntakeStats(ctx context.Context) (*DashboardIntakeStats, error) {
+	return f.intakeStats, nil
+}
+
+func (f *fakeRepository) ListDashboardAppointments(ctx context.Context, startDate time.Time, limit int) ([]DashboardAppointment, error) {
+	return f.appointments, nil
 }
 
 func TestListIntakesNormalizesFilterDefaults(t *testing.T) {
@@ -147,5 +157,54 @@ func TestUpdateIntakeReviewNormalizesEnumValues(t *testing.T) {
 	}
 	if !repo.lastNow.Equal(now) {
 		t.Fatalf("expected review timestamp %s, got %s", now, repo.lastNow)
+	}
+}
+
+func TestDashboardPartitionsTodayAndUpcomingAppointments(t *testing.T) {
+	repo := &fakeRepository{
+		intakeStats: &DashboardIntakeStats{
+			NewCount:      2,
+			InReviewCount: 1,
+		},
+		appointments: []DashboardAppointment{
+			{
+				AppointmentID: uuid.New(),
+				Date:          "2026-03-20",
+				StartTime:     "09:00 AM",
+				ClientName:    "Alice Example",
+				ServiceName:   "Extensions Consultation",
+				Status:        "pending",
+			},
+			{
+				AppointmentID: uuid.New(),
+				Date:          "2026-03-22",
+				StartTime:     "10:00 AM",
+				ClientName:    "Mia Chen",
+				ServiceName:   "Tape-In Install",
+				Status:        "confirmed",
+			},
+		},
+	}
+	service := NewService(repo)
+	service.now = func() time.Time {
+		return time.Date(2026, time.March, 20, 15, 0, 0, 0, time.UTC)
+	}
+
+	dashboard, err := service.Dashboard(context.Background())
+	if err != nil {
+		t.Fatalf("Dashboard returned error: %v", err)
+	}
+
+	if dashboard.TodayAppointments != 1 {
+		t.Fatalf("expected 1 today appointment, got %d", dashboard.TodayAppointments)
+	}
+	if len(dashboard.TodaySchedule) != 1 {
+		t.Fatalf("expected 1 today schedule item, got %d", len(dashboard.TodaySchedule))
+	}
+	if len(dashboard.UpcomingAppointments) != 1 {
+		t.Fatalf("expected 1 upcoming appointment, got %d", len(dashboard.UpcomingAppointments))
+	}
+	if dashboard.Intakes.NewCount != 2 {
+		t.Fatalf("expected new intake count 2, got %d", dashboard.Intakes.NewCount)
 	}
 }

@@ -26,8 +26,9 @@ const (
 	ReviewPriorityNormal = "normal"
 	ReviewPriorityUrgent = "urgent"
 
-	defaultListLimit = 50
-	maxListLimit     = 200
+	defaultListLimit              = 50
+	maxListLimit                  = 200
+	defaultDashboardUpcomingLimit = 8
 )
 
 type IntakeReview struct {
@@ -79,10 +80,37 @@ type IntakeReviewUpdate struct {
 	QuotedPriceHigh *int    `json:"quoted_price_high"`
 }
 
+type DashboardIntakeStats struct {
+	NewCount              int `json:"new_count"`
+	InReviewCount         int `json:"in_review_count"`
+	NeedsClientReplyCount int `json:"needs_client_reply_count"`
+	ApprovedToBookCount   int `json:"approved_to_book_count"`
+}
+
+type DashboardAppointment struct {
+	AppointmentID uuid.UUID `json:"appointment_id"`
+	ClientID      uuid.UUID `json:"client_id"`
+	ClientName    string    `json:"client_name"`
+	ServiceID     uuid.UUID `json:"service_id"`
+	ServiceName   string    `json:"service_name"`
+	Date          string    `json:"date"`
+	StartTime     string    `json:"start_time"`
+	Status        string    `json:"status"`
+}
+
+type Dashboard struct {
+	Intakes              DashboardIntakeStats   `json:"intakes"`
+	TodayAppointments    int                    `json:"today_appointments"`
+	TodaySchedule        []DashboardAppointment `json:"today_schedule"`
+	UpcomingAppointments []DashboardAppointment `json:"upcoming_appointments"`
+}
+
 type Repository interface {
 	ListIntakes(ctx context.Context, filter IntakeListFilter) ([]IntakeListItem, error)
 	GetIntake(ctx context.Context, intakeID uuid.UUID) (*IntakeDetail, error)
 	UpsertIntakeReview(ctx context.Context, intakeID uuid.UUID, update IntakeReviewUpdate, reviewedAt time.Time) (*IntakeReview, error)
+	GetDashboardIntakeStats(ctx context.Context) (*DashboardIntakeStats, error)
+	ListDashboardAppointments(ctx context.Context, startDate time.Time, limit int) ([]DashboardAppointment, error)
 }
 
 type Service struct {
@@ -159,6 +187,44 @@ func (s *Service) UpdateIntakeReview(ctx context.Context, intakeID uuid.UUID, up
 		return nil, err
 	}
 	return review, nil
+}
+
+func (s *Service) Dashboard(ctx context.Context) (*Dashboard, error) {
+	if s == nil || s.repo == nil {
+		return nil, errors.New("stylist repository is not configured")
+	}
+
+	now := s.now()
+	today := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, time.UTC)
+
+	intakeStats, err := s.repo.GetDashboardIntakeStats(ctx)
+	if err != nil {
+		return nil, err
+	}
+	appointments, err := s.repo.ListDashboardAppointments(ctx, today, defaultDashboardUpcomingLimit)
+	if err != nil {
+		return nil, err
+	}
+
+	dashboard := &Dashboard{
+		Intakes:              DashboardIntakeStats{},
+		TodaySchedule:        []DashboardAppointment{},
+		UpcomingAppointments: []DashboardAppointment{},
+	}
+	if intakeStats != nil {
+		dashboard.Intakes = *intakeStats
+	}
+
+	for _, appointment := range appointments {
+		if appointment.Date == today.Format(time.DateOnly) {
+			dashboard.TodayAppointments++
+			dashboard.TodaySchedule = append(dashboard.TodaySchedule, appointment)
+			continue
+		}
+		dashboard.UpcomingAppointments = append(dashboard.UpcomingAppointments, appointment)
+	}
+
+	return dashboard, nil
 }
 
 func normalizeListFilter(filter IntakeListFilter) (IntakeListFilter, error) {

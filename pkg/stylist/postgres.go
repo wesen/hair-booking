@@ -171,6 +171,83 @@ where i.id = $1
 	return detail, nil
 }
 
+func (r *PostgresRepository) GetDashboardIntakeStats(ctx context.Context) (*DashboardIntakeStats, error) {
+	if r == nil || r.pool == nil {
+		return nil, errors.New("postgres pool is not configured")
+	}
+
+	stats := &DashboardIntakeStats{}
+	row := r.pool.QueryRow(ctx, `
+select
+  count(*) filter (where coalesce(ir.status, 'new') = 'new')::int as new_count,
+  count(*) filter (where coalesce(ir.status, 'new') = 'in_review')::int as in_review_count,
+  count(*) filter (where coalesce(ir.status, 'new') = 'needs_client_reply')::int as needs_client_reply_count,
+  count(*) filter (where coalesce(ir.status, 'new') = 'approved_to_book')::int as approved_to_book_count
+from intake_submissions i
+left join intake_reviews ir on ir.intake_id = i.id
+`)
+	if err := row.Scan(
+		&stats.NewCount,
+		&stats.InReviewCount,
+		&stats.NeedsClientReplyCount,
+		&stats.ApprovedToBookCount,
+	); err != nil {
+		return nil, errors.Wrap(err, "failed to query stylist dashboard intake stats")
+	}
+	return stats, nil
+}
+
+func (r *PostgresRepository) ListDashboardAppointments(ctx context.Context, startDate time.Time, limit int) ([]DashboardAppointment, error) {
+	if r == nil || r.pool == nil {
+		return nil, errors.New("postgres pool is not configured")
+	}
+
+	rows, err := r.pool.Query(ctx, `
+select
+  a.id,
+  a.client_id,
+  coalesce(c.name, ''),
+  a.service_id,
+  coalesce(s.name, ''),
+  to_char(a.date, 'YYYY-MM-DD'),
+  trim(to_char(a.start_time, 'HH12:MI AM')),
+  a.status
+from appointments a
+join clients c on c.id = a.client_id
+join services s on s.id = a.service_id
+where a.date >= $1
+  and a.status <> 'cancelled'
+order by a.date, a.start_time
+limit $2
+`, startDate.Format(time.DateOnly), limit)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query stylist dashboard appointments")
+	}
+	defer rows.Close()
+
+	items := []DashboardAppointment{}
+	for rows.Next() {
+		item := DashboardAppointment{}
+		if err := rows.Scan(
+			&item.AppointmentID,
+			&item.ClientID,
+			&item.ClientName,
+			&item.ServiceID,
+			&item.ServiceName,
+			&item.Date,
+			&item.StartTime,
+			&item.Status,
+		); err != nil {
+			return nil, errors.Wrap(err, "failed to scan stylist dashboard appointment")
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed to iterate stylist dashboard appointments")
+	}
+	return items, nil
+}
+
 func (r *PostgresRepository) UpsertIntakeReview(ctx context.Context, intakeID uuid.UUID, update IntakeReviewUpdate, reviewedAt time.Time) (*IntakeReview, error) {
 	if r == nil || r.pool == nil {
 		return nil, errors.New("postgres pool is not configured")

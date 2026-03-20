@@ -218,6 +218,7 @@ func NewHandler(options HandlerOptions) http.Handler {
 	mux.HandleFunc("GET /api/availability", h.handleAvailability)
 	mux.HandleFunc("POST /api/appointments", h.handleCreateAppointment)
 	mux.HandleFunc("GET /api/stylist/me", h.handleStylistMe)
+	mux.HandleFunc("GET /api/stylist/dashboard", h.handleStylistDashboard)
 	mux.HandleFunc("GET /api/stylist/intakes", h.handleStylistIntakes)
 	mux.HandleFunc("GET /api/stylist/intakes/{id}", h.handleStylistIntakeDetail)
 	mux.HandleFunc("PATCH /api/stylist/intakes/{id}/review", h.handleStylistIntakeReview)
