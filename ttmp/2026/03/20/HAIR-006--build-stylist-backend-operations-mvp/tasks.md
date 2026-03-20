@@ -31,8 +31,8 @@
 
 ## Dashboard APIs
 
-- [ ] Add dashboard summary queries and service methods
-- [ ] Add `GET /api/stylist/dashboard`
+- [x] Add dashboard summary queries and service methods
+- [x] Add `GET /api/stylist/dashboard`
 
 ## Appointment APIs
 

@@ -120,3 +120,27 @@ Final validation for the slice included:
 - `GET /api/stylist/intakes/:id` returning `200`
 - `PATCH /api/stylist/intakes/:id/review` returning `200`
 - `GET /api/stylist/intakes?status=in_review` returning the updated review row
+
+After the intake-review slice, the next useful layer was the stylist dashboard endpoint.
+
+The dashboard design stayed intentionally simple:
+
+- intake counts by review status
+- today appointment count
+- today appointment list
+- upcoming appointment list
+
+This is enough to replace the current mock stylist home dashboard without forcing the backend into a widget-specific shape.
+
+Implementation notes:
+
+- intake counts use the same `coalesce(ir.status, 'new')` rule as the queue
+- appointment rows are read from `appointments + clients + services`
+- cancelled appointments are excluded
+- the service partitions appointment rows into `today_schedule` and `upcoming_appointments`
+
+Live validation for the dashboard used the same local browser session:
+
+- `GET /api/stylist/dashboard` returned `200`
+- intake counts reflected the earlier smoke-created `in_review` intake
+- the endpoint returned upcoming appointment rows for Alice

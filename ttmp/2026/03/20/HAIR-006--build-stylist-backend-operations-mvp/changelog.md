@@ -15,3 +15,5 @@
 - Added `GET /api/stylist/intakes`, `GET /api/stylist/intakes/:id`, and `PATCH /api/stylist/intakes/:id/review`
 - Added service and HTTP tests for intake review flows
 - Added a live smoke playbook for stylist intake review, including the nullable left-join bug that surfaced only in browser-backed validation
+- Added stylist dashboard summary queries and `GET /api/stylist/dashboard`
+- Added a dashboard smoke playbook and validated the route through a live OIDC browser session
