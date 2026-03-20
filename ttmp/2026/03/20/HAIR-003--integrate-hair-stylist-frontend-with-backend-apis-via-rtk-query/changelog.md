@@ -2,6 +2,21 @@
 
 ## 2026-03-20
 
+Implemented the Phase 3 public consultation slice and committed it as `a49a02a`. The booking flow now creates a real intake, uploads selected photos to that intake, queries live availability, creates a real consult appointment, and surfaces the resulting intake and appointment references on the confirmation screen. The draft form still lives in `consultationSlice`, but server writes now happen through RTK Query mutations.
+
+The deposit behavior remains intentionally local-only for MVP. The frontend still shows the deposit sheet and deposit-paid state, but it does not create a payment backend object. That preserves the UI affordance without inventing a nonexistent payments contract.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PhotosPage.tsx — Added real file selection and pending upload capture
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/ConsultEstimatePage.tsx — Added intake creation and photo upload orchestration
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/ConsultCalendarPage.tsx — Added live availability and appointment creation
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/ConsultConfirmPage.tsx — Added real intake and appointment references
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/store/consultationUploads.ts — Added in-memory pending file storage for selected photos
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/store/api/mappers.ts — Added consultation-to-intake mapping and consult-service selection
+
+## 2026-03-20
+
 Implemented the Phase 2 auth and session integration slice and committed it as `dd3bcda`. Replaced the fake login-code flow with a real browser-session bootstrap over `/api/info` and `/api/me`, reduced `authSlice` to payment and deposit UI concerns, and added portal gating so the portal no longer assumes an authenticated user exists. The sign-in and sign-out actions now point at the Keycloak-backed browser flow instead of mutating fake OTP state in Redux.
 
 This slice intentionally stopped short of replacing portal profile data or booking data with live records. The visible auth shell now reflects the real session state, but the deeper portal records are still mock-backed until Phase 4.

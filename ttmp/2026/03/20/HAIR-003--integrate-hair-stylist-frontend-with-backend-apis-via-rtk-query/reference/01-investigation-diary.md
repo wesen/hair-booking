@@ -13,8 +13,18 @@ Owners: []
 RelatedFiles:
     - Path: web/src/stylist/ClientPortalApp.tsx
       Note: Recorded authenticated portal gate for Phase 2 (commit dd3bcda)
+    - Path: web/src/stylist/components/CalendarGrid.tsx
+      Note: Recorded controlled calendar month integration for Phase 3 (commit a49a02a)
     - Path: web/src/stylist/data/portal-data.ts
       Note: Mock portal fixtures that currently block realistic backend testing
+    - Path: web/src/stylist/pages/ConsultCalendarPage.tsx
+      Note: Recorded live availability and appointment creation for Phase 3 (commit a49a02a)
+    - Path: web/src/stylist/pages/ConsultConfirmPage.tsx
+      Note: Recorded real appointment and intake references on the confirmation screen for Phase 3 (commit a49a02a)
+    - Path: web/src/stylist/pages/ConsultEstimatePage.tsx
+      Note: Recorded intake creation and photo upload orchestration for Phase 3 (commit a49a02a)
+    - Path: web/src/stylist/pages/PhotosPage.tsx
+      Note: Recorded file selection and pending upload capture for Phase 3 (commit a49a02a)
     - Path: web/src/stylist/pages/PortalProfilePage.tsx
       Note: Recorded logout wiring against the browser auth session for Phase 2 (commit dd3bcda)
     - Path: web/src/stylist/pages/SignInPage.tsx
@@ -28,7 +38,9 @@ RelatedFiles:
     - Path: web/src/stylist/store/api/bookingApi.ts
       Note: Recorded booking endpoint definitions for Phase 1 (commit bb46c1b)
     - Path: web/src/stylist/store/api/mappers.ts
-      Note: Recorded backend-to-widget mapping helpers for Phase 1 (commit bb46c1b)
+      Note: |-
+        Recorded backend-to-widget mapping helpers for Phase 1 (commit bb46c1b)
+        Recorded consultation-to-intake mapping and consult-service selection for Phase 3 (commit a49a02a)
     - Path: web/src/stylist/store/api/portalApi.ts
       Note: Recorded portal endpoint definitions for Phase 1 (commit bb46c1b)
     - Path: web/src/stylist/store/api/types.ts
@@ -39,6 +51,8 @@ RelatedFiles:
         Recorded OTP removal and payment-only auth UI state for Phase 2 (commit dd3bcda)
     - Path: web/src/stylist/store/consultationSlice.ts
       Note: Booking draft state that should remain client-owned
+    - Path: web/src/stylist/store/consultationUploads.ts
+      Note: Recorded in-memory pending file store for Phase 3 (commit a49a02a)
     - Path: web/src/stylist/store/index.ts
       Note: |-
         Current Redux store wiring that will host RTK Query reducer and middleware
@@ -49,10 +63,11 @@ RelatedFiles:
       Note: Recorded test-store wiring through createAppStore for Phase 1 (commit bb46c1b)
 ExternalSources: []
 Summary: Chronological diary for the frontend integration planning and early implementation work that moves the hair-booking app from mocks to RTK Query-backed backend calls.
-LastUpdated: 2026-03-20T02:05:00-04:00
+LastUpdated: 2026-03-20T03:05:00-04:00
 WhatFor: Use this diary to understand why the frontend integration ticket exists, what evidence drove the plan, and how to continue implementation.
 WhenToUse: Use when continuing HAIR-003 or reviewing the reasoning behind the RTK Query migration order.
 ---
+
 
 
 
@@ -588,3 +603,140 @@ git commit -m "feat: add OIDC session bootstrap to frontend"
   - `web/src/stylist/data/consultation-constants.ts`
   - `web/src/stylist/pages/SignInPage.stories.tsx`
   - `web/src/stylist/pages/VerifyCodePage.stories.tsx`
+
+## Step 5: Wire The Public Consultation Funnel To Real Backend Writes
+
+This slice made the booking flow materially real for the first time. The frontend still uses the multi-step consultation draft in Redux, but the critical points in the flow now hit the backend: the estimate step creates an intake, the selected photos are uploaded to that intake, the calendar step loads live availability, and the final booking action creates a real appointment. The confirmation screen now shows backend-derived reference IDs instead of pretending the flow is complete with draft-only state.
+
+The design decision that unlocked this cleanly was not to put `File` objects in Redux. The frontend needed to carry selected images from the photo step to the later estimate step, because the backend intake cannot exist until after the goals pages are complete. I solved that by keeping draft metadata in Redux and storing the actual `File` objects in a small in-memory module. That keeps the store serializable while still allowing real uploads later in the funnel.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 3)
+
+**Assistant interpretation:** Continue into the next major integration slice, which is the public consultation booking flow.
+
+**Inferred user intent:** Replace the remaining mocked booking behavior with live backend calls so the frontend can begin behaving like a real booking funnel.
+
+**Commit (code):** a49a02a — "feat: wire booking flow to backend APIs"
+
+### What I did
+
+- Added booking artifact fields to the consultation draft model:
+  - `intakeId`
+  - `estimateLow`
+  - `estimateHigh`
+  - `appointmentId`
+  - `appointmentServiceId`
+- Added `web/src/stylist/store/consultationUploads.ts` to hold selected `File` objects outside Redux.
+- Updated `ConsultWelcomePage.tsx` to clear any pending consultation uploads when a new booking flow starts.
+- Reworked `PhotoBox.tsx` so the photo step can select real image files instead of only simulating them.
+- Reworked `PhotosPage.tsx` so:
+  - required photos store labels/URLs in Redux draft state
+  - selected `File` objects are captured in the in-memory upload store
+  - inspiration images accumulate the same way
+- Added consultation-to-intake mapping and consult-service selection helpers in `web/src/stylist/store/api/mappers.ts`.
+- Reworked `ConsultEstimatePage.tsx` so the booking actions now:
+  - create an intake through `POST /api/intake`
+  - upload any selected photos through `POST /api/intake/:id/photos`
+  - persist the returned intake ID and estimate range back into the Redux draft
+- Reworked `CalendarGrid.tsx` into a controlled month component so the parent page can query the correct backend month.
+- Reworked `ConsultCalendarPage.tsx` so it now:
+  - resolves the consult service via `GET /api/services`
+  - loads live availability via `GET /api/availability`
+  - creates an appointment via `POST /api/appointments`
+  - persists the created appointment ID for the confirmation screen
+- Reworked `ConsultConfirmPage.tsx` so it shows the real intake and appointment references.
+
+### Why
+
+- The booking funnel was the biggest remaining gap between the imported widgets and a testable MVP.
+- The backend intake contract requires later-form fields from the goals pages, so the frontend could not simply create the intake on the photo step without losing data.
+- A small in-memory upload store was the simplest way to preserve selected files across pages without poisoning Redux serializability.
+
+### What worked
+
+- The existing consultation draft shape was flexible enough to keep form-progress state while allowing the actual writes to move into RTK Query mutations.
+- The backend estimate values fit naturally into the existing estimate UI once stored alongside the draft.
+- The consult service lookup through `GET /api/services` was sufficient to remove the last hard dependency on deterministic consult-service assumptions in the calendar step.
+- The whole slice still compiles cleanly:
+
+```bash
+npm --prefix web run typecheck
+```
+
+### What didn't work
+
+- There was no compiler failure after the implementation pass, but the tricky failure mode here was architectural: the original photo step had no real file input at all, only `simulatePhoto()` placeholders. Without changing that component contract, the booking flow could never have reached a real multipart upload. The fix was to change `PhotoBox.tsx` itself rather than trying to fake upload behavior higher up in the page.
+
+- A second limitation remains: I validated the code with TypeScript, but I did not run a full browser-backed end-to-end smoke loop in this slice. That means the implementation is code-complete and typechecked, but not yet manually exercised against a running app + backend session in this turn.
+
+### What I learned
+
+- Moving only the write boundary to RTK Query is enough to make the funnel materially real, even before every display component is refactored.
+- The right place to resolve consult service IDs is near the booking action, not in static constants.
+- Backend IDs and estimates are worth storing in the draft model as soon as they exist, because later screens can use them without inventing parallel local state.
+
+### What was tricky to build
+
+- The hardest part was the ordering constraint between photos and intake creation. The photo step appears before the goals step, but the backend intake payload needs the goals fields too. The symptom was a mismatch between the UX order and the API contract. I solved it by splitting “user picked a file” from “frontend uploads a file”: the photo step now only captures files, and the estimate step does the actual intake creation plus upload sequence once the payload is complete.
+
+### What warrants a second pair of eyes
+
+- Review the `consultationUploads.ts` in-memory file store. It is pragmatic and appropriate for this MVP slice, but it is intentionally ephemeral and should not be mistaken for durable state.
+- Review `ConsultEstimatePage.tsx` for idempotency expectations, because revisiting the step can create a new intake and re-upload the currently held files.
+- Review the consult-service selection helper in `mappers.ts`; for `both`, it currently resolves to the extensions consultation path because the seeded backend catalog has no dedicated combined consult row.
+
+### What should be done in the future
+
+- Run a real browser-backed smoke test against the local backend stack.
+- Phase 4 should replace the portal read paths so the authenticated shell no longer falls back to mock user and appointment records.
+- If the booking flow becomes more stateful, the temporary in-memory file store may need to evolve into a more explicit upload session model.
+
+### Code review instructions
+
+- Start with:
+  - `web/src/stylist/store/consultationUploads.ts`
+  - `web/src/stylist/store/api/mappers.ts`
+- Then review the booking pages in order:
+  - `web/src/stylist/pages/PhotosPage.tsx`
+  - `web/src/stylist/pages/ConsultEstimatePage.tsx`
+  - `web/src/stylist/pages/ConsultCalendarPage.tsx`
+  - `web/src/stylist/pages/ConsultConfirmPage.tsx`
+- Then review the supporting component changes:
+  - `web/src/stylist/components/PhotoBox.tsx`
+  - `web/src/stylist/components/CalendarGrid.tsx`
+- Validate with:
+
+```bash
+npm --prefix web run typecheck
+```
+
+### Technical details
+
+- Commands run during this slice:
+
+```bash
+rg -n "CalendarGrid" web/src/stylist
+rg -n "PhotoBox" web/src/stylist
+rg -n "simulatePhoto|addInspoPhoto|intakeId|estimateLow|estimateHigh|appointmentId|appointmentServiceId|consultationUploads|useGetAvailabilityQuery\\(|useCreateIntakeMutation\\(|useCreateAppointmentMutation\\(" web/src/stylist
+npm --prefix web run typecheck
+git add web/src/stylist/store/api/base.ts web/src/stylist/store/api/index.ts web/src/stylist/store/api/mappers.ts web/src/stylist/types.ts web/src/stylist/data/consultation-constants.ts web/src/stylist/store/consultationUploads.ts web/src/stylist/store/consultationSlice.ts web/src/stylist/pages/ConsultWelcomePage.tsx web/src/stylist/components/PhotoBox.tsx web/src/stylist/components/CalendarGrid.tsx web/src/stylist/components/CalendarGrid.stories.tsx web/src/stylist/pages/PhotosPage.tsx web/src/stylist/pages/ConsultEstimatePage.tsx web/src/stylist/pages/ConsultCalendarPage.tsx web/src/stylist/pages/ConsultConfirmPage.tsx
+git commit -m "feat: wire booking flow to backend APIs"
+```
+
+- Files changed in the code slice:
+  - `web/src/stylist/store/api/base.ts`
+  - `web/src/stylist/store/api/index.ts`
+  - `web/src/stylist/store/api/mappers.ts`
+  - `web/src/stylist/types.ts`
+  - `web/src/stylist/data/consultation-constants.ts`
+  - `web/src/stylist/store/consultationUploads.ts`
+  - `web/src/stylist/store/consultationSlice.ts`
+  - `web/src/stylist/pages/ConsultWelcomePage.tsx`
+  - `web/src/stylist/components/PhotoBox.tsx`
+  - `web/src/stylist/components/CalendarGrid.tsx`
+  - `web/src/stylist/pages/PhotosPage.tsx`
+  - `web/src/stylist/pages/ConsultEstimatePage.tsx`
+  - `web/src/stylist/pages/ConsultCalendarPage.tsx`
+  - `web/src/stylist/pages/ConsultConfirmPage.tsx`

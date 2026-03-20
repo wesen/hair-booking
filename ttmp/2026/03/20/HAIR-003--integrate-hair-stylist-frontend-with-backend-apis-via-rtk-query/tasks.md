@@ -29,14 +29,14 @@
 
 ## Phase 3: Public Consultation Flow
 
-- [ ] Replace hard-coded services with `GET /api/services`
-- [ ] Keep form-progress state in `consultationSlice`, but move server writes to mutations
-- [ ] Implement `POST /api/intake`
-- [ ] Implement intake photo uploads with `POST /api/intake/:id/photos`
-- [ ] Replace deterministic calendar data with `GET /api/availability`
-- [ ] Implement `POST /api/appointments`
-- [ ] Update the booking confirmation screen to use real appointment/intake IDs
-- [ ] Decide how deposit UI behaves while payments remain out of MVP scope
+- [x] Replace hard-coded services with `GET /api/services`
+- [x] Keep form-progress state in `consultationSlice`, but move server writes to mutations
+- [x] Implement `POST /api/intake`
+- [x] Implement intake photo uploads with `POST /api/intake/:id/photos`
+- [x] Replace deterministic calendar data with `GET /api/availability`
+- [x] Implement `POST /api/appointments`
+- [x] Update the booking confirmation screen to use real appointment/intake IDs
+- [x] Decide how deposit UI behaves while payments remain out of MVP scope
 - [ ] Add tests for successful consult creation and backend-error display
 
 ## Phase 4: Portal Reads
