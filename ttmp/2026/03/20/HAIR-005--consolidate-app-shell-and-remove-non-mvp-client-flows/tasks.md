@@ -2,8 +2,8 @@
 
 ## Analysis And Planning
 
-- [ ] Confirm final public default route for MVP
-- [ ] Confirm whether the MVP frontend is served by Go, by a separate host, or by both depending on environment
+- [x] Confirm final public default route for MVP is the booking landing on `/`
+- [x] Confirm local MVP frontend hosting is environment-dependent: direct Vite or Go proxied to Vite in development
 - [ ] Confirm whether any portal photos functionality remains visible in MVP or is hidden with rewards
 
 ## App Shell And Routing
@@ -13,7 +13,8 @@
 - [x] Make the root route render a real public surface instead of the mock stylist app
 - [x] Add bookmarkable top-level routes for booking, portal, and stylist areas
 - [x] Replace the seeded runtime `/stylist` dashboard with a safe shell until real stylist operations land
-- [ ] Ensure refresh/deep-link behavior works in development and production hosting
+- [x] Ensure refresh/deep-link behavior works in local proxied development hosting
+- [ ] Ensure refresh/deep-link behavior works in production hosting
 
 ## Auth Redirects
 
@@ -43,7 +44,8 @@
 ## Backend Root Surface
 
 - [x] Replace or retire the legacy bootstrap page language in `pkg/web/public/index.html`
-- [ ] Align `/` behavior with the intended frontend app shell
+- [x] Align `/` behavior with the intended frontend app shell in proxied local development mode
+- [ ] Align `/` behavior with the intended frontend app shell in production hosting
 - [x] Ensure backend root no longer looks like an outdated prototype surface
 
 ## Validation

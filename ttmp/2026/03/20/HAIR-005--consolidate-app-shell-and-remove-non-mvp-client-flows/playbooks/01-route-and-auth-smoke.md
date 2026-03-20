@@ -44,6 +44,22 @@ Expected:
 - `http://127.0.0.1:8080/api/info` returns `200`
 - `http://127.0.0.1:8080/auth/login` returns `302`
 
+## Proxied-Shell Mode
+
+If you want the backend to own the app shell during local development, run the backend with:
+
+```bash
+FRONTEND_DEV_PROXY_URL=http://127.0.0.1:5175 make run-local-oidc KEYCLOAK_PORT=18090
+```
+
+In that mode:
+
+- `http://127.0.0.1:8080/` should render the React booking landing page
+- `http://127.0.0.1:8080/portal` should render the React portal
+- `http://127.0.0.1:8080/stylist` should render the safe stylist shell flow
+
+If `FRONTEND_DEV_PROXY_URL` is unset, `:8080` falls back to the embedded inspector shell instead.
+
 ## Manual Browser Checks
 
 Use `http://127.0.0.1:5175`, not `localhost`, so cookies and redirects stay on the same host family.

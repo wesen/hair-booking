@@ -15,3 +15,5 @@
 - Fixed logout return routing by redirecting Keycloak back to `/auth/logout/callback` on the backend before the final frontend redirect
 - Removed the dead marketing preference row from the runtime portal profile
 - Added a reusable route smoke script and a manual route/auth smoke playbook
+- Added optional `HAIR_BOOKING_FRONTEND_DEV_PROXY_URL` support so the Go server can proxy the live Vite app and own `:8080` in local integration mode
+- Verified `http://127.0.0.1:8080/` and deep links like `/portal` render the real React app in proxied-shell mode

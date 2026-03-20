@@ -1,8 +1,13 @@
 # hair-booking
 
-`hair-booking` is a Go web app bootstrap that proves browser login through Keycloak. It uses a Glazed/Cobra CLI, serves a minimal website, signs an HTTP-only session cookie after OIDC login, and exposes the authenticated user through `/api/me`.
+`hair-booking` is a Go web app with a Go backend, browser login through Keycloak, and a React frontend under `web/`. The backend signs an HTTP-only session cookie after OIDC login and exposes the authenticated user through `/api/me`.
 
-The current UI is intentionally small so a later React frontend can replace it without changing the auth contract. This repo now includes its own local Keycloak stack and realm import so it can be tested standalone.
+In local development, the backend can either:
+
+- serve the older embedded inspector UI from `pkg/web/public`, or
+- proxy the active React frontend dev server so `http://127.0.0.1:8080/` behaves like the real app shell
+
+This repo includes its own local Keycloak stack and realm import so it can be tested standalone.
 
 For day-to-day operations, see [docs/operations-playbook.md](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/operations-playbook.md).
 For hosted deployment, see [docs/deployments/hair-booking-coolify.md](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/deployments/hair-booking-coolify.md).
@@ -15,7 +20,8 @@ For Keycloak client provisioning, see the central infra repo at [keycloak/README
 - `auth-mode=dev` for local UI work without Keycloak
 - `/auth/login`, `/auth/callback`, `/auth/logout`
 - `/api/info` and `/api/me`
-- embedded static UI served from Go
+- optional frontend-dev proxy for single-origin local integration
+- embedded static inspector UI served from Go when no frontend dev proxy is configured
 
 ## Quick start
 
@@ -38,7 +44,16 @@ HAIR_BOOKING_KEYCLOAK_PORT=18090 docker compose -f docker-compose.local.yml up -
 make run-local-oidc
 ```
 
-4. Open `http://127.0.0.1:8080/` and log in with `alice` / `secret`.
+4. For backend-only inspection, open `http://127.0.0.1:8080/`.
+
+5. For the real React app on a single origin, start Vite and proxy frontend routes through the backend:
+
+```bash
+npm --prefix web run dev -- --host 127.0.0.1 --port 5175
+FRONTEND_DEV_PROXY_URL=http://127.0.0.1:5175 make run-local-oidc KEYCLOAK_PORT=18090
+```
+
+Then open `http://127.0.0.1:8080/` or `http://127.0.0.1:8080/portal`.
 
 ## Local standalone Keycloak setup
 
@@ -85,6 +100,14 @@ For local frontend work without Keycloak:
 ```bash
 make run-local-dev
 ```
+
+For local OIDC work with the Go server proxying the Vite app on one origin:
+
+```bash
+FRONTEND_DEV_PROXY_URL=http://127.0.0.1:5175 make run-local-oidc KEYCLOAK_PORT=18090
+```
+
+`FRONTEND_DEV_PROXY_URL` is optional. If it is unset, the Go server falls back to the embedded inspector UI on `/`.
 
 Equivalent direct command:
 
@@ -163,6 +186,7 @@ These flags can also be driven by environment variables:
 - `HAIR_BOOKING_OIDC_CLIENT_ID`
 - `HAIR_BOOKING_OIDC_CLIENT_SECRET`
 - `HAIR_BOOKING_OIDC_REDIRECT_URL`
+- `HAIR_BOOKING_FRONTEND_DEV_PROXY_URL`
 
 ## Developer commands
 

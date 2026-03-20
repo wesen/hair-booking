@@ -19,7 +19,7 @@ RelatedFiles:
       Note: Auth callback redirect behavior to be cleaned up
 ExternalSources: []
 Summary: Short diary describing why HAIR-005 was created and what it is intended to fix.
-LastUpdated: 2026-03-20T17:05:00-04:00
+LastUpdated: 2026-03-20T18:25:00-04:00
 WhatFor: Use this diary to understand the motivation and boundary of the app-shell cleanup stream.
 WhenToUse: Use while implementing or reviewing HAIR-005.
 ---
@@ -140,6 +140,50 @@ go test ./...
 npm --prefix web run typecheck
 ttmp/2026/03/20/HAIR-005--consolidate-app-shell-and-remove-non-mvp-client-flows/scripts/route-smoke.sh
 docmgr doctor --ticket HAIR-005 --stale-after 30
+```
+
+### Sixth Implementation Slice
+
+The sixth code slice addressed the remaining local-shell confusion around `:8080`.
+
+Problem:
+
+- even after the route/auth cleanup, the backend root on `http://127.0.0.1:8080/` still served the embedded inspector shell
+- the real React app still lived on Vite at a separate port
+- that meant local deep-link testing was split across two origins even though the backend already owned the catch-all route shape
+
+What changed:
+
+- `pkg/config/backend.go` now accepts `HAIR_BOOKING_FRONTEND_DEV_PROXY_URL`
+- `cmd/hair-booking/cmds/serve.go` passes that setting down into the HTTP server and logs it at startup
+- `pkg/server/http.go` now proxies non-`/api`, non-`/auth`, non-upload browser routes to the configured frontend dev origin when present
+- `pkg/server/http_test.go` now covers both proxy behavior and API bypass behavior
+- `Makefile` now forwards `FRONTEND_DEV_PROXY_URL` into `run-local-dev` and `run-local-oidc`
+- `README.md` and `docs/smoke-testing-playbook.md` now document the new proxied-shell mode
+
+Why this shape was chosen:
+
+- it keeps the backend as the single public origin in local integration mode
+- it preserves the embedded inspector shell as a fallback when no frontend dev server is running
+- it does not require prematurely embedding the React build into the Go binary
+
+Verified browser behavior in proxied-shell mode:
+
+- `http://127.0.0.1:8080/` rendered the React booking landing page
+- `http://127.0.0.1:8080/portal` rendered the React portal sign-in gate
+- portal login as `alice` / `secret` returned to `http://127.0.0.1:8080/portal`
+
+Current interpretation of hosting after this slice:
+
+- local development supports both direct-Vite mode and proxied-shell mode
+- proxied-shell mode is now the preferred HAIR-005 path for realistic local integration
+- production hosting is still a separate remaining decision because the repo has not yet replaced the embedded inspector assets with a built React bundle
+
+Validation for this slice:
+
+```bash
+go test ./...
+npm --prefix web run typecheck
 ```
 
 ### Fourth Implementation Slice

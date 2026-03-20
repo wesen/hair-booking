@@ -60,12 +60,23 @@ This distinction matters a lot.
 
 If you only run the Go backend and browse to `http://127.0.0.1:8080/`, you are testing the older embedded frontend shell, not the active React booking and portal apps under `web/src`.
 
-For real frontend smoke testing, use the Vite app.
+For real frontend smoke testing, use one of these two modes:
+
+- direct Vite mode:
+  - browse to `http://127.0.0.1:<vite-port>/...`
+- proxied-shell mode:
+  - run the backend with `HAIR_BOOKING_FRONTEND_DEV_PROXY_URL=http://127.0.0.1:<vite-port>`
+  - browse to `http://127.0.0.1:8080/...`
+
+Proxied-shell mode is now the preferred HAIR-005 path when you want a single origin for frontend, API, and auth.
 
 Current local smoke entrypoints:
 
-- booking app: `http://127.0.0.1:<vite-port>/?app=booking`
-- portal app: `http://127.0.0.1:<vite-port>/?app=portal`
+- direct Vite booking app: `http://127.0.0.1:<vite-port>/`
+- direct Vite portal app: `http://127.0.0.1:<vite-port>/portal`
+- proxied booking app: `http://127.0.0.1:8080/`
+- proxied portal app: `http://127.0.0.1:8080/portal`
+- proxied stylist shell: `http://127.0.0.1:8080/stylist`
 
 The Vite app proxies:
 
@@ -193,9 +204,13 @@ tmux new-session -d -s hb-web 'cd /home/manuel/workspaces/2026-03-19/hair-signup
 
 #### 4. Launch the backend in tmux
 
+Preferred single-origin smoke mode:
+
 ```bash
-tmux send-keys -t hb-backend 'HAIR_BOOKING_DATABASE_URL=postgres://hair_booking:hair_booking@127.0.0.1:15432/hair_booking?sslmode=disable make run-local-oidc APP_PORT=8080 KEYCLOAK_PORT=18090 SESSION_SECRET=local-session-secret' C-m
+tmux send-keys -t hb-backend 'HAIR_BOOKING_DATABASE_URL=postgres://hair_booking:hair_booking@127.0.0.1:15432/hair_booking?sslmode=disable FRONTEND_DEV_PROXY_URL=http://127.0.0.1:5173 make run-local-oidc APP_PORT=8080 KEYCLOAK_PORT=18090 SESSION_SECRET=local-session-secret' C-m
 ```
+
+If you intentionally want the backend to keep serving the embedded inspector shell, omit `FRONTEND_DEV_PROXY_URL`.
 
 #### 5. Launch Vite in tmux
 
@@ -213,7 +228,7 @@ tmux capture-pane -pt hb-web
 Healthy backend log shape:
 
 ```text
-INF Starting hair-booking server address=0.0.0.0:8080 auth_mode=oidc auto_migrate=true client_id=hair-booking-web database_configured=true issuer=http://127.0.0.1:18090/realms/hair-booking-dev
+INF Starting hair-booking server address=0.0.0.0:8080 auth_mode=oidc auto_migrate=true frontend_dev_proxy_url=http://127.0.0.1:5173 client_id=hair-booking-web database_configured=true issuer=http://127.0.0.1:18090/realms/hair-booking-dev
 ```
 
 Healthy Vite log shape:
