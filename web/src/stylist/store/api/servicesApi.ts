@@ -1,5 +1,5 @@
 import { stylistApi } from "./base";
-import type { ServiceCatalogItemDto } from "./types";
+import type { ServiceCatalogItemDto, ServicesResponseDto } from "./types";
 
 export interface GetServicesArgs {
   category?: string;
@@ -12,6 +12,7 @@ export const servicesApi = stylistApi.injectEndpoints({
         url: "services",
         params: args?.category ? { category: args.category } : undefined,
       }),
+      transformResponse: (response: ServicesResponseDto) => response.services,
       providesTags: (result) => {
         const baseTag = [{ type: "Services" as const, id: "LIST" }];
         if (!result) {
@@ -27,4 +28,3 @@ export const servicesApi = stylistApi.injectEndpoints({
 });
 
 export const { useGetServicesQuery } = servicesApi;
-

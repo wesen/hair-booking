@@ -2,6 +2,7 @@ package clients
 
 import (
 	"context"
+	"database/sql"
 	"strings"
 
 	"github.com/google/uuid"
@@ -31,15 +32,21 @@ where auth_issuer = $1 and auth_subject = $2
 `, issuer, subject)
 
 	client := &Client{}
+	var authSubject sql.NullString
+	var authIssuer sql.NullString
+	var email sql.NullString
+	var phone sql.NullString
+	var scalpNotes sql.NullString
+	var serviceSummary sql.NullString
 	if err := row.Scan(
 		&client.ID,
-		&client.AuthSubject,
-		&client.AuthIssuer,
+		&authSubject,
+		&authIssuer,
 		&client.Name,
-		&client.Email,
-		&client.Phone,
-		&client.ScalpNotes,
-		&client.ServiceSummary,
+		&email,
+		&phone,
+		&scalpNotes,
+		&serviceSummary,
 		&client.CreatedAt,
 		&client.UpdatedAt,
 	); err != nil {
@@ -49,6 +56,7 @@ where auth_issuer = $1 and auth_subject = $2
 		return nil, errors.Wrap(err, "failed to load client by auth identity")
 	}
 
+	assignNullableClientFields(client, authSubject, authIssuer, email, phone, scalpNotes, serviceSummary)
 	return client, nil
 }
 
@@ -61,24 +69,41 @@ func (r *PostgresRepository) CreateAuthenticatedClient(ctx context.Context, iden
 	row := r.pool.QueryRow(ctx, `
 insert into clients(id, auth_subject, auth_issuer, name, email)
 values($1, $2, $3, $4, nullif($5, ''))
+on conflict (email) do update
+set auth_subject = excluded.auth_subject,
+    auth_issuer = excluded.auth_issuer,
+    name = case
+      when coalesce(nullif(trim(clients.name), ''), '') = '' then excluded.name
+      else clients.name
+    end,
+    updated_at = now()
+where clients.auth_subject is null
+   or (clients.auth_subject = excluded.auth_subject and clients.auth_issuer = excluded.auth_issuer)
 returning id, auth_subject, auth_issuer, name, email, phone, scalp_notes, service_summary, created_at, updated_at
 `, uuid.New(), identity.Subject, identity.Issuer, identity.DisplayName, identity.Email)
 
+	var authSubject sql.NullString
+	var authIssuer sql.NullString
+	var email sql.NullString
+	var phone sql.NullString
+	var scalpNotes sql.NullString
+	var serviceSummary sql.NullString
 	if err := row.Scan(
 		&client.ID,
-		&client.AuthSubject,
-		&client.AuthIssuer,
+		&authSubject,
+		&authIssuer,
 		&client.Name,
-		&client.Email,
-		&client.Phone,
-		&client.ScalpNotes,
-		&client.ServiceSummary,
+		&email,
+		&phone,
+		&scalpNotes,
+		&serviceSummary,
 		&client.CreatedAt,
 		&client.UpdatedAt,
 	); err != nil {
 		return nil, errors.Wrap(err, "failed to create authenticated client")
 	}
 
+	assignNullableClientFields(client, authSubject, authIssuer, email, phone, scalpNotes, serviceSummary)
 	return client, nil
 }
 
@@ -103,21 +128,28 @@ where id = $1
 returning id, auth_subject, auth_issuer, name, email, phone, scalp_notes, service_summary, created_at, updated_at
 `, clientID, identity.DisplayName, identity.Email)
 
+	var authSubject sql.NullString
+	var authIssuer sql.NullString
+	var email sql.NullString
+	var phone sql.NullString
+	var scalpNotes sql.NullString
+	var serviceSummary sql.NullString
 	if err := row.Scan(
 		&client.ID,
-		&client.AuthSubject,
-		&client.AuthIssuer,
+		&authSubject,
+		&authIssuer,
 		&client.Name,
-		&client.Email,
-		&client.Phone,
-		&client.ScalpNotes,
-		&client.ServiceSummary,
+		&email,
+		&phone,
+		&scalpNotes,
+		&serviceSummary,
 		&client.CreatedAt,
 		&client.UpdatedAt,
 	); err != nil {
 		return nil, errors.Wrap(err, "failed to update authenticated client")
 	}
 
+	assignNullableClientFields(client, authSubject, authIssuer, email, phone, scalpNotes, serviceSummary)
 	return client, nil
 }
 
@@ -174,21 +206,28 @@ where id = $1
 returning id, auth_subject, auth_issuer, name, email, phone, scalp_notes, service_summary, created_at, updated_at
 `, clientID, update.Name, update.Email, update.Phone, update.ScalpNotes)
 
+	var authSubject sql.NullString
+	var authIssuer sql.NullString
+	var email sql.NullString
+	var phone sql.NullString
+	var scalpNotes sql.NullString
+	var serviceSummary sql.NullString
 	if err := row.Scan(
 		&client.ID,
-		&client.AuthSubject,
-		&client.AuthIssuer,
+		&authSubject,
+		&authIssuer,
 		&client.Name,
-		&client.Email,
-		&client.Phone,
-		&client.ScalpNotes,
-		&client.ServiceSummary,
+		&email,
+		&phone,
+		&scalpNotes,
+		&serviceSummary,
 		&client.CreatedAt,
 		&client.UpdatedAt,
 	); err != nil {
 		return nil, errors.Wrap(err, "failed to update client profile")
 	}
 
+	assignNullableClientFields(client, authSubject, authIssuer, email, phone, scalpNotes, serviceSummary)
 	return client, nil
 }
 
@@ -212,4 +251,32 @@ returning client_id, remind_48hr, remind_2hr, maint_alerts
 	}
 
 	return prefs, nil
+}
+
+func assignNullableClientFields(
+	client *Client,
+	authSubject sql.NullString,
+	authIssuer sql.NullString,
+	email sql.NullString,
+	phone sql.NullString,
+	scalpNotes sql.NullString,
+	serviceSummary sql.NullString,
+) {
+	if client == nil {
+		return
+	}
+
+	client.AuthSubject = nullableString(authSubject)
+	client.AuthIssuer = nullableString(authIssuer)
+	client.Email = nullableString(email)
+	client.Phone = nullableString(phone)
+	client.ScalpNotes = nullableString(scalpNotes)
+	client.ServiceSummary = nullableString(serviceSummary)
+}
+
+func nullableString(value sql.NullString) string {
+	if value.Valid {
+		return value.String
+	}
+	return ""
 }

@@ -2,6 +2,7 @@ package intake
 
 import (
 	"context"
+	"database/sql"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -68,30 +69,59 @@ returning id, client_id, service_type, hair_length, hair_density, hair_texture,
 	)
 
 	created := &Submission{}
+	var hairLength sql.NullString
+	var hairDensity sql.NullString
+	var hairTexture sql.NullString
+	var prevExtensions sql.NullString
+	var colorService sql.NullString
+	var naturalLevel sql.NullString
+	var currentColor sql.NullString
+	var lastChemical sql.NullString
+	var desiredLength sql.NullInt64
+	var extType sql.NullString
+	var budget sql.NullString
+	var maintenance sql.NullString
+	var deadline sql.NullString
+	var dreamResult sql.NullString
 	if err := row.Scan(
 		&created.ID,
 		&created.ClientID,
 		&created.ServiceType,
-		&created.HairLength,
-		&created.HairDensity,
-		&created.HairTexture,
-		&created.PrevExtensions,
-		&created.ColorService,
-		&created.NaturalLevel,
-		&created.CurrentColor,
+		&hairLength,
+		&hairDensity,
+		&hairTexture,
+		&prevExtensions,
+		&colorService,
+		&naturalLevel,
+		&currentColor,
 		&created.ChemicalHistory,
-		&created.LastChemical,
-		&created.DesiredLength,
-		&created.ExtType,
-		&created.Budget,
-		&created.Maintenance,
-		&created.Deadline,
-		&created.DreamResult,
+		&lastChemical,
+		&desiredLength,
+		&extType,
+		&budget,
+		&maintenance,
+		&deadline,
+		&dreamResult,
 		&created.EstimateLow,
 		&created.EstimateHigh,
 	); err != nil {
 		return nil, errors.Wrap(err, "failed to create intake submission")
 	}
+
+	created.HairLength = nullableString(hairLength)
+	created.HairDensity = nullableString(hairDensity)
+	created.HairTexture = nullableString(hairTexture)
+	created.PrevExtensions = nullableString(prevExtensions)
+	created.ColorService = nullableString(colorService)
+	created.NaturalLevel = nullableString(naturalLevel)
+	created.CurrentColor = nullableString(currentColor)
+	created.LastChemical = nullableString(lastChemical)
+	created.DesiredLength = nullableInt(desiredLength)
+	created.ExtType = nullableString(extType)
+	created.Budget = nullableString(budget)
+	created.Maintenance = nullableString(maintenance)
+	created.Deadline = nullableString(deadline)
+	created.DreamResult = nullableString(dreamResult)
 
 	return created, nil
 }
@@ -113,4 +143,18 @@ returning id, intake_id, slot, storage_key, url
 	}
 
 	return photo, nil
+}
+
+func nullableString(value sql.NullString) string {
+	if value.Valid {
+		return value.String
+	}
+	return ""
+}
+
+func nullableInt(value sql.NullInt64) int {
+	if value.Valid {
+		return int(value.Int64)
+	}
+	return 0
 }
