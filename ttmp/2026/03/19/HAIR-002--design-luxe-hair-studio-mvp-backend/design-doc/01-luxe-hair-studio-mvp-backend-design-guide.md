@@ -16,6 +16,10 @@ RelatedFiles:
       Note: Existing Keycloak/OIDC configuration surface
     - Path: pkg/auth/oidc.go
       Note: Existing browser login and callback flow
+    - Path: pkg/clients/postgres.go
+      Note: Postgres repository for authenticated client bootstrap and notification prefs
+    - Path: pkg/clients/service.go
+      Note: Client bootstrap service linking OIDC claims to application clients
     - Path: pkg/config/backend.go
       Note: Backend config surface for application database and storage
     - Path: pkg/db/migrations.go
@@ -26,10 +30,18 @@ RelatedFiles:
       Note: Seed service catalog for later routes
     - Path: pkg/db/postgres.go
       Note: Application Postgres connection bootstrap
+    - Path: pkg/server/handlers_me.go
+      Note: DB-backed /api/me handler
+    - Path: pkg/server/handlers_public.go
+      Note: DB-backed /api/services handler
     - Path: pkg/server/http.go
       Note: Current router and authenticated /api/me baseline
     - Path: pkg/server/http_test.go
       Note: Current HTTP handler testing style
+    - Path: pkg/services/postgres.go
+      Note: Postgres-backed service catalog queries
+    - Path: pkg/services/service.go
+      Note: Public service catalog listing logic
     - Path: web/src/stylist/data/consultation-constants.ts
       Note: Current intake fields and fake availability data
     - Path: web/src/stylist/store/consultationSlice.ts
@@ -42,6 +54,7 @@ LastUpdated: 2026-03-20T08:30:00-04:00
 WhatFor: Use this document to implement the first production-backed version of the Luxe Hair Studio booking flow and client portal with Keycloak-based sign-in.
 WhenToUse: Use when replacing the imported Storybook mocks with a real Go + PostgreSQL backend that reuses the existing Keycloak OIDC login flow.
 ---
+
 
 
 # Luxe Hair Studio MVP Backend Design Guide

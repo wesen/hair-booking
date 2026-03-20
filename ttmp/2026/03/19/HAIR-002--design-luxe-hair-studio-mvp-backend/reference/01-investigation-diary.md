@@ -14,12 +14,20 @@ RelatedFiles:
       Note: Recorded the new local application Postgres service
     - Path: pkg/auth/oidc.go
       Note: Existing Keycloak/OIDC flow that now anchors the backend auth direction
+    - Path: pkg/clients/service.go
+      Note: Recorded the OIDC client bootstrap slice in the diary
     - Path: pkg/config/backend.go
       Note: Recorded the new backend configuration surface in the implementation diary
     - Path: pkg/db/migrations.go
       Note: Recorded the migration bootstrap slice in the implementation diary
+    - Path: pkg/server/handlers_me.go
+      Note: Recorded the DB-backed /api/me handler in the diary
+    - Path: pkg/server/handlers_public.go
+      Note: Recorded the DB-backed /api/services handler in the diary
     - Path: pkg/server/http.go
       Note: Existing authenticated /api/me baseline
+    - Path: pkg/services/service.go
+      Note: Recorded the public service catalog slice in the diary
     - Path: ttmp/2026/03/19/HAIR-002--design-luxe-hair-studio-mvp-backend/design-doc/01-luxe-hair-studio-mvp-backend-design-guide.md
       Note: Primary design deliverable tracked by this diary
     - Path: web/src/stylist/data/consultation-constants.ts
@@ -36,6 +44,7 @@ LastUpdated: 2026-03-20T08:30:00-04:00
 WhatFor: Use this diary to understand why the backend plan changed and what implementation slices were executed.
 WhenToUse: Use when reviewing or continuing HAIR-002.
 ---
+
 
 
 # Investigation Diary
@@ -364,4 +373,77 @@ gofmt -w cmd/hair-booking/cmds/serve.go pkg/config/backend.go pkg/config/backend
 go mod tidy
 go test ./...
 git commit -m "feat: add backend postgres foundation"
+```
+
+## Step 4: Implement Client Bootstrap And The First DB-Backed Read Routes
+
+After the foundation was in place, I moved to the smallest domain slice that proves the backend is real: link authenticated Keycloak users to local `clients` rows and expose the first DB-backed read APIs. That slice delivered two routes with actual application meaning: `/api/me` and `/api/services`.
+
+The design choice here was to treat OIDC claims as the source of truth for authentication and the `clients` table as the source of truth for salon profile state. The app now has a dedicated client-bootstrap service that finds or creates a client row from OIDC claims and ensures the corresponding `notification_prefs` row exists.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Continue the feature-by-feature implementation after the DB foundation commit.
+
+**Inferred user intent:** See the first real DB-backed domain routes built on top of Keycloak auth rather than more infrastructure-only work.
+
+**Commit (code):** `8edaa85` — `feat: bootstrap clients from oidc claims`
+
+### What I did
+- Added `pkg/clients/service.go` with authenticated client bootstrap logic.
+- Added `pkg/clients/postgres.go` for loading, creating, and updating clients plus initializing notification prefs.
+- Added `pkg/services/service.go` and `pkg/services/postgres.go` for public service catalog queries.
+- Added `pkg/server/handlers_me.go` for DB-backed `/api/me`.
+- Added `pkg/server/handlers_public.go` for DB-backed `/api/services`.
+- Updated `pkg/server/http.go` to inject and auto-wire client and catalog services from the application database.
+- Added unit and handler tests for client bootstrap and service catalog behavior.
+
+### Why
+- `/api/me` is the natural bridge between Keycloak-authenticated browser sessions and the salon domain.
+- `/api/services` gives the frontend a real catalog source and proves the migration seed data is usable.
+
+### What worked
+- The route split into `handlers_me.go` and `handlers_public.go` kept the server package clearer than expanding `http.go` further.
+- The repository/service layering stayed small and testable.
+- `go test ./...` passed after the test expectations were updated to match the new `/api/me` contract.
+
+### What didn't work
+- I hit two quick compile/test issues while wiring the new handlers:
+  - missing `time` import in `pkg/server/handlers_me.go`
+  - missing `context` import plus stale `/api/me` assertions in `pkg/server/http_test.go`
+- Both were resolved in-place before the slice was committed.
+
+### What I learned
+- The existing signed session cookie is enough for browser authentication; the app really did not need a second session or OTP subsystem.
+- Bootstrapping notification preferences at the same time as client creation keeps portal reads simpler later.
+
+### What was tricky to build
+- The main subtlety was deciding what `/api/me` should return now that it is no longer a thin auth debug endpoint. I changed it from raw auth claims to a domain payload containing `client` and `notification_prefs`, while still deriving that data from the authenticated Keycloak session.
+
+### What warrants a second pair of eyes
+- Whether `UpdateAuthenticatedClient` should always overwrite `name` from OIDC claims or preserve local stylist/client edits later.
+- Whether `/api/services` should remain under `/api/` or also be mirrored under a public non-API path for compatibility with the earlier route sketch.
+
+### What should be done in the future
+- Move on to Phase 3: intake submission, estimate rules, upload storage abstraction, and intake photo metadata.
+
+### Code review instructions
+- Start with `pkg/clients/service.go` and `pkg/clients/postgres.go`.
+- Then read `pkg/server/handlers_me.go` and `pkg/server/handlers_public.go`.
+- Confirm the server wiring in `pkg/server/http.go`.
+- Re-run:
+
+```bash
+go test ./...
+```
+
+### Technical details
+- Commands run:
+
+```bash
+gofmt -w pkg/clients/service.go pkg/clients/postgres.go pkg/clients/service_test.go pkg/services/service.go pkg/services/postgres.go pkg/services/service_test.go pkg/server/handlers_me.go pkg/server/handlers_public.go pkg/server/http.go pkg/server/http_test.go
+go test ./...
+git commit -m "feat: bootstrap clients from oidc claims"
 ```

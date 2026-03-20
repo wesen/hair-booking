@@ -18,12 +18,12 @@
 
 ## Phase 2: Services Catalog And Client Bootstrap
 
-- [ ] Add schema tables and seed data for `services`
-- [ ] Add schema support for `clients` linked to OIDC subject/issuer
-- [ ] Implement client bootstrap from OIDC claims on authenticated requests
-- [ ] Replace the current `/api/me` placeholder with DB-backed client + notification prefs payload
-- [ ] Add `GET /api/services`
-- [ ] Add tests for service catalog queries and OIDC client bootstrap
+- [x] Add schema tables and seed data for `services`
+- [x] Add schema support for `clients` linked to OIDC subject/issuer
+- [x] Implement client bootstrap from OIDC claims on authenticated requests
+- [x] Replace the current `/api/me` placeholder with DB-backed client + notification prefs payload
+- [x] Add `GET /api/services`
+- [x] Add tests for service catalog queries and OIDC client bootstrap
 
 ## Phase 3: Public Intake
 

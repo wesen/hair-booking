@@ -36,3 +36,15 @@ Implemented the Phase 1 backend foundation slice in commit `105829b`, adding app
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/db/migrations/0001_init.sql — Initial schema without OTP tables
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/db/migrations/0002_seed_services.sql — Seeded service catalog for later slices
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docker-compose.local.yml — Added application Postgres service for local development
+
+Implemented the Phase 2 client bootstrap and service catalog slice in commit `8edaa85`, adding OIDC-to-client bootstrap logic, notification preference initialization, a DB-backed `/api/me` response, a DB-backed `/api/services` route, and focused handler/service tests.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/clients/service.go — OIDC client bootstrap service
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/clients/postgres.go — Postgres-backed client bootstrap and preference persistence
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/services/service.go — Public service catalog listing service
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/services/postgres.go — Postgres-backed service catalog queries
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/handlers_me.go — DB-backed `/api/me`
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/handlers_public.go — DB-backed `/api/services`
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http_test.go — Handler coverage for the new routes
