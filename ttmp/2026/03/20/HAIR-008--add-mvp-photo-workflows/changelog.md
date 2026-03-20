@@ -16,3 +16,5 @@
 - Added appointment-photo metadata to the stylist appointment detail payload
 - Wired the live stylist runtime to render and upload appointment photos through RTK Query
 - Added backend and frontend tests covering stylist appointment photo detail rendering
+- Prevented duplicate intake creation when booking photo uploads are retried after a partial failure
+- Added clearer booking-step retry copy explaining that retries reuse the saved intake

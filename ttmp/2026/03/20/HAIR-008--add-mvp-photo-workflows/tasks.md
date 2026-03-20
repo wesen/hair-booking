@@ -17,7 +17,7 @@
 
 ## Frontend
 
-- [ ] Improve the booking photo step UX for retries and clearer failure states
+- [x] Improve the booking photo step UX for retries and clearer failure states
 - [x] Show intake photos in the real stylist intake detail view
 - [x] Show appointment photos in the chosen portal MVP surface
 - [x] Wire stylist appointment photo upload into the live runtime
@@ -26,5 +26,6 @@
 ## Validation
 
 - [x] Add manual smoke steps for intake photos and appointment photos
+- [ ] Run a real browser smoke of the booking retry flow
 - [x] Run `go test ./...`
 - [x] Run `npm --prefix web run typecheck`

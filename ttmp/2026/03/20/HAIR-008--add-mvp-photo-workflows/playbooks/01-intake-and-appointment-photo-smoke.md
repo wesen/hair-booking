@@ -20,8 +20,8 @@ RelatedFiles:
     - Path: pkg/appointments/service.go
       Note: Appointment photo write path and storage key generation
 ExternalSources: []
-Summary: Manual smoke steps for verifying intake photo uploads and stylist appointment photo uploads.
-LastUpdated: 2026-03-20T13:56:41-04:00
+Summary: Manual smoke steps for verifying intake photo uploads, retry behavior, and stylist appointment photo uploads.
+LastUpdated: 2026-03-20T14:07:42-04:00
 WhatFor: Use this to replay the HAIR-008 backend photo upload slice.
 WhenToUse: Use after changing photo validation, upload handlers, or photo-related runtime wiring.
 ---
@@ -56,6 +56,21 @@ What to verify:
 - valid JPEG, PNG, or WebP files are accepted
 - empty or non-image files are rejected
 - the flow does not lose the uploaded file state before submission
+
+## Public Retry Behavior
+
+This is the failure mode that matters most operationally.
+
+The estimate step should not create a second intake just because one photo upload failed after the first intake save already succeeded.
+
+What to verify:
+
+- after the first successful intake create, retry mode appears with language explaining the intake is already saved
+- retrying from the estimate step reuses the existing `intakeId`
+- already uploaded photos are not re-uploaded
+- only unfinished uploads remain pending
+
+If you are testing manually and cannot force a network failure easily, this can still be checked by watching the confirmation screen and Redux-backed flow behavior after a partial failure is introduced during development.
 
 ## Stylist Appointment Photo Smoke
 
@@ -130,4 +145,4 @@ npm --prefix web run typecheck
 
 ## Follow-Up Notes
 
-This playbook verifies the current backend contract. It does not yet prove the final stylist-side upload button flow in the runtime UI. That browser-first stylist UX should be validated again after the next frontend slice lands.
+This playbook now covers the booking retry semantics and the backend/stylist photo contracts. A dedicated real browser retry smoke is still worth running after any future changes to `ConsultEstimatePage.tsx`.

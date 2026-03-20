@@ -15,7 +15,7 @@ RelatedFiles:
       Note: Review context for what the MVP still needs
 ExternalSources: []
 Summary: Diary for the deferred MVP photo execution track.
-LastUpdated: 2026-03-20T14:04:00-04:00
+LastUpdated: 2026-03-20T14:07:42-04:00
 WhatFor: Use this to understand why photos were split into a dedicated follow-up ticket.
 WhenToUse: Use while implementing or reviewing HAIR-008.
 ---
@@ -162,3 +162,38 @@ What still remains in HAIR-008 is narrower now:
 - improve booking photo-step retries and failure copy
 - run a real browser smoke of the stylist-side photo uploader
 - decide whether to add thumbnails/previews before upload in the stylist workspace
+
+The next slice returned to the client booking path and fixed the most important non-obvious failure mode there.
+
+Before this change, `ConsultEstimatePage` always created a new intake before replaying photo uploads. That meant a partial failure could leave the user with a saved intake in the database, but a retry from the same screen would create a second intake instead of reusing the first one.
+
+That is not acceptable for an MVP booking funnel. Duplicate records would make the stylist intake queue noisier and would make debugging client complaints much harder.
+
+The fix was to make retry behavior stateful instead of purely procedural.
+
+Current behavior:
+
+- if no intake exists yet, the estimate step creates one and stores the returned `intakeId`
+- successful photo uploads immediately update Redux with the uploaded URLs
+- successful photo uploads are removed from the pending upload store
+- failed photo uploads remain pending
+- retry mode reuses the saved intake and only attempts the unfinished uploads
+
+This keeps the public flow operational even if one image fails midway through the upload sequence.
+
+Files changed in the slice:
+
+- `web/src/stylist/pages/ConsultEstimatePage.tsx`
+- `web/src/stylist/store/consultationUploads.ts`
+
+Validation for the slice:
+
+- `npm --prefix web run typecheck`
+- `npm --prefix web test`
+
+I also updated the HAIR-008 smoke playbook to call out the retry semantics explicitly, because this is the kind of subtle operational behavior an intern will otherwise miss.
+
+The remaining HAIR-008 work is now very small:
+
+- run a real browser smoke of the booking retry flow
+- optionally add richer client-side previews/progress affordances later
