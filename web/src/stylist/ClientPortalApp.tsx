@@ -21,7 +21,6 @@ export function ClientPortalApp({ unstyled, themeVars }: ClientPortalAppProps) {
   const dispatch = useAppDispatch();
   const screen = useAppSelector(s => s.portal.screen);
   const activeTab = useAppSelector(s => s.portal.activeTab);
-  const user = useAppSelector(s => s.portal.user);
   const session = useSessionBootstrap();
 
   const rootStyle: React.CSSProperties = themeVars
@@ -65,7 +64,7 @@ export function ClientPortalApp({ unstyled, themeVars }: ClientPortalAppProps) {
     );
   }
 
-  const initials = session.client?.name ? getInitials(session.client.name) : user.initials;
+  const initials = session.client?.name ? getInitials(session.client.name) : "CL";
 
   return (
     <div

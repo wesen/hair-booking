@@ -1,15 +1,37 @@
 import { useAppSelector, useAppDispatch } from "../store";
 import { goBackFromProfile, toggleNotificationPref } from "../store/portalSlice";
 import { goToScreen } from "../store/consultationSlice";
-import { useSessionBootstrap } from "../store/api";
+import { usePortalProfileView, useSessionBootstrap } from "../store/api";
 import { NotificationPrefs } from "../components/NotificationPrefs";
 import { Icon } from "../components/Icon";
 
 export function PortalProfilePage() {
   const dispatch = useAppDispatch();
-  const user = useAppSelector(s => s.portal.user);
   const notifPrefs = useAppSelector(s => s.portal.notificationPrefs);
   const session = useSessionBootstrap();
+  const { user, isLoading, errorMessage } = usePortalProfileView();
+
+  if (isLoading) {
+    return (
+      <div data-part="page-content">
+        <div data-part="section-heading" style={{ marginBottom: 8 }}>Profile</div>
+        <div style={{ fontSize: 14, color: "var(--color-text-muted)", lineHeight: 1.7 }}>
+          Loading your profile...
+        </div>
+      </div>
+    );
+  }
+
+  if (errorMessage || !user) {
+    return (
+      <div data-part="page-content">
+        <div data-part="section-heading" style={{ marginBottom: 8 }}>Profile</div>
+        <div style={{ fontSize: 14, color: "var(--color-danger)", lineHeight: 1.7 }}>
+          {errorMessage ?? "We could not load your profile yet."}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div data-part="page-content">

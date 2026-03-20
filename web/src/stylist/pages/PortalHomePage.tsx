@@ -1,17 +1,41 @@
-import { useAppSelector, useAppDispatch } from "../store";
-import { goToProfile, cancelAppointment } from "../store/portalSlice";
-import { PortalTopBar } from "../components/PortalTopBar";
+import { useAppSelector } from "../store";
 import { NextAppointmentCard } from "../components/NextAppointmentCard";
 import { LoyaltyBadgeCompact } from "../components/LoyaltyBadgeCompact";
 import { MaintenancePlanCard } from "../components/MaintenancePlanCard";
+import { usePortalHomeView } from "../store/api";
 
 export function PortalHomePage() {
-  const dispatch = useAppDispatch();
-  const user = useAppSelector(s => s.portal.user);
-  const appointments = useAppSelector(s => s.portal.appointments);
-  const maintenance = useAppSelector(s => s.portal.maintenance);
+  const rewardsUser = useAppSelector(s => s.portal.user);
+  const { user, nextAppointment, maintenance, isLoading, errorMessage } = usePortalHomeView();
 
-  const nextAppt = appointments.find(a => a.status === "confirmed" || a.status === "pending");
+  if (isLoading) {
+    return (
+      <div data-part="page-content">
+        <div data-part="greeting">Loading your portal...</div>
+      </div>
+    );
+  }
+
+  if (errorMessage || !user) {
+    return (
+      <div data-part="page-content">
+        <div data-part="section-heading" style={{ marginBottom: 8 }}>Client Portal</div>
+        <div style={{ fontSize: 14, color: "var(--color-danger)", lineHeight: 1.7 }}>
+          {errorMessage ?? "We could not load your portal summary yet."}
+        </div>
+      </div>
+    );
+  }
+
+  const loyaltyUser = {
+    ...rewardsUser,
+    name: user.name,
+    email: user.email,
+    phone: user.phone,
+    since: user.since,
+    initials: user.initials,
+    serviceDescription: user.serviceDescription,
+  };
   const firstName = user.name.split(" ")[0];
   const tierIcons: Record<string, string> = { Bronze: "\u{1F949}", Silver: "\u{1F948}", Gold: "\u{1F947}", Diamond: "\u{1F48E}" };
 
@@ -19,21 +43,20 @@ export function PortalHomePage() {
     <div data-part="page-content">
       <div data-part="greeting">Hi, {firstName} {"\u{2600}\u{FE0F}"}</div>
 
-      {nextAppt && (
+      {nextAppointment && (
         <NextAppointmentCard
-          service={nextAppt.service}
-          date={nextAppt.date.replace(", 2026", "")}
-          time={nextAppt.time}
-          onCancel={() => dispatch(cancelAppointment(nextAppt.id))}
+          service={nextAppointment.service}
+          date={nextAppointment.date.replace(", 2026", "")}
+          time={nextAppointment.time}
         />
       )}
 
       <LoyaltyBadgeCompact
-        tier={user.tier}
-        tierIcon={tierIcons[user.tier] || "\u{1F949}"}
-        points={user.points}
-        pointsToNext={user.pointsToNext}
-        nextTier={user.nextTier}
+        tier={loyaltyUser.tier}
+        tierIcon={tierIcons[loyaltyUser.tier] || "\u{1F949}"}
+        points={loyaltyUser.points}
+        pointsToNext={loyaltyUser.pointsToNext}
+        nextTier={loyaltyUser.nextTier}
       />
 
       <MaintenancePlanCard items={maintenance} />

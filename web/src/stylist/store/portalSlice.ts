@@ -3,8 +3,6 @@ import type {
   PortalTab,
   PortalScreen,
   UserProfile,
-  AppointmentDetail,
-  MaintenanceItem,
   PhotoEntry,
   PointsHistoryItem,
   RedeemableReward,
@@ -12,8 +10,6 @@ import type {
 } from "../types";
 import {
   MOCK_USER,
-  MOCK_APPOINTMENTS,
-  MOCK_MAINTENANCE,
   MOCK_PHOTOS,
   MOCK_POINTS_HISTORY,
   MOCK_REDEEMABLE,
@@ -24,8 +20,6 @@ interface PortalState {
   screen: PortalScreen;
   activeTab: PortalTab;
   user: UserProfile;
-  appointments: AppointmentDetail[];
-  maintenance: MaintenanceItem[];
   photos: PhotoEntry[];
   pointsHistory: PointsHistoryItem[];
   redeemable: RedeemableReward[];
@@ -37,8 +31,6 @@ const initialState: PortalState = {
   screen: "home",
   activeTab: "home",
   user: MOCK_USER,
-  appointments: MOCK_APPOINTMENTS,
-  maintenance: MOCK_MAINTENANCE,
   photos: MOCK_PHOTOS,
   pointsHistory: MOCK_POINTS_HISTORY,
   redeemable: MOCK_REDEEMABLE,
@@ -63,10 +55,6 @@ const portalSlice = createSlice({
     setAppointmentFilter(state, action: PayloadAction<"upcoming" | "past">) {
       state.appointmentFilter = action.payload;
     },
-    cancelAppointment(state, action: PayloadAction<number>) {
-      const appt = state.appointments.find(a => a.id === action.payload);
-      if (appt) appt.status = "cancelled";
-    },
     toggleNotificationPref(state, action: PayloadAction<string>) {
       const pref = state.notificationPrefs.find(p => p.key === action.payload);
       if (pref) pref.on = !pref.on;
@@ -89,7 +77,6 @@ export const {
   goToProfile,
   goBackFromProfile,
   setAppointmentFilter,
-  cancelAppointment,
   toggleNotificationPref,
   redeemReward,
 } = portalSlice.actions;
