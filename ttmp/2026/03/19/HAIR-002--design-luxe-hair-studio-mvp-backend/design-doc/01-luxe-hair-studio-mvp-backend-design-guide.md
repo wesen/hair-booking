@@ -8,12 +8,24 @@ DocType: design-doc
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: cmd/hair-booking/cmds/serve.go
+      Note: Server startup wiring for DB and auto-migrate
     - Path: docker-compose.local.yml
       Note: Local development stack that already provisions Keycloak and needs an application Postgres service
     - Path: pkg/auth/config.go
       Note: Existing Keycloak/OIDC configuration surface
     - Path: pkg/auth/oidc.go
       Note: Existing browser login and callback flow
+    - Path: pkg/config/backend.go
+      Note: Backend config surface for application database and storage
+    - Path: pkg/db/migrations.go
+      Note: Embedded SQL migration runner
+    - Path: pkg/db/migrations/0001_init.sql
+      Note: Initial domain schema without auth_codes
+    - Path: pkg/db/migrations/0002_seed_services.sql
+      Note: Seed service catalog for later routes
+    - Path: pkg/db/postgres.go
+      Note: Application Postgres connection bootstrap
     - Path: pkg/server/http.go
       Note: Current router and authenticated /api/me baseline
     - Path: pkg/server/http_test.go
@@ -30,6 +42,7 @@ LastUpdated: 2026-03-20T08:30:00-04:00
 WhatFor: Use this document to implement the first production-backed version of the Luxe Hair Studio booking flow and client portal with Keycloak-based sign-in.
 WhenToUse: Use when replacing the imported Storybook mocks with a real Go + PostgreSQL backend that reuses the existing Keycloak OIDC login flow.
 ---
+
 
 # Luxe Hair Studio MVP Backend Design Guide
 

@@ -8,26 +8,35 @@ DocType: reference
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: cmd/hair-booking/cmds/serve.go
+      Note: Recorded startup DB initialization in the implementation diary
+    - Path: docker-compose.local.yml
+      Note: Recorded the new local application Postgres service
     - Path: pkg/auth/oidc.go
       Note: Existing Keycloak/OIDC flow that now anchors the backend auth direction
+    - Path: pkg/config/backend.go
+      Note: Recorded the new backend configuration surface in the implementation diary
+    - Path: pkg/db/migrations.go
+      Note: Recorded the migration bootstrap slice in the implementation diary
     - Path: pkg/server/http.go
       Note: Existing authenticated /api/me baseline
-    - Path: web/src/stylist/pages/SignInPage.tsx
-      Note: OTP-oriented UI that now needs to be replaced
-    - Path: web/src/stylist/pages/VerifyCodePage.tsx
-      Note: OTP-oriented UI that now needs to be removed
+    - Path: ttmp/2026/03/19/HAIR-002--design-luxe-hair-studio-mvp-backend/design-doc/01-luxe-hair-studio-mvp-backend-design-guide.md
+      Note: Primary design deliverable tracked by this diary
     - Path: web/src/stylist/data/consultation-constants.ts
       Note: Booking and intake field definitions
     - Path: web/src/stylist/data/portal-data.ts
       Note: Mock portal records that the backend must replace
-    - Path: ttmp/2026/03/19/HAIR-002--design-luxe-hair-studio-mvp-backend/design-doc/01-luxe-hair-studio-mvp-backend-design-guide.md
-      Note: Primary design deliverable tracked by this diary
+    - Path: web/src/stylist/pages/SignInPage.tsx
+      Note: OTP-oriented UI that now needs to be replaced
+    - Path: web/src/stylist/pages/VerifyCodePage.tsx
+      Note: OTP-oriented UI that now needs to be removed
 ExternalSources: []
 Summary: Chronological diary for the HAIR-002 backend MVP design and implementation work.
 LastUpdated: 2026-03-20T08:30:00-04:00
 WhatFor: Use this diary to understand why the backend plan changed and what implementation slices were executed.
 WhenToUse: Use when reviewing or continuing HAIR-002.
 ---
+
 
 # Investigation Diary
 
@@ -281,3 +290,78 @@ Update the plan, then create detailed tasks for the all the different features. 
   - `ttmp/2026/03/19/HAIR-002--design-luxe-hair-studio-mvp-backend/design-doc/01-luxe-hair-studio-mvp-backend-design-guide.md`
   - `ttmp/2026/03/19/HAIR-002--design-luxe-hair-studio-mvp-backend/reference/01-investigation-diary.md`
   - `ttmp/2026/03/19/HAIR-002--design-luxe-hair-studio-mvp-backend/tasks.md`
+
+## Step 3: Implement The Backend Foundation Slice
+
+With the ticket reset complete, I started at the bottom of the stack. The first code slice added the application database runtime without trying to mix in booking or portal behavior yet. That kept the change set narrow: local Postgres service, backend settings, DB bootstrap, embedded migrations, startup migration support, and a small amount of server wiring so future handlers have a place to plug into.
+
+This slice intentionally stopped short of adding feature routes. The goal was to create a clean platform for later work, not to rush partial business logic into the server before the persistence layer existed.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Start working through the detailed tasks in order and commit each coherent implementation slice.
+
+**Inferred user intent:** See real backend progress immediately after the plan change, beginning with the infrastructure all later features depend on.
+
+**Commit (code):** `105829b` — `feat: add backend postgres foundation`
+
+### What I did
+- Added an application Postgres service to `docker-compose.local.yml`.
+- Added `pkg/config/backend.go` with a Glazed config section for database and storage settings.
+- Added `pkg/db/postgres.go` to open and manage the application pool.
+- Added `pkg/db/migrations.go` plus embedded SQL migrations.
+- Added `0001_init.sql` without `auth_codes` or app-side `sessions`.
+- Added `0002_seed_services.sql` with an initial service catalog.
+- Updated `cmd/hair-booking/cmds/serve.go` to load backend settings, open the DB, and auto-migrate on startup.
+- Updated `pkg/server/http.go` so the server now knows whether a DB is configured.
+- Added tests for backend config normalization and migration discovery.
+
+### Why
+- Every later feature in the ticket depends on Postgres schema and runtime configuration.
+- This slice creates a testable, reviewable foundation while preserving the current Keycloak login behavior.
+
+### What worked
+- `gofmt` completed cleanly.
+- `go mod tidy` completed cleanly.
+- `go test ./...` passed after the foundation files were added.
+- The startup path can now open the application DB and apply migrations when `HAIR_BOOKING_DATABASE_URL` is configured.
+
+### What didn't work
+- No blocking implementation errors occurred in this slice.
+- One review caveat remains: because the worktree already contained broader repo changes outside HAIR-002, I staged only the files directly related to the backend foundation slice.
+
+### What I learned
+- The current server structure is small enough that startup DB initialization fits naturally into `serve.go` without a separate bootstrap layer.
+- Embedded SQL migrations are sufficient for the MVP and avoid adding another migration tool before the schema has stabilized.
+
+### What was tricky to build
+- The main sharp edge was deciding how much schema to include in the initial migrations. I chose to add the full core schema without OTP tables so later slices can focus on route logic instead of repeatedly rewriting foundational SQL.
+
+### What warrants a second pair of eyes
+- Whether the app should auto-migrate on startup by default in all environments or only in local development.
+- Whether the initial service seed rows belong in SQL or should move to a dedicated seeding path once admin workflows exist.
+
+### What should be done in the future
+- Build the next slice on top of this foundation: real `clients` bootstrap from OIDC claims, `notification_prefs`, `GET /api/me`, and `GET /api/services`.
+
+### Code review instructions
+- Start with `pkg/config/backend.go`, `pkg/db/postgres.go`, and `pkg/db/migrations.go`.
+- Then review `0001_init.sql` and `0002_seed_services.sql`.
+- Finally inspect `cmd/hair-booking/cmds/serve.go` and `pkg/server/http.go` to confirm runtime wiring.
+- Re-run:
+
+```bash
+go test ./...
+```
+
+### Technical details
+- Commands run:
+
+```bash
+gofmt -w cmd/hair-booking/cmds/serve.go pkg/config/backend.go pkg/config/backend_test.go pkg/db/postgres.go pkg/db/migrations.go pkg/db/migrations_test.go pkg/server/http.go
+go mod tidy
+go test ./...
+git commit -m "feat: add backend postgres foundation"
+```

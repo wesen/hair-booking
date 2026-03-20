@@ -24,3 +24,15 @@ Retargeted HAIR-002 to use the existing Keycloak/OIDC browser flow instead of ap
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/ttmp/2026/03/19/HAIR-002--design-luxe-hair-studio-mvp-backend/design-doc/01-luxe-hair-studio-mvp-backend-design-guide.md — Updated backend design to Keycloak-backed auth
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/ttmp/2026/03/19/HAIR-002--design-luxe-hair-studio-mvp-backend/reference/01-investigation-diary.md — Recorded the auth-direction change and implementation plan reset
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/ttmp/2026/03/19/HAIR-002--design-luxe-hair-studio-mvp-backend/tasks.md — Replaced generic ticket work with detailed implementation tasks
+
+Implemented the Phase 1 backend foundation slice in commit `105829b`, adding application Postgres wiring, backend runtime config, embedded SQL migrations, startup migration support, and local test coverage.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/cmd/hair-booking/cmds/serve.go — Startup now loads backend settings, opens the application DB, and applies migrations
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/config/backend.go — New backend configuration section and normalization logic
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/db/postgres.go — Application Postgres connection entrypoint
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/db/migrations.go — Embedded migration runner
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/db/migrations/0001_init.sql — Initial schema without OTP tables
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/db/migrations/0002_seed_services.sql — Seeded service catalog for later slices
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docker-compose.local.yml — Added application Postgres service for local development

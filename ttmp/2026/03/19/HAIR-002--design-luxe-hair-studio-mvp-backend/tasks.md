@@ -8,13 +8,13 @@
 
 ## Phase 1: Foundation
 
-- [ ] Add an application Postgres service to `docker-compose.local.yml`
-- [ ] Add backend config for database URL, storage mode, local upload dir, and public base URL
-- [ ] Add a Postgres connection package
-- [ ] Add embedded SQL migrations without `auth_codes`
-- [ ] Add a migration runner or startup migration path
-- [ ] Wire the server startup to initialize the database layer
-- [ ] Add tests for backend config loading and DB bootstrap helpers
+- [x] Add an application Postgres service to `docker-compose.local.yml`
+- [x] Add backend config for database URL, storage mode, local upload dir, and public base URL
+- [x] Add a Postgres connection package
+- [x] Add embedded SQL migrations without `auth_codes`
+- [x] Add a migration runner or startup migration path
+- [x] Wire the server startup to initialize the database layer
+- [x] Add tests for backend config loading and DB bootstrap helpers
 
 ## Phase 2: Services Catalog And Client Bootstrap
 
