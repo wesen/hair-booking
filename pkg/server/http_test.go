@@ -411,6 +411,54 @@ func TestHandleStylistAppointmentUpdateRejectsInvalidStatus(t *testing.T) {
 	}
 }
 
+func TestHandleStylistAppointmentPhotoUploadsFile(t *testing.T) {
+	appointmentID := uuid.New()
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+		AppointmentService: hairappointments.NewService(&fakeAppointmentRepo{}, &fakeBlobStore{}),
+	})
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	if err := writer.WriteField("slot", "before"); err != nil {
+		t.Fatalf("WriteField returned error: %v", err)
+	}
+	if err := writer.WriteField("caption", "Fresh install"); err != nil {
+		t.Fatalf("WriteField returned error: %v", err)
+	}
+	part, err := writer.CreateFormFile("file", "before.png")
+	if err != nil {
+		t.Fatalf("CreateFormFile returned error: %v", err)
+	}
+	if _, err := part.Write([]byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n'}); err != nil {
+		t.Fatalf("failed to write multipart file: %v", err)
+	}
+	if err := writer.Close(); err != nil {
+		t.Fatalf("Close returned error: %v", err)
+	}
+
+	request := httptest.NewRequest(http.MethodPost, "/api/stylist/appointments/"+appointmentID.String()+"/photos", body)
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+	request.SetPathValue("id", appointmentID.String())
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusCreated {
+		t.Fatalf("expected 201, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"photo\"") || !strings.Contains(recorder.Body.String(), "\"slot\":\"before\"") {
+		t.Fatalf("expected created photo payload, got %s", recorder.Body.String())
+	}
+}
+
 func TestHandleStylistIntakeDetailNotFound(t *testing.T) {
 	service := hairstylist.NewService(&fakeStylistRepo{detailErr: hairstylist.ErrNotFound})
 	handler := NewHandler(HandlerOptions{
@@ -873,6 +921,18 @@ func (f *fakeAppointmentRepo) ListAppointmentPhotos(ctx context.Context, appoint
 	return f.photos, nil
 }
 
+func (f *fakeAppointmentRepo) AddAppointmentPhoto(ctx context.Context, appointmentID uuid.UUID, slot, storageKey, url, caption string) (*hairappointments.AppointmentPhoto, error) {
+	photo := &hairappointments.AppointmentPhoto{
+		ID:         uuid.New(),
+		Slot:       slot,
+		StorageKey: storageKey,
+		URL:        url,
+		Caption:    caption,
+	}
+	f.photos = append(f.photos, *photo)
+	return photo, nil
+}
+
 func (f *fakeAppointmentRepo) UpdateAppointmentSchedule(ctx context.Context, clientID, appointmentID uuid.UUID, date, startTime string) (*hairappointments.Appointment, error) {
 	return &hairappointments.Appointment{
 		ID:                  appointmentID,
@@ -1081,7 +1141,7 @@ func TestHandleIntakePhotoUploadsFile(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateFormFile returned error: %v", err)
 	}
-	if _, err := part.Write([]byte("png")); err != nil {
+	if _, err := part.Write([]byte{0x89, 'P', 'N', 'G', '\r', '\n', 0x1a, '\n'}); err != nil {
 		t.Fatalf("failed to write multipart file: %v", err)
 	}
 	if err := writer.Close(); err != nil {
@@ -1100,6 +1160,43 @@ func TestHandleIntakePhotoUploadsFile(t *testing.T) {
 	}
 	if !strings.Contains(recorder.Body.String(), "\"url\"") {
 		t.Fatalf("expected response body to include photo URL, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandleIntakePhotoRejectsInvalidMimeType(t *testing.T) {
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html":    &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+			"static/app.js": &fstest.MapFile{Data: []byte("console.log('ok');")},
+		},
+		IntakeService: hairintake.NewService(&fakeIntakeRepo{}, &fakeBlobStore{}),
+	})
+
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+	_ = writer.WriteField("slot", "front")
+	part, _ := writer.CreateFormFile("file", "notes.txt")
+	_, _ = part.Write([]byte("plain text is not an image"))
+	_ = writer.Close()
+
+	intakeID := uuid.New()
+	request := httptest.NewRequest(http.MethodPost, "/api/intake/"+intakeID.String()+"/photos", body)
+	request.Header.Set("Content-Type", writer.FormDataContentType())
+	request.SetPathValue("id", intakeID.String())
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"invalid-photo-file\"") {
+		t.Fatalf("expected invalid-photo-file error, got %s", recorder.Body.String())
 	}
 }
 

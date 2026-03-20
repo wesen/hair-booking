@@ -134,7 +134,7 @@ func NewHTTPServer(ctx context.Context, options ServerOptions) (*http.Server, er
 	stylistService := options.StylistService
 	if options.Database != nil && options.Database.Pool() != nil {
 		if appointmentService == nil {
-			appointmentService = hairappointments.NewService(hairappointments.NewPostgresRepository(options.Database.Pool()))
+			appointmentService = hairappointments.NewService(hairappointments.NewPostgresRepository(options.Database.Pool()), options.Storage)
 		}
 		if clientService == nil {
 			clientService = hairclients.NewService(hairclients.NewPostgresRepository(options.Database.Pool()))
@@ -225,6 +225,7 @@ func NewHandler(options HandlerOptions) http.Handler {
 	mux.HandleFunc("GET /api/stylist/appointments", h.handleStylistAppointments)
 	mux.HandleFunc("GET /api/stylist/appointments/{id}", h.handleStylistAppointmentDetail)
 	mux.HandleFunc("PATCH /api/stylist/appointments/{id}", h.handleStylistAppointmentUpdate)
+	mux.HandleFunc("POST /api/stylist/appointments/{id}/photos", h.handleStylistAppointmentPhoto)
 	mux.HandleFunc("GET /api/stylist/clients", h.handleStylistClients)
 	mux.HandleFunc("GET /api/stylist/clients/{id}", h.handleStylistClientDetail)
 

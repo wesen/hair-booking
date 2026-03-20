@@ -132,7 +132,7 @@ func (h *appHandler) handleIntakePhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseMultipartForm(10 << 20); err != nil {
+	if err := r.ParseMultipartForm(maxPhotoUploadBytes); err != nil {
 		writeAPIError(w, http.StatusBadRequest, "invalid-form", "Request body must be multipart/form-data.")
 		return
 	}
@@ -145,7 +145,13 @@ func (h *appHandler) handleIntakePhoto(w http.ResponseWriter, r *http.Request) {
 	}
 	defer func() { _ = file.Close() }()
 
-	photo, err := h.intakeService.AddPhoto(r.Context(), intakeID, slot, header.Filename, file)
+	reader, err := readValidatedPhotoUpload(file, header)
+	if err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid-photo-file", err.Error())
+		return
+	}
+
+	photo, err := h.intakeService.AddPhoto(r.Context(), intakeID, slot, header.Filename, reader)
 	if err != nil {
 		writeAPIError(w, http.StatusBadRequest, "photo-upload-failed", err.Error())
 		return

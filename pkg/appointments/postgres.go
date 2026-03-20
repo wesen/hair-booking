@@ -365,6 +365,28 @@ order by slot, id
 	return photos, nil
 }
 
+func (r *PostgresRepository) AddAppointmentPhoto(ctx context.Context, appointmentID uuid.UUID, slot, storageKey, url, caption string) (*AppointmentPhoto, error) {
+	if r == nil || r.pool == nil {
+		return nil, errors.New("postgres pool is not configured")
+	}
+
+	photo := &AppointmentPhoto{}
+	row := r.pool.QueryRow(ctx, `
+insert into appointment_photos(id, appointment_id, slot, storage_key, url, caption)
+select $1, $2, $3, $4, $5, nullif($6, '')
+where exists(select 1 from appointments where id = $2)
+returning id, slot, storage_key, url, coalesce(caption, '')
+`, uuid.New(), appointmentID, slot, storageKey, url, caption)
+	if err := row.Scan(&photo.ID, &photo.Slot, &photo.StorageKey, &photo.URL, &photo.Caption); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) || strings.Contains(err.Error(), "no rows") {
+			return nil, errors.Wrap(ErrNotFound, "appointment not found")
+		}
+		return nil, errors.Wrap(err, "failed to create appointment photo")
+	}
+
+	return photo, nil
+}
+
 func (r *PostgresRepository) UpdateAppointmentSchedule(ctx context.Context, clientID, appointmentID uuid.UUID, date, startTime string) (*Appointment, error) {
 	if r == nil || r.pool == nil {
 		return nil, errors.New("postgres pool is not configured")

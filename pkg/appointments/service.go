@@ -3,10 +3,14 @@ package appointments
 import (
 	"context"
 	"fmt"
+	"io"
+	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
 
+	hairstorage "github.com/go-go-golems/hair-booking/pkg/storage"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 )
@@ -16,6 +20,7 @@ var (
 	ErrNotFound        = errors.New("appointment resource not found")
 	ErrSlotUnavailable = errors.New("appointment slot unavailable")
 	ErrPolicyViolation = errors.New("appointment policy violation")
+	filenameSanitizer  = regexp.MustCompile(`[^a-zA-Z0-9._-]+`)
 )
 
 const (
@@ -130,21 +135,56 @@ type Repository interface {
 	ListClientAppointments(ctx context.Context, clientID uuid.UUID) ([]PortalAppointment, error)
 	GetClientAppointment(ctx context.Context, clientID, appointmentID uuid.UUID) (*PortalAppointment, error)
 	ListAppointmentPhotos(ctx context.Context, appointmentID uuid.UUID) ([]AppointmentPhoto, error)
+	AddAppointmentPhoto(ctx context.Context, appointmentID uuid.UUID, slot, storageKey, url, caption string) (*AppointmentPhoto, error)
 	UpdateAppointmentSchedule(ctx context.Context, clientID, appointmentID uuid.UUID, date, startTime string) (*Appointment, error)
 	CancelAppointment(ctx context.Context, clientID, appointmentID uuid.UUID, reason string, cancelledAt time.Time) (*Appointment, error)
 	GetMaintenancePlan(ctx context.Context, clientID uuid.UUID) (*MaintenancePlan, []MaintenancePlanItem, error)
 }
 
 type Service struct {
-	repo Repository
+	repo    Repository
+	storage hairstorage.BlobStore
 }
 
 var nowFunc = func() time.Time {
 	return time.Now().UTC()
 }
 
-func NewService(repo Repository) *Service {
-	return &Service{repo: repo}
+func NewService(repo Repository, blobStore ...hairstorage.BlobStore) *Service {
+	service := &Service{repo: repo}
+	if len(blobStore) > 0 {
+		service.storage = blobStore[0]
+	}
+	return service
+}
+
+func (s *Service) AddAppointmentPhoto(ctx context.Context, appointmentID uuid.UUID, slot, caption, filename string, reader io.Reader) (*AppointmentPhoto, error) {
+	if s == nil || s.repo == nil {
+		return nil, errors.New("appointments repository is not configured")
+	}
+	if s.storage == nil {
+		return nil, errors.New("blob store is not configured")
+	}
+	if appointmentID == uuid.Nil {
+		return nil, errors.Wrap(ErrInvalidInput, "appointment_id is required")
+	}
+
+	slot = strings.ToLower(strings.TrimSpace(slot))
+	switch slot {
+	case "before", "after":
+	default:
+		return nil, errors.Wrap(ErrInvalidInput, "slot must be before or after")
+	}
+
+	caption = strings.TrimSpace(caption)
+	cleanName := sanitizeUploadFilename(filename)
+	storageKey := filepath.ToSlash(filepath.Join("appointment", appointmentID.String(), uuid.NewString()+"-"+cleanName))
+	saved, err := s.storage.Save(ctx, storageKey, reader)
+	if err != nil {
+		return nil, err
+	}
+
+	return s.repo.AddAppointmentPhoto(ctx, appointmentID, slot, saved.StorageKey, saved.URL, caption)
 }
 
 func (s *Service) Availability(ctx context.Context, month string, serviceID *uuid.UUID) (map[string][]string, error) {
@@ -781,6 +821,18 @@ func containsMinute(values []int, target int) bool {
 		}
 	}
 	return false
+}
+
+func sanitizeUploadFilename(filename string) string {
+	filename = filepath.Base(strings.TrimSpace(filename))
+	if filename == "." || filename == "" {
+		return "upload.bin"
+	}
+	filename = filenameSanitizer.ReplaceAllString(filename, "_")
+	if filename == "" {
+		return "upload.bin"
+	}
+	return filename
 }
 
 func (a Appointment) String() string {

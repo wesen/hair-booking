@@ -3,9 +3,12 @@ package appointments
 import (
 	"context"
 	"errors"
+	"io"
+	"strings"
 	"testing"
 	"time"
 
+	hairstorage "github.com/go-go-golems/hair-booking/pkg/storage"
 	"github.com/google/uuid"
 )
 
@@ -21,10 +24,20 @@ type fakeRepository struct {
 	portalRows       []PortalAppointment
 	portalDetail     *PortalAppointment
 	photos           []AppointmentPhoto
+	addedPhoto       *AppointmentPhoto
 	maintenance      *MaintenancePlan
 	maintenanceItems []MaintenancePlanItem
 	rescheduled      *Appointment
 	cancelled        *Appointment
+}
+
+type fakeBlobStore struct{}
+
+func (f *fakeBlobStore) Save(ctx context.Context, key string, reader io.Reader) (*hairstorage.SavedObject, error) {
+	return &hairstorage.SavedObject{
+		StorageKey: key,
+		URL:        "http://127.0.0.1:8080/uploads/" + key,
+	}, nil
 }
 
 func (f *fakeRepository) ListScheduleBlocks(ctx context.Context) ([]ScheduleBlock, error) {
@@ -78,6 +91,18 @@ func (f *fakeRepository) GetClientAppointment(ctx context.Context, clientID, app
 
 func (f *fakeRepository) ListAppointmentPhotos(ctx context.Context, appointmentID uuid.UUID) ([]AppointmentPhoto, error) {
 	return f.photos, nil
+}
+
+func (f *fakeRepository) AddAppointmentPhoto(ctx context.Context, appointmentID uuid.UUID, slot, storageKey, url, caption string) (*AppointmentPhoto, error) {
+	photo := &AppointmentPhoto{
+		ID:         uuid.New(),
+		Slot:       slot,
+		StorageKey: storageKey,
+		URL:        url,
+		Caption:    caption,
+	}
+	f.addedPhoto = photo
+	return photo, nil
 }
 
 func (f *fakeRepository) UpdateAppointmentSchedule(ctx context.Context, clientID, appointmentID uuid.UUID, date, startTime string) (*Appointment, error) {
@@ -348,5 +373,36 @@ func TestCancelClientAppointmentRejectsInside24Hours(t *testing.T) {
 	}
 	if !errors.Is(err, ErrPolicyViolation) {
 		t.Fatalf("expected ErrPolicyViolation, got %v", err)
+	}
+}
+
+func TestAddAppointmentPhotoStoresValidatedPhoto(t *testing.T) {
+	appointmentID := uuid.New()
+	repo := &fakeRepository{}
+	service := NewService(repo, &fakeBlobStore{})
+
+	photo, err := service.AddAppointmentPhoto(context.Background(), appointmentID, "before", "Fresh install", "before.png", strings.NewReader("fake-image-bytes"))
+	if err != nil {
+		t.Fatalf("AddAppointmentPhoto returned error: %v", err)
+	}
+	if photo.Slot != "before" {
+		t.Fatalf("expected before slot, got %q", photo.Slot)
+	}
+	if photo.Caption != "Fresh install" {
+		t.Fatalf("expected caption to be preserved, got %q", photo.Caption)
+	}
+	if repo.addedPhoto == nil || !strings.Contains(repo.addedPhoto.StorageKey, "appointment/"+appointmentID.String()+"/") {
+		t.Fatalf("expected appointment photo to be saved under appointment prefix, got %#v", repo.addedPhoto)
+	}
+}
+
+func TestAddAppointmentPhotoRejectsInvalidSlot(t *testing.T) {
+	service := NewService(&fakeRepository{}, &fakeBlobStore{})
+	_, err := service.AddAppointmentPhoto(context.Background(), uuid.New(), "front", "", "front.png", strings.NewReader("fake-image-bytes"))
+	if err == nil {
+		t.Fatal("expected invalid slot to fail")
+	}
+	if !errors.Is(err, ErrInvalidInput) {
+		t.Fatalf("expected ErrInvalidInput, got %v", err)
 	}
 }

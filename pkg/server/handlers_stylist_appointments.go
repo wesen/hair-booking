@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 
+	hairappointments "github.com/go-go-golems/hair-booking/pkg/appointments"
 	hairstylist "github.com/go-go-golems/hair-booking/pkg/stylist"
 	"github.com/google/uuid"
 )
@@ -19,6 +20,10 @@ type stylistAppointmentDetailResponse struct {
 
 type stylistAppointmentUpdateResponse struct {
 	Appointment *hairstylist.Appointment `json:"appointment"`
+}
+
+type stylistAppointmentPhotoResponse struct {
+	Photo *hairappointments.AppointmentPhoto `json:"photo"`
 }
 
 type stylistAppointmentUpdateRequest struct {
@@ -133,4 +138,56 @@ func (h *appHandler) handleStylistAppointmentUpdate(w http.ResponseWriter, r *ht
 	}
 
 	writeJSON(w, http.StatusOK, apiEnvelope{Data: stylistAppointmentUpdateResponse{Appointment: appointment}})
+}
+
+func (h *appHandler) handleStylistAppointmentPhoto(w http.ResponseWriter, r *http.Request) {
+	if _, status, apiErr := h.currentStylist(r); apiErr != nil {
+		writeAPIError(w, status, apiErr.Code, apiErr.Message)
+		return
+	}
+	if h.appointmentService == nil {
+		writeAPIError(w, http.StatusInternalServerError, "backend-not-configured", "Appointment service is not configured.")
+		return
+	}
+
+	appointmentID, err := uuid.Parse(r.PathValue("id"))
+	if err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid-appointment-id", "Appointment ID must be a valid UUID.")
+		return
+	}
+
+	if err := r.ParseMultipartForm(maxPhotoUploadBytes); err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid-form", "Request body must be multipart/form-data.")
+		return
+	}
+
+	slot := r.FormValue("slot")
+	caption := r.FormValue("caption")
+	file, header, err := r.FormFile("file")
+	if err != nil {
+		writeAPIError(w, http.StatusBadRequest, "missing-file", "A file upload is required.")
+		return
+	}
+	defer func() { _ = file.Close() }()
+
+	reader, err := readValidatedPhotoUpload(file, header)
+	if err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid-photo-file", err.Error())
+		return
+	}
+
+	photo, serviceErr := h.appointmentService.AddAppointmentPhoto(r.Context(), appointmentID, slot, caption, header.Filename, reader)
+	if serviceErr != nil {
+		switch {
+		case errors.Is(serviceErr, hairappointments.ErrInvalidInput):
+			writeAPIError(w, http.StatusBadRequest, "invalid-appointment-photo", serviceErr.Error())
+		case errors.Is(serviceErr, hairappointments.ErrNotFound):
+			writeAPIError(w, http.StatusNotFound, "stylist-appointment-not-found", serviceErr.Error())
+		default:
+			writeAPIError(w, http.StatusInternalServerError, "appointment-photo-upload-failed", "Failed to upload the appointment photo.")
+		}
+		return
+	}
+
+	writeJSON(w, http.StatusCreated, apiEnvelope{Data: stylistAppointmentPhotoResponse{Photo: photo}})
 }
