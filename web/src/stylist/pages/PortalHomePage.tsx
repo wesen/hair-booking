@@ -2,11 +2,14 @@ import { useAppSelector } from "../store";
 import { NextAppointmentCard } from "../components/NextAppointmentCard";
 import { LoyaltyBadgeCompact } from "../components/LoyaltyBadgeCompact";
 import { MaintenancePlanCard } from "../components/MaintenancePlanCard";
-import { usePortalHomeView } from "../store/api";
+import { getApiErrorMessage, useCancelMyAppointmentMutation, usePortalHomeView } from "../store/api";
+import { useState } from "react";
 
 export function PortalHomePage() {
   const rewardsUser = useAppSelector(s => s.portal.user);
   const { user, nextAppointment, maintenance, isLoading, errorMessage } = usePortalHomeView();
+  const [cancelMyAppointment] = useCancelMyAppointmentMutation();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -48,8 +51,29 @@ export function PortalHomePage() {
           service={nextAppointment.service}
           date={nextAppointment.date.replace(", 2026", "")}
           time={nextAppointment.time}
+          onCancel={nextAppointment.remoteId ? async () => {
+            const appointmentId = nextAppointment.remoteId;
+            if (!appointmentId) {
+              return;
+            }
+            setSubmitError(null);
+            try {
+              await cancelMyAppointment({
+                appointmentId,
+                body: { reason: "Cancelled from client portal" },
+              }).unwrap();
+            } catch (error) {
+              setSubmitError(getApiErrorMessage(error, "We could not cancel that appointment yet."));
+            }
+          } : undefined}
         />
       )}
+
+      {submitError ? (
+        <div style={{ fontSize: 13, color: "var(--color-danger)", marginTop: 10 }}>
+          {submitError}
+        </div>
+      ) : null}
 
       <LoyaltyBadgeCompact
         tier={loyaltyUser.tier}

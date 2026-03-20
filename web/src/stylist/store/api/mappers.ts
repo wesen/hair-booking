@@ -172,6 +172,7 @@ export function findConsultService(
 export function mapPortalAppointmentToAppointmentDetail(appointment: PortalAppointmentDto): AppointmentDetail {
   return {
     id: stableNumericId(appointment.id),
+    remoteId: appointment.id,
     date: appointment.date_label,
     service: appointment.service_name,
     time: appointment.start_time,

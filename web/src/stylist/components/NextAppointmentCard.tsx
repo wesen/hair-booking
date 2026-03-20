@@ -17,12 +17,16 @@ export function NextAppointmentCard({ service, date, time, onReschedule, onCance
         {date} · {time}
       </div>
       <div style={{ borderTop: "1px solid var(--color-border)", marginTop: 14, paddingTop: 12, display: "flex", gap: 8 }}>
-        <button data-part="btn-outline" style={{ flex: 1, padding: "10px 12px", fontSize: 13 }} onClick={onReschedule}>
-          Reschedule
-        </button>
-        <button data-part="btn-outline" style={{ flex: 1, padding: "10px 12px", fontSize: 13, color: "var(--color-danger)", borderColor: "var(--color-danger)" }} onClick={onCancel}>
-          Cancel
-        </button>
+        {onReschedule ? (
+          <button data-part="btn-outline" style={{ flex: 1, padding: "10px 12px", fontSize: 13 }} onClick={onReschedule}>
+            Reschedule
+          </button>
+        ) : null}
+        {onCancel ? (
+          <button data-part="btn-outline" style={{ flex: 1, padding: "10px 12px", fontSize: 13, color: "var(--color-danger)", borderColor: "var(--color-danger)" }} onClick={onCancel}>
+            Cancel
+          </button>
+        ) : null}
       </div>
     </div>
   );
