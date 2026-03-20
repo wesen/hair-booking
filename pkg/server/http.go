@@ -222,6 +222,9 @@ func NewHandler(options HandlerOptions) http.Handler {
 	mux.HandleFunc("GET /api/stylist/intakes", h.handleStylistIntakes)
 	mux.HandleFunc("GET /api/stylist/intakes/{id}", h.handleStylistIntakeDetail)
 	mux.HandleFunc("PATCH /api/stylist/intakes/{id}/review", h.handleStylistIntakeReview)
+	mux.HandleFunc("GET /api/stylist/appointments", h.handleStylistAppointments)
+	mux.HandleFunc("GET /api/stylist/appointments/{id}", h.handleStylistAppointmentDetail)
+	mux.HandleFunc("PATCH /api/stylist/appointments/{id}", h.handleStylistAppointmentUpdate)
 
 	if options.WebAuth != nil {
 		mux.HandleFunc("GET /auth/login", options.WebAuth.HandleLogin)

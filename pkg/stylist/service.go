@@ -105,12 +105,49 @@ type Dashboard struct {
 	UpcomingAppointments []DashboardAppointment `json:"upcoming_appointments"`
 }
 
+type AppointmentListFilter struct {
+	Status string
+	Limit  int
+	Offset int
+}
+
+type Appointment struct {
+	ID           uuid.UUID  `json:"id"`
+	ClientID     uuid.UUID  `json:"client_id"`
+	ClientName   string     `json:"client_name"`
+	ServiceID    uuid.UUID  `json:"service_id"`
+	ServiceName  string     `json:"service_name"`
+	IntakeID     *uuid.UUID `json:"intake_id,omitempty"`
+	Date         string     `json:"date"`
+	StartTime    string     `json:"start_time"`
+	Status       string     `json:"status"`
+	PrepNotes    string     `json:"prep_notes,omitempty"`
+	StylistNotes string     `json:"stylist_notes,omitempty"`
+	CancelledAt  *time.Time `json:"cancelled_at,omitempty"`
+	CancelReason string     `json:"cancel_reason,omitempty"`
+}
+
+type AppointmentDetail struct {
+	Appointment *Appointment           `json:"appointment"`
+	Client      *hairclients.Client    `json:"client,omitempty"`
+	Intake      *hairintake.Submission `json:"intake,omitempty"`
+}
+
+type AppointmentUpdate struct {
+	Status       *string `json:"status"`
+	PrepNotes    *string `json:"prep_notes"`
+	StylistNotes *string `json:"stylist_notes"`
+}
+
 type Repository interface {
 	ListIntakes(ctx context.Context, filter IntakeListFilter) ([]IntakeListItem, error)
 	GetIntake(ctx context.Context, intakeID uuid.UUID) (*IntakeDetail, error)
 	UpsertIntakeReview(ctx context.Context, intakeID uuid.UUID, update IntakeReviewUpdate, reviewedAt time.Time) (*IntakeReview, error)
 	GetDashboardIntakeStats(ctx context.Context) (*DashboardIntakeStats, error)
 	ListDashboardAppointments(ctx context.Context, startDate time.Time, limit int) ([]DashboardAppointment, error)
+	ListAppointments(ctx context.Context, filter AppointmentListFilter) ([]Appointment, error)
+	GetAppointment(ctx context.Context, appointmentID uuid.UUID) (*AppointmentDetail, error)
+	UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, update AppointmentUpdate, updatedAt time.Time) (*Appointment, error)
 }
 
 type Service struct {
@@ -227,6 +264,51 @@ func (s *Service) Dashboard(ctx context.Context) (*Dashboard, error) {
 	return dashboard, nil
 }
 
+func (s *Service) ListAppointments(ctx context.Context, filter AppointmentListFilter) ([]Appointment, error) {
+	if s == nil || s.repo == nil {
+		return nil, errors.New("stylist repository is not configured")
+	}
+
+	normalized, err := normalizeAppointmentListFilter(filter)
+	if err != nil {
+		return nil, err
+	}
+	return s.repo.ListAppointments(ctx, normalized)
+}
+
+func (s *Service) GetAppointment(ctx context.Context, appointmentID uuid.UUID) (*AppointmentDetail, error) {
+	if s == nil || s.repo == nil {
+		return nil, errors.New("stylist repository is not configured")
+	}
+	if appointmentID == uuid.Nil {
+		return nil, errors.Wrap(ErrInvalidInput, "appointment id is required")
+	}
+
+	detail, err := s.repo.GetAppointment(ctx, appointmentID)
+	if err != nil {
+		return nil, err
+	}
+	if detail == nil || detail.Appointment == nil {
+		return nil, errors.Wrap(ErrNotFound, "appointment not found")
+	}
+	return detail, nil
+}
+
+func (s *Service) UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, update AppointmentUpdate) (*Appointment, error) {
+	if s == nil || s.repo == nil {
+		return nil, errors.New("stylist repository is not configured")
+	}
+	if appointmentID == uuid.Nil {
+		return nil, errors.Wrap(ErrInvalidInput, "appointment id is required")
+	}
+
+	normalized, err := normalizeAppointmentUpdate(update)
+	if err != nil {
+		return nil, err
+	}
+	return s.repo.UpdateAppointment(ctx, appointmentID, normalized, s.now())
+}
+
 func normalizeListFilter(filter IntakeListFilter) (IntakeListFilter, error) {
 	filter.Status = normalizeEnum(filter.Status)
 	if filter.Status != "" && !isValidReviewStatus(filter.Status) {
@@ -292,6 +374,46 @@ func normalizeReviewUpdate(update IntakeReviewUpdate) (IntakeReviewUpdate, error
 	return update, nil
 }
 
+func normalizeAppointmentListFilter(filter AppointmentListFilter) (AppointmentListFilter, error) {
+	filter.Status = normalizeEnum(filter.Status)
+	if filter.Status != "" && !isValidAppointmentStatus(filter.Status) {
+		return AppointmentListFilter{}, errors.Wrap(ErrInvalidInput, "status filter must be pending, confirmed, completed, cancelled, or no_show")
+	}
+	if filter.Limit <= 0 {
+		filter.Limit = defaultListLimit
+	}
+	if filter.Limit > maxListLimit {
+		filter.Limit = maxListLimit
+	}
+	if filter.Offset < 0 {
+		filter.Offset = 0
+	}
+	return filter, nil
+}
+
+func normalizeAppointmentUpdate(update AppointmentUpdate) (AppointmentUpdate, error) {
+	if update.Status == nil && update.PrepNotes == nil && update.StylistNotes == nil {
+		return AppointmentUpdate{}, errors.Wrap(ErrInvalidInput, "appointment update payload was empty")
+	}
+
+	if update.Status != nil {
+		value := normalizeEnum(*update.Status)
+		if !isValidAppointmentStatus(value) {
+			return AppointmentUpdate{}, errors.Wrap(ErrInvalidInput, "status must be pending, confirmed, completed, cancelled, or no_show")
+		}
+		update.Status = &value
+	}
+	if update.PrepNotes != nil {
+		value := strings.TrimSpace(*update.PrepNotes)
+		update.PrepNotes = &value
+	}
+	if update.StylistNotes != nil {
+		value := strings.TrimSpace(*update.StylistNotes)
+		update.StylistNotes = &value
+	}
+	return update, nil
+}
+
 func normalizeReview(review IntakeReview, intakeID uuid.UUID) IntakeReview {
 	review.IntakeID = intakeID
 	if review.Status == "" {
@@ -319,6 +441,15 @@ func isValidReviewStatus(value string) bool {
 func isValidReviewPriority(value string) bool {
 	switch value {
 	case ReviewPriorityNormal, ReviewPriorityUrgent:
+		return true
+	default:
+		return false
+	}
+}
+
+func isValidAppointmentStatus(value string) bool {
+	switch value {
+	case "pending", "confirmed", "completed", "cancelled", "no_show":
 		return true
 	default:
 		return false

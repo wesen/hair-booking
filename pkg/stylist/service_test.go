@@ -11,15 +11,21 @@ import (
 )
 
 type fakeRepository struct {
-	items        []IntakeListItem
-	detail       *IntakeDetail
-	upserted     *IntakeReview
-	intakeStats  *DashboardIntakeStats
-	appointments []DashboardAppointment
-	listFilter   IntakeListFilter
-	lastUpdate   IntakeReviewUpdate
-	lastIntakeID uuid.UUID
-	lastNow      time.Time
+	items                 []IntakeListItem
+	detail                *IntakeDetail
+	upserted              *IntakeReview
+	intakeStats           *DashboardIntakeStats
+	appointments          []DashboardAppointment
+	appointmentRows       []Appointment
+	appointmentDetail     *AppointmentDetail
+	updatedAppointment    *Appointment
+	listFilter            IntakeListFilter
+	appointmentListFilter AppointmentListFilter
+	lastUpdate            IntakeReviewUpdate
+	lastAppointmentUpdate AppointmentUpdate
+	lastIntakeID          uuid.UUID
+	lastAppointmentID     uuid.UUID
+	lastNow               time.Time
 }
 
 func (f *fakeRepository) ListIntakes(ctx context.Context, filter IntakeListFilter) ([]IntakeListItem, error) {
@@ -53,6 +59,29 @@ func (f *fakeRepository) GetDashboardIntakeStats(ctx context.Context) (*Dashboar
 
 func (f *fakeRepository) ListDashboardAppointments(ctx context.Context, startDate time.Time, limit int) ([]DashboardAppointment, error) {
 	return f.appointments, nil
+}
+
+func (f *fakeRepository) ListAppointments(ctx context.Context, filter AppointmentListFilter) ([]Appointment, error) {
+	f.appointmentListFilter = filter
+	return f.appointmentRows, nil
+}
+
+func (f *fakeRepository) GetAppointment(ctx context.Context, appointmentID uuid.UUID) (*AppointmentDetail, error) {
+	f.lastAppointmentID = appointmentID
+	return f.appointmentDetail, nil
+}
+
+func (f *fakeRepository) UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, update AppointmentUpdate, updatedAt time.Time) (*Appointment, error) {
+	f.lastAppointmentID = appointmentID
+	f.lastAppointmentUpdate = update
+	f.lastNow = updatedAt
+	if f.updatedAppointment != nil {
+		return f.updatedAppointment, nil
+	}
+	return &Appointment{
+		ID:     appointmentID,
+		Status: "confirmed",
+	}, nil
 }
 
 func TestListIntakesNormalizesFilterDefaults(t *testing.T) {
@@ -206,5 +235,62 @@ func TestDashboardPartitionsTodayAndUpcomingAppointments(t *testing.T) {
 	}
 	if dashboard.Intakes.NewCount != 2 {
 		t.Fatalf("expected new intake count 2, got %d", dashboard.Intakes.NewCount)
+	}
+}
+
+func TestListAppointmentsNormalizesFilterDefaults(t *testing.T) {
+	repo := &fakeRepository{}
+	service := NewService(repo)
+
+	_, err := service.ListAppointments(context.Background(), AppointmentListFilter{})
+	if err != nil {
+		t.Fatalf("ListAppointments returned error: %v", err)
+	}
+
+	if repo.appointmentListFilter.Limit != defaultListLimit {
+		t.Fatalf("expected default list limit %d, got %d", defaultListLimit, repo.appointmentListFilter.Limit)
+	}
+}
+
+func TestUpdateAppointmentRejectsUnknownStatus(t *testing.T) {
+	service := NewService(&fakeRepository{})
+	status := "mystery"
+
+	_, err := service.UpdateAppointment(context.Background(), uuid.New(), AppointmentUpdate{Status: &status})
+	if err == nil {
+		t.Fatal("expected UpdateAppointment to reject invalid status")
+	}
+}
+
+func TestUpdateAppointmentNormalizesNotes(t *testing.T) {
+	repo := &fakeRepository{}
+	service := NewService(repo)
+	now := time.Date(2026, time.March, 20, 18, 0, 0, 0, time.UTC)
+	service.now = func() time.Time { return now }
+
+	status := " confirmed "
+	prepNotes := "  Bring color swatches  "
+	stylistNotes := "  Allocate extra blending time  "
+
+	_, err := service.UpdateAppointment(context.Background(), uuid.New(), AppointmentUpdate{
+		Status:       &status,
+		PrepNotes:    &prepNotes,
+		StylistNotes: &stylistNotes,
+	})
+	if err != nil {
+		t.Fatalf("UpdateAppointment returned error: %v", err)
+	}
+
+	if repo.lastAppointmentUpdate.Status == nil || *repo.lastAppointmentUpdate.Status != "confirmed" {
+		t.Fatalf("expected normalized status, got %#v", repo.lastAppointmentUpdate.Status)
+	}
+	if repo.lastAppointmentUpdate.PrepNotes == nil || *repo.lastAppointmentUpdate.PrepNotes != "Bring color swatches" {
+		t.Fatalf("expected trimmed prep notes, got %#v", repo.lastAppointmentUpdate.PrepNotes)
+	}
+	if repo.lastAppointmentUpdate.StylistNotes == nil || *repo.lastAppointmentUpdate.StylistNotes != "Allocate extra blending time" {
+		t.Fatalf("expected trimmed stylist notes, got %#v", repo.lastAppointmentUpdate.StylistNotes)
+	}
+	if !repo.lastNow.Equal(now) {
+		t.Fatalf("expected update time %s, got %s", now, repo.lastNow)
 	}
 }

@@ -248,6 +248,286 @@ limit $2
 	return items, nil
 }
 
+func (r *PostgresRepository) ListAppointments(ctx context.Context, filter AppointmentListFilter) ([]Appointment, error) {
+	if r == nil || r.pool == nil {
+		return nil, errors.New("postgres pool is not configured")
+	}
+
+	rows, err := r.pool.Query(ctx, `
+select
+  a.id,
+  a.client_id,
+  coalesce(c.name, ''),
+  a.service_id,
+  coalesce(s.name, ''),
+  a.intake_id,
+  to_char(a.date, 'YYYY-MM-DD'),
+  trim(to_char(a.start_time, 'HH12:MI AM')),
+  a.status,
+  coalesce(a.prep_notes, ''),
+  coalesce(a.stylist_notes, ''),
+  a.cancelled_at,
+  coalesce(a.cancel_reason, '')
+from appointments a
+join clients c on c.id = a.client_id
+join services s on s.id = a.service_id
+where ($1 = '' or a.status = $1)
+order by a.date, a.start_time
+limit $2 offset $3
+`, filter.Status, filter.Limit, filter.Offset)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query stylist appointments")
+	}
+	defer rows.Close()
+
+	items := []Appointment{}
+	for rows.Next() {
+		item := Appointment{}
+		var cancelledAt sql.NullTime
+		if err := rows.Scan(
+			&item.ID,
+			&item.ClientID,
+			&item.ClientName,
+			&item.ServiceID,
+			&item.ServiceName,
+			&item.IntakeID,
+			&item.Date,
+			&item.StartTime,
+			&item.Status,
+			&item.PrepNotes,
+			&item.StylistNotes,
+			&cancelledAt,
+			&item.CancelReason,
+		); err != nil {
+			return nil, errors.Wrap(err, "failed to scan stylist appointment row")
+		}
+		item.CancelledAt = nullableTimePtr(cancelledAt)
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed to iterate stylist appointments")
+	}
+	return items, nil
+}
+
+func (r *PostgresRepository) GetAppointment(ctx context.Context, appointmentID uuid.UUID) (*AppointmentDetail, error) {
+	if r == nil || r.pool == nil {
+		return nil, errors.New("postgres pool is not configured")
+	}
+
+	row := r.pool.QueryRow(ctx, `
+select
+  a.id,
+  a.client_id,
+  coalesce(c.name, ''),
+  a.service_id,
+  coalesce(s.name, ''),
+  a.intake_id,
+  to_char(a.date, 'YYYY-MM-DD'),
+  trim(to_char(a.start_time, 'HH12:MI AM')),
+  a.status,
+  coalesce(a.prep_notes, ''),
+  coalesce(a.stylist_notes, ''),
+  a.cancelled_at,
+  coalesce(a.cancel_reason, ''),
+  c.auth_subject,
+  c.auth_issuer,
+  coalesce(c.email, ''),
+  coalesce(c.phone, ''),
+  coalesce(c.scalp_notes, ''),
+  coalesce(c.service_summary, ''),
+  c.created_at,
+  c.updated_at,
+  i.id,
+  i.client_id,
+  coalesce(i.service_type, ''),
+  coalesce(i.hair_length, ''),
+  coalesce(i.hair_density, ''),
+  coalesce(i.hair_texture, ''),
+  coalesce(i.prev_extensions, ''),
+  coalesce(i.color_service, ''),
+  coalesce(i.natural_level, ''),
+  coalesce(i.current_color, ''),
+  coalesce(i.chemical_history, '{}'::text[]),
+  coalesce(i.last_chemical, ''),
+  i.desired_length,
+  coalesce(i.ext_type, ''),
+  coalesce(i.budget, ''),
+  coalesce(i.maintenance, ''),
+  coalesce(i.deadline, ''),
+  coalesce(i.dream_result, ''),
+  coalesce(i.estimate_low, 0),
+  coalesce(i.estimate_high, 0)
+from appointments a
+join clients c on c.id = a.client_id
+join services s on s.id = a.service_id
+left join intake_submissions i on i.id = a.intake_id
+where a.id = $1
+`, appointmentID)
+
+	detail := &AppointmentDetail{Appointment: &Appointment{}}
+	client := &hairclients.Client{}
+	intake := &hairintake.Submission{}
+	var intakeIDText sql.NullString
+	var intakeDesiredLength sql.NullInt64
+	var cancelledAt sql.NullTime
+	var clientCreatedAt time.Time
+	var clientUpdatedAt time.Time
+	if err := row.Scan(
+		&detail.Appointment.ID,
+		&detail.Appointment.ClientID,
+		&detail.Appointment.ClientName,
+		&detail.Appointment.ServiceID,
+		&detail.Appointment.ServiceName,
+		&detail.Appointment.IntakeID,
+		&detail.Appointment.Date,
+		&detail.Appointment.StartTime,
+		&detail.Appointment.Status,
+		&detail.Appointment.PrepNotes,
+		&detail.Appointment.StylistNotes,
+		&cancelledAt,
+		&detail.Appointment.CancelReason,
+		&client.AuthSubject,
+		&client.AuthIssuer,
+		&client.Email,
+		&client.Phone,
+		&client.ScalpNotes,
+		&client.ServiceSummary,
+		&clientCreatedAt,
+		&clientUpdatedAt,
+		&intakeIDText,
+		&intake.ClientID,
+		&intake.ServiceType,
+		&intake.HairLength,
+		&intake.HairDensity,
+		&intake.HairTexture,
+		&intake.PrevExtensions,
+		&intake.ColorService,
+		&intake.NaturalLevel,
+		&intake.CurrentColor,
+		&intake.ChemicalHistory,
+		&intake.LastChemical,
+		&intakeDesiredLength,
+		&intake.ExtType,
+		&intake.Budget,
+		&intake.Maintenance,
+		&intake.Deadline,
+		&intake.DreamResult,
+		&intake.EstimateLow,
+		&intake.EstimateHigh,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) || strings.Contains(err.Error(), "no rows") {
+			return nil, errors.Wrap(ErrNotFound, "appointment not found")
+		}
+		return nil, errors.Wrap(err, "failed to load stylist appointment detail")
+	}
+
+	detail.Appointment.CancelledAt = nullableTimePtr(cancelledAt)
+	client.ID = detail.Appointment.ClientID
+	client.Name = detail.Appointment.ClientName
+	client.CreatedAt = clientCreatedAt
+	client.UpdatedAt = clientUpdatedAt
+	detail.Client = client
+
+	if intakeIDText.Valid && strings.TrimSpace(intakeIDText.String) != "" {
+		parsedIntakeID, err := uuid.Parse(intakeIDText.String)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse linked intake id")
+		}
+		intake.ID = parsedIntakeID
+		if intakeDesiredLength.Valid {
+			intake.DesiredLength = int(intakeDesiredLength.Int64)
+		}
+		detail.Intake = intake
+	}
+
+	return detail, nil
+}
+
+func (r *PostgresRepository) UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, update AppointmentUpdate, updatedAt time.Time) (*Appointment, error) {
+	if r == nil || r.pool == nil {
+		return nil, errors.New("postgres pool is not configured")
+	}
+
+	row := r.pool.QueryRow(ctx, `
+with updated as (
+  update appointments
+  set
+    status = case
+      when $2 then $3
+      else status
+    end,
+    prep_notes = case
+      when $4 then nullif($5, '')
+      else prep_notes
+    end,
+    stylist_notes = case
+      when $6 then nullif($7, '')
+      else stylist_notes
+    end,
+    cancelled_at = case
+      when $2 and $3 = 'cancelled' then $8
+      when $2 and $3 <> 'cancelled' then null
+      else cancelled_at
+    end,
+    updated_at = $8
+  where id = $1
+  returning id, client_id, service_id, intake_id, date, start_time, status, prep_notes, stylist_notes, cancelled_at, cancel_reason
+)
+select
+  u.id,
+  u.client_id,
+  coalesce(c.name, ''),
+  u.service_id,
+  coalesce(s.name, ''),
+  u.intake_id,
+  to_char(u.date, 'YYYY-MM-DD'),
+  trim(to_char(u.start_time, 'HH12:MI AM')),
+  u.status,
+  coalesce(u.prep_notes, ''),
+  coalesce(u.stylist_notes, ''),
+  u.cancelled_at,
+  coalesce(u.cancel_reason, '')
+from updated u
+join clients c on c.id = u.client_id
+join services s on s.id = u.service_id
+`,
+		appointmentID,
+		update.Status != nil,
+		derefString(update.Status),
+		update.PrepNotes != nil,
+		derefString(update.PrepNotes),
+		update.StylistNotes != nil,
+		derefString(update.StylistNotes),
+		updatedAt,
+	)
+
+	item := &Appointment{}
+	var cancelledAt sql.NullTime
+	if err := row.Scan(
+		&item.ID,
+		&item.ClientID,
+		&item.ClientName,
+		&item.ServiceID,
+		&item.ServiceName,
+		&item.IntakeID,
+		&item.Date,
+		&item.StartTime,
+		&item.Status,
+		&item.PrepNotes,
+		&item.StylistNotes,
+		&cancelledAt,
+		&item.CancelReason,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) || strings.Contains(err.Error(), "no rows") {
+			return nil, errors.Wrap(ErrNotFound, "appointment not found")
+		}
+		return nil, errors.Wrap(err, "failed to update stylist appointment")
+	}
+	item.CancelledAt = nullableTimePtr(cancelledAt)
+	return item, nil
+}
+
 func (r *PostgresRepository) UpsertIntakeReview(ctx context.Context, intakeID uuid.UUID, update IntakeReviewUpdate, reviewedAt time.Time) (*IntakeReview, error) {
 	if r == nil || r.pool == nil {
 		return nil, errors.New("postgres pool is not configured")

@@ -352,6 +352,65 @@ func TestHandleStylistDashboardDevMode(t *testing.T) {
 	}
 }
 
+func TestHandleStylistAppointmentsDevMode(t *testing.T) {
+	service := hairstylist.NewService(&fakeStylistRepo{
+		appointmentRows: []hairstylist.Appointment{
+			{
+				ID:          uuid.New(),
+				ClientID:    uuid.New(),
+				ClientName:  "Alice Example",
+				ServiceID:   uuid.New(),
+				ServiceName: "Extensions Consultation",
+				Date:        "2026-03-25",
+				StartTime:   "09:30 AM",
+				Status:      "pending",
+			},
+		},
+	})
+
+	handler := NewHandler(HandlerOptions{
+		Version:        "dev",
+		StartedAt:      time.Now().UTC(),
+		AuthSettings:   &hairauth.Settings{Mode: hairauth.AuthModeDev, DevUserID: "intern"},
+		StylistService: service,
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/stylist/appointments", nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"appointments\"") {
+		t.Fatalf("expected appointments payload, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandleStylistAppointmentUpdateRejectsInvalidStatus(t *testing.T) {
+	service := hairstylist.NewService(&fakeStylistRepo{})
+	handler := NewHandler(HandlerOptions{
+		Version:        "dev",
+		StartedAt:      time.Now().UTC(),
+		AuthSettings:   &hairauth.Settings{Mode: hairauth.AuthModeDev, DevUserID: "intern"},
+		StylistService: service,
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+	})
+
+	request := httptest.NewRequest(http.MethodPatch, "/api/stylist/appointments/"+uuid.NewString(), strings.NewReader(`{"status":"bogus"}`))
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusBadRequest {
+		t.Fatalf("expected 400, got %d", recorder.Code)
+	}
+}
+
 func TestHandleStylistIntakeDetailNotFound(t *testing.T) {
 	service := hairstylist.NewService(&fakeStylistRepo{detailErr: hairstylist.ErrNotFound})
 	handler := NewHandler(HandlerOptions{
@@ -440,6 +499,9 @@ type fakeStylistRepo struct {
 	upserted              *hairstylist.IntakeReview
 	stats                 *hairstylist.DashboardIntakeStats
 	dashboardAppointments []hairstylist.DashboardAppointment
+	appointmentRows       []hairstylist.Appointment
+	appointmentDetail     *hairstylist.AppointmentDetail
+	updatedAppointment    *hairstylist.Appointment
 	detailErr             error
 	updateErr             error
 }
@@ -454,6 +516,29 @@ func (f *fakeStylistRepo) GetDashboardIntakeStats(ctx context.Context) (*hairsty
 
 func (f *fakeStylistRepo) ListDashboardAppointments(ctx context.Context, startDate time.Time, limit int) ([]hairstylist.DashboardAppointment, error) {
 	return f.dashboardAppointments, nil
+}
+
+func (f *fakeStylistRepo) ListAppointments(ctx context.Context, filter hairstylist.AppointmentListFilter) ([]hairstylist.Appointment, error) {
+	return f.appointmentRows, nil
+}
+
+func (f *fakeStylistRepo) GetAppointment(ctx context.Context, appointmentID uuid.UUID) (*hairstylist.AppointmentDetail, error) {
+	if f.appointmentDetail != nil {
+		return f.appointmentDetail, nil
+	}
+	return &hairstylist.AppointmentDetail{
+		Appointment: &hairstylist.Appointment{ID: appointmentID, Status: "pending"},
+	}, nil
+}
+
+func (f *fakeStylistRepo) UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, update hairstylist.AppointmentUpdate, updatedAt time.Time) (*hairstylist.Appointment, error) {
+	if f.updatedAppointment != nil {
+		return f.updatedAppointment, nil
+	}
+	return &hairstylist.Appointment{
+		ID:     appointmentID,
+		Status: "confirmed",
+	}, nil
 }
 
 func (f *fakeStylistRepo) GetIntake(ctx context.Context, intakeID uuid.UUID) (*hairstylist.IntakeDetail, error) {
