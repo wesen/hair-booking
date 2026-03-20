@@ -13,6 +13,10 @@ topics:
       description: Redux Toolkit and client state management
     - slug: typescript
       description: TypeScript types and frontend implementation details
+    - slug: code-review
+      description: Code review, architecture assessment, and implementation quality analysis
+    - slug: mvp
+      description: Minimum viable product scope and release planning
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes
