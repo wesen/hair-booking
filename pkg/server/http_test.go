@@ -144,7 +144,7 @@ func TestAPIRoutesBypassFrontendDevProxy(t *testing.T) {
 		PublicFS: fstest.MapFS{
 			"index.html": &fstest.MapFile{Data: []byte("<html><body>landing</body></html>")},
 		},
-		ClientService: hairclients.NewService(&fakeClientServiceRepo{}),
+		ClientService:       hairclients.NewService(&fakeClientServiceRepo{}),
 		FrontendDevProxyURL: "http://127.0.0.1:65535",
 	})
 
@@ -160,7 +160,150 @@ func TestAPIRoutesBypassFrontendDevProxy(t *testing.T) {
 	}
 }
 
+func TestHandleStylistMeDevMode(t *testing.T) {
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/stylist/me", nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"stylist\"") {
+		t.Fatalf("expected stylist payload, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandleStylistMeOIDCRequiresSession(t *testing.T) {
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:                 hairauth.AuthModeOIDC,
+			StylistAllowedEmails: []string{"alice@example.com"},
+		},
+		SessionManager: mustSessionManager(t),
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/stylist/me", nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusUnauthorized {
+		t.Fatalf("expected 401, got %d", recorder.Code)
+	}
+}
+
+func TestHandleStylistMeOIDCRejectsNonStylistUser(t *testing.T) {
+	sessionManager := mustSessionManager(t)
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:                 hairauth.AuthModeOIDC,
+			StylistAllowedEmails: []string{"alice@example.com"},
+		},
+		SessionManager: sessionManager,
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+	})
+
+	request := requestWithSession(t, sessionManager, hairauth.SessionClaims{
+		Issuer:      "issuer",
+		Subject:     "user-123",
+		Email:       "bob@example.com",
+		DisplayName: "Bob Example",
+		IssuedAt:    time.Now().UTC(),
+		ExpiresAt:   time.Now().UTC().Add(24 * time.Hour),
+	}, "/api/stylist/me")
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusForbidden {
+		t.Fatalf("expected 403, got %d", recorder.Code)
+	}
+}
+
+func TestHandleStylistMeOIDCAllowsConfiguredStylist(t *testing.T) {
+	sessionManager := mustSessionManager(t)
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:                 hairauth.AuthModeOIDC,
+			StylistAllowedEmails: []string{"alice@example.com"},
+		},
+		SessionManager: sessionManager,
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+	})
+
+	request := requestWithSession(t, sessionManager, hairauth.SessionClaims{
+		Issuer:            "issuer",
+		Subject:           "user-123",
+		Email:             "alice@example.com",
+		DisplayName:       "Alice Example",
+		PreferredUsername: "alice",
+		IssuedAt:          time.Now().UTC(),
+		ExpiresAt:         time.Now().UTC().Add(24 * time.Hour),
+	}, "/api/stylist/me")
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"alice@example.com\"") {
+		t.Fatalf("expected stylist email in response, got %s", recorder.Body.String())
+	}
+}
+
 type fakeClientServiceRepo struct{}
+
+func mustSessionManager(t *testing.T) *hairauth.SessionManager {
+	t.Helper()
+
+	manager, err := hairauth.NewSessionManager("test-session", "test-secret", "http://127.0.0.1:8080/auth/callback")
+	if err != nil {
+		t.Fatalf("NewSessionManager returned error: %v", err)
+	}
+	return manager
+}
+
+func requestWithSession(t *testing.T, sessionManager *hairauth.SessionManager, claims hairauth.SessionClaims, path string) *http.Request {
+	t.Helper()
+
+	request := httptest.NewRequest(http.MethodGet, path, nil)
+	recorder := httptest.NewRecorder()
+	if err := sessionManager.WriteSession(recorder, request, claims); err != nil {
+		t.Fatalf("WriteSession returned error: %v", err)
+	}
+
+	response := recorder.Result()
+	t.Cleanup(func() {
+		_ = response.Body.Close()
+	})
+	for _, cookie := range response.Cookies() {
+		request.AddCookie(cookie)
+	}
+	return request
+}
 
 func (f *fakeClientServiceRepo) FindByAuthIdentity(ctx context.Context, issuer, subject string) (*hairclients.Client, error) {
 	return nil, hairclients.ErrNotFound

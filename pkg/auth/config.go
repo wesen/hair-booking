@@ -18,15 +18,17 @@ const (
 )
 
 type Settings struct {
-	Mode              string   `glazed:"auth-mode"`
-	DevUserID         string   `glazed:"auth-dev-user-id"`
-	SessionCookieName string   `glazed:"auth-session-cookie-name"`
-	SessionSecret     string   `glazed:"auth-session-secret"`
-	OIDCIssuerURL     string   `glazed:"oidc-issuer-url"`
-	OIDCClientID      string   `glazed:"oidc-client-id"`
-	OIDCClientSecret  string   `glazed:"oidc-client-secret"`
-	OIDCRedirectURL   string   `glazed:"oidc-redirect-url"`
-	OIDCScopes        []string `glazed:"oidc-scopes"`
+	Mode                   string   `glazed:"auth-mode"`
+	DevUserID              string   `glazed:"auth-dev-user-id"`
+	SessionCookieName      string   `glazed:"auth-session-cookie-name"`
+	SessionSecret          string   `glazed:"auth-session-secret"`
+	OIDCIssuerURL          string   `glazed:"oidc-issuer-url"`
+	OIDCClientID           string   `glazed:"oidc-client-id"`
+	OIDCClientSecret       string   `glazed:"oidc-client-secret"`
+	OIDCRedirectURL        string   `glazed:"oidc-redirect-url"`
+	OIDCScopes             []string `glazed:"oidc-scopes"`
+	StylistAllowedEmails   []string `glazed:"stylist-allowed-emails"`
+	StylistAllowedSubjects []string `glazed:"stylist-allowed-subjects"`
 }
 
 type UserInfo struct {
@@ -103,6 +105,18 @@ func NewSection() (schema.Section, error) {
 				fields.WithHelp("Scopes requested during browser login"),
 				fields.WithDefault([]string{"openid", "profile", "email"}),
 			),
+			fields.New(
+				"stylist-allowed-emails",
+				fields.TypeStringList,
+				fields.WithHelp("Email allowlist for single-stylist access in OIDC mode"),
+				fields.WithDefault(splitCSV(os.Getenv("HAIR_BOOKING_STYLIST_ALLOWED_EMAILS"))),
+			),
+			fields.New(
+				"stylist-allowed-subjects",
+				fields.TypeStringList,
+				fields.WithHelp("Subject allowlist for single-stylist access in OIDC mode"),
+				fields.WithDefault(splitCSV(os.Getenv("HAIR_BOOKING_STYLIST_ALLOWED_SUBJECTS"))),
+			),
 		),
 	)
 }
@@ -132,6 +146,8 @@ func LoadSettingsFromParsedValues(parsedValues *values.Values) (*Settings, error
 	settings.OIDCClientSecret = strings.TrimSpace(settings.OIDCClientSecret)
 	settings.OIDCRedirectURL = strings.TrimSpace(settings.OIDCRedirectURL)
 	settings.OIDCScopes = compact(settings.OIDCScopes)
+	settings.StylistAllowedEmails = compact(settings.StylistAllowedEmails)
+	settings.StylistAllowedSubjects = compact(settings.StylistAllowedSubjects)
 
 	if settings.Mode == AuthModeOIDC {
 		if settings.SessionSecret == "" {
@@ -180,4 +196,11 @@ func compact(values []string) []string {
 		ret = append(ret, value)
 	}
 	return ret
+}
+
+func splitCSV(value string) []string {
+	if strings.TrimSpace(value) == "" {
+		return nil
+	}
+	return compact(strings.Split(value, ","))
 }

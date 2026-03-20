@@ -12,6 +12,7 @@ KEYCLOAK_PORT ?= 18080
 SESSION_SECRET ?= local-session-secret
 TMUX_SESSION ?= hair-booking-dev
 FRONTEND_DEV_PROXY_URL ?=
+STYLIST_EMAILS ?= alice@example.com
 
 TAPES=$(wildcard doc/vhs/*tape)
 gifs: $(TAPES)
@@ -82,6 +83,7 @@ run-local-dev:
 
 run-local-oidc:
 	HAIR_BOOKING_FRONTEND_DEV_PROXY_URL=$(FRONTEND_DEV_PROXY_URL) \
+	HAIR_BOOKING_STYLIST_ALLOWED_EMAILS=$(STYLIST_EMAILS) \
 	HAIR_BOOKING_AUTH_MODE=oidc \
 	HAIR_BOOKING_AUTH_SESSION_SECRET=$(SESSION_SECRET) \
 	HAIR_BOOKING_OIDC_ISSUER_URL=http://127.0.0.1:$(KEYCLOAK_PORT)/realms/hair-booking-dev \

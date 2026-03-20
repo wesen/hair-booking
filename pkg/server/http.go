@@ -20,38 +20,39 @@ import (
 	hairintake "github.com/go-go-golems/hair-booking/pkg/intake"
 	hairservices "github.com/go-go-golems/hair-booking/pkg/services"
 	hairstorage "github.com/go-go-golems/hair-booking/pkg/storage"
+	hairstylist "github.com/go-go-golems/hair-booking/pkg/stylist"
 	"github.com/go-go-golems/hair-booking/pkg/web"
 )
 
 type ServerOptions struct {
-	Host               string
-	Port               int
-	Version            string
-	AuthSettings       *hairauth.Settings
-	Database           *hairdb.DB
-	Storage            hairstorage.BlobStore
-	AppointmentService *hairappointments.Service
-	ClientService      *hairclients.Service
-	CatalogService     *hairservices.Service
-	IntakeService      *hairintake.Service
-	LocalUploadsDir    string
+	Host                string
+	Port                int
+	Version             string
+	AuthSettings        *hairauth.Settings
+	Database            *hairdb.DB
+	Storage             hairstorage.BlobStore
+	AppointmentService  *hairappointments.Service
+	ClientService       *hairclients.Service
+	CatalogService      *hairservices.Service
+	IntakeService       *hairintake.Service
+	LocalUploadsDir     string
 	FrontendDevProxyURL string
 }
 
 type HandlerOptions struct {
-	Version            string
-	StartedAt          time.Time
-	AuthSettings       *hairauth.Settings
-	SessionManager     *hairauth.SessionManager
-	WebAuth            hairauth.WebHandler
-	PublicFS           fs.FS
-	Database           *hairdb.DB
-	Storage            hairstorage.BlobStore
-	AppointmentService *hairappointments.Service
-	ClientService      *hairclients.Service
-	CatalogService     *hairservices.Service
-	IntakeService      *hairintake.Service
-	LocalUploadsDir    string
+	Version             string
+	StartedAt           time.Time
+	AuthSettings        *hairauth.Settings
+	SessionManager      *hairauth.SessionManager
+	WebAuth             hairauth.WebHandler
+	PublicFS            fs.FS
+	Database            *hairdb.DB
+	Storage             hairstorage.BlobStore
+	AppointmentService  *hairappointments.Service
+	ClientService       *hairclients.Service
+	CatalogService      *hairservices.Service
+	IntakeService       *hairintake.Service
+	LocalUploadsDir     string
 	FrontendDevProxyURL string
 }
 
@@ -79,6 +80,7 @@ type appHandler struct {
 	catalogService     *hairservices.Service
 	intakeService      *hairintake.Service
 	localUploadsDir    string
+	stylistAuthorizer  *hairstylist.Authorizer
 }
 
 type apiEnvelope struct {
@@ -144,19 +146,19 @@ func NewHTTPServer(ctx context.Context, options ServerOptions) (*http.Server, er
 	return &http.Server{
 		Addr: fmt.Sprintf("%s:%d", options.Host, options.Port),
 		Handler: NewHandler(HandlerOptions{
-			Version:            options.Version,
-			StartedAt:          time.Now().UTC(),
-			AuthSettings:       authSettings,
-			SessionManager:     sessionManager,
-			WebAuth:            webAuth,
-			PublicFS:           web.PublicFS,
-			Database:           options.Database,
-			Storage:            options.Storage,
-			AppointmentService: appointmentService,
-			ClientService:      clientService,
-			CatalogService:     catalogService,
-			IntakeService:      intakeService,
-			LocalUploadsDir:    options.LocalUploadsDir,
+			Version:             options.Version,
+			StartedAt:           time.Now().UTC(),
+			AuthSettings:        authSettings,
+			SessionManager:      sessionManager,
+			WebAuth:             webAuth,
+			PublicFS:            web.PublicFS,
+			Database:            options.Database,
+			Storage:             options.Storage,
+			AppointmentService:  appointmentService,
+			ClientService:       clientService,
+			CatalogService:      catalogService,
+			IntakeService:       intakeService,
+			LocalUploadsDir:     options.LocalUploadsDir,
 			FrontendDevProxyURL: options.FrontendDevProxyURL,
 		}),
 		ReadHeaderTimeout: 10 * time.Second,
@@ -185,6 +187,7 @@ func NewHandler(options HandlerOptions) http.Handler {
 		catalogService:     options.CatalogService,
 		intakeService:      options.IntakeService,
 		localUploadsDir:    options.LocalUploadsDir,
+		stylistAuthorizer:  hairstylist.NewAuthorizer(authSettings),
 	}
 
 	mux := http.NewServeMux()
@@ -205,6 +208,7 @@ func NewHandler(options HandlerOptions) http.Handler {
 	mux.HandleFunc("POST /api/intake/{id}/photos", h.handleIntakePhoto)
 	mux.HandleFunc("GET /api/availability", h.handleAvailability)
 	mux.HandleFunc("POST /api/appointments", h.handleCreateAppointment)
+	mux.HandleFunc("GET /api/stylist/me", h.handleStylistMe)
 
 	if options.WebAuth != nil {
 		mux.HandleFunc("GET /auth/login", options.WebAuth.HandleLogin)
