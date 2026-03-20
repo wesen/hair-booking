@@ -20,7 +20,7 @@ RelatedFiles:
       Note: Seeded runtime data to retire
 ExternalSources: []
 Summary: Short diary describing why HAIR-007 was created and how the plan was simplified for a single-stylist MVP.
-LastUpdated: 2026-03-20T19:25:00-04:00
+LastUpdated: 2026-03-20T19:40:00-04:00
 WhatFor: Use this diary to understand the purpose and boundary of the stylist frontend ticket.
 WhenToUse: Use while implementing or reviewing HAIR-007.
 ---
@@ -336,3 +336,33 @@ Final validation for the slice:
 With this slice complete, the only open HAIR-007 task is the product-cleanup one:
 
 - decide how much of the old stylist demo slice state should be retired versus preserved as Storybook/design-reference code
+
+The final HAIR-007 slice closed that cleanup decision without deleting the imported design-reference surfaces.
+
+By this point, the live runtime was already safe:
+
+- it used `runtimeStore`
+- it did not hydrate the old seeded stylist reducers
+- its key routes had component coverage
+
+What still felt messy was naming. The older seeded salon store still appeared in a few Storybook/reference stories simply as `store`, which made the remaining demo path look more canonical than it really was.
+
+This slice made that distinction explicit:
+
+- `legacyStore` is now exported from `web/src/stylist/store/index.ts`
+- the Storybook/reference stories that still use the full seeded store now import `legacyStore`
+- the live app continues to use `runtimeStore`
+
+That is a small change, but it finishes the boundary work HAIR-007 needed:
+
+- runtime path: real backend-backed operations
+- legacy path: preserved design/reference/demo state
+
+I intentionally did not delete the old demo slices in this ticket. The user had already said they should remain available in Storybook/reference surfaces. The right move for HAIR-007 was to isolate and relabel them, not to pretend they no longer have value.
+
+Validation for the final slice:
+
+- `npm --prefix web run typecheck`
+- `npm --prefix web test`
+
+At this point HAIR-007 is functionally complete. Future work can move on to the photo follow-up and final runtime/embed cleanup tickets instead of keeping the stylist frontend in a half-real state.
