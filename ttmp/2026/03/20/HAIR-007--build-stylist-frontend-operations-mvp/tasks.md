@@ -44,7 +44,7 @@
 ## Runtime Cleanup
 
 - [x] Remove seeded stylist domain data from runtime pages
-- [ ] Keep Storybook fixtures isolated from runtime hydration
+- [x] Keep Storybook fixtures isolated from runtime hydration
 - [ ] Retire or shrink slices that only existed for demo data
 - [x] Avoid introducing staff-switching, assignment, or multi-operator controls
 

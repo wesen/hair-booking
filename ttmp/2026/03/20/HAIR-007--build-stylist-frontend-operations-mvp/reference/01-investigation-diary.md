@@ -20,7 +20,7 @@ RelatedFiles:
       Note: Seeded runtime data to retire
 ExternalSources: []
 Summary: Short diary describing why HAIR-007 was created and how the plan was simplified for a single-stylist MVP.
-LastUpdated: 2026-03-20T18:35:00-04:00
+LastUpdated: 2026-03-20T19:00:00-04:00
 WhatFor: Use this diary to understand the purpose and boundary of the stylist frontend ticket.
 WhenToUse: Use while implementing or reviewing HAIR-007.
 ---
@@ -237,3 +237,42 @@ With this change in place, the remaining HAIR-007 work is more clearly bounded t
 
 - isolating or shrinking leftover demo/runtime slices
 - adding page-level tests around the new route shell
+
+The next cleanup slice addressed the first half of that runtime-isolation work.
+
+Even after the live `/stylist` route stopped reading the seeded salon demo data, the browser app was still booting the full legacy store in `main.tsx`. That meant the runtime still hydrated reducers that only existed for the older stylist design-reference app:
+
+- `clients`
+- `appointments`
+- `booking`
+- `ui`
+
+Those slices are still useful for Storybook and for the older `StylistApp` reference surface, but they should not be part of the live runtime state tree for:
+
+- `/booking`
+- `/portal`
+- `/stylist`
+
+This slice split the store into two explicit entrypoints:
+
+- `createAppStore` / `store` for the full legacy+storybook surface
+- `createRuntimeStore` / `runtimeStore` for the live runtime shell
+
+The runtime store now contains only the reducers that the live browser app actually uses:
+
+- `consultation`
+- `auth`
+- `portal`
+- `stylistApi`
+
+That is the right intermediate step for HAIR-007. It isolates Storybook/demo fixtures from runtime hydration without forcing a risky deletion of the old demo slices before the team is ready to retire the imported reference app entirely.
+
+One small implementation trap came from Redux Toolkit typing. My first pass used a generic helper to share store construction between the full reducer and the runtime reducer. The runtime idea was correct, but TypeScript rejected the generic reducer signature because the two reducer shapes are materially different. I flattened that back into two explicit `configureStore` calls, and typecheck passed immediately after that simplification.
+
+Validation for the slice was:
+
+- `npm --prefix web run typecheck`
+
+The remaining cleanup task is narrower now:
+
+- retire or shrink the legacy slices once we decide how much of the old stylist demo app we still want to keep around as design reference
