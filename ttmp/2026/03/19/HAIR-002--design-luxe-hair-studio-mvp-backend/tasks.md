@@ -27,13 +27,13 @@
 
 ## Phase 3: Public Intake
 
-- [ ] Add schema tables for `intake_submissions` and `intake_photos`
-- [ ] Implement estimate calculation service
-- [ ] Implement `POST /api/intake`
-- [ ] Implement upload storage abstraction
-- [ ] Implement local-disk upload backend for development
-- [ ] Implement `POST /api/intake/:id/photos`
-- [ ] Add tests for intake validation, estimate rules, and upload metadata writes
+- [x] Add schema tables for `intake_submissions` and `intake_photos`
+- [x] Implement estimate calculation service
+- [x] Implement `POST /api/intake`
+- [x] Implement upload storage abstraction
+- [x] Implement local-disk upload backend for development
+- [x] Implement `POST /api/intake/:id/photos`
+- [x] Add tests for intake validation, estimate rules, and upload metadata writes
 
 ## Phase 4: Availability And Booking
 

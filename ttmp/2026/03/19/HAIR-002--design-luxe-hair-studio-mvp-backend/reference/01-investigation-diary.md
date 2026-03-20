@@ -9,7 +9,9 @@ Intent: long-term
 Owners: []
 RelatedFiles:
     - Path: cmd/hair-booking/cmds/serve.go
-      Note: Recorded startup DB initialization in the implementation diary
+      Note: |-
+        Recorded startup DB initialization in the implementation diary
+        Recorded local blob-store initialization for Phase 3 (commit f537be4)
     - Path: docker-compose.local.yml
       Note: Recorded the new local application Postgres service
     - Path: pkg/auth/oidc.go
@@ -20,14 +22,34 @@ RelatedFiles:
       Note: Recorded the new backend configuration surface in the implementation diary
     - Path: pkg/db/migrations.go
       Note: Recorded the migration bootstrap slice in the implementation diary
+    - Path: pkg/intake/postgres.go
+      Note: |-
+        Recorded intake submission and intake photo persistence in the diary
+        Recorded intake persistence for Phase 3 (commit f537be4)
+    - Path: pkg/intake/service.go
+      Note: |-
+        Recorded intake estimate and upload orchestration in the diary
+        Recorded intake validation and estimate logic for Phase 3 (commit f537be4)
     - Path: pkg/server/handlers_me.go
       Note: Recorded the DB-backed /api/me handler in the diary
     - Path: pkg/server/handlers_public.go
-      Note: Recorded the DB-backed /api/services handler in the diary
+      Note: |-
+        Recorded the DB-backed public service and intake handlers in the diary
+        Recorded intake route handlers for Phase 3 (commit f537be4)
     - Path: pkg/server/http.go
-      Note: Existing authenticated /api/me baseline
+      Note: |-
+        Recorded backend route and upload static-serving wiring in the diary
+        Recorded intake route and uploads static wiring for Phase 3 (commit f537be4)
     - Path: pkg/services/service.go
       Note: Recorded the public service catalog slice in the diary
+    - Path: pkg/storage/local.go
+      Note: |-
+        Recorded the local upload storage backend in the diary
+        Recorded local upload backend for Phase 3 (commit f537be4)
+    - Path: pkg/storage/storage.go
+      Note: |-
+        Recorded the blob-storage abstraction in the diary
+        Recorded blob-store seam for Phase 3 (commit f537be4)
     - Path: ttmp/2026/03/19/HAIR-002--design-luxe-hair-studio-mvp-backend/design-doc/01-luxe-hair-studio-mvp-backend-design-guide.md
       Note: Primary design deliverable tracked by this diary
     - Path: web/src/stylist/data/consultation-constants.ts
@@ -40,10 +62,11 @@ RelatedFiles:
       Note: OTP-oriented UI that now needs to be removed
 ExternalSources: []
 Summary: Chronological diary for the HAIR-002 backend MVP design and implementation work.
-LastUpdated: 2026-03-20T08:30:00-04:00
+LastUpdated: 2026-03-19T23:08:25-04:00
 WhatFor: Use this diary to understand why the backend plan changed and what implementation slices were executed.
 WhenToUse: Use when reviewing or continuing HAIR-002.
 ---
+
 
 
 
@@ -446,4 +469,80 @@ go test ./...
 gofmt -w pkg/clients/service.go pkg/clients/postgres.go pkg/clients/service_test.go pkg/services/service.go pkg/services/postgres.go pkg/services/service_test.go pkg/server/handlers_me.go pkg/server/handlers_public.go pkg/server/http.go pkg/server/http_test.go
 go test ./...
 git commit -m "feat: bootstrap clients from oidc claims"
+```
+
+## Step 5: Implement Public Intake Submission And Local Photo Uploads
+
+With authenticated client bootstrap in place, the next missing frontend dependency was the public intake funnel. This slice adds the first write-heavy workflow in the backend: create an intake submission, compute an estimate range, accept intake photos, and persist both metadata and uploaded files using a storage abstraction that stays local in development.
+
+I kept the storage layer deliberately small. The MVP only needs a clear seam between domain logic and where bytes land. That lets the repo use local-disk uploads now while leaving a straightforward path to S3 later without pushing that complexity into the intake service or HTTP handlers.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Continue the implementation slices by adding the public intake workflow and the upload path it depends on.
+
+**Inferred user intent:** Replace more frontend mock behavior with real backend APIs, but keep the implementation practical for local development.
+
+**Commit (code):** `f537be4` — `feat: add intake submissions and photo uploads`
+
+### What I did
+- Added `pkg/storage/storage.go` with a minimal blob-store interface.
+- Added `pkg/storage/local.go` and `pkg/storage/local_test.go` for local-disk upload persistence and URL generation.
+- Added `pkg/intake/service.go` with intake validation, estimate calculation, filename sanitization, and photo upload orchestration.
+- Added `pkg/intake/postgres.go` for `intake_submissions` and `intake_photos` persistence.
+- Updated `cmd/hair-booking/cmds/serve.go` to initialize the local blob store from backend config.
+- Updated `pkg/server/http.go` to auto-wire the intake service, register public intake routes, and expose `/uploads/*` from the local uploads directory in development.
+- Updated `pkg/server/handlers_public.go` to implement `POST /api/intake` and `POST /api/intake/{id}/photos`.
+- Added focused service and handler tests in `pkg/intake/service_test.go`, `pkg/storage/local_test.go`, and `pkg/server/http_test.go`.
+
+### Why
+- The intake funnel is one of the main conversion paths in the imported stylist frontend, so it needed a real backend before availability and booking work could be meaningfully integrated.
+- A blob-store interface prevents local-file decisions from leaking through the rest of the codebase.
+
+### What worked
+- The separation between storage, intake domain logic, and HTTP handlers stayed small and testable.
+- The route contracts match the earlier backend plan closely enough that the frontend can adopt them without schema churn.
+- `go test ./...` passed once the half-wired server/storage glue was cleaned up.
+
+### What didn't work
+- The slice was left in a half-wired state before this turn finished: `pkg/server/http.go` referenced `options.Storage` before the field existed on `ServerOptions`, `pkg/server/handlers_public.go` had a duplicate `net/http` import, and both `pkg/server/http_test.go` and `pkg/intake/service_test.go` referenced `io.Reader` without importing `io`.
+- I resumed by fixing those issues, running `gofmt`, and then rerunning:
+
+```bash
+go test ./...
+```
+
+### What I learned
+- Treating uploads as a storage concern instead of an HTTP concern makes the domain service easier to reuse later for authenticated appointment-photo flows.
+- The estimate rules can stay simple and explicit for MVP; they do not need a rule engine yet.
+
+### What was tricky to build
+- The subtle part was not the SQL or file writing. It was getting the runtime wiring right so the intake service only auto-initializes when both the Postgres pool and blob store exist. That constraint lives in `pkg/server/http.go`, and missing part of it caused the first compile breakage in this slice.
+
+### What warrants a second pair of eyes
+- Whether intake photo URLs should remain directly public under `/uploads/*` for MVP or move behind signed/proxied access later.
+- Whether the current estimate heuristics are acceptable as a frontend-facing range or should be presented as softer copy before booking is implemented.
+
+### What should be done in the future
+- Move on to Phase 4: availability calculation, booking creation, and schedule/override handling.
+
+### Code review instructions
+- Start with `pkg/intake/service.go` and `pkg/intake/postgres.go`.
+- Then review `pkg/storage/local.go`.
+- Finally read `pkg/server/handlers_public.go` and `pkg/server/http.go` to confirm the route and runtime wiring.
+- Re-run:
+
+```bash
+go test ./...
+```
+
+### Technical details
+- Commands run:
+
+```bash
+gofmt -w cmd/hair-booking/cmds/serve.go pkg/server/http.go pkg/server/handlers_public.go pkg/server/http_test.go pkg/intake/service.go pkg/intake/postgres.go pkg/intake/service_test.go pkg/storage/storage.go pkg/storage/local.go pkg/storage/local_test.go
+go test ./...
+git commit -m "feat: add intake submissions and photo uploads"
 ```

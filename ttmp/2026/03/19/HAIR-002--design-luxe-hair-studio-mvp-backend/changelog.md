@@ -48,3 +48,15 @@ Implemented the Phase 2 client bootstrap and service catalog slice in commit `8e
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/handlers_me.go — DB-backed `/api/me`
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/handlers_public.go — DB-backed `/api/services`
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http_test.go — Handler coverage for the new routes
+
+Implemented the Phase 3 public intake slice in commit `f537be4`, adding intake estimate logic, a blob-storage abstraction, local-disk upload support for development, `POST /api/intake`, `POST /api/intake/:id/photos`, and focused service/handler/storage tests.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/cmd/hair-booking/cmds/serve.go — Startup now initializes the configured blob-store backend
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/intake/service.go — Intake validation, estimate calculation, and photo upload orchestration
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/intake/postgres.go — Postgres-backed intake submission and intake photo persistence
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/storage/storage.go — Blob-store interface used by intake and future photo flows
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/storage/local.go — Local-disk upload backend for local development
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/handlers_public.go — Public intake and intake-photo handlers
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http.go — Server wiring for intake service and `/uploads/*` static serving
