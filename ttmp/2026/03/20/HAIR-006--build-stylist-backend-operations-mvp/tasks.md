@@ -15,10 +15,10 @@
 
 ## Stylist Auth And Authorization
 
-- [ ] Add single-stylist authorization bootstrap from OIDC session or claims
-- [ ] Add stylist authorization middleware
-- [ ] Add `GET /api/stylist/me`
-- [ ] Ensure client users cannot access stylist endpoints
+- [x] Add single-stylist authorization bootstrap from OIDC session or claims
+- [x] Add stylist authorization middleware
+- [x] Add `GET /api/stylist/me`
+- [x] Ensure client users cannot access stylist endpoints
 
 ## Intake Review APIs
 
@@ -52,8 +52,8 @@
 
 ## Testing And Validation
 
-- [ ] Add service tests for stylist bootstrap/authz
+- [x] Add service tests for stylist bootstrap/authz
 - [ ] Add service tests for intake review transitions
 - [ ] Add service tests for stylist appointment updates
 - [ ] Add HTTP tests for authorization and handler validation
-- [ ] Run `go test ./...`
+- [x] Run `go test ./...`

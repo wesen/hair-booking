@@ -17,7 +17,7 @@ RelatedFiles:
       Note: Current schema showing absence of stylist review state
 ExternalSources: []
 Summary: Short diary describing why HAIR-006 was created, and how the plan was simplified after confirming a single-stylist MVP.
-LastUpdated: 2026-03-20T16:20:00-04:00
+LastUpdated: 2026-03-20T10:55:00-04:00
 WhatFor: Use this diary to understand the purpose and scope of the stylist backend ticket.
 WhenToUse: Use while implementing or reviewing HAIR-006.
 ---
@@ -45,3 +45,30 @@ The simplified backend target is:
 - one review record per intake
 - no per-appointment stylist ownership field
 - no multi-staff routing or queue logic
+
+The first implementation slice focused on auth because every later stylist route depends on a stable answer to "is this browser session allowed to act as the stylist?"
+
+The chosen MVP mechanism is intentionally simple:
+
+- keep Keycloak as the identity provider
+- treat stylist access as a backend allowlist
+- allow by OIDC email or subject
+- skip Keycloak group and role mapping for now
+
+This is a better MVP fit than inventing a `staff_users` table or Keycloak-admin workflow before there is even one stylist-facing screen.
+
+Code added in the first slice:
+
+- auth config support for `HAIR_BOOKING_STYLIST_ALLOWED_EMAILS`
+- auth config support for `HAIR_BOOKING_STYLIST_ALLOWED_SUBJECTS`
+- `pkg/stylist/authorizer.go` for the single-stylist access rule
+- `/api/stylist/me` as the first protected stylist endpoint
+- HTTP tests and unit tests for allow/deny behavior
+
+Validation for the slice covered both automated and real-session paths:
+
+- `go test ./...` passed
+- unauthenticated `curl /api/stylist/me` returned `401 not-authenticated`
+- a real browser login as `alice` through local Keycloak returned `200` from `/api/stylist/me`
+
+This closes the first gating concern for HAIR-006: later stylist routes can now use one shared `currentStylist` guard instead of repeating ad hoc auth checks in each handler.
