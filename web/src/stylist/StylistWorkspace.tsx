@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import {
+  getApiErrorMessage,
   useStylistAppointmentDetailView,
   useStylistAppointmentsView,
   useStylistClientDetailView,
@@ -7,6 +8,8 @@ import {
   useStylistDashboardView,
   useStylistIntakeDetailView,
   useStylistIntakesView,
+  useUpdateStylistAppointmentMutation,
+  useUpdateStylistIntakeReviewMutation,
 } from "./store/api";
 import { buildStylistPath, resolveStylistRoute, type StylistRoute, type StylistSection } from "./utils/stylistRouting";
 
@@ -155,8 +158,39 @@ function DashboardPage() {
 }
 
 function IntakesPage({ intakeId }: { intakeId?: string }) {
-  const listView = useStylistIntakesView();
+  const [statusFilter, setStatusFilter] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("");
+  const listView = useStylistIntakesView(statusFilter ? { status: statusFilter } : undefined);
   const detailView = useStylistIntakeDetailView(intakeId ?? null);
+  const [updateReview, updateReviewState] = useUpdateStylistIntakeReviewMutation();
+  const [reviewStatus, setReviewStatus] = useState("new");
+  const [reviewPriority, setReviewPriority] = useState("normal");
+  const [reviewSummary, setReviewSummary] = useState("");
+  const [reviewNotes, setReviewNotes] = useState("");
+  const [reviewLow, setReviewLow] = useState("");
+  const [reviewHigh, setReviewHigh] = useState("");
+  const [reviewFeedback, setReviewFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!detailView.intake) {
+      return;
+    }
+    setReviewStatus(detailView.intake.review.status || "new");
+    setReviewPriority(detailView.intake.review.priority || "normal");
+    setReviewSummary(detailView.intake.review.summary || "");
+    setReviewNotes(detailView.intake.review.internal_notes || "");
+    setReviewLow(
+      typeof detailView.intake.review.quoted_price_low === "number"
+        ? String(detailView.intake.review.quoted_price_low)
+        : "",
+    );
+    setReviewHigh(
+      typeof detailView.intake.review.quoted_price_high === "number"
+        ? String(detailView.intake.review.quoted_price_high)
+        : "",
+    );
+    setReviewFeedback(null);
+  }, [detailView.intake]);
 
   if (intakeId) {
     if (detailView.isLoading) {
@@ -170,7 +204,7 @@ function IntakesPage({ intakeId }: { intakeId?: string }) {
     return (
       <WorkspaceSection
         title="Intake Detail"
-        subtitle="This is a read-first route skeleton. Review mutation wiring comes next, but the runtime is already reading the real intake payload."
+        subtitle="This route now reads and writes the real stylist review state."
       >
         <BackLink onClick={() => navigateTo({ section: "intakes" })} label="Back to intake queue" />
         <KeyValueList
@@ -184,6 +218,60 @@ function IntakesPage({ intakeId }: { intakeId?: string }) {
             ["Priority", intake.review.priority],
           ]}
         />
+        <ListBlock title="Review">
+          <FormGrid>
+            <FormSelect
+              label="Status"
+              value={reviewStatus}
+              onChange={setReviewStatus}
+              options={[
+                ["new", "New"],
+                ["in_review", "In Review"],
+                ["needs_client_reply", "Needs Client Reply"],
+                ["approved_to_book", "Approved To Book"],
+                ["archived", "Archived"],
+              ]}
+            />
+            <FormSelect
+              label="Priority"
+              value={reviewPriority}
+              onChange={setReviewPriority}
+              options={[
+                ["normal", "Normal"],
+                ["urgent", "Urgent"],
+              ]}
+            />
+            <FormInput label="Quote Low" value={reviewLow} onChange={setReviewLow} inputMode="numeric" placeholder="950" />
+            <FormInput label="Quote High" value={reviewHigh} onChange={setReviewHigh} inputMode="numeric" placeholder="1350" />
+          </FormGrid>
+          <FormTextArea label="Summary" value={reviewSummary} onChange={setReviewSummary} placeholder="Concise internal summary" />
+          <FormTextArea label="Internal Notes" value={reviewNotes} onChange={setReviewNotes} placeholder="Follow-up or prep notes" rows={4} />
+          <FormActions
+            submitLabel={updateReviewState.isLoading ? "Saving..." : "Save Review"}
+            onSubmit={async () => {
+              setReviewFeedback(null);
+              try {
+                await updateReview({
+                  intakeId,
+                  body: {
+                    status: reviewStatus,
+                    priority: reviewPriority,
+                    summary: reviewSummary,
+                    internal_notes: reviewNotes,
+                    ...(reviewLow.trim() !== "" ? { quoted_price_low: Number(reviewLow) } : {}),
+                    ...(reviewHigh.trim() !== "" ? { quoted_price_high: Number(reviewHigh) } : {}),
+                  },
+                }).unwrap();
+                setReviewFeedback("Review saved.");
+              } catch (error) {
+                setReviewFeedback(getApiErrorMessage(error, "We could not save the intake review yet."));
+              }
+            }}
+            disabled={updateReviewState.isLoading}
+            feedback={reviewFeedback}
+            error={!!(reviewFeedback && reviewFeedback !== "Review saved.")}
+          />
+        </ListBlock>
         <ListBlock title="Uploaded Photos">
           {intake.photos.length === 0 ? (
             <EmptyState message="No intake photos uploaded yet." />
@@ -204,15 +292,47 @@ function IntakesPage({ intakeId }: { intakeId?: string }) {
     return <ErrorSection title="Intake Queue" message={listView.errorMessage} />;
   }
 
+  const filteredIntakes = listView.intakes.filter((intake) => {
+    if (priorityFilter && intake.review.priority !== priorityFilter) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <WorkspaceSection
       title="Intake Queue"
-      subtitle="The live queue is now backend-backed. Filters and review editing will land in the next HAIR-007 slice."
+      subtitle="The live queue is backend-backed and now supports status and priority filtering."
     >
-      {listView.intakes.length === 0 ? (
+      <FilterRow>
+        <FormSelect
+          label="Status"
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            ["", "All statuses"],
+            ["new", "New"],
+            ["in_review", "In Review"],
+            ["needs_client_reply", "Needs Client Reply"],
+            ["approved_to_book", "Approved To Book"],
+            ["archived", "Archived"],
+          ]}
+        />
+        <FormSelect
+          label="Priority"
+          value={priorityFilter}
+          onChange={setPriorityFilter}
+          options={[
+            ["", "All priorities"],
+            ["normal", "Normal"],
+            ["urgent", "Urgent"],
+          ]}
+        />
+      </FilterRow>
+      {filteredIntakes.length === 0 ? (
         <EmptyState message="No intake submissions found." />
       ) : (
-        listView.intakes.map((intake) => (
+        filteredIntakes.map((intake) => (
           <ListRow
             key={intake.id}
             title={intake.client?.name ?? "Guest intake"}
@@ -227,8 +347,26 @@ function IntakesPage({ intakeId }: { intakeId?: string }) {
 }
 
 function AppointmentsPage({ appointmentId }: { appointmentId?: string }) {
-  const listView = useStylistAppointmentsView();
+  const [statusFilter, setStatusFilter] = useState("");
+  const [dateFilter, setDateFilter] = useState("");
+  const [clientFilter, setClientFilter] = useState("");
+  const listView = useStylistAppointmentsView(statusFilter ? { status: statusFilter } : undefined);
   const detailView = useStylistAppointmentDetailView(appointmentId ?? null);
+  const [updateAppointment, updateAppointmentState] = useUpdateStylistAppointmentMutation();
+  const [appointmentStatus, setAppointmentStatus] = useState("pending");
+  const [prepNotes, setPrepNotes] = useState("");
+  const [stylistNotes, setStylistNotes] = useState("");
+  const [appointmentFeedback, setAppointmentFeedback] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!detailView.appointment) {
+      return;
+    }
+    setAppointmentStatus(detailView.appointment.appointment.status || "pending");
+    setPrepNotes(detailView.appointment.appointment.prep_notes || "");
+    setStylistNotes(detailView.appointment.appointment.stylist_notes || "");
+    setAppointmentFeedback(null);
+  }, [detailView.appointment]);
 
   if (appointmentId) {
     if (detailView.isLoading) {
@@ -242,7 +380,7 @@ function AppointmentsPage({ appointmentId }: { appointmentId?: string }) {
     return (
       <WorkspaceSection
         title="Appointment Detail"
-        subtitle="This detail route is already reading the real aggregate payload, including linked intake context when present."
+        subtitle="This route now reads and writes real operational appointment data."
       >
         <BackLink onClick={() => navigateTo({ section: "appointments" })} label="Back to appointments" />
         <KeyValueList
@@ -256,6 +394,44 @@ function AppointmentsPage({ appointmentId }: { appointmentId?: string }) {
             ["Stylist Notes", detail.appointment.stylist_notes || "None yet"],
           ]}
         />
+        <ListBlock title="Update Appointment">
+          <FormSelect
+            label="Status"
+            value={appointmentStatus}
+            onChange={setAppointmentStatus}
+            options={[
+              ["pending", "Pending"],
+              ["confirmed", "Confirmed"],
+              ["completed", "Completed"],
+              ["cancelled", "Cancelled"],
+              ["no_show", "No Show"],
+            ]}
+          />
+          <FormTextArea label="Prep Notes" value={prepNotes} onChange={setPrepNotes} placeholder="Prep notes for the visit" rows={3} />
+          <FormTextArea label="Stylist Notes" value={stylistNotes} onChange={setStylistNotes} placeholder="Operational notes for this appointment" rows={4} />
+          <FormActions
+            submitLabel={updateAppointmentState.isLoading ? "Saving..." : "Save Appointment"}
+            onSubmit={async () => {
+              setAppointmentFeedback(null);
+              try {
+                await updateAppointment({
+                  appointmentId,
+                  body: {
+                    status: appointmentStatus,
+                    prep_notes: prepNotes,
+                    stylist_notes: stylistNotes,
+                  },
+                }).unwrap();
+                setAppointmentFeedback("Appointment saved.");
+              } catch (error) {
+                setAppointmentFeedback(getApiErrorMessage(error, "We could not save the appointment yet."));
+              }
+            }}
+            disabled={updateAppointmentState.isLoading}
+            feedback={appointmentFeedback}
+            error={!!(appointmentFeedback && appointmentFeedback !== "Appointment saved.")}
+          />
+        </ListBlock>
         {detail.intake ? (
           <ListBlock title="Linked Intake">
             <ListRow
@@ -276,15 +452,42 @@ function AppointmentsPage({ appointmentId }: { appointmentId?: string }) {
     return <ErrorSection title="Appointments" message={listView.errorMessage} />;
   }
 
+  const filteredAppointments = listView.appointments.filter((appointment) => {
+    if (dateFilter && appointment.date !== dateFilter) {
+      return false;
+    }
+    if (clientFilter && !appointment.client_name.toLowerCase().includes(clientFilter.trim().toLowerCase())) {
+      return false;
+    }
+    return true;
+  });
+
   return (
     <WorkspaceSection
       title="Appointments"
-      subtitle="The runtime schedule list now comes from the backend instead of seeded card data."
+      subtitle="The runtime schedule list is backend-backed and now filterable by status, date, and client."
     >
-      {listView.appointments.length === 0 ? (
+      <FilterRow>
+        <FormSelect
+          label="Status"
+          value={statusFilter}
+          onChange={setStatusFilter}
+          options={[
+            ["", "All statuses"],
+            ["pending", "Pending"],
+            ["confirmed", "Confirmed"],
+            ["completed", "Completed"],
+            ["cancelled", "Cancelled"],
+            ["no_show", "No Show"],
+          ]}
+        />
+        <FormInput label="Date" value={dateFilter} onChange={setDateFilter} type="date" />
+        <FormInput label="Client" value={clientFilter} onChange={setClientFilter} placeholder="Search by client name" />
+      </FilterRow>
+      {filteredAppointments.length === 0 ? (
         <EmptyState message="No appointments found." />
       ) : (
-        listView.appointments.map((appointment) => (
+        filteredAppointments.map((appointment) => (
           <ListRow
             key={appointment.id}
             title={appointment.client_name}
@@ -300,7 +503,7 @@ function AppointmentsPage({ appointmentId }: { appointmentId?: string }) {
 
 function ClientsPage() {
   const [search, setSearch] = useState("");
-  const listView = useStylistClientsView(search);
+  const listView = useStylistClientsView(search ? { search } : undefined);
   const route = resolveStylistRoute(window.location.pathname);
   const detailView = useStylistClientDetailView(route.section === "clients" ? route.id ?? null : null);
 
@@ -427,11 +630,175 @@ function SummaryCard({ label, value }: { label: string; value: number }) {
   );
 }
 
+function FilterRow({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10, marginBottom: 16 }}>
+      {children}
+    </div>
+  );
+}
+
 function ListBlock({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div style={{ marginBottom: 18 }}>
       <div data-part="section-label" style={{ marginBottom: 8 }}>{title}</div>
       <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>{children}</div>
+    </div>
+  );
+}
+
+function FormGrid({ children }: { children: React.ReactNode }) {
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: 10, marginBottom: 12 }}>
+      {children}
+    </div>
+  );
+}
+
+function FormField({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <span style={{ fontSize: 12, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+        {label}
+      </span>
+      {children}
+    </label>
+  );
+}
+
+function inputStyle(): React.CSSProperties {
+  return {
+    width: "100%",
+    border: "1px solid var(--color-border)",
+    borderRadius: 12,
+    padding: "10px 12px",
+    fontSize: 14,
+    background: "var(--color-surface)",
+    color: "var(--color-text)",
+    fontFamily: "var(--font-sans)",
+  };
+}
+
+function FormInput({
+  label,
+  value,
+  onChange,
+  placeholder,
+  type = "text",
+  inputMode,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  type?: string;
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
+}) {
+  return (
+    <FormField label={label}>
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        type={type}
+        inputMode={inputMode}
+        style={inputStyle()}
+      />
+    </FormField>
+  );
+}
+
+function FormTextArea({
+  label,
+  value,
+  onChange,
+  placeholder,
+  rows = 3,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder?: string;
+  rows?: number;
+}) {
+  return (
+    <FormField label={label}>
+      <textarea
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        rows={rows}
+        style={{ ...inputStyle(), resize: "vertical" }}
+      />
+    </FormField>
+  );
+}
+
+function FormSelect({
+  label,
+  value,
+  onChange,
+  options,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  options: Array<[string, string]>;
+}) {
+  return (
+    <FormField label={label}>
+      <select value={value} onChange={(event) => onChange(event.target.value)} style={inputStyle()}>
+        {options.map(([optionValue, optionLabel]) => (
+          <option key={optionValue || "__empty"} value={optionValue}>
+            {optionLabel}
+          </option>
+        ))}
+      </select>
+    </FormField>
+  );
+}
+
+function FormActions({
+  submitLabel,
+  onSubmit,
+  disabled,
+  feedback,
+  error,
+}: {
+  submitLabel: string;
+  onSubmit: () => void;
+  disabled?: boolean;
+  feedback: string | null;
+  error?: boolean;
+}) {
+  return (
+    <div style={{ marginTop: 12 }}>
+      <button
+        onClick={onSubmit}
+        disabled={disabled}
+        style={{
+          border: "none",
+          borderRadius: 999,
+          padding: "10px 16px",
+          background: "var(--color-accent-dark)",
+          color: "#fff",
+          cursor: disabled ? "default" : "pointer",
+          opacity: disabled ? 0.7 : 1,
+        }}
+      >
+        {submitLabel}
+      </button>
+      {feedback ? (
+        <div style={{ fontSize: 13, color: error ? "var(--color-danger)" : "var(--color-text-muted)", marginTop: 10 }}>
+          {feedback}
+        </div>
+      ) : null}
     </div>
   );
 }

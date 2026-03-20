@@ -111,11 +111,12 @@ export const stylistOperationsApi = stylistApi.injectEndpoints({
         body,
       }),
       transformResponse: (response: UpdateStylistAppointmentResponseDto) => response.appointment,
-      invalidatesTags: (_result, _error, args) => [
+      invalidatesTags: (result, _error, args) => [
         { type: "StylistAppointments", id: "LIST" },
         { type: "StylistAppointments", id: args.appointmentId },
         { type: "StylistDashboard", id: "HOME" },
         { type: "StylistClients", id: "LIST" },
+        ...(result ? [{ type: "StylistClients" as const, id: result.client_id }] : []),
       ],
     }),
     getStylistClients: build.query<StylistClientsResponseDto, GetStylistClientsArgs | void>({

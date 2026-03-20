@@ -1,5 +1,8 @@
 import { getApiErrorMessage } from "./base";
 import {
+  type GetStylistAppointmentsArgs,
+  type GetStylistClientsArgs,
+  type GetStylistIntakesArgs,
   useGetStylistAppointmentQuery,
   useGetStylistAppointmentsQuery,
   useGetStylistClientQuery,
@@ -18,8 +21,8 @@ export function useStylistDashboardView() {
   };
 }
 
-export function useStylistIntakesView(status?: string) {
-  const query = useGetStylistIntakesQuery(status ? { status, limit: 50 } : { limit: 50 });
+export function useStylistIntakesView(args?: GetStylistIntakesArgs) {
+  const query = useGetStylistIntakesQuery({ limit: 50, ...args });
   return {
     intakes: query.data?.intakes ?? [],
     isLoading: query.isLoading,
@@ -36,8 +39,8 @@ export function useStylistIntakeDetailView(intakeId: string | null) {
   };
 }
 
-export function useStylistAppointmentsView(status?: string) {
-  const query = useGetStylistAppointmentsQuery(status ? { status, limit: 50 } : { limit: 50 });
+export function useStylistAppointmentsView(args?: GetStylistAppointmentsArgs) {
+  const query = useGetStylistAppointmentsQuery({ limit: 50, ...args });
   return {
     appointments: query.data?.appointments ?? [],
     isLoading: query.isLoading,
@@ -54,8 +57,8 @@ export function useStylistAppointmentDetailView(appointmentId: string | null) {
   };
 }
 
-export function useStylistClientsView(search?: string) {
-  const query = useGetStylistClientsQuery(search ? { search, limit: 50 } : { limit: 50 });
+export function useStylistClientsView(args?: GetStylistClientsArgs) {
+  const query = useGetStylistClientsQuery({ limit: 50, ...args });
   return {
     clients: query.data?.clients ?? [],
     isLoading: query.isLoading,
