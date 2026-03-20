@@ -54,13 +54,13 @@
 
 ## Phase 6: Portal Appointments And Maintenance
 
-- [ ] Add schema tables for `maintenance_plans` and `maintenance_items`
-- [ ] Implement `GET /api/me/appointments`
-- [ ] Implement `GET /api/me/appointments/:id`
-- [ ] Implement `PATCH /api/me/appointments/:id`
-- [ ] Implement `POST /api/me/appointments/:id/cancel`
-- [ ] Implement `GET /api/me/maintenance-plan`
-- [ ] Add tests for portal appointment filtering, reschedule policy, cancel policy, and maintenance plan reads
+- [x] Add schema tables for `maintenance_plans` and `maintenance_items`
+- [x] Implement `GET /api/me/appointments`
+- [x] Implement `GET /api/me/appointments/:id`
+- [x] Implement `PATCH /api/me/appointments/:id`
+- [x] Implement `POST /api/me/appointments/:id/cancel`
+- [x] Implement `GET /api/me/maintenance-plan`
+- [x] Add tests for portal appointment filtering, reschedule policy, cancel policy, and maintenance plan reads
 
 ## Phase 7: Portal Photos
 

@@ -18,10 +18,14 @@ RelatedFiles:
       Note: |-
         Recorded availability and booking persistence in the diary
         Recorded appointment persistence and client lookup for Phase 4 (commit a11523d)
+        Recorded portal appointment and maintenance persistence in the diary
+        Recorded Phase 6 portal appointment and maintenance persistence (commit bf71baa)
     - Path: pkg/appointments/service.go
       Note: |-
         Recorded availability calculation and public booking orchestration in the diary
         Recorded availability calculation and public booking orchestration for Phase 4 (commit a11523d)
+        Recorded portal appointment and maintenance orchestration in the diary
+        Recorded Phase 6 portal appointment and maintenance orchestration (commit bf71baa)
     - Path: pkg/auth/oidc.go
       Note: Existing Keycloak/OIDC flow that now anchors the backend auth direction
     - Path: pkg/clients/postgres.go
@@ -52,6 +56,10 @@ RelatedFiles:
         Recorded the DB-backed /api/me handler in the diary
         Recorded authenticated profile and notification preference handlers in the diary
         Recorded Phase 5 authenticated write handlers (commit f5629e1)
+    - Path: pkg/server/handlers_portal.go
+      Note: |-
+        Recorded authenticated portal appointment and maintenance handlers in the diary
+        Recorded Phase 6 portal handlers (commit bf71baa)
     - Path: pkg/server/handlers_public.go
       Note: |-
         Recorded the DB-backed public service and intake handlers in the diary
@@ -63,6 +71,7 @@ RelatedFiles:
         Recorded intake route and uploads static wiring for Phase 3 (commit f537be4)
         Recorded appointments service wiring for Phase 4 (commit a11523d)
         Recorded Phase 5 route registration (commit f5629e1)
+        Recorded Phase 6 portal route registration (commit bf71baa)
     - Path: pkg/services/service.go
       Note: Recorded the public service catalog slice in the diary
     - Path: pkg/storage/local.go
@@ -85,10 +94,11 @@ RelatedFiles:
       Note: OTP-oriented UI that now needs to be removed
 ExternalSources: []
 Summary: Chronological diary for the HAIR-002 backend MVP design and implementation work.
-LastUpdated: 2026-03-19T23:23:42-04:00
+LastUpdated: 2026-03-19T23:47:29-04:00
 WhatFor: Use this diary to understand why the backend plan changed and what implementation slices were executed.
 WhenToUse: Use when reviewing or continuing HAIR-002.
 ---
+
 
 
 
@@ -716,4 +726,78 @@ go test ./...
 gofmt -w pkg/clients/service.go pkg/clients/postgres.go pkg/clients/service_test.go pkg/server/handlers_me.go pkg/server/http.go pkg/server/http_test.go
 go test ./...
 git commit -m "feat: add profile and notification preference updates"
+```
+
+## Step 8: Add Portal Appointments, Policy Enforcement, And Maintenance Reads
+
+After the public booking and profile slices were in place, the next useful portal layer was client-owned appointment history and the maintenance timeline. This slice extends the appointments domain so it now covers both public booking and authenticated portal behaviors, instead of scattering appointment logic across separate packages.
+
+The most important backend rule in this step is the 24-hour policy. Portal reschedule and cancel operations now check the current appointment time before allowing a change, while the list/detail routes and maintenance-plan read give the frontend enough real data to replace the remaining mock appointment state.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Continue the implementation slices by replacing the portal appointment history and maintenance-plan mocks with authenticated backend APIs.
+
+**Inferred user intent:** Keep pushing the MVP backend toward a fully usable client portal instead of stopping at public booking and profile edits.
+
+**Commit (code):** `bf71baa` — `feat: add portal appointments and maintenance APIs`
+
+### What I did
+- Extended `pkg/appointments/service.go` with client-scoped appointment listing, appointment detail reads, reschedule/cancel flows, maintenance-plan reads, appointment filtering, and 24-hour policy enforcement.
+- Extended `pkg/appointments/postgres.go` with client-scoped appointment queries, appointment photo reads, appointment reschedule/cancel writes, and maintenance-plan queries.
+- Expanded `pkg/appointments/service_test.go` with portal filtering plus reschedule/cancel policy coverage.
+- Added `pkg/server/handlers_portal.go` with:
+  - `GET /api/me/appointments`
+  - `GET /api/me/appointments/:id`
+  - `PATCH /api/me/appointments/:id`
+  - `POST /api/me/appointments/:id/cancel`
+  - `GET /api/me/maintenance-plan`
+- Updated `pkg/server/http.go` to register the new portal routes.
+- Expanded `pkg/server/http_test.go` with handler tests for portal appointment list/detail/reschedule and maintenance-plan reads.
+
+### Why
+- The imported portal UI depends on appointment cards, cancel/reschedule actions, and the maintenance timeline. Without these APIs, a large part of the client experience would still be mock-only.
+- Reusing the appointments domain keeps policy and scheduling behavior consistent between public and authenticated flows.
+
+### What worked
+- The appointments package absorbed the portal logic cleanly; it already owned schedule validation, so reschedule checks fit there naturally.
+- The handler layer stayed thin because the portal routes only needed authenticated client resolution plus appointments-service calls.
+- `go test ./...` passed after the portal routes and repo extensions were wired in.
+
+### What didn't work
+- There were no major debugging detours in this slice. The main implementation risk was interface drift after expanding the `appointments.Repository`, so I kept running the full Go test suite after extending the fake repos and handler tests.
+
+### What I learned
+- The 24-hour policy is best enforced against the current scheduled appointment time, not the requested new time. That keeps cancel and reschedule behavior aligned and predictable.
+- The portal routes can reuse the same appointments-domain primitives as public booking, as long as the service is given a client-scoped lookup path.
+
+### What was tricky to build
+- The subtle part was keeping the appointments package cohesive while it grew beyond pure public-booking logic. The package now owns availability math, booking creation, portal filtering, detail reads, maintenance-plan reads, and policy checks. I kept that manageable by making the repository client-scoped and keeping formatting/policy helpers inside the domain layer instead of pushing them into HTTP handlers.
+
+### What warrants a second pair of eyes
+- Whether the portal appointment list should eventually return explicit frontend-ready display fields only, or continue exposing both raw and display-oriented fields while the frontend integration is in flight.
+- Whether maintenance plans should remain optional and return `{ plan: null, items: [] }` when absent, or whether the stylist workflow should always create a plan row for extension clients.
+
+### What should be done in the future
+- Move on to Phase 7: authenticated appointment photo timeline queries and appointment photo uploads.
+
+### Code review instructions
+- Start with `pkg/appointments/service.go` and `pkg/appointments/postgres.go`.
+- Then review `pkg/server/handlers_portal.go`.
+- Confirm the new routes and handler coverage in `pkg/server/http.go` and `pkg/server/http_test.go`.
+- Re-run:
+
+```bash
+go test ./...
+```
+
+### Technical details
+- Commands run:
+
+```bash
+gofmt -w pkg/appointments/service.go pkg/appointments/postgres.go pkg/appointments/service_test.go pkg/server/handlers_portal.go pkg/server/http.go pkg/server/http_test.go
+go test ./...
+git commit -m "feat: add portal appointments and maintenance APIs"
 ```

@@ -83,3 +83,14 @@ Implemented the Phase 5 profile and notification preference slice in commit `f56
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/handlers_me.go — Authenticated profile and notification preference handlers
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http.go — Registered the new authenticated write routes
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http_test.go — Handler coverage for profile and preference writes
+
+Implemented the Phase 6 portal appointments and maintenance slice in commit `bf71baa`, adding authenticated appointment list/detail/reschedule/cancel routes, maintenance-plan reads, 24-hour portal policy enforcement, and expanded appointments-domain coverage for portal flows.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/service.go — Portal appointment filtering, detail, reschedule, cancel, and maintenance-plan orchestration
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/postgres.go — Client-scoped appointment and maintenance-plan queries plus update/cancel persistence
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/service_test.go — Policy and portal-domain coverage for the extended appointments service
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/handlers_portal.go — Authenticated portal appointment and maintenance handlers
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http.go — Registered the portal appointment and maintenance routes
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http_test.go — Handler coverage for portal appointment and maintenance APIs
