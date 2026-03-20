@@ -49,6 +49,7 @@ RelatedFiles:
       Note: |-
         Recorded logout wiring against the browser auth session for Phase 2 (commit dd3bcda)
         Profile identity fields switched to live /api/me data in Phase 4 (commit f546c57)
+        Notification preferences switched from mock toggles to the real mutation path in Phase 5 (commit 6876704)
     - Path: web/src/stylist/pages/SignInPage.tsx
       Note: Recorded Keycloak login initiation UI for Phase 2 (commit dd3bcda)
     - Path: web/src/stylist/pages/VerifyCodePage.tsx
@@ -63,10 +64,13 @@ RelatedFiles:
       Note: |-
         Recorded backend-to-widget mapping helpers for Phase 1 (commit bb46c1b)
         Recorded consultation-to-intake mapping and consult-service selection for Phase 3 (commit a49a02a)
+        Removed the fake marketing row from the live notification preference mapping in Phase 5 (commit 6876704)
     - Path: web/src/stylist/store/api/portalApi.ts
       Note: Recorded portal endpoint definitions for Phase 1 (commit bb46c1b)
     - Path: web/src/stylist/store/api/portalView.ts
-      Note: Live portal view hooks introduced for Phase 4 portal reads (commit f546c57)
+      Note: |-
+        Live portal view hooks introduced for Phase 4 portal reads (commit f546c57)
+        Extended portal profile view hook with live notification preferences in Phase 5 (commit 6876704)
     - Path: web/src/stylist/store/api/servicesApi.ts
       Note: Fixed service catalog response transform for the live calendar path
     - Path: web/src/stylist/store/api/types.ts
@@ -87,6 +91,7 @@ RelatedFiles:
       Note: |-
         Portal mock state that should shrink once server state moves to RTK Query
         Reduced portal slice responsibilities after live portal reads landed in Phase 4 (commit f546c57)
+        Removed notification preference ownership from the portal slice in Phase 5 (commit 6876704)
     - Path: web/src/stylist/store/test-utils.ts
       Note: Recorded test-store wiring through createAppStore for Phase 1 (commit bb46c1b)
     - Path: web/vite.config.ts
@@ -97,6 +102,7 @@ LastUpdated: 2026-03-20T03:05:00-04:00
 WhatFor: Use this diary to understand why the frontend integration ticket exists, what evidence drove the plan, and how to continue implementation.
 WhenToUse: Use when continuing HAIR-003 or reviewing the reasoning behind the RTK Query migration order.
 ---
+
 
 
 
@@ -1299,3 +1305,119 @@ npm --prefix web run typecheck
   - `GET /api/me/appointments`
   - `GET /api/me/maintenance-plan`
 - The appointment-detail endpoint remains available in RTK Query but intentionally unused because the current widget set has no standalone detail screen.
+
+## Step 10: Make Portal Notification Preferences A Real Mutation
+
+Once the profile page was showing live identity data, the remaining fake toggle behavior stood out immediately. The notification switches still depended on `portalSlice`, which meant the profile was half-real: Alice’s name and email came from `/api/me`, but the switches were still just local mock state. I treated that as the first portal write slice because the backend already supports `PATCH /api/me/notification-prefs` and the UI already has the controls.
+
+This was a good next step because it let me prove one real authenticated mutation path without inventing a profile-edit form or an appointment-reschedule UX first. It also pushed `portalSlice` further toward UI-only concerns.
+
+### Prompt Context
+
+**User prompt (verbatim):** (see Step 9)
+
+**Assistant interpretation:** Continue the normal integration work rather than stopping after the portal read slice, and keep landing focused commits with up-to-date ticket bookkeeping.
+
+**Inferred user intent:** Keep reducing the amount of fake portal behavior while preserving a disciplined implementation trail.
+
+**Commit (code):** `6876704` — `feat: sync portal notification preferences`
+
+### What I did
+
+- Updated `mapNotificationPrefsToViewModel()` so live backend notification preferences no longer force a fake marketing toggle into the mapped result.
+- Extended `usePortalProfileView()` to expose live notification preference view data from `/api/me`.
+- Reworked `PortalProfilePage.tsx` so the preference switches now call `useUpdateNotificationPrefsMutation()`.
+- Added mutation error handling on the profile page using `getApiErrorMessage()`.
+- Removed notification preference ownership from `portalSlice.ts`.
+- Re-ran:
+
+```bash
+npm --prefix web run typecheck
+```
+
+- Verified in the browser:
+  - logged in as `alice`
+  - opened the profile page
+  - toggled `Text reminders (2hr)`
+  - queried `/api/me` in-browser afterward
+  - confirmed `remind_2hr: false`
+  - reloaded the portal and confirmed the switch stayed off
+
+### Why
+
+- The notification switches already existed in the UI, so they were the cheapest truthful portal write to integrate.
+- This mutation path uses the same authenticated session contract as the portal reads, which makes it a good proof that cache invalidation and session-backed writes work end to end.
+- Removing the fake toggle reducer shrinks the surface area where `portalSlice` can diverge from backend truth.
+
+### What worked
+
+- The mutation succeeded against the real backend.
+- `/api/me` reflected the updated preference value immediately after the toggle:
+
+```json
+{
+  "notification_prefs": {
+    "remind_48hr": true,
+    "remind_2hr": false,
+    "maint_alerts": true
+  }
+}
+```
+
+- Reloading the portal profile page preserved the backend value, which proved this was not only an in-memory UI flip.
+- `portalSlice` no longer owns notification preferences.
+
+### What didn't work
+
+- The profile page still has no real edit-profile form, so only the preference switches are live in this write slice. That is a scope boundary, not a defect.
+
+### What I learned
+
+- Wiring a single small authenticated mutation is a good way to confirm that the portal’s live read layer and invalidation strategy are behaving correctly.
+- It is worth separating “live product toggles” from “marketing placeholders.” The fake marketing row did not belong in the real backend-mapped preference view.
+
+### What was tricky to build
+
+- The tricky part was avoiding a mixed state where the page would show both real backend toggles and leftover mock-only ones. The symptom would have been a profile section where some rows truly persisted and others silently did nothing. I handled that by removing the forced marketing row from the live mapping instead of trying to keep a hybrid list for this slice.
+
+### What warrants a second pair of eyes
+
+- Review whether the notification toggles need a visible saving state or optimistic visual treatment; right now the mutation is truthful but deliberately simple.
+- Review whether the marketing preference should come back later as a separate local/business feature once there is an actual backend contract for it.
+
+### What should be done in the future
+
+- Wire the remaining Phase 5 mutations:
+  - `PATCH /api/me`
+  - `POST /api/me/appointments/:id/cancel`
+  - `PATCH /api/me/appointments/:id`
+- Add explicit tests around preference mutation invalidation and reload persistence once the frontend test harness exists.
+
+### Code review instructions
+
+- Start with:
+  - `web/src/stylist/pages/PortalProfilePage.tsx`
+  - `web/src/stylist/store/api/portalView.ts`
+  - `web/src/stylist/store/api/mappers.ts`
+  - `web/src/stylist/store/portalSlice.ts`
+- Validate with:
+
+```bash
+npm --prefix web run typecheck
+```
+
+- Then in the browser:
+  1. sign in to the portal
+  2. open profile
+  3. toggle `Text reminders (2hr)`
+  4. run `fetch('/api/me', { credentials: 'include' })`
+  5. confirm `remind_2hr` changed
+  6. reload and confirm the toggle persisted
+
+### Technical details
+
+- The live profile preference rows now correspond directly to backend fields:
+  - `remind48hr` → `remind_48hr`
+  - `remind2hr` → `remind_2hr`
+  - `maintAlerts` → `maint_alerts`
+- The fake marketing preference row has been removed from the live mapping because there is no backend field for it.

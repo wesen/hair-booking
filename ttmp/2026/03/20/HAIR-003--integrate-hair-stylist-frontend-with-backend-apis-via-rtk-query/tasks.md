@@ -55,11 +55,12 @@
 ## Phase 5: Portal Writes
 
 - [ ] Wire `PATCH /api/me`
-- [ ] Wire `PATCH /api/me/notification-prefs`
+- [x] Wire `PATCH /api/me/notification-prefs`
 - [ ] Wire `PATCH /api/me/appointments/:id` for rescheduling
 - [ ] Wire `POST /api/me/appointments/:id/cancel`
 - [ ] Invalidate/refetch RTK Query caches after portal mutations
 - [ ] Replace slice-local cancel/toggle reducers with mutation-driven updates
+- [x] Replace the slice-local notification toggle path with a mutation-driven profile preference update
 - [ ] Add tests for optimistic or refetch-based portal write flows
 
 ## Phase 6: Portal Photos

@@ -2,6 +2,17 @@
 
 ## 2026-03-20
 
+Implemented the first Phase 5 portal write slice and committed it as `6876704`. The profile page now reads notification preferences from live `/api/me` data and writes changes through `PATCH /api/me/notification-prefs`, with the updated backend state surviving a page reload. This removes the fake notification-toggle path from `portalSlice` and makes the preference switches the first fully live portal mutation in the React app.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PortalProfilePage.tsx — Wired the profile preference switches to the real notification-preference mutation
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/store/api/portalView.ts — Exposed live notification-pref view data from `/api/me`
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/store/api/mappers.ts — Stopped forcing a fake marketing row into the live notification-pref mapping
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/store/portalSlice.ts — Removed notification-pref ownership from the portal slice
+
+## 2026-03-20
+
 Implemented the Phase 4 portal read slice and committed it as `f546c57`. The portal home, appointments, and profile screens now read live backend data through RTK Query-backed view hooks instead of pulling canonical records from `portalSlice`. The authenticated portal now greets the real signed-in client, shows real appointment history, and shows real profile contact data from `/api/me`. Rewards and photos remain on their mock-backed path for now, and the standalone appointment-detail endpoint remains unused because the current widget set does not expose a separate detail screen yet.
 
 ### Related Files
