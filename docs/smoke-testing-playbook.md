@@ -235,6 +235,8 @@ tmux capture-pane -pt hb-web
 
 Do not assume the port stayed at `5173`.
 
+Also do not assume every server already listening on `5173` is this repo's hair-booking app. In this workspace, a different Vite app can already be bound there. If the page title or UI does not look like `Hair Stylist Booking`, stop and confirm the active port from `tmux capture-pane -pt hb-web` before continuing.
+
 ## Health Checks Before Opening The Browser
 
 Run:
@@ -382,6 +384,7 @@ This flow currently validates:
 - browser session cookie
 - `/api/me` success after login
 - portal home/profile/appointments live reads
+- profile edit mutation
 - notification preference mutation
 - appointment cancellation mutation
 - logout
@@ -420,12 +423,16 @@ fetch('/api/me', { credentials: 'include' }).then(r => r.json())
 10. Confirm `/api/me` returns `200` and includes the authenticated client.
 11. Open the appointments tab and confirm the real consult history appears.
 12. Open the profile page and confirm the live client contact fields appear.
-13. Toggle one notification preference and verify `/api/me` reflects the updated backend value.
-14. If there is an upcoming appointment outside the 24-hour policy window, cancel it and verify the portal refetches.
-15. Click the avatar and sign out.
-16. Complete the Keycloak logout confirmation.
-17. Return to the Vite portal URL.
-18. Confirm the unauthenticated sign-in gate is back.
+13. Click `Edit Profile`.
+14. Change at least one field and click `Save Profile`.
+15. Confirm the form closes and the updated value appears on the profile page.
+16. Reload the portal, reopen profile, and confirm the value persisted.
+17. Toggle one notification preference and verify `/api/me` reflects the updated backend value.
+18. If there is an upcoming appointment outside the 24-hour policy window, cancel it and verify the portal refetches.
+19. Click the avatar and sign out.
+20. Complete the Keycloak logout confirmation.
+21. Return to the Vite portal URL.
+22. Confirm the unauthenticated sign-in gate is back.
 
 ### Important current limitation
 
@@ -434,6 +441,7 @@ Rewards and photos still remain mock-backed. The live portal surfaces are curren
 - home greeting
 - appointments
 - profile identity
+- profile edits
 - notification preferences
 
 The still-mock portal surfaces are currently:
@@ -462,6 +470,7 @@ That is an expected backend-enforced rule, not a frontend bug.
 - `/api/me` returns `200` after login
 - home greeting reflects the authenticated client
 - profile page reflects the authenticated client
+- profile edits persist through reload and `/api/me`
 - notification preference changes persist through `/api/me`
 - appointment cancellation outside the policy window refetches the portal state
 - logout succeeds
@@ -520,6 +529,50 @@ Meaning:
 
 - either nullable client columns are being scanned unsafely
 - or an authenticated identity is colliding with an existing guest-booking client row and needs linking
+
+### Failure: wrong Vite app on the expected port
+
+Symptom:
+
+```text
+The browser opens a different application such as CozoScript Editor instead of Hair Stylist Booking.
+```
+
+Where to inspect:
+
+- `tmux capture-pane -pt hb-web`
+- [web/src/main.tsx](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/main.tsx)
+
+Meaning:
+
+- `5173` is serving a different dev server in the workspace
+- or the hair-booking Vite instance chose a different port such as `5175`
+
+### Failure: profile update failed
+
+Error:
+
+```text
+profile-update-failed
+```
+
+Or in the UI:
+
+```text
+Failed to update the client profile.
+```
+
+Where to inspect:
+
+- [pkg/clients/postgres.go](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/clients/postgres.go)
+- [pkg/server/handlers_me.go](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/handlers_me.go)
+- [web/src/stylist/pages/PortalProfilePage.tsx](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PortalProfilePage.tsx)
+
+Meaning:
+
+- the portal editor successfully reached `PATCH /api/me`
+- but the backend profile query did not cast one of its nullable text parameters as `text`
+- the frontend was not the root cause if this exact error appears
 
 ### Failure: appointment policy violation on cancel
 
@@ -598,6 +651,7 @@ Right now, a good local smoke pass means:
 - DB rows match the booking confirmation
 - portal sign-in works
 - `/api/me` succeeds after login
+- profile edit saves and survives reload
 - logout works
 
 It does not yet require:
@@ -605,6 +659,6 @@ It does not yet require:
 - full live portal content parity
 - photo timeline validation in the portal
 - maintenance timeline parity
-- profile mutation validation
+- reschedule mutation validation
 
 Those should be added to this playbook when those slices are integrated.

@@ -14,7 +14,11 @@ RelatedFiles:
     - Path: docs/smoke-testing-playbook.md
       Note: Durable repo-level playbook created from the live smoke findings and meant to be updated over time
     - Path: pkg/clients/postgres.go
-      Note: Fixed nullable authenticated-client scan handling and guest-to-auth email linking
+      Note: |-
+        Fixed nullable authenticated-client scan handling and guest-to-auth email linking
+        Fixed `PATCH /api/me` text-parameter casting after the profile editor smoke exposed `profile-update-failed`
+    - Path: pkg/clients/postgres_test.go
+      Note: Added regression coverage for nullable profile string argument conversion used by the profile update repository path
     - Path: pkg/intake/postgres.go
       Note: Fixed nullable intake scan handling exposed by the smoke test
     - Path: ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/inspect_latest_booking.sh
@@ -50,6 +54,7 @@ RelatedFiles:
         Recorded logout wiring against the browser auth session for Phase 2 (commit dd3bcda)
         Profile identity fields switched to live /api/me data in Phase 4 (commit f546c57)
         Notification preferences switched from mock toggles to the real mutation path in Phase 5 (commit 6876704)
+        Added a live inline editor over `PATCH /api/me` in Phase 5 (commit de5351a)
     - Path: web/src/stylist/pages/SignInPage.tsx
       Note: Recorded Keycloak login initiation UI for Phase 2 (commit dd3bcda)
     - Path: web/src/stylist/pages/VerifyCodePage.tsx
@@ -71,6 +76,7 @@ RelatedFiles:
       Note: |-
         Live portal view hooks introduced for Phase 4 portal reads (commit f546c57)
         Extended portal profile view hook with live notification preferences in Phase 5 (commit 6876704)
+        Exposed the raw client DTO for the live profile editor in Phase 5 (commit de5351a)
     - Path: web/src/stylist/store/api/servicesApi.ts
       Note: Fixed service catalog response transform for the live calendar path
     - Path: web/src/stylist/store/api/types.ts
@@ -98,7 +104,7 @@ RelatedFiles:
       Note: Added local proxying for backend API
 ExternalSources: []
 Summary: Chronological diary for the frontend integration planning and early implementation work that moves the hair-booking app from mocks to RTK Query-backed backend calls.
-LastUpdated: 2026-03-20T11:40:00-04:00
+LastUpdated: 2026-03-20T12:35:00-04:00
 WhatFor: Use this diary to understand why the frontend integration ticket exists, what evidence drove the plan, and how to continue implementation.
 WhenToUse: Use when continuing HAIR-003 or reviewing the reasoning behind the RTK Query migration order.
 ---
@@ -1577,3 +1583,187 @@ npm --prefix web run typecheck
   - policy-blocked appointment: `e0e5eb9e-f883-4192-bdcc-0914664a5ca7`
   - successfully cancelled appointment: `d22eeb33-e9ed-4731-a28f-9cff4cd7557f`
 - The portal now depends on preserved backend appointment identifiers even for display-oriented widgets.
+
+## Step 12: Make Portal Profile Editing Real And Fix The Backend Query It Exposed
+
+After the cancellation slice, the biggest remaining dead portal affordance was the `Edit Profile` button. The API route already existed, but the screen still had no editor behind it. I treated that as the next truthful Phase 5 mutation slice: wire the inline profile editor to `PATCH /api/me`, prove it persists through reload, and then document whatever the live smoke revealed.
+
+The browser smoke revealed a real backend defect on the first attempt. The frontend editor was correct enough to reach the real mutation path, but the server returned `500 profile-update-failed`. I stopped feature work there, reproduced the failing query shape directly with pgx, fixed the repository query by casting nullable text parameters as `::text`, and only then reran the portal smoke.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue with the normal integration, making sure to commit at appropriate intervals, checking off tasks in the task list (or adding them if they are not yet present), and keeping a detailed diary"
+
+**Assistant interpretation:** Continue the next meaningful frontend/backend integration slice, keep the commit history granular, and record the debugging trail instead of collapsing it into a single summary.
+
+**Inferred user intent:** Replace another visible mock/dead UI path with a real backend-backed interaction and capture the operational knowledge that falls out of the live test.
+
+**Commit (code):** `de5351a` — `feat: wire portal profile editing`
+
+### What I did
+
+- Extended `usePortalProfileView()` to expose the raw live `client` DTO as well as the mapped display profile.
+- Reworked `PortalProfilePage.tsx` to add:
+  - an inline editor toggled from the existing `Edit Profile` action
+  - local draft state for `name`, `email`, `phone`, and `scalp_notes`
+  - dirty-state detection so unchanged drafts do not send empty mutations
+  - save/cancel controls
+  - live mutation error handling via `getApiErrorMessage()`
+- Ran:
+
+```bash
+npm --prefix web run typecheck
+```
+
+- Used Playwright against the live local stack at `http://127.0.0.1:5175/?app=portal` to validate the new editor.
+- Captured the first failure from the browser:
+
+```text
+Failed to update the client profile.
+```
+
+- Reproduced the failing mutation directly from the browser:
+
+```js
+fetch('/api/me', {
+  method: 'PATCH',
+  credentials: 'include',
+  headers: { 'content-type': 'application/json' },
+  body: JSON.stringify({ phone: '401-555-0199', scalp_notes: 'Sensitive scalp. Prefers low-tension installs.' })
+})
+```
+
+- Confirmed the backend response was:
+
+```json
+{
+  "status": 500,
+  "body": "{\"error\":{\"code\":\"profile-update-failed\",\"message\":\"Failed to update the client profile.\"}}\n"
+}
+```
+
+- Verified the SQL itself worked in `psql`, which ruled out schema/constraint errors.
+- Reproduced the real failure shape with a temporary Go program using pgx, which returned:
+
+```text
+ERROR: could not determine data type of parameter $3 (SQLSTATE 42P08)
+```
+
+- Fixed `pkg/clients/postgres.go` by:
+  - converting optional profile strings to concrete string-or-nil arguments
+  - casting the nullable text query parameters as `::text`
+  - hardening the related authenticated-client queries that used the same `nullif($n, '')` pattern
+- Added `pkg/clients/postgres_test.go` with regression coverage for the nullable string argument conversion helper.
+- Re-ran:
+
+```bash
+go test ./...
+npm --prefix web run typecheck
+```
+
+- Restarted the backend tmux session and repeated the same portal save flow in Playwright.
+- Verified the saved profile value persisted through a reload and through a fresh `/api/me` read:
+
+```json
+{
+  "data": {
+    "client": {
+      "phone": "401-555-0123",
+      "scalp_notes": "Sensitive scalp. Prefers low-tension installs. Needs gentle adhesive removal."
+    }
+  }
+}
+```
+
+### Why
+
+- The existing `Edit Profile` button was a visible dead affordance, which made the portal less truthful than it needed to be.
+- `PATCH /api/me` already existed, so the right next step was to prove the end-to-end path rather than invent a new backend contract.
+- The live smoke was valuable precisely because it hit a backend edge that unit tests and earlier slices had not exposed.
+
+### What worked
+
+- The inline editor fit into the existing profile page without needing a new portal route or a new screen enum.
+- After the repository fix, the portal save flow worked end to end:
+  - the editor closed on success
+  - the saved profile fields were visible immediately on the profile page
+  - a full page reload preserved the values
+  - `/api/me` returned the same saved values
+- Full validation stayed green:
+
+```bash
+go test ./...
+npm --prefix web run typecheck
+```
+
+- The browser smoke also clarified an environment detail worth preserving: `5173` can serve the wrong Vite app in this workspace, so the active hair-booking frontend port must be confirmed from tmux before starting the browser flow.
+
+### What didn't work
+
+- The first live save attempt failed with a backend `500`:
+
+```text
+Failed to update the client profile.
+```
+
+- That failure was not caused by React state or RTK Query. It came from the repository SQL shape, where pgx and Postgres could not infer the type of nullable string parameters used in `nullif($n, '')`.
+
+### What I learned
+
+- Browser-led smoke testing is still surfacing backend defects even this late in the integration, which validates the decision to integrate now rather than finish every backend edge first.
+- When repository queries rely on nullable text parameters with `nullif($n, '')`, explicit `::text` casts are safer than relying on driver inference.
+- The profile page needed both the mapped display model and the raw backend client record. The mapped view model alone was not enough for a truthful editor.
+
+### What was tricky to build
+
+- The tricky part was not the editor UI itself. The hard part was separating “frontend bug” from “backend bug” quickly once the save failed. The symptoms could have pointed at mutation payload shape, auth session, or database constraints. I reduced that uncertainty by reproducing the request in the browser, then in `psql`, then in a tiny pgx program until only the repository query shape remained.
+
+### What warrants a second pair of eyes
+
+- Review whether the profile page should show a dedicated success treatment after save rather than simply closing the editor and relying on the updated visible values.
+- Review whether `serviceDescription` should keep treating `scalp_notes` as the main profile text once more service-summary data starts appearing from stylist workflows.
+- Review whether the profile editor should eventually validate email/phone format more aggressively client-side or continue delegating almost all normalization to the backend.
+
+### What should be done in the future
+
+- Wire the final major Phase 5 mutation:
+  - `PATCH /api/me/appointments/:id`
+- Add frontend tests for profile save success and error rendering once the test harness exists.
+- Keep the smoke playbook updated with any future portal redirect or form-validation changes.
+
+### Code review instructions
+
+- Start with the frontend editor slice:
+  - `web/src/stylist/pages/PortalProfilePage.tsx`
+  - `web/src/stylist/store/api/portalView.ts`
+- Then review the backend persistence fix:
+  - `pkg/clients/postgres.go`
+  - `pkg/clients/postgres_test.go`
+- Then review the long-lived smoke guidance update:
+  - `docs/smoke-testing-playbook.md`
+- Validate with:
+
+```bash
+go test ./...
+npm --prefix web run typecheck
+```
+
+- Then repeat the profile-edit smoke:
+  1. log in to the portal
+  2. open profile
+  3. click `Edit Profile`
+  4. change `phone` or `scalp_notes`
+  5. save
+  6. reload
+  7. confirm the value persists on the page and in `/api/me`
+
+### Technical details
+
+- Frontend route exercised:
+  - `PATCH /api/me`
+- First backend failure surfaced in the browser:
+  - `profile-update-failed`
+- Underlying direct pgx reproduction:
+  - `ERROR: could not determine data type of parameter $3 (SQLSTATE 42P08)`
+- Validated live frontend port:
+  - `http://127.0.0.1:5175/?app=portal`

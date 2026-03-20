@@ -2,6 +2,18 @@
 
 ## 2026-03-20
 
+Implemented the next Phase 5 portal write slice and committed it as `de5351a`. The profile page now exposes a real inline editor backed by `PATCH /api/me`, and the same smoke run that validated the UI also exposed and fixed a backend repository defect in the profile update query. I updated the smoke playbook with the new profile-edit validation steps, the “wrong Vite app on 5173” failure mode, and the `profile-update-failed` backend signature.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/pages/PortalProfilePage.tsx — Replaced the dead edit button with a mutation-backed inline profile editor
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/store/api/portalView.ts — Exposed the raw client record so the profile page can initialize an editor from live backend data
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/clients/postgres.go — Fixed nullable profile update parameters by casting text query inputs explicitly for pgx/Postgres
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/clients/postgres_test.go — Added regression coverage for nullable profile string argument conversion
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/smoke-testing-playbook.md — Added live profile-edit smoke steps and the new failure signatures
+
+## 2026-03-20
+
 Implemented the next Phase 5 portal write slice and committed it as `5a4fbf3`. Upcoming portal appointments can now be cancelled through the real `POST /api/me/appointments/:id/cancel` mutation, the home screen refetches when a cancellation succeeds, and the appointment view model now carries the backend UUID needed for mutation routes. I also updated the repo-level smoke playbook with the 24-hour policy failure case and the successful cancel-validation procedure.
 
 ### Related Files
