@@ -210,8 +210,13 @@ func (f *fakeBlobStore) Save(ctx context.Context, key string, reader io.Reader) 
 }
 
 type fakeAppointmentRepo struct {
-	service *hairappointments.ServiceInfo
-	client  *hairappointments.Client
+	service          *hairappointments.ServiceInfo
+	client           *hairappointments.Client
+	portalRows       []hairappointments.PortalAppointment
+	portalDetail     *hairappointments.PortalAppointment
+	photos           []hairappointments.AppointmentPhoto
+	maintenance      *hairappointments.MaintenancePlan
+	maintenanceItems []hairappointments.MaintenancePlanItem
 }
 
 func (f *fakeAppointmentRepo) ListScheduleBlocks(ctx context.Context) ([]hairappointments.ScheduleBlock, error) {
@@ -249,6 +254,55 @@ func (f *fakeAppointmentRepo) CreateAppointment(ctx context.Context, appointment
 	appointment.CreatedAt = time.Now().UTC()
 	appointment.UpdatedAt = appointment.CreatedAt
 	return &appointment, nil
+}
+
+func (f *fakeAppointmentRepo) ListClientAppointments(ctx context.Context, clientID uuid.UUID) ([]hairappointments.PortalAppointment, error) {
+	return f.portalRows, nil
+}
+
+func (f *fakeAppointmentRepo) GetClientAppointment(ctx context.Context, clientID, appointmentID uuid.UUID) (*hairappointments.PortalAppointment, error) {
+	if f.portalDetail != nil && f.portalDetail.ID == appointmentID {
+		return f.portalDetail, nil
+	}
+	return nil, hairappointments.ErrNotFound
+}
+
+func (f *fakeAppointmentRepo) ListAppointmentPhotos(ctx context.Context, appointmentID uuid.UUID) ([]hairappointments.AppointmentPhoto, error) {
+	return f.photos, nil
+}
+
+func (f *fakeAppointmentRepo) UpdateAppointmentSchedule(ctx context.Context, clientID, appointmentID uuid.UUID, date, startTime string) (*hairappointments.Appointment, error) {
+	return &hairappointments.Appointment{
+		ID:                  appointmentID,
+		ClientID:            clientID,
+		ServiceID:           f.portalDetail.ServiceID,
+		Date:                date,
+		StartTime:           startTime,
+		DurationMinSnapshot: f.portalDetail.DurationMinSnapshot,
+		Status:              f.portalDetail.Status,
+		CreatedAt:           time.Now().UTC(),
+		UpdatedAt:           time.Now().UTC(),
+	}, nil
+}
+
+func (f *fakeAppointmentRepo) CancelAppointment(ctx context.Context, clientID, appointmentID uuid.UUID, reason string, cancelledAt time.Time) (*hairappointments.Appointment, error) {
+	return &hairappointments.Appointment{
+		ID:                  appointmentID,
+		ClientID:            clientID,
+		ServiceID:           f.portalDetail.ServiceID,
+		Date:                f.portalDetail.Date,
+		StartTime:           f.portalDetail.StartTime,
+		DurationMinSnapshot: f.portalDetail.DurationMinSnapshot,
+		Status:              "cancelled",
+		CancelReason:        reason,
+		CancelledAt:         &cancelledAt,
+		CreatedAt:           time.Now().UTC(),
+		UpdatedAt:           time.Now().UTC(),
+	}, nil
+}
+
+func (f *fakeAppointmentRepo) GetMaintenancePlan(ctx context.Context, clientID uuid.UUID) (*hairappointments.MaintenancePlan, []hairappointments.MaintenancePlanItem, error) {
+	return f.maintenance, f.maintenanceItems, nil
 }
 
 func TestHandleMeReturnsBootstrappedClient(t *testing.T) {
@@ -529,5 +583,173 @@ func TestHandleCreateAppointmentReturnsPendingAppointment(t *testing.T) {
 	}
 	if !strings.Contains(recorder.Body.String(), "\"status\":\"pending\"") {
 		t.Fatalf("expected response body to include pending appointment status, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandleMyAppointmentsReturnsFilteredRows(t *testing.T) {
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html":    &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+			"static/app.js": &fstest.MapFile{Data: []byte("console.log('ok');")},
+		},
+		ClientService: hairclients.NewService(&fakeClientServiceRepo{}),
+		AppointmentService: hairappointments.NewService(&fakeAppointmentRepo{
+			portalRows: []hairappointments.PortalAppointment{
+				{Appointment: hairappointments.Appointment{ID: uuid.New(), ClientID: uuid.New(), ServiceID: uuid.New(), Date: "2026-03-25", StartTime: "10:00 AM", Status: "confirmed", DurationMinSnapshot: 30}, ServiceName: "Gloss / Toner"},
+				{Appointment: hairappointments.Appointment{ID: uuid.New(), ClientID: uuid.New(), ServiceID: uuid.New(), Date: "2026-03-05", StartTime: "10:00 AM", Status: "completed", DurationMinSnapshot: 30}, ServiceName: "Gloss / Toner"},
+			},
+		}),
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/me/appointments?status=upcoming", nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"total\":1") {
+		t.Fatalf("expected filtered total in response, got %s", recorder.Body.String())
+	}
+	if !strings.Contains(recorder.Body.String(), "\"service_name\":\"Gloss / Toner\"") {
+		t.Fatalf("expected appointment data in response, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandleMyAppointmentDetailReturnsServiceAndPhotos(t *testing.T) {
+	appointmentID := uuid.New()
+	serviceID := uuid.New()
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html":    &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+			"static/app.js": &fstest.MapFile{Data: []byte("console.log('ok');")},
+		},
+		ClientService: hairclients.NewService(&fakeClientServiceRepo{}),
+		AppointmentService: hairappointments.NewService(&fakeAppointmentRepo{
+			portalDetail: &hairappointments.PortalAppointment{
+				Appointment: hairappointments.Appointment{
+					ID:                  appointmentID,
+					ClientID:            uuid.New(),
+					ServiceID:           serviceID,
+					Date:                "2026-03-25",
+					StartTime:           "10:00 AM",
+					Status:              "confirmed",
+					DurationMinSnapshot: 30,
+				},
+				ServiceName:     "Gloss / Toner",
+				ServiceCategory: "color",
+				PriceLow:        75,
+				PriceHigh:       150,
+			},
+			photos: []hairappointments.AppointmentPhoto{{
+				ID:  uuid.New(),
+				URL: "http://127.0.0.1:8080/uploads/after.png",
+			}},
+		}),
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/me/appointments/"+appointmentID.String(), nil)
+	request.SetPathValue("id", appointmentID.String())
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"service\"") || !strings.Contains(recorder.Body.String(), "\"photos\"") {
+		t.Fatalf("expected appointment detail response, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandleMyAppointmentRescheduleReturnsUpdatedAppointment(t *testing.T) {
+	appointmentID := uuid.New()
+	serviceID := uuid.New()
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html":    &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+			"static/app.js": &fstest.MapFile{Data: []byte("console.log('ok');")},
+		},
+		ClientService: hairclients.NewService(&fakeClientServiceRepo{}),
+		AppointmentService: hairappointments.NewService(&fakeAppointmentRepo{
+			portalDetail: &hairappointments.PortalAppointment{
+				Appointment: hairappointments.Appointment{
+					ID:                  appointmentID,
+					ClientID:            uuid.New(),
+					ServiceID:           serviceID,
+					Date:                "2026-03-25",
+					StartTime:           "10:00 AM",
+					Status:              "confirmed",
+					DurationMinSnapshot: 30,
+				},
+				ServiceName: "Gloss / Toner",
+			},
+		}),
+	})
+
+	request := httptest.NewRequest(http.MethodPatch, "/api/me/appointments/"+appointmentID.String(), strings.NewReader(`{"date":"2026-03-30","start_time":"9:00 AM"}`))
+	request.Header.Set("Content-Type", "application/json")
+	request.SetPathValue("id", appointmentID.String())
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"appointment\"") {
+		t.Fatalf("expected updated appointment response, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandleMyMaintenancePlanReturnsItems(t *testing.T) {
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html":    &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+			"static/app.js": &fstest.MapFile{Data: []byte("console.log('ok');")},
+		},
+		ClientService: hairclients.NewService(&fakeClientServiceRepo{}),
+		AppointmentService: hairappointments.NewService(&fakeAppointmentRepo{
+			maintenance: &hairappointments.MaintenancePlan{ID: uuid.New(), ClientID: uuid.New()},
+			maintenanceItems: []hairappointments.MaintenancePlanItem{{
+				ID:          uuid.New(),
+				ServiceName: "Move-up",
+				DueDate:     "2026-03-24",
+				Status:      "next",
+			}},
+		}),
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/me/maintenance-plan", nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"items\"") || !strings.Contains(recorder.Body.String(), "Move-up") {
+		t.Fatalf("expected maintenance plan payload, got %s", recorder.Body.String())
 	}
 }

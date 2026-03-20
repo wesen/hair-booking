@@ -275,3 +275,262 @@ returning id, client_id, service_id, intake_id, to_char(date, 'YYYY-MM-DD'), to_
 	created.StartTime = strings.TrimSpace(created.StartTime)
 	return created, nil
 }
+
+func (r *PostgresRepository) ListClientAppointments(ctx context.Context, clientID uuid.UUID) ([]PortalAppointment, error) {
+	if r == nil || r.pool == nil {
+		return nil, errors.New("postgres pool is not configured")
+	}
+
+	rows, err := r.pool.Query(ctx, `
+select a.id, a.client_id, a.service_id, a.intake_id, to_char(a.date, 'YYYY-MM-DD'),
+  to_char(a.start_time, 'HH12:MI AM'), a.duration_min_snapshot, a.status, a.cancelled_at,
+  coalesce(a.cancel_reason, ''), a.created_at, a.updated_at,
+  s.name, s.category, coalesce(s.price_low, 0), coalesce(s.price_high, 0)
+from appointments a
+join services s on s.id = a.service_id
+where a.client_id = $1
+order by a.date desc, a.start_time desc
+`, clientID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query client appointments")
+	}
+	defer rows.Close()
+
+	appointments := []PortalAppointment{}
+	for rows.Next() {
+		appointment, err := scanPortalAppointment(rows)
+		if err != nil {
+			return nil, err
+		}
+		appointments = append(appointments, *appointment)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed to iterate client appointments")
+	}
+	return appointments, nil
+}
+
+func (r *PostgresRepository) GetClientAppointment(ctx context.Context, clientID, appointmentID uuid.UUID) (*PortalAppointment, error) {
+	if r == nil || r.pool == nil {
+		return nil, errors.New("postgres pool is not configured")
+	}
+
+	row := r.pool.QueryRow(ctx, `
+select a.id, a.client_id, a.service_id, a.intake_id, to_char(a.date, 'YYYY-MM-DD'),
+  to_char(a.start_time, 'HH12:MI AM'), a.duration_min_snapshot, a.status, a.cancelled_at,
+  coalesce(a.cancel_reason, ''), a.created_at, a.updated_at,
+  s.name, s.category, coalesce(s.price_low, 0), coalesce(s.price_high, 0)
+from appointments a
+join services s on s.id = a.service_id
+where a.client_id = $1 and a.id = $2
+`, clientID, appointmentID)
+
+	appointment := &PortalAppointment{}
+	if err := scanPortalAppointmentRow(row, appointment); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) || strings.Contains(err.Error(), "no rows") {
+			return nil, errors.Wrap(ErrNotFound, "appointment not found")
+		}
+		return nil, err
+	}
+	return appointment, nil
+}
+
+func (r *PostgresRepository) ListAppointmentPhotos(ctx context.Context, appointmentID uuid.UUID) ([]AppointmentPhoto, error) {
+	if r == nil || r.pool == nil {
+		return nil, errors.New("postgres pool is not configured")
+	}
+
+	rows, err := r.pool.Query(ctx, `
+select id, slot, storage_key, url, coalesce(caption, '')
+from appointment_photos
+where appointment_id = $1
+order by slot, id
+`, appointmentID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query appointment photos")
+	}
+	defer rows.Close()
+
+	photos := []AppointmentPhoto{}
+	for rows.Next() {
+		photo := AppointmentPhoto{}
+		if err := rows.Scan(&photo.ID, &photo.Slot, &photo.StorageKey, &photo.URL, &photo.Caption); err != nil {
+			return nil, errors.Wrap(err, "failed to scan appointment photo")
+		}
+		photos = append(photos, photo)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed to iterate appointment photos")
+	}
+	return photos, nil
+}
+
+func (r *PostgresRepository) UpdateAppointmentSchedule(ctx context.Context, clientID, appointmentID uuid.UUID, date, startTime string) (*Appointment, error) {
+	if r == nil || r.pool == nil {
+		return nil, errors.New("postgres pool is not configured")
+	}
+
+	startMinute, err := parseMinuteOfDay(startTime)
+	if err != nil {
+		return nil, err
+	}
+	startClock := time.Date(2000, 1, 1, startMinute/60, startMinute%60, 0, 0, time.UTC).Format("15:04:05")
+
+	updated := &Appointment{}
+	row := r.pool.QueryRow(ctx, `
+update appointments
+set date = $3,
+    start_time = $4,
+    updated_at = now()
+where client_id = $1 and id = $2
+returning id, client_id, service_id, intake_id, to_char(date, 'YYYY-MM-DD'), to_char(start_time, 'HH12:MI AM'),
+  duration_min_snapshot, status, cancelled_at, coalesce(cancel_reason, ''), created_at, updated_at
+`, clientID, appointmentID, date, startClock)
+	if err := row.Scan(
+		&updated.ID,
+		&updated.ClientID,
+		&updated.ServiceID,
+		&updated.IntakeID,
+		&updated.Date,
+		&updated.StartTime,
+		&updated.DurationMinSnapshot,
+		&updated.Status,
+		&updated.CancelledAt,
+		&updated.CancelReason,
+		&updated.CreatedAt,
+		&updated.UpdatedAt,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) || strings.Contains(err.Error(), "no rows") {
+			return nil, errors.Wrap(ErrNotFound, "appointment not found")
+		}
+		return nil, errors.Wrap(err, "failed to update appointment schedule")
+	}
+	updated.StartTime = strings.TrimSpace(updated.StartTime)
+	return updated, nil
+}
+
+func (r *PostgresRepository) CancelAppointment(ctx context.Context, clientID, appointmentID uuid.UUID, reason string, cancelledAt time.Time) (*Appointment, error) {
+	if r == nil || r.pool == nil {
+		return nil, errors.New("postgres pool is not configured")
+	}
+
+	cancelled := &Appointment{}
+	row := r.pool.QueryRow(ctx, `
+update appointments
+set status = 'cancelled',
+    cancelled_at = $3,
+    cancel_reason = nullif($4, ''),
+    updated_at = now()
+where client_id = $1 and id = $2
+returning id, client_id, service_id, intake_id, to_char(date, 'YYYY-MM-DD'), to_char(start_time, 'HH12:MI AM'),
+  duration_min_snapshot, status, cancelled_at, coalesce(cancel_reason, ''), created_at, updated_at
+`, clientID, appointmentID, cancelledAt, strings.TrimSpace(reason))
+	if err := row.Scan(
+		&cancelled.ID,
+		&cancelled.ClientID,
+		&cancelled.ServiceID,
+		&cancelled.IntakeID,
+		&cancelled.Date,
+		&cancelled.StartTime,
+		&cancelled.DurationMinSnapshot,
+		&cancelled.Status,
+		&cancelled.CancelledAt,
+		&cancelled.CancelReason,
+		&cancelled.CreatedAt,
+		&cancelled.UpdatedAt,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) || strings.Contains(err.Error(), "no rows") {
+			return nil, errors.Wrap(ErrNotFound, "appointment not found")
+		}
+		return nil, errors.Wrap(err, "failed to cancel appointment")
+	}
+	cancelled.StartTime = strings.TrimSpace(cancelled.StartTime)
+	return cancelled, nil
+}
+
+func (r *PostgresRepository) GetMaintenancePlan(ctx context.Context, clientID uuid.UUID) (*MaintenancePlan, []MaintenancePlanItem, error) {
+	if r == nil || r.pool == nil {
+		return nil, nil, errors.New("postgres pool is not configured")
+	}
+
+	plan := &MaintenancePlan{}
+	row := r.pool.QueryRow(ctx, `
+select id, client_id
+from maintenance_plans
+where client_id = $1
+`, clientID)
+	if err := row.Scan(&plan.ID, &plan.ClientID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) || strings.Contains(err.Error(), "no rows") {
+			return nil, []MaintenancePlanItem{}, nil
+		}
+		return nil, nil, errors.Wrap(err, "failed to load maintenance plan")
+	}
+
+	rows, err := r.pool.Query(ctx, `
+select mi.id, mi.plan_id, mi.service_id, s.name, to_char(mi.due_date, 'YYYY-MM-DD'),
+  mi.status, mi.appointment_id, coalesce(mi.sort_order, 0)
+from maintenance_items mi
+join services s on s.id = mi.service_id
+where mi.plan_id = $1
+order by mi.sort_order, mi.due_date, mi.id
+`, plan.ID)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to query maintenance items")
+	}
+	defer rows.Close()
+
+	items := []MaintenancePlanItem{}
+	for rows.Next() {
+		item := MaintenancePlanItem{}
+		if err := rows.Scan(
+			&item.ID,
+			&item.PlanID,
+			&item.ServiceID,
+			&item.ServiceName,
+			&item.DueDate,
+			&item.Status,
+			&item.AppointmentID,
+			&item.SortOrder,
+		); err != nil {
+			return nil, nil, errors.Wrap(err, "failed to scan maintenance item")
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to iterate maintenance items")
+	}
+	return plan, items, nil
+}
+
+func scanPortalAppointment(rows pgx.Rows) (*PortalAppointment, error) {
+	appointment := &PortalAppointment{}
+	if err := scanPortalAppointmentRow(rows, appointment); err != nil {
+		return nil, err
+	}
+	return appointment, nil
+}
+
+func scanPortalAppointmentRow(scanner interface{ Scan(dest ...any) error }, appointment *PortalAppointment) error {
+	if err := scanner.Scan(
+		&appointment.ID,
+		&appointment.ClientID,
+		&appointment.ServiceID,
+		&appointment.IntakeID,
+		&appointment.Date,
+		&appointment.StartTime,
+		&appointment.DurationMinSnapshot,
+		&appointment.Status,
+		&appointment.CancelledAt,
+		&appointment.CancelReason,
+		&appointment.CreatedAt,
+		&appointment.UpdatedAt,
+		&appointment.ServiceName,
+		&appointment.ServiceCategory,
+		&appointment.PriceLow,
+		&appointment.PriceHigh,
+	); err != nil {
+		return errors.Wrap(err, "failed to scan client appointment")
+	}
+	appointment.StartTime = strings.TrimSpace(appointment.StartTime)
+	return nil
+}

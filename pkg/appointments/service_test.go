@@ -10,14 +10,21 @@ import (
 )
 
 type fakeRepository struct {
-	blocks      []ScheduleBlock
-	overrides   []ScheduleOverride
-	booked      []Appointment
-	service     *ServiceInfo
-	client      *Client
-	created     *Appointment
-	clientCalls int
-	createCalls int
+	blocks           []ScheduleBlock
+	overrides        []ScheduleOverride
+	booked           []Appointment
+	service          *ServiceInfo
+	client           *Client
+	created          *Appointment
+	clientCalls      int
+	createCalls      int
+	portalRows       []PortalAppointment
+	portalDetail     *PortalAppointment
+	photos           []AppointmentPhoto
+	maintenance      *MaintenancePlan
+	maintenanceItems []MaintenancePlanItem
+	rescheduled      *Appointment
+	cancelled        *Appointment
 }
 
 func (f *fakeRepository) ListScheduleBlocks(ctx context.Context) ([]ScheduleBlock, error) {
@@ -56,6 +63,59 @@ func (f *fakeRepository) CreateAppointment(ctx context.Context, appointment Appo
 	appointment.UpdatedAt = appointment.CreatedAt
 	f.created = &appointment
 	return &appointment, nil
+}
+
+func (f *fakeRepository) ListClientAppointments(ctx context.Context, clientID uuid.UUID) ([]PortalAppointment, error) {
+	return f.portalRows, nil
+}
+
+func (f *fakeRepository) GetClientAppointment(ctx context.Context, clientID, appointmentID uuid.UUID) (*PortalAppointment, error) {
+	if f.portalDetail == nil || f.portalDetail.ID != appointmentID {
+		return nil, ErrNotFound
+	}
+	return f.portalDetail, nil
+}
+
+func (f *fakeRepository) ListAppointmentPhotos(ctx context.Context, appointmentID uuid.UUID) ([]AppointmentPhoto, error) {
+	return f.photos, nil
+}
+
+func (f *fakeRepository) UpdateAppointmentSchedule(ctx context.Context, clientID, appointmentID uuid.UUID, date, startTime string) (*Appointment, error) {
+	updated := &Appointment{
+		ID:                  appointmentID,
+		ClientID:            clientID,
+		ServiceID:           f.portalDetail.ServiceID,
+		Date:                date,
+		StartTime:           startTime,
+		DurationMinSnapshot: f.portalDetail.DurationMinSnapshot,
+		Status:              f.portalDetail.Status,
+		CreatedAt:           time.Now().UTC(),
+		UpdatedAt:           time.Now().UTC(),
+	}
+	f.rescheduled = updated
+	return updated, nil
+}
+
+func (f *fakeRepository) CancelAppointment(ctx context.Context, clientID, appointmentID uuid.UUID, reason string, cancelledAt time.Time) (*Appointment, error) {
+	cancelled := &Appointment{
+		ID:                  appointmentID,
+		ClientID:            clientID,
+		ServiceID:           f.portalDetail.ServiceID,
+		Date:                f.portalDetail.Date,
+		StartTime:           f.portalDetail.StartTime,
+		DurationMinSnapshot: f.portalDetail.DurationMinSnapshot,
+		Status:              "cancelled",
+		CancelledAt:         &cancelledAt,
+		CancelReason:        reason,
+		CreatedAt:           time.Now().UTC(),
+		UpdatedAt:           time.Now().UTC(),
+	}
+	f.cancelled = cancelled
+	return cancelled, nil
+}
+
+func (f *fakeRepository) GetMaintenancePlan(ctx context.Context, clientID uuid.UUID) (*MaintenancePlan, []MaintenancePlanItem, error) {
+	return f.maintenance, f.maintenanceItems, nil
 }
 
 func TestAvailabilitySubtractsBookingsAndHonorsOverrides(t *testing.T) {
@@ -167,5 +227,126 @@ func TestCreatePublicAppointmentPersistsPendingAppointment(t *testing.T) {
 	}
 	if repo.createCalls != 1 {
 		t.Fatalf("expected one appointment create call, got %d", repo.createCalls)
+	}
+}
+
+func TestListClientAppointmentsFiltersUpcomingAndPast(t *testing.T) {
+	nowFunc = func() time.Time { return time.Date(2026, 3, 2, 12, 0, 0, 0, time.UTC) }
+	defer func() { nowFunc = func() time.Time { return time.Now().UTC() } }()
+
+	repo := &fakeRepository{
+		portalRows: []PortalAppointment{
+			{Appointment: Appointment{ID: uuid.New(), Date: "2026-03-05", StartTime: "10:00 AM", Status: "confirmed", DurationMinSnapshot: 30}},
+			{Appointment: Appointment{ID: uuid.New(), Date: "2026-02-25", StartTime: "10:00 AM", Status: "completed", DurationMinSnapshot: 30}},
+		},
+	}
+
+	service := NewService(repo)
+	upcoming, total, err := service.ListClientAppointments(context.Background(), uuid.New(), AppointmentListFilter{Status: "upcoming"})
+	if err != nil {
+		t.Fatalf("ListClientAppointments returned error: %v", err)
+	}
+	if total != 1 || len(upcoming) != 1 {
+		t.Fatalf("expected 1 upcoming appointment, got total=%d len=%d", total, len(upcoming))
+	}
+
+	past, total, err := service.ListClientAppointments(context.Background(), uuid.New(), AppointmentListFilter{Status: "past"})
+	if err != nil {
+		t.Fatalf("ListClientAppointments returned error: %v", err)
+	}
+	if total != 1 || len(past) != 1 {
+		t.Fatalf("expected 1 past appointment, got total=%d len=%d", total, len(past))
+	}
+}
+
+func TestRescheduleClientAppointmentRejectsInside24Hours(t *testing.T) {
+	nowFunc = func() time.Time { return time.Date(2026, 3, 2, 12, 0, 0, 0, time.UTC) }
+	defer func() { nowFunc = func() time.Time { return time.Now().UTC() } }()
+
+	appointmentID := uuid.New()
+	repo := &fakeRepository{
+		portalDetail: &PortalAppointment{
+			Appointment: Appointment{
+				ID:                  appointmentID,
+				ClientID:            uuid.New(),
+				ServiceID:           uuid.New(),
+				Date:                "2026-03-03",
+				StartTime:           "9:00 AM",
+				Status:              "confirmed",
+				DurationMinSnapshot: 30,
+			},
+		},
+	}
+
+	service := NewService(repo)
+	_, err := service.RescheduleClientAppointment(context.Background(), repo.portalDetail.ClientID, appointmentID, "2026-03-10", "10:00 AM")
+	if err == nil {
+		t.Fatal("expected reschedule inside 24 hours to fail")
+	}
+	if !errors.Is(err, ErrPolicyViolation) {
+		t.Fatalf("expected ErrPolicyViolation, got %v", err)
+	}
+}
+
+func TestCancelClientAppointmentAppliesReason(t *testing.T) {
+	nowFunc = func() time.Time { return time.Date(2026, 3, 2, 12, 0, 0, 0, time.UTC) }
+	defer func() { nowFunc = func() time.Time { return time.Now().UTC() } }()
+
+	appointmentID := uuid.New()
+	clientID := uuid.New()
+	repo := &fakeRepository{
+		portalDetail: &PortalAppointment{
+			Appointment: Appointment{
+				ID:                  appointmentID,
+				ClientID:            clientID,
+				ServiceID:           uuid.New(),
+				Date:                "2026-03-05",
+				StartTime:           "10:00 AM",
+				Status:              "confirmed",
+				DurationMinSnapshot: 30,
+			},
+		},
+	}
+
+	service := NewService(repo)
+	cancelled, err := service.CancelClientAppointment(context.Background(), clientID, appointmentID, "Schedule conflict")
+	if err != nil {
+		t.Fatalf("CancelClientAppointment returned error: %v", err)
+	}
+	if cancelled.Status != "cancelled" {
+		t.Fatalf("expected cancelled status, got %q", cancelled.Status)
+	}
+	if cancelled.CancelReason != "Schedule conflict" {
+		t.Fatalf("expected cancel reason to be preserved, got %q", cancelled.CancelReason)
+	}
+}
+
+func TestCancelClientAppointmentRejectsInside24Hours(t *testing.T) {
+	nowFunc = func() time.Time { return time.Date(2026, 3, 2, 12, 0, 0, 0, time.UTC) }
+	defer func() { nowFunc = func() time.Time { return time.Now().UTC() } }()
+
+	appointmentID := uuid.New()
+	clientID := uuid.New()
+	repo := &fakeRepository{
+		portalDetail: &PortalAppointment{
+			Appointment: Appointment{
+				ID:                  appointmentID,
+				ClientID:            clientID,
+				ServiceID:           uuid.New(),
+				Date:                "2026-03-03",
+				StartTime:           "9:00 AM",
+				Status:              "confirmed",
+				DurationMinSnapshot: 30,
+			},
+		},
+	}
+
+	service := NewService(repo)
+	_, err := service.CancelClientAppointment(context.Background(), clientID, appointmentID, "Too late")
+	if err == nil {
+		t.Fatal("expected cancel inside 24 hours to fail")
+	}
+	if !errors.Is(err, ErrPolicyViolation) {
+		t.Fatalf("expected ErrPolicyViolation, got %v", err)
 	}
 }
