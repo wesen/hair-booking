@@ -41,9 +41,9 @@
 
 ## Backend Root Surface
 
-- [ ] Replace or retire the legacy bootstrap page in `pkg/web/public/index.html`
+- [x] Replace or retire the legacy bootstrap page language in `pkg/web/public/index.html`
 - [ ] Align `/` behavior with the intended frontend app shell
-- [ ] Ensure backend root no longer looks like an outdated prototype surface
+- [x] Ensure backend root no longer looks like an outdated prototype surface
 
 ## Validation
 

@@ -94,6 +94,28 @@ go test ./...
 npm --prefix web run typecheck
 ```
 
+### Fourth Implementation Slice
+
+The fourth code slice focused on the backend root messaging.
+
+What changed:
+
+- `pkg/web/public/index.html` no longer says the React frontend is still a future step
+- the backend root now describes itself as a session inspector
+- `pkg/web/public/static/app.js` status copy now refers to the current React app rather than a future one
+
+Why this matters:
+
+- even after auth return targets were fixed, the backend root still looked historically stale
+- that made the repo feel internally contradictory
+
+Validation for this slice:
+
+```bash
+go test ./...
+npm --prefix web run typecheck
+```
+
 ### Third Implementation Slice
 
 The third code slice focused on visible non-MVP runtime features.

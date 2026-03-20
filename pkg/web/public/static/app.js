@@ -44,7 +44,7 @@ async function loadPage() {
     setStatus(
       "Authenticated",
       "text-bg-success",
-      "The browser has an active signed session cookie. This is the contract the future React frontend will use.",
+      "The browser has an active signed session cookie. This is the same backend contract used by the current React app.",
     );
     userPayload.textContent = JSON.stringify(me, null, 2);
     loginLink.classList.add("d-none");

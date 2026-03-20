@@ -17,11 +17,12 @@
       <section class="hero-shell rounded-4 p-4 p-lg-5 shadow-sm">
         <div class="row g-4 align-items-start">
           <div class="col-lg-7">
-            <span class="eyebrow">Keycloak bootstrap</span>
-            <h1 class="display-5 fw-semibold mt-3 mb-3">Hair booking login is wired and ready for a later React frontend.</h1>
+            <span class="eyebrow">Backend Session Inspector</span>
+            <h1 class="display-5 fw-semibold mt-3 mb-3">Hair booking auth is live. This page is the backend session inspector.</h1>
             <p class="lead text-secondary mb-4">
-              This page proves the end-to-end browser login flow against the same Keycloak realm used by
-              <code>smailnail</code>. Once authenticated, the browser session is exposed through <code>/api/me</code>.
+              Use this page to verify the browser session and the backend auth contract. The React app already
+              consumes the same signed session through <code>/api/me</code>; this page is now the low-level
+              inspection surface rather than the product shell.
             </p>
             <div class="d-flex flex-wrap gap-2">
               <a id="login-link" class="btn btn-dark btn-lg" href="/auth/login">Login with Keycloak</a>
@@ -67,7 +68,7 @@
                 <li>The browser initiates login through <code>/auth/login</code>.</li>
                 <li>The server exchanges the authorization code at <code>/auth/callback</code>.</li>
                 <li>A signed HTTP-only session cookie carries the authenticated identity.</li>
-                <li>The future React app only needs to call <code>fetch("/api/me", { credentials: "include" })</code>.</li>
+                <li>The React app uses <code>fetch("/api/me", { credentials: "include" })</code> to read that session.</li>
               </ul>
             </div>
           </div>

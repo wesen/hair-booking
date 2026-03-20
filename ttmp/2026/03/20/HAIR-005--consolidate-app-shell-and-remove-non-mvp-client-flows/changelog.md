@@ -9,3 +9,4 @@
 - Added the first runtime shell slice: `/` now resolves to booking, top-level pathname routing exists, and legacy `?app=` links canonicalize to path routes
 - Added `return_to`-based login/logout routing so OIDC can round-trip the browser back to the SPA instead of backend `/`
 - Hid rewards, loyalty, referral, and deposit/payment runtime surfaces while keeping the related components/pages available for Storybook defaults
+- Reframed the backend root as a current session inspector instead of an outdated “future React frontend” bootstrap page
