@@ -1,0 +1,43 @@
+body {
+  background:
+    radial-gradient(circle at top left, rgba(219, 104, 52, 0.2), transparent 35%),
+    linear-gradient(180deg, #f7f0e8 0%, #fffdf9 45%, #f8f5ef 100%);
+  color: #2d241e;
+  min-height: 100vh;
+}
+
+.hero-shell {
+  background: rgba(255, 252, 248, 0.94);
+  border: 1px solid rgba(92, 67, 47, 0.08);
+  backdrop-filter: blur(10px);
+}
+
+.eyebrow {
+  display: inline-block;
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  background: #f1d8c3;
+  color: #7a4e2a;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.info-panel {
+  background: #231a14;
+  color: #f7efe8;
+}
+
+.info-panel code {
+  color: #ffe1c8;
+}
+
+.payload-box {
+  min-height: 18rem;
+  padding: 1rem;
+  border-radius: 1rem;
+  background: #17120e;
+  color: #f6efe7;
+  overflow-x: auto;
+}

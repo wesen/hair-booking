@@ -1,0 +1,7 @@
+.git
+.github
+dist
+ttmp
+tmp
+*.log
+Dockerfile.*

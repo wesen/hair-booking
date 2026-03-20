@@ -1,0 +1,6 @@
+keycloak_url       = "https://auth.example.com"
+keycloak_username  = "replace-with-admin-username"
+keycloak_password  = "replace-with-admin-password"
+realm_name         = "smailnail"
+public_app_url     = "https://hair-booking.example.com"
+web_client_secret  = "replace-with-generated-secret"

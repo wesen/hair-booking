@@ -18,4 +18,10 @@ dist/
 # misc files and directories
 .env
 .envrc
+.direnv/
 .history
+
+# Terraform local state/cache
+.terraform/
+*.tfstate
+*.tfstate.*
