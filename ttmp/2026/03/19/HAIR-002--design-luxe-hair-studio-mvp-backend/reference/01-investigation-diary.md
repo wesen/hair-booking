@@ -24,8 +24,13 @@ RelatedFiles:
         Recorded availability calculation and public booking orchestration for Phase 4 (commit a11523d)
     - Path: pkg/auth/oidc.go
       Note: Existing Keycloak/OIDC flow that now anchors the backend auth direction
+    - Path: pkg/clients/postgres.go
+      Note: Recorded Phase 5 profile and notification persistence (commit f5629e1)
     - Path: pkg/clients/service.go
-      Note: Recorded the OIDC client bootstrap slice in the diary
+      Note: |-
+        Recorded the OIDC client bootstrap slice in the diary
+        Recorded profile and notification preference update orchestration in the diary
+        Recorded Phase 5 authenticated profile and notification update orchestration (commit f5629e1)
     - Path: pkg/config/backend.go
       Note: Recorded the new backend configuration surface in the implementation diary
     - Path: pkg/db/migrations.go
@@ -43,7 +48,10 @@ RelatedFiles:
         Recorded intake estimate and upload orchestration in the diary
         Recorded intake validation and estimate logic for Phase 3 (commit f537be4)
     - Path: pkg/server/handlers_me.go
-      Note: Recorded the DB-backed /api/me handler in the diary
+      Note: |-
+        Recorded the DB-backed /api/me handler in the diary
+        Recorded authenticated profile and notification preference handlers in the diary
+        Recorded Phase 5 authenticated write handlers (commit f5629e1)
     - Path: pkg/server/handlers_public.go
       Note: |-
         Recorded the DB-backed public service and intake handlers in the diary
@@ -54,6 +62,7 @@ RelatedFiles:
         Recorded backend route and upload static-serving wiring in the diary
         Recorded intake route and uploads static wiring for Phase 3 (commit f537be4)
         Recorded appointments service wiring for Phase 4 (commit a11523d)
+        Recorded Phase 5 route registration (commit f5629e1)
     - Path: pkg/services/service.go
       Note: Recorded the public service catalog slice in the diary
     - Path: pkg/storage/local.go
@@ -76,10 +85,11 @@ RelatedFiles:
       Note: OTP-oriented UI that now needs to be removed
 ExternalSources: []
 Summary: Chronological diary for the HAIR-002 backend MVP design and implementation work.
-LastUpdated: 2026-03-19T23:17:11-04:00
+LastUpdated: 2026-03-19T23:23:42-04:00
 WhatFor: Use this diary to understand why the backend plan changed and what implementation slices were executed.
 WhenToUse: Use when reviewing or continuing HAIR-002.
 ---
+
 
 
 
@@ -631,4 +641,79 @@ go test ./...
 gofmt -w pkg/appointments/service.go pkg/appointments/postgres.go pkg/appointments/service_test.go pkg/server/http.go pkg/server/handlers_public.go pkg/server/http_test.go pkg/db/migrations_test.go
 go test ./...
 git commit -m "feat: add availability and public booking APIs"
+```
+
+## Step 7: Add Authenticated Profile And Notification Preference Updates
+
+With read-only `/api/me` already in place, the next missing portal capability was letting an authenticated client actually edit their own record. This slice adds `PATCH /api/me` and `PATCH /api/me/notification-prefs`, and it also tightens the client-bootstrap behavior so authenticated reads no longer overwrite local profile fields every time a Keycloak session is resolved.
+
+That bootstrap change mattered more than the handlers themselves. Without it, a client could edit their name or email in the portal and lose the change on the next page load when OIDC claims were reapplied. I fixed that first, then wired the authenticated update routes against the stabilized client service.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Continue the implementation slices by turning the portal profile and notification sections into real authenticated backend writes.
+
+**Inferred user intent:** Keep replacing mock portal behavior with real APIs while preserving the existing Keycloak login model.
+
+**Commit (code):** `f5629e1` — `feat: add profile and notification preference updates`
+
+### What I did
+- Extended `pkg/clients/service.go` with authenticated profile and notification preference update flows.
+- Changed authenticated client bootstrap so existing client `name` and `email` fields are only backfilled when blank instead of being overwritten on every authenticated request.
+- Added Postgres-backed `UpdateProfile` and `UpdateNotificationPrefs` methods in `pkg/clients/postgres.go`.
+- Added service tests in `pkg/clients/service_test.go` for the new write flows.
+- Added `PATCH /api/me` and `PATCH /api/me/notification-prefs` handlers in `pkg/server/handlers_me.go`.
+- Registered the new authenticated write routes in `pkg/server/http.go`.
+- Added handler tests in `pkg/server/http_test.go` for profile edits and notification preference updates.
+
+### Why
+- The imported client portal already exposes editable profile and notification settings, so leaving them read-only would keep a large part of the portal in mock state.
+- Preserving local profile edits across authenticated requests is required for those updates to have any durable meaning.
+
+### What worked
+- The client service remained the right seam for authenticated profile logic; the handlers stayed thin once the bootstrap behavior was corrected.
+- The service and handler tests caught the one important regression in this slice before commit.
+- `go test ./...` passed after the route-order fix.
+
+### What didn't work
+- The first version of the handlers checked for a configured client service before checking whether the user was authenticated. That changed `TestHandleMeOIDCRequiresSession` from `401` to `500`.
+- I fixed the ordering in `pkg/server/handlers_me.go` so unauthenticated OIDC requests still fail with `401`, then reran:
+
+```bash
+go test ./...
+```
+
+### What I learned
+- The repo was already at the point where OIDC bootstrap and editable local profile data were in tension. It was better to resolve that now than to build more portal routes on top of a field-overwrite bug.
+- The frontend’s notification preference keys map cleanly to backend snake_case fields once the handler owns the translation.
+
+### What was tricky to build
+- The subtle part was preserving the right source of truth boundary. Authentication still comes from Keycloak claims, but editable salon profile state now lives in the app database. The service had to respect both without conflating them.
+
+### What warrants a second pair of eyes
+- Whether email should remain user-editable in MVP if the salon eventually wants Keycloak email and app email to stay strictly aligned.
+- Whether empty-string updates for phone/email should clear those fields or be rejected more aggressively once portal UX is finalized.
+
+### What should be done in the future
+- Move on to Phase 6: portal appointment history, appointment detail, reschedule/cancel flows, and maintenance plan reads.
+
+### Code review instructions
+- Start with `pkg/clients/service.go` and `pkg/clients/postgres.go`.
+- Then review `pkg/server/handlers_me.go`.
+- Confirm the route registration and tests in `pkg/server/http.go` and `pkg/server/http_test.go`.
+- Re-run:
+
+```bash
+go test ./...
+```
+
+### Technical details
+- Commands run:
+
+```bash
+gofmt -w pkg/clients/service.go pkg/clients/postgres.go pkg/clients/service_test.go pkg/server/handlers_me.go pkg/server/http.go pkg/server/http_test.go
+go test ./...
+git commit -m "feat: add profile and notification preference updates"
 ```

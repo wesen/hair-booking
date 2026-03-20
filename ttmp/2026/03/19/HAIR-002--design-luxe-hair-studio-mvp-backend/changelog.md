@@ -72,3 +72,14 @@ Implemented the Phase 4 availability and booking slice in commit `a11523d`, addi
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/handlers_public.go — Public availability and booking handlers
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http.go — Server wiring for the appointments service and new routes
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http_test.go — Handler coverage for availability and appointment creation
+
+Implemented the Phase 5 profile and notification preference slice in commit `f5629e1`, adding authenticated `PATCH /api/me`, `PATCH /api/me/notification-prefs`, preserving local client profile fields from OIDC bootstrap overwrites, and adding focused service/handler tests for profile writes.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/clients/service.go — Authenticated profile and notification preference update orchestration
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/clients/postgres.go — Postgres-backed profile and notification preference updates
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/clients/service_test.go — Service coverage for profile and preference update flows
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/handlers_me.go — Authenticated profile and notification preference handlers
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http.go — Registered the new authenticated write routes
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http_test.go — Handler coverage for profile and preference writes

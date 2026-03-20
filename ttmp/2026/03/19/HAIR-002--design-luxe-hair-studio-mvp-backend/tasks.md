@@ -46,11 +46,11 @@
 
 ## Phase 5: Portal Profile And Preferences
 
-- [ ] Add schema support for `notification_prefs`
-- [ ] Implement `PATCH /api/me`
-- [ ] Implement `PATCH /api/me/notification-prefs`
-- [ ] Normalize frontend/backend notification key naming
-- [ ] Add tests for profile edits and notification preference updates
+- [x] Add schema support for `notification_prefs`
+- [x] Implement `PATCH /api/me`
+- [x] Implement `PATCH /api/me/notification-prefs`
+- [x] Normalize frontend/backend notification key naming
+- [x] Add tests for profile edits and notification preference updates
 
 ## Phase 6: Portal Appointments And Maintenance
 
