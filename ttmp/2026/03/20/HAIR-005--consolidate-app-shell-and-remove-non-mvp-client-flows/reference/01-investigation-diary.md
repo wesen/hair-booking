@@ -19,7 +19,7 @@ RelatedFiles:
       Note: Auth callback redirect behavior to be cleaned up
 ExternalSources: []
 Summary: Short diary describing why HAIR-005 was created and what it is intended to fix.
-LastUpdated: 2026-03-20T09:41:00-04:00
+LastUpdated: 2026-03-20T17:05:00-04:00
 WhatFor: Use this diary to understand the motivation and boundary of the app-shell cleanup stream.
 WhenToUse: Use while implementing or reviewing HAIR-005.
 ---
@@ -92,6 +92,54 @@ Validation for this slice:
 ```bash
 go test ./...
 npm --prefix web run typecheck
+```
+
+### Fifth Implementation Slice
+
+The fifth code slice started as a route smoke pass and turned into a real auth fix.
+
+What the live browser smoke exposed:
+
+- opening `http://127.0.0.1:5175/stylist` still showed the old seeded stylist dashboard in runtime
+- logging in from a Vite-served route like `/stylist` still returned the browser to `http://127.0.0.1:8080/` instead of the requested SPA route
+- logging out to a frontend return target like `http://127.0.0.1:5175/` failed in Keycloak with `Invalid redirect uri`
+- the portal profile still rendered a dead `Marketing / promos` preference row
+
+What changed in response:
+
+- `web/src/main.tsx` now mounts a dedicated runtime-safe stylist shell instead of the seeded `StylistApp`
+- `web/src/stylist/StylistRuntimeApp.tsx` now gates `/stylist` behind sign-in and shows a placeholder shell after auth instead of fake salon data
+- `pkg/auth/oidc.go` no longer relies on a separate `return_to` cookie for login redirects
+- login return targets now ride inside the OAuth `state` payload, which survives the Vite proxy to backend callback hop
+- logout now redirects through a backend-owned `/auth/logout/callback` endpoint before the final frontend redirect
+- `web/src/stylist/store/api/mappers.ts` no longer generates the dead marketing preference item
+- `ttmp/.../HAIR-005.../scripts/route-smoke.sh` was added for repeatable route checks
+- `ttmp/.../HAIR-005.../playbooks/01-route-and-auth-smoke.md` was added for manual QA
+
+Why the auth fix had to change shape:
+
+- the original `return_to` cookie was set on the Vite host when login was initiated through `/auth/login` on `127.0.0.1:5175`
+- the OIDC callback lands on `127.0.0.1:8080`
+- that means the callback request cannot see cookies that were scoped to the Vite origin
+- putting `return_to` inside the signed OAuth round-trip state avoids that host mismatch entirely
+- logout needed a similar adjustment because local Keycloak only allowed backend-host post-logout redirect URIs
+
+Exact smoke result after the fix:
+
+- `/` loaded the booking landing page
+- `/portal` unauthenticated loaded the sign-in gate
+- portal login as `alice` / `secret` returned to `/portal`
+- `/stylist` unauthenticated loaded the sign-in gate instead of seeded data
+- stylist login as `alice` / `secret` returned to `/stylist`
+- stylist logout confirmed in Keycloak and finished on `/`
+
+Validation for this slice:
+
+```bash
+go test ./...
+npm --prefix web run typecheck
+ttmp/2026/03/20/HAIR-005--consolidate-app-shell-and-remove-non-mvp-client-flows/scripts/route-smoke.sh
+docmgr doctor --ticket HAIR-005 --stale-after 30
 ```
 
 ### Fourth Implementation Slice
