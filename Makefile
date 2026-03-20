@@ -1,4 +1,4 @@
-.PHONY: gifs local-keycloak-up local-keycloak-down local-keycloak-config run-local-dev run-local-oidc tmux-local-oidc-up tmux-local-oidc-down tmux-local-oidc-logs docker-build
+.PHONY: gifs local-keycloak-up local-keycloak-down local-keycloak-config local-seed-stylist-workflows run-local-dev run-local-oidc tmux-local-oidc-up tmux-local-oidc-down tmux-local-oidc-logs docker-build
 
 all: gifs
 
@@ -76,6 +76,9 @@ local-keycloak-down:
 
 local-keycloak-config:
 	docker compose -f docker-compose.local.yml config
+
+local-seed-stylist-workflows:
+	./scripts/seed_stylist_workflows.sh
 
 run-local-dev:
 	HAIR_BOOKING_FRONTEND_DEV_PROXY_URL=$(FRONTEND_DEV_PROXY_URL) \

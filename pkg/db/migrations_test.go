@@ -8,8 +8,8 @@ func TestMigrationNames(t *testing.T) {
 		t.Fatalf("MigrationNames returned error: %v", err)
 	}
 
-	if len(names) < 4 {
-		t.Fatalf("expected at least 4 migrations, got %d", len(names))
+	if len(names) < 5 {
+		t.Fatalf("expected at least 5 migrations, got %d", len(names))
 	}
 	if names[0] != "0001_init.sql" {
 		t.Fatalf("expected first migration to be 0001_init.sql, got %q", names[0])
@@ -22,5 +22,8 @@ func TestMigrationNames(t *testing.T) {
 	}
 	if names[3] != "0004_add_intake_reviews.sql" {
 		t.Fatalf("expected fourth migration to be 0004_add_intake_reviews.sql, got %q", names[3])
+	}
+	if names[4] != "0005_add_stylist_support.sql" {
+		t.Fatalf("expected fifth migration to be 0005_add_stylist_support.sql, got %q", names[4])
 	}
 }
