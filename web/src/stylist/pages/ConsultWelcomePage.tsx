@@ -1,5 +1,6 @@
 import { useAppDispatch } from "../store";
-import { selectServiceType, goToScreen } from "../store/consultationSlice";
+import { goToScreen, resetConsultation, selectServiceType } from "../store/consultationSlice";
+import { clearPendingConsultationUploads } from "../store/consultationUploads";
 import { ServiceCard } from "../components/ServiceCard";
 import { Icon } from "../components/Icon";
 import type { ConsultationServiceType, ConsultationScreen } from "../types";
@@ -8,6 +9,8 @@ export function ConsultWelcomePage() {
   const dispatch = useAppDispatch();
 
   const handleSelect = (type: ConsultationServiceType, screen: ConsultationScreen) => {
+    clearPendingConsultationUploads();
+    dispatch(resetConsultation());
     dispatch(selectServiceType(type));
     dispatch(goToScreen(screen));
   };

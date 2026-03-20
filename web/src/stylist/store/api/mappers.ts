@@ -1,6 +1,8 @@
 import type {
   AppointmentDetail,
   AppointmentStatus,
+  ConsultationData,
+  ConsultationServiceType,
   MaintenanceItem,
   NotificationPref,
   PhotoEntry,
@@ -9,6 +11,7 @@ import type {
 import type {
   AppointmentPhotoDto,
   ClientDto,
+  IntakeCreateRequestDto,
   MaintenancePlanItemDto,
   NotificationPrefsDto,
   PortalAppointmentDto,
@@ -124,6 +127,46 @@ export function mapCatalogServiceToViewModel(item: ServiceCatalogItemDto): Catal
     priceLabel: formatPriceLabel(item.price_low, item.price_high),
     isActive: item.is_active,
   };
+}
+
+export function mapConsultationDataToIntakeRequest(data: ConsultationData): IntakeCreateRequestDto {
+  return {
+    service_type: data.serviceType ?? "extensions",
+    hair_length: data.hairLength || undefined,
+    hair_density: data.hairDensity || undefined,
+    hair_texture: data.hairTexture || undefined,
+    prev_extensions: data.prevExtensions || undefined,
+    color_service: data.colorService || undefined,
+    natural_level: data.naturalLevel || undefined,
+    current_color: data.currentColor || undefined,
+    chemical_history: data.chemicalHistory,
+    last_chemical: data.lastChemical || undefined,
+    desired_length: data.desiredLength,
+    ext_type: data.extType || undefined,
+    budget: data.budget || undefined,
+    maintenance: data.maintenance || undefined,
+    deadline: data.deadline || undefined,
+    dream_result: data.dreamResult || undefined,
+  };
+}
+
+export function findConsultService(
+  services: ServiceCatalogItemDto[] | undefined,
+  serviceType: ConsultationServiceType | null,
+): ServiceCatalogItemDto | null {
+  if (!services || services.length === 0) {
+    return null;
+  }
+
+  const prefersColor = serviceType === "color";
+  const preferredName = prefersColor ? "Color Consultation" : "Extensions Consultation";
+
+  return (
+    services.find((service) => service.name === preferredName)
+    ?? services.find((service) => service.category === "consult" && service.name.toLowerCase().includes(prefersColor ? "color" : "extension"))
+    ?? services.find((service) => service.category === "consult")
+    ?? null
+  );
 }
 
 export function mapPortalAppointmentToAppointmentDetail(appointment: PortalAppointmentDto): AppointmentDetail {

@@ -25,6 +25,22 @@ function isObject(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
 
+export function getApiErrorMessage(error: unknown, fallback = "The request failed."): string {
+  if (isObject(error) && typeof error.message === "string" && error.message.trim() !== "") {
+    return error.message;
+  }
+
+  if (isObject(error) && isObject(error.data) && typeof error.data.message === "string" && error.data.message.trim() !== "") {
+    return error.data.message;
+  }
+
+  if (typeof error === "string" && error.trim() !== "") {
+    return error;
+  }
+
+  return fallback;
+}
+
 function isApiErrorEnvelope(value: unknown): value is ApiErrorEnvelope {
   return isObject(value)
     && isObject(value.error)

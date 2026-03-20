@@ -27,10 +27,19 @@ export function ConsultConfirmPage() {
   if (data.depositPaid) {
     details.push({ icon: "dollar", text: "Deposit paid: $75" });
   }
+  if (data.appointmentId) {
+    details.push({ icon: "info", text: `Appointment ref: ${data.appointmentId.slice(0, 8)}` });
+  }
+  if (data.intakeId) {
+    details.push({ icon: "book", text: `Intake ref: ${data.intakeId.slice(0, 8)}` });
+  }
 
   return (
     <div data-part="page-content">
-      <ConfirmCard details={details} />
+      <ConfirmCard
+        details={details}
+        subtitle={data.appointmentId ? `Confirmation saved with reference ${data.appointmentId.slice(0, 8)}` : "Confirmation sent to your email"}
+      />
 
       <div data-part="expect-card">
         <div style={{ fontWeight: 600, fontSize: 14, marginBottom: 12, color: "var(--color-text)" }}>What to Expect</div>

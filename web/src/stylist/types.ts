@@ -131,6 +131,11 @@ export interface ConsultationData {
   selectedDate: string | null;
   selectedTime: string | null;
   depositPaid: boolean;
+  intakeId: string | null;
+  estimateLow: number | null;
+  estimateHigh: number | null;
+  appointmentId: string | null;
+  appointmentServiceId: string | null;
   // Payment
   cardNumber: string;
   cardExpiry: string;

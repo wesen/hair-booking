@@ -57,12 +57,6 @@ const consultationSlice = createSlice({
         arr.push(action.payload);
       }
     },
-    simulatePhoto(state, action: PayloadAction<"photoFront" | "photoBack" | "photoHairline">) {
-      (state.data as Record<string, unknown>)[action.payload] = `photo_${Date.now()}`;
-    },
-    addInspoPhoto(state) {
-      state.data.inspoPhotos.push(`inspo_${Date.now()}`);
-    },
     setDepositPaid(state, action: PayloadAction<boolean>) {
       state.data.depositPaid = action.payload;
     },
@@ -87,8 +81,6 @@ export const {
   updateData,
   selectServiceType,
   toggleChemicalHistory,
-  simulatePhoto,
-  addInspoPhoto,
   setDepositPaid,
   resetConsultation,
 } = consultationSlice.actions;

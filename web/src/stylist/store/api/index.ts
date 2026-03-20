@@ -1,4 +1,4 @@
-export { stylistApi } from "./base";
+export { getApiErrorMessage, stylistApi } from "./base";
 export type { StylistApiError, StylistApiErrorPayload, StylistApiTagType } from "./base";
 export * from "./authApi";
 export * from "./bookingApi";

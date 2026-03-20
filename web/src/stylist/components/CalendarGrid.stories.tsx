@@ -15,6 +15,9 @@ export const Default: Story = {
     availability: CALENDAR_DATA,
     selectedDate: null,
     onSelectDate: () => {},
+    month: 2,
+    year: 2026,
+    onMonthChange: () => {},
   },
 };
 
@@ -23,6 +26,9 @@ export const WithSelection: Story = {
     availability: CALENDAR_DATA,
     selectedDate: "2026-03-28",
     onSelectDate: () => {},
+    month: 2,
+    year: 2026,
+    onMonthChange: () => {},
   },
 };
 
@@ -31,5 +37,8 @@ export const EmptyMonth: Story = {
     availability: {},
     selectedDate: null,
     onSelectDate: () => {},
+    month: 2,
+    year: 2026,
+    onMonthChange: () => {},
   },
 };
