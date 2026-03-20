@@ -10,6 +10,10 @@ export const stylistApiTagTypes = [
   "Appointments",
   "Maintenance",
   "Photos",
+  "StylistDashboard",
+  "StylistIntakes",
+  "StylistAppointments",
+  "StylistClients",
 ] as const;
 
 const rawBaseQuery = fetchBaseQuery({

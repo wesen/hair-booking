@@ -226,3 +226,224 @@ export interface MaintenancePlanResponseDto {
   items: MaintenancePlanItemDto[];
 }
 
+export interface StylistMeDto {
+  subject: string;
+  email?: string;
+  displayName: string;
+  authMode: string;
+}
+
+export interface DashboardIntakeStatsDto {
+  new_count: number;
+  in_review_count: number;
+  needs_client_reply_count: number;
+  approved_to_book_count: number;
+}
+
+export interface DashboardAppointmentDto {
+  appointment_id: string;
+  client_id: string;
+  client_name: string;
+  service_id: string;
+  service_name: string;
+  date: string;
+  start_time: string;
+  status: string;
+}
+
+export interface StylistDashboardDto {
+  intakes: DashboardIntakeStatsDto;
+  today_appointments: number;
+  today_schedule: DashboardAppointmentDto[];
+  upcoming_appointments: DashboardAppointmentDto[];
+}
+
+export interface StylistDashboardResponseDto {
+  dashboard: StylistDashboardDto;
+}
+
+export interface IntakeReviewDto {
+  id: string;
+  intake_id: string;
+  status: string;
+  priority: string;
+  summary?: string;
+  internal_notes?: string;
+  quoted_price_low?: number | null;
+  quoted_price_high?: number | null;
+  reviewed_at?: string | null;
+  created_at?: string | null;
+  updated_at?: string | null;
+}
+
+export interface StylistIntakeListItemDto {
+  id: string;
+  service_type: string;
+  dream_result?: string;
+  estimate_low: number;
+  estimate_high: number;
+  photo_count: number;
+  submitted_at: string;
+  client?: ClientDto | null;
+  review: IntakeReviewDto;
+  last_action_at: string;
+}
+
+export interface StylistIntakesResponseDto {
+  intakes: StylistIntakeListItemDto[];
+}
+
+export interface IntakePhotoDto {
+  id: string;
+  intake_id: string;
+  slot: string;
+  storage_key: string;
+  url: string;
+}
+
+export interface IntakeSubmissionDto {
+  id: string;
+  client_id?: string | null;
+  service_type: string;
+  hair_length?: string;
+  hair_density?: string;
+  hair_texture?: string;
+  prev_extensions?: string;
+  color_service?: string;
+  natural_level?: string;
+  current_color?: string;
+  chemical_history?: string[];
+  last_chemical?: string;
+  desired_length?: number;
+  ext_type?: string;
+  budget?: string;
+  maintenance?: string;
+  deadline?: string;
+  dream_result?: string;
+  estimate_low: number;
+  estimate_high: number;
+  created_at: string;
+}
+
+export interface StylistIntakeDetailDto {
+  submission: IntakeSubmissionDto;
+  client?: ClientDto | null;
+  photos: IntakePhotoDto[];
+  review: IntakeReviewDto;
+}
+
+export interface StylistIntakeDetailResponseDto {
+  intake: StylistIntakeDetailDto;
+}
+
+export interface UpdateStylistIntakeReviewRequestDto {
+  status?: string;
+  priority?: string;
+  summary?: string;
+  internal_notes?: string;
+  quoted_price_low?: number;
+  quoted_price_high?: number;
+}
+
+export interface UpdateStylistIntakeReviewResponseDto {
+  review: IntakeReviewDto;
+}
+
+export interface StylistAppointmentDto {
+  id: string;
+  client_id: string;
+  client_name: string;
+  service_id: string;
+  service_name: string;
+  intake_id?: string | null;
+  date: string;
+  start_time: string;
+  status: string;
+  prep_notes?: string;
+  stylist_notes?: string;
+  cancelled_at?: string | null;
+  cancel_reason?: string;
+}
+
+export interface StylistAppointmentsResponseDto {
+  appointments: StylistAppointmentDto[];
+}
+
+export interface StylistAppointmentDetailDto {
+  appointment: StylistAppointmentDto;
+  client?: ClientDto | null;
+  intake?: IntakeSubmissionDto | null;
+}
+
+export interface StylistAppointmentDetailResponseDto {
+  appointment: StylistAppointmentDetailDto;
+}
+
+export interface UpdateStylistAppointmentRequestDto {
+  status?: string;
+  prep_notes?: string;
+  stylist_notes?: string;
+}
+
+export interface UpdateStylistAppointmentResponseDto {
+  appointment: StylistAppointmentDto;
+}
+
+export interface StylistClientListItemDto {
+  id: string;
+  name: string;
+  email?: string;
+  phone?: string;
+  scalp_notes?: string;
+  service_summary?: string;
+  appointment_count: number;
+  intake_count: number;
+  last_appointment_date?: string;
+  upcoming_appointment_id?: string | null;
+  upcoming_appointment_date?: string;
+  upcoming_appointment_time?: string;
+  last_intake_id?: string | null;
+  last_review_status?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StylistClientsResponseDto {
+  clients: StylistClientListItemDto[];
+}
+
+export interface StylistClientAppointmentSummaryDto {
+  id: string;
+  service_id: string;
+  service_name: string;
+  intake_id?: string | null;
+  date: string;
+  start_time: string;
+  status: string;
+}
+
+export interface StylistClientIntakeSummaryDto {
+  id: string;
+  service_type: string;
+  dream_result?: string;
+  estimate_low: number;
+  estimate_high: number;
+  submitted_at: string;
+  photo_count: number;
+  review: IntakeReviewDto;
+}
+
+export interface StylistClientDetailDto {
+  client: ClientDto;
+  appointment_count: number;
+  intake_count: number;
+  upcoming_appointment?: StylistClientAppointmentSummaryDto | null;
+  recent_appointments: StylistClientAppointmentSummaryDto[];
+  recent_intakes: StylistClientIntakeSummaryDto[];
+  maintenance_plan?: MaintenancePlanDto | null;
+  maintenance_items: MaintenancePlanItemDto[];
+}
+
+export interface StylistClientDetailResponseDto {
+  client: StylistClientDetailDto;
+}

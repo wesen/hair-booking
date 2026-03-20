@@ -1,6 +1,7 @@
 import { SignInPage } from "./pages/SignInPage";
 import { useSessionBootstrap } from "./store/api";
 import { buildAuthPath, buildRuntimeURL } from "./utils/authNavigation";
+import { StylistWorkspace } from "./StylistWorkspace";
 
 interface StylistRuntimeAppProps {
   unstyled?: boolean;
@@ -53,21 +54,8 @@ export function StylistRuntimeApp({ unstyled, themeVars }: StylistRuntimeAppProp
 
   return (
     <div data-widget={unstyled ? undefined : "stylist"} data-part="root" style={rootStyle}>
-      <div data-part="page-content">
-        <div data-part="welcome-header" style={{ paddingBottom: 20 }}>
-          <div data-part="welcome-logo">&#x2726;&ensp;Luxe Hair Studio&ensp;&#x2726;</div>
-          <div style={{ fontFamily: "var(--font-serif)", fontSize: 28, fontWeight: 400, color: "var(--color-text)" }}>
-            Stylist Workspace
-          </div>
-        </div>
-        <div style={{ fontSize: 14, color: "var(--color-text-muted)", lineHeight: 1.7, marginBottom: 18 }}>
-          The production stylist runtime is intentionally held at a safe shell until the real single-stylist dashboard,
-          intake review, and appointment tools land. Storybook still keeps the imported mock widgets for design reference,
-          but the live app no longer exposes seeded salon data here.
-        </div>
-        <div style={{ fontSize: 14, color: "var(--color-text-muted)", lineHeight: 1.7, marginBottom: 18 }}>
-          Your authenticated session is active. Once HAIR-006 and HAIR-007 land, this route will host the real stylist workflow.
-        </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <StylistWorkspace />
         <button
           data-part="btn-secondary"
           onClick={() => window.location.assign(buildAuthPath(session.logoutPath, buildRuntimeURL("/")))}

@@ -6,4 +6,6 @@ export * from "./mappers";
 export * from "./portalApi";
 export * from "./portalView";
 export * from "./servicesApi";
+export * from "./stylistApi";
+export * from "./stylistView";
 export type * from "./types";
