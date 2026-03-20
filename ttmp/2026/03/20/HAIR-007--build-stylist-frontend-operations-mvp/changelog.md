@@ -17,3 +17,4 @@
 - Validated the mutation/filter slice with `npm --prefix web run typecheck`
 - Ran the first full browser-backed stylist runtime smoke through `/stylist`, including live intake review and appointment update flows
 - Fixed a backend nullable-detail bug exposed by that smoke and revalidated appointment and client detail loading
+- Added explicit stylist view-model mappers so `StylistWorkspace` renders pre-shaped dashboard, intake, appointment, and client view data instead of reinterpreting raw DTOs inline

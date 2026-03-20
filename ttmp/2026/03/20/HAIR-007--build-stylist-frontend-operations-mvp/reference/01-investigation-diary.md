@@ -20,7 +20,7 @@ RelatedFiles:
       Note: Seeded runtime data to retire
 ExternalSources: []
 Summary: Short diary describing why HAIR-007 was created and how the plan was simplified for a single-stylist MVP.
-LastUpdated: 2026-03-20T18:10:00-04:00
+LastUpdated: 2026-03-20T18:35:00-04:00
 WhatFor: Use this diary to understand the purpose and boundary of the stylist frontend ticket.
 WhenToUse: Use while implementing or reviewing HAIR-007.
 ---
@@ -199,3 +199,41 @@ The remaining HAIR-007 work is now narrower and more structural:
 - add a dedicated stylist view-model mapping layer instead of formatting directly in the workspace
 - keep Storybook/demo fixtures fully isolated from runtime data paths
 - add route/component coverage around the new stylist pages
+
+The next slice addressed the first of those structural follow-ups: view-model mapping.
+
+The runtime had already become functionally real, but `StylistWorkspace.tsx` was still doing too much interpretation of raw backend DTOs:
+
+- date formatting
+- fallback client-name decisions
+- summary field assembly
+- list-row meta string assembly
+- form-default extraction
+
+That is acceptable for a first wiring pass, but not for a maintainable runtime. If the renderer owns those decisions, every future UI variation risks reimplementing slightly different "display rules" for the same underlying data.
+
+This slice moved that shaping work into `web/src/stylist/store/api/stylistView.ts`. The view layer now produces explicit runtime-facing models for:
+
+- dashboard summary cards and appointment rows
+- intake queue rows and intake detail summary blocks
+- appointment list rows and appointment detail summary blocks
+- client list rows and client detail sections
+- review form defaults and appointment form defaults
+
+The important boundary change is that `StylistWorkspace.tsx` now reads pre-shaped `view` objects instead of recomputing display labels from DTO fields inline. The page component still owns routing and interaction, but it no longer decides low-level display semantics for backend data.
+
+This is a small structural step with two concrete benefits:
+
+- future visual refactors can reuse one mapping layer instead of copying formatting logic between pages
+- Storybook/demo surfaces and runtime surfaces now have a cleaner seam, because runtime display normalization is no longer hidden inside the page renderer
+
+Validation for the slice was:
+
+- `npm --prefix web run typecheck`
+
+The only self-fix needed in the pass was a dashboard compile error after the mapper switch. The dashboard rows had been converted to generic row view models, but the page still referenced `appointment.status` instead of the mapped `badge` field. That was corrected immediately and typecheck then passed.
+
+With this change in place, the remaining HAIR-007 work is more clearly bounded to:
+
+- isolating or shrinking leftover demo/runtime slices
+- adding page-level tests around the new route shell

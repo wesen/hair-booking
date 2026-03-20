@@ -10,7 +10,7 @@
 ## Data Layer
 
 - [x] Add stylist endpoint definitions to RTK Query
-- [ ] Add view-model mappers for stylist dashboard, intake detail, appointment detail, and client detail
+- [x] Add view-model mappers for stylist dashboard, intake detail, appointment detail, and client detail
 - [x] Add invalidation rules for intake review and appointment update flows
 - [x] Add a route-aware stylist runtime shell that reads real backend data
 
