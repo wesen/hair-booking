@@ -15,7 +15,7 @@ RelatedFiles:
       Note: Review context for what the MVP still needs
 ExternalSources: []
 Summary: Diary for the deferred MVP photo execution track.
-LastUpdated: 2026-03-20T13:56:41-04:00
+LastUpdated: 2026-03-20T14:04:00-04:00
 WhatFor: Use this to understand why photos were split into a dedicated follow-up ticket.
 WhenToUse: Use while implementing or reviewing HAIR-008.
 ---
@@ -124,3 +124,41 @@ The next HAIR-008 slice should return to frontend quality:
 - improve booking photo-step retries and error states
 - make the stylist runtime use the live appointment-photo write path
 - run a real browser smoke for full photo capture and display
+
+The follow-up slice closed the last major runtime gap for photos: the new upload endpoint is now actually usable from the stylist app.
+
+The backend issue was subtle. `POST /api/stylist/appointments/:id/photos` existed, but the stylist appointment detail payload still did not include appointment photos. That meant the UI could upload, but it could not rehydrate from the backend after the fact without inventing another local state path.
+
+This slice fixed that by extending the stylist appointment detail contract itself.
+
+Backend changes:
+
+- `pkg/stylist/service.go` now guarantees `AppointmentDetail.Photos`
+- `pkg/stylist/postgres.go` now loads `appointment_photos` for stylist appointment detail reads
+- `pkg/server/http_test.go` now proves the stylist appointment detail route includes photo metadata
+
+Frontend changes:
+
+- `web/src/stylist/store/api/types.ts` now models `photos` on stylist appointment detail responses
+- `web/src/stylist/store/api/stylistApi.ts` now has an RTK Query mutation for stylist appointment photo upload
+- `web/src/stylist/store/api/stylistView.ts` now maps appointment photos into runtime photo cards
+- `web/src/stylist/StylistWorkspace.tsx` now shows existing before/after photos and allows new uploads directly from the appointment detail route
+
+That makes the operational stylist loop coherent:
+
+- open appointment
+- see existing before/after media
+- upload a new before/after photo
+- let RTK Query invalidate and refetch the appointment detail
+
+Validation for this slice:
+
+- `go test ./...`
+- `npm --prefix web run typecheck`
+- `npm --prefix web test`
+
+What still remains in HAIR-008 is narrower now:
+
+- improve booking photo-step retries and failure copy
+- run a real browser smoke of the stylist-side photo uploader
+- decide whether to add thumbnails/previews before upload in the stylist workspace

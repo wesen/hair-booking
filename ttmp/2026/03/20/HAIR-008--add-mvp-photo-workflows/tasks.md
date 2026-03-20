@@ -11,6 +11,7 @@
 - [x] Audit current intake photo handlers, DTOs, and tests
 - [x] Add or complete appointment photo create/read endpoints
 - [x] Ensure stylist detail APIs return intake and appointment photo metadata where needed
+- [x] Return appointment photos from the stylist appointment detail payload
 - [x] Add validation for mime type, size, and slot values
 - [x] Add backend tests for photo upload and read flows
 
@@ -19,7 +20,8 @@
 - [ ] Improve the booking photo step UX for retries and clearer failure states
 - [x] Show intake photos in the real stylist intake detail view
 - [x] Show appointment photos in the chosen portal MVP surface
-- [ ] Ensure all photo views use real API data rather than seeded data
+- [x] Wire stylist appointment photo upload into the live runtime
+- [x] Ensure runtime photo views use real API data rather than seeded data
 
 ## Validation
 
