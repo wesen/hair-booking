@@ -9,9 +9,9 @@
 ## Schema And Migrations
 
 - [x] Add `intake_reviews`
-- [ ] Keep `appointments` unassigned for MVP and document why `stylist_id` is intentionally omitted
-- [ ] Add supporting indexes for stylist queue and search use cases
-- [ ] Add local/dev seed data for intake review workflows without introducing stylist rows
+- [x] Keep `appointments` unassigned for MVP and document why `stylist_id` is intentionally omitted
+- [x] Add supporting indexes for stylist queue and search use cases
+- [x] Add local/dev seed data for intake review workflows without introducing stylist rows
 
 ## Stylist Auth And Authorization
 

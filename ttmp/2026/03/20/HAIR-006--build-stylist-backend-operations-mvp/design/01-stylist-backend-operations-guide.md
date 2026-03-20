@@ -115,6 +115,27 @@ Reason:
 - assignment would be dead weight in the schema and handlers
 - it can be added later in a forward-compatible migration if multi-stylist scheduling becomes real
 
+Implementation note:
+
+- this decision is now documented in the database itself with a comment on `appointments`
+- the backend ticket should keep treating appointment ownership as implicit until a real multi-stylist requirement exists
+
+### Local Development Seed Data
+
+Do not put stylist demo clients into always-on schema migrations.
+
+Reason:
+
+- service catalog and schedule seed rows are baseline app configuration
+- fake stylist workflow rows are developer convenience data, not production defaults
+- an empty production database should not silently grow demo clients and appointments on first boot
+
+Use a local-only seed path instead:
+
+- SQL file: `dev/sql/seed_stylist_workflows.sql`
+- shell wrapper: `scripts/seed_stylist_workflows.sh`
+- Make target: `make local-seed-stylist-workflows`
+
 ## API Surface
 
 Proposed routes:

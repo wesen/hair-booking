@@ -212,3 +212,53 @@ At this point, the remaining HAIR-006 work is narrower infrastructure work rathe
 - supporting indexes for stylist queue and search use cases
 - local/dev seed data for stylist workflows
 - explicit documentation that `appointments` remains unassigned for the single-stylist MVP
+
+The final HAIR-006 slice handled those remaining support tasks.
+
+The database-side part was intentionally small and explicit:
+
+- `0005_add_stylist_support.sql`
+- one table comment on `appointments`
+- supporting indexes for stylist queue/detail queries
+
+The schema comment matters because this ticket already made a product decision that `appointments.stylist_id` does not belong in the single-stylist MVP. Recording that in prose alone is too easy to lose. The comment keeps the rationale near the schema:
+
+- all appointments are implicitly owned by the one stylist operator
+- assignment would be dead weight until multi-stylist scheduling exists
+- future multi-stylist work can add `stylist_id` in a forward migration instead of carrying a mostly-null column now
+
+The index additions were kept conservative and portable:
+
+- `clients(name)`
+- `intake_submissions(client_id, created_at desc)`
+- `intake_reviews(status, priority, reviewed_at desc)`
+- `appointments(client_id, date desc, start_time desc)`
+- `maintenance_plans(client_id)`
+
+I considered heavier search-specific indexing, but for the MVP-sized dataset in this repo, the better tradeoff was to add the obvious queue/history support without pulling in extra extension requirements. If client search gets large enough later, trigram indexing can be a focused follow-up.
+
+The more important operational improvement was the new local-only stylist workflow seed path.
+
+I deliberately did not add fake clients, fake intakes, and fake appointments to always-on migrations. That would have made an empty production database look pre-populated with demo salon data on first boot, which is the wrong boundary. Instead, the repo now has:
+
+- `dev/sql/seed_stylist_workflows.sql`
+- `scripts/seed_stylist_workflows.sh`
+- `make local-seed-stylist-workflows`
+
+The ticket also has a replay copy of the runner script plus a dedicated seed playbook so the intern can reproduce the same setup without searching through shell history.
+
+The seed data itself is deterministic and idempotent:
+
+- three clients
+- three intake submissions
+- three intake reviews in different statuses
+- three future appointments outside the policy window
+- one maintenance plan with two items
+
+I validated this slice in three layers:
+
+- `go test ./...`
+- `docmgr doctor --ticket HAIR-006 --stale-after 30`
+- direct execution of `./scripts/seed_stylist_workflows.sh` against the local Postgres database, which inserted the expected rows cleanly
+
+With that support slice in place, HAIR-006 is effectively complete for the single-stylist backend MVP. The next meaningful implementation ticket is HAIR-007, where the stylist frontend should start consuming the now-real backend routes instead of seeded runtime slices.

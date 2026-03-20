@@ -55,6 +55,12 @@ FRONTEND_DEV_PROXY_URL=http://127.0.0.1:5175 make run-local-oidc KEYCLOAK_PORT=1
 
 Then open `http://127.0.0.1:8080/` or `http://127.0.0.1:8080/portal`.
 
+6. If you want reusable stylist test data for dashboard, intake, appointment, and client API smoke checks, seed the local workflow fixtures:
+
+```bash
+make local-seed-stylist-workflows
+```
+
 ## Local standalone Keycloak setup
 
 Local defaults after the realm import:
@@ -79,6 +85,7 @@ cd /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking
 make local-keycloak-up
 make local-keycloak-down
 make local-keycloak-config
+make local-seed-stylist-workflows
 ```
 
 ## Run the app
@@ -108,6 +115,8 @@ FRONTEND_DEV_PROXY_URL=http://127.0.0.1:5175 make run-local-oidc KEYCLOAK_PORT=1
 ```
 
 `FRONTEND_DEV_PROXY_URL` is optional. If it is unset, the Go server falls back to the embedded inspector UI on `/`.
+
+`make local-seed-stylist-workflows` is optional. It loads deterministic local-only clients, intakes, reviews, appointments, and maintenance items from [seed_stylist_workflows.sql](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/dev/sql/seed_stylist_workflows.sql) so the stylist APIs have realistic data to inspect.
 
 Equivalent direct command:
 

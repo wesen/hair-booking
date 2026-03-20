@@ -24,3 +24,7 @@
 - Added `GET /api/stylist/clients` and `GET /api/stylist/clients/:id`
 - Added service and HTTP tests for stylist client search and detail loading
 - Added a stylist client smoke playbook for manual backend verification
+- Added `0005_add_stylist_support.sql` for stylist queue/detail support indexes plus an explicit DB comment documenting why appointments remain unassigned in the single-stylist MVP
+- Added a local-only stylist workflow seed SQL file, repo script, Make target, and ticket replay script instead of putting fake salon data into always-on migrations
+- Added a local seed playbook and README guidance for loading deterministic stylist workflow fixtures
+- Validated the local seed script against Postgres and confirmed `go test ./...` plus `docmgr doctor --ticket HAIR-006 --stale-after 30`
