@@ -44,3 +44,27 @@ An explicit execution constraint was added before implementation started:
 - those same screens should stop being visible in the runtime app shell and navigation
 
 That constraint matters because it changes the implementation approach. This is not a delete-the-widgets ticket. It is a remove-them-from-runtime ticket.
+
+### First Implementation Slice
+
+The first code slice focused only on runtime entrypoint cleanup.
+
+What changed:
+
+- `web/src/main.tsx` no longer defaults to `StylistApp`
+- the runtime now resolves by `window.location.pathname`
+- `/` now resolves to the booking app
+- `/booking`, `/portal`, and `/stylist` are treated as canonical top-level runtime paths
+- legacy `?app=booking` and `?app=portal` links are rewritten to `/booking` and `/portal`
+
+Why this came first:
+
+- it is the smallest change that makes the product feel less misleading
+- it does not require auth or backend changes yet
+- it preserves the current internal page behavior while fixing the top-level shell
+
+Validation for this slice:
+
+```bash
+npm --prefix web run typecheck
+```

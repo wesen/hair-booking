@@ -8,10 +8,10 @@
 
 ## App Shell And Routing
 
-- [ ] Replace query-param app selection in `web/src/main.tsx`
-- [ ] Add a real route-based shell for booking, portal, and stylist sections
-- [ ] Make the root route render a real public surface instead of the mock stylist app
-- [ ] Add bookmarkable routes for booking, portal, and stylist areas
+- [x] Replace query-param app selection in `web/src/main.tsx`
+- [x] Add a first route-based shell for booking, portal, and stylist sections using pathname resolution
+- [x] Make the root route render a real public surface instead of the mock stylist app
+- [x] Add bookmarkable top-level routes for booking, portal, and stylist areas
 - [ ] Ensure refresh/deep-link behavior works in development and production hosting
 
 ## Auth Redirects
