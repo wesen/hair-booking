@@ -17,3 +17,6 @@
 - Added a live smoke playbook for stylist intake review, including the nullable left-join bug that surfaced only in browser-backed validation
 - Added stylist dashboard summary queries and `GET /api/stylist/dashboard`
 - Added a dashboard smoke playbook and validated the route through a live OIDC browser session
+- Added stylist appointment list/detail/update services and routes
+- Added service tests plus a live smoke playbook for stylist appointment flows
+- Fixed the appointment update response shape so patched rows still include client and service names

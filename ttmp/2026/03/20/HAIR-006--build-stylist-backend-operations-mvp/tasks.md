@@ -36,12 +36,12 @@
 
 ## Appointment APIs
 
-- [ ] Add stylist appointment list query
-- [ ] Add stylist appointment detail aggregate query
-- [ ] Add stylist appointment update service for status, prep notes, and stylist notes
-- [ ] Add `GET /api/stylist/appointments`
-- [ ] Add `GET /api/stylist/appointments/:id`
-- [ ] Add `PATCH /api/stylist/appointments/:id`
+- [x] Add stylist appointment list query
+- [x] Add stylist appointment detail aggregate query
+- [x] Add stylist appointment update service for status, prep notes, and stylist notes
+- [x] Add `GET /api/stylist/appointments`
+- [x] Add `GET /api/stylist/appointments/:id`
+- [x] Add `PATCH /api/stylist/appointments/:id`
 
 ## Client APIs
 
@@ -54,6 +54,6 @@
 
 - [x] Add service tests for stylist bootstrap/authz
 - [x] Add service tests for intake review transitions
-- [ ] Add service tests for stylist appointment updates
+- [x] Add service tests for stylist appointment updates
 - [x] Add HTTP tests for authorization and handler validation
 - [x] Run `go test ./...`

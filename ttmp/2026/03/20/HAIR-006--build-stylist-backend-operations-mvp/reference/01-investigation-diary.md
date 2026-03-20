@@ -144,3 +144,29 @@ Live validation for the dashboard used the same local browser session:
 - `GET /api/stylist/dashboard` returned `200`
 - intake counts reflected the earlier smoke-created `in_review` intake
 - the endpoint returned upcoming appointment rows for Alice
+
+The next slice added stylist appointment operations:
+
+- `GET /api/stylist/appointments`
+- `GET /api/stylist/appointments/:id`
+- `PATCH /api/stylist/appointments/:id`
+
+The detail endpoint aggregates:
+
+- appointment scheduling and status fields
+- client profile context
+- linked intake submission when one exists
+
+This makes the stylist-side appointment view meaningfully different from the client portal view. The portal only needs "my appointment"; the stylist needs the operational context around that appointment.
+
+The live smoke again paid for itself. The first patch test returned `200` but dropped `client_name` and `service_name` in the response body. The repository update path had returned the raw `appointments` row instead of the enriched join used by the list path.
+
+That got fixed by making the update query return the same joined client/service shape the frontend will expect.
+
+Final validation for the appointment slice:
+
+- `go test ./...`
+- real browser session through local OIDC
+- `GET /api/stylist/appointments` returned `200`
+- `GET /api/stylist/appointments/:id` returned `200`
+- `PATCH /api/stylist/appointments/:id` returned `200` with client and service names preserved
