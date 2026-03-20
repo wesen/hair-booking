@@ -9,7 +9,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-var ErrNotFound = errors.New("client not found")
+var (
+	ErrNotFound     = errors.New("client not found")
+	ErrInvalidInput = errors.New("invalid client input")
+)
 
 type Client struct {
 	ID             uuid.UUID `json:"id"`
@@ -38,11 +41,26 @@ type AuthenticatedIdentity struct {
 	DisplayName string
 }
 
+type ProfileUpdate struct {
+	Name       *string
+	Email      *string
+	Phone      *string
+	ScalpNotes *string
+}
+
+type NotificationPrefsUpdate struct {
+	Remind48hr  *bool
+	Remind2hr   *bool
+	MaintAlerts *bool
+}
+
 type Repository interface {
 	FindByAuthIdentity(ctx context.Context, issuer, subject string) (*Client, error)
 	CreateAuthenticatedClient(ctx context.Context, identity AuthenticatedIdentity) (*Client, error)
 	UpdateAuthenticatedClient(ctx context.Context, clientID uuid.UUID, identity AuthenticatedIdentity) (*Client, error)
 	EnsureNotificationPrefs(ctx context.Context, clientID uuid.UUID) (*NotificationPrefs, error)
+	UpdateProfile(ctx context.Context, clientID uuid.UUID, update ProfileUpdate) (*Client, error)
+	UpdateNotificationPrefs(ctx context.Context, clientID uuid.UUID, update NotificationPrefsUpdate) (*NotificationPrefs, error)
 }
 
 type Service struct {
@@ -51,6 +69,8 @@ type Service struct {
 
 var _ interface {
 	EnsureAuthenticatedClient(context.Context, AuthenticatedIdentity) (*Client, *NotificationPrefs, error)
+	UpdateAuthenticatedProfile(context.Context, AuthenticatedIdentity, ProfileUpdate) (*Client, error)
+	UpdateAuthenticatedNotificationPrefs(context.Context, AuthenticatedIdentity, NotificationPrefsUpdate) (*NotificationPrefs, error)
 } = (*Service)(nil)
 
 func NewService(repo Repository) *Service {
@@ -62,26 +82,9 @@ func (s *Service) EnsureAuthenticatedClient(ctx context.Context, identity Authen
 		return nil, nil, errors.New("client service repository is not configured")
 	}
 
-	identity = normalizeIdentity(identity)
-	if identity.Subject == "" {
-		return nil, nil, errors.New("authenticated identity subject is required")
-	}
-
-	client, err := s.repo.FindByAuthIdentity(ctx, identity.Issuer, identity.Subject)
+	client, err := s.ensureClient(ctx, identity)
 	if err != nil {
-		if !errors.Is(err, ErrNotFound) {
-			return nil, nil, err
-		}
-
-		client, err = s.repo.CreateAuthenticatedClient(ctx, identity)
-		if err != nil {
-			return nil, nil, err
-		}
-	} else {
-		client, err = s.repo.UpdateAuthenticatedClient(ctx, client.ID, identity)
-		if err != nil {
-			return nil, nil, err
-		}
+		return nil, nil, err
 	}
 
 	prefs, err := s.repo.EnsureNotificationPrefs(ctx, client.ID)
@@ -90,6 +93,73 @@ func (s *Service) EnsureAuthenticatedClient(ctx context.Context, identity Authen
 	}
 
 	return client, prefs, nil
+}
+
+func (s *Service) UpdateAuthenticatedProfile(ctx context.Context, identity AuthenticatedIdentity, update ProfileUpdate) (*Client, error) {
+	if s == nil || s.repo == nil {
+		return nil, errors.New("client service repository is not configured")
+	}
+
+	client, err := s.ensureClient(ctx, identity)
+	if err != nil {
+		return nil, err
+	}
+
+	normalized := normalizeProfileUpdate(update)
+	if normalized.Name != nil && *normalized.Name == "" {
+		return nil, errors.Wrap(ErrInvalidInput, "name cannot be empty")
+	}
+	if isEmptyProfileUpdate(normalized) {
+		return nil, errors.Wrap(ErrInvalidInput, "profile update payload was empty")
+	}
+
+	return s.repo.UpdateProfile(ctx, client.ID, normalized)
+}
+
+func (s *Service) UpdateAuthenticatedNotificationPrefs(ctx context.Context, identity AuthenticatedIdentity, update NotificationPrefsUpdate) (*NotificationPrefs, error) {
+	if s == nil || s.repo == nil {
+		return nil, errors.New("client service repository is not configured")
+	}
+
+	client, err := s.ensureClient(ctx, identity)
+	if err != nil {
+		return nil, err
+	}
+	if _, err := s.repo.EnsureNotificationPrefs(ctx, client.ID); err != nil {
+		return nil, err
+	}
+
+	if isEmptyNotificationUpdate(update) {
+		return nil, errors.Wrap(ErrInvalidInput, "notification preference update payload was empty")
+	}
+
+	return s.repo.UpdateNotificationPrefs(ctx, client.ID, update)
+}
+
+func (s *Service) ensureClient(ctx context.Context, identity AuthenticatedIdentity) (*Client, error) {
+	identity = normalizeIdentity(identity)
+	if identity.Subject == "" {
+		return nil, errors.New("authenticated identity subject is required")
+	}
+
+	client, err := s.repo.FindByAuthIdentity(ctx, identity.Issuer, identity.Subject)
+	if err != nil {
+		if !errors.Is(err, ErrNotFound) {
+			return nil, err
+		}
+
+		client, err = s.repo.CreateAuthenticatedClient(ctx, identity)
+		if err != nil {
+			return nil, err
+		}
+		return client, nil
+	}
+
+	client, err = s.repo.UpdateAuthenticatedClient(ctx, client.ID, identity)
+	if err != nil {
+		return nil, err
+	}
+	return client, nil
 }
 
 func normalizeIdentity(identity AuthenticatedIdentity) AuthenticatedIdentity {
@@ -108,4 +178,32 @@ func normalizeIdentity(identity AuthenticatedIdentity) AuthenticatedIdentity {
 		}
 	}
 	return identity
+}
+
+func normalizeProfileUpdate(update ProfileUpdate) ProfileUpdate {
+	if update.Name != nil {
+		value := strings.TrimSpace(*update.Name)
+		update.Name = &value
+	}
+	if update.Email != nil {
+		value := strings.ToLower(strings.TrimSpace(*update.Email))
+		update.Email = &value
+	}
+	if update.Phone != nil {
+		value := strings.TrimSpace(*update.Phone)
+		update.Phone = &value
+	}
+	if update.ScalpNotes != nil {
+		value := strings.TrimSpace(*update.ScalpNotes)
+		update.ScalpNotes = &value
+	}
+	return update
+}
+
+func isEmptyProfileUpdate(update ProfileUpdate) bool {
+	return update.Name == nil && update.Email == nil && update.Phone == nil && update.ScalpNotes == nil
+}
+
+func isEmptyNotificationUpdate(update NotificationPrefsUpdate) bool {
+	return update.Remind48hr == nil && update.Remind2hr == nil && update.MaintAlerts == nil
 }

@@ -134,6 +134,47 @@ func (f *fakeClientServiceRepo) EnsureNotificationPrefs(ctx context.Context, cli
 	}, nil
 }
 
+func (f *fakeClientServiceRepo) UpdateProfile(ctx context.Context, clientID uuid.UUID, update hairclients.ProfileUpdate) (*hairclients.Client, error) {
+	client := &hairclients.Client{
+		ID:          clientID,
+		AuthSubject: "intern",
+		AuthIssuer:  "dev",
+		Name:        "Development User",
+	}
+	if update.Name != nil {
+		client.Name = *update.Name
+	}
+	if update.Email != nil {
+		client.Email = *update.Email
+	}
+	if update.Phone != nil {
+		client.Phone = *update.Phone
+	}
+	if update.ScalpNotes != nil {
+		client.ScalpNotes = *update.ScalpNotes
+	}
+	return client, nil
+}
+
+func (f *fakeClientServiceRepo) UpdateNotificationPrefs(ctx context.Context, clientID uuid.UUID, update hairclients.NotificationPrefsUpdate) (*hairclients.NotificationPrefs, error) {
+	prefs := &hairclients.NotificationPrefs{
+		ClientID:    clientID,
+		Remind48hr:  true,
+		Remind2hr:   true,
+		MaintAlerts: true,
+	}
+	if update.Remind48hr != nil {
+		prefs.Remind48hr = *update.Remind48hr
+	}
+	if update.Remind2hr != nil {
+		prefs.Remind2hr = *update.Remind2hr
+	}
+	if update.MaintAlerts != nil {
+		prefs.MaintAlerts = *update.MaintAlerts
+	}
+	return prefs, nil
+}
+
 type fakeCatalogRepo struct {
 	items []hairservices.CatalogItem
 }
@@ -273,6 +314,62 @@ func TestHandleServicesReturnsCatalog(t *testing.T) {
 	}
 	if !strings.Contains(recorder.Body.String(), "Gloss / Toner") {
 		t.Fatalf("expected response to include seeded service name, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandlePatchMeUpdatesClient(t *testing.T) {
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html":    &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+			"static/app.js": &fstest.MapFile{Data: []byte("console.log('ok');")},
+		},
+		ClientService: hairclients.NewService(&fakeClientServiceRepo{}),
+	})
+
+	request := httptest.NewRequest(http.MethodPatch, "/api/me", strings.NewReader(`{"name":"Mia Kovacs","scalp_notes":"Sensitive scalp"}`))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"name\":\"Mia Kovacs\"") {
+		t.Fatalf("expected updated client name in response, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandlePatchNotificationPrefsUpdatesPrefs(t *testing.T) {
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html":    &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+			"static/app.js": &fstest.MapFile{Data: []byte("console.log('ok');")},
+		},
+		ClientService: hairclients.NewService(&fakeClientServiceRepo{}),
+	})
+
+	request := httptest.NewRequest(http.MethodPatch, "/api/me/notification-prefs", strings.NewReader(`{"remind_2hr":false}`))
+	request.Header.Set("Content-Type", "application/json")
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"remind_2hr\":false") {
+		t.Fatalf("expected updated notification prefs in response, got %s", recorder.Body.String())
 	}
 }
 

@@ -188,6 +188,8 @@ func NewHandler(options HandlerOptions) http.Handler {
 	})
 	mux.HandleFunc("GET /api/info", h.handleInfo)
 	mux.HandleFunc("GET /api/me", h.handleMe)
+	mux.HandleFunc("PATCH /api/me", h.handlePatchMe)
+	mux.HandleFunc("PATCH /api/me/notification-prefs", h.handlePatchNotificationPrefs)
 	mux.HandleFunc("GET /api/services", h.handleServices)
 	mux.HandleFunc("POST /api/intake", h.handleIntake)
 	mux.HandleFunc("POST /api/intake/{id}/photos", h.handleIntakePhoto)
