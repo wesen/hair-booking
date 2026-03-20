@@ -14,6 +14,14 @@ RelatedFiles:
         Recorded local blob-store initialization for Phase 3 (commit f537be4)
     - Path: docker-compose.local.yml
       Note: Recorded the new local application Postgres service
+    - Path: pkg/appointments/postgres.go
+      Note: |-
+        Recorded availability and booking persistence in the diary
+        Recorded appointment persistence and client lookup for Phase 4 (commit a11523d)
+    - Path: pkg/appointments/service.go
+      Note: |-
+        Recorded availability calculation and public booking orchestration in the diary
+        Recorded availability calculation and public booking orchestration for Phase 4 (commit a11523d)
     - Path: pkg/auth/oidc.go
       Note: Existing Keycloak/OIDC flow that now anchors the backend auth direction
     - Path: pkg/clients/service.go
@@ -22,6 +30,10 @@ RelatedFiles:
       Note: Recorded the new backend configuration surface in the implementation diary
     - Path: pkg/db/migrations.go
       Note: Recorded the migration bootstrap slice in the implementation diary
+    - Path: pkg/db/migrations/0003_seed_schedule.sql
+      Note: |-
+        Recorded seeded schedule blocks for local development in the diary
+        Recorded seeded weekly schedule for Phase 4 (commit a11523d)
     - Path: pkg/intake/postgres.go
       Note: |-
         Recorded intake submission and intake photo persistence in the diary
@@ -36,10 +48,12 @@ RelatedFiles:
       Note: |-
         Recorded the DB-backed public service and intake handlers in the diary
         Recorded intake route handlers for Phase 3 (commit f537be4)
+        Recorded availability and appointment handlers for Phase 4 (commit a11523d)
     - Path: pkg/server/http.go
       Note: |-
         Recorded backend route and upload static-serving wiring in the diary
         Recorded intake route and uploads static wiring for Phase 3 (commit f537be4)
+        Recorded appointments service wiring for Phase 4 (commit a11523d)
     - Path: pkg/services/service.go
       Note: Recorded the public service catalog slice in the diary
     - Path: pkg/storage/local.go
@@ -62,10 +76,11 @@ RelatedFiles:
       Note: OTP-oriented UI that now needs to be removed
 ExternalSources: []
 Summary: Chronological diary for the HAIR-002 backend MVP design and implementation work.
-LastUpdated: 2026-03-19T23:08:25-04:00
+LastUpdated: 2026-03-19T23:17:11-04:00
 WhatFor: Use this diary to understand why the backend plan changed and what implementation slices were executed.
 WhenToUse: Use when reviewing or continuing HAIR-002.
 ---
+
 
 
 
@@ -545,4 +560,75 @@ go test ./...
 gofmt -w cmd/hair-booking/cmds/serve.go pkg/server/http.go pkg/server/handlers_public.go pkg/server/http_test.go pkg/intake/service.go pkg/intake/postgres.go pkg/intake/service_test.go pkg/storage/storage.go pkg/storage/local.go pkg/storage/local_test.go
 go test ./...
 git commit -m "feat: add intake submissions and photo uploads"
+```
+
+## Step 6: Implement Availability Calculation And Public Appointment Booking
+
+After intake submissions were working, the next missing backbone for the MVP was actual scheduling. This slice adds the first appointment-domain package in the repo and uses it for two public endpoints: a month-level availability calendar and appointment creation that validates the requested slot before persisting anything.
+
+I kept the scheduling rules intentionally MVP-sized but defensible. Weekly `schedule_blocks` define the normal working windows, `schedule_overrides` can replace or block a specific date, booked appointments subtract time from those windows, and candidate starts advance in 30-minute steps. That is enough to replace the deterministic calendar data in the imported frontend without inventing a complex staffing model yet.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Continue the feature slices by turning the booking calendar and appointment confirmation flow into real backend APIs.
+
+**Inferred user intent:** Replace more of the mock salon workflow with working scheduling behavior while keeping local development usable.
+
+**Commit (code):** `a11523d` — `feat: add availability and public booking APIs`
+
+### What I did
+- Added `pkg/appointments/service.go` with availability calculation, public booking validation, time parsing, and schedule/window math.
+- Added `pkg/appointments/postgres.go` for loading schedule blocks, overrides, booked appointments, services, clients, and creating appointments.
+- Added `pkg/appointments/service_test.go` for month-level availability, blocked overrides, and booking-conflict coverage.
+- Added `pkg/db/migrations/0003_seed_schedule.sql` to seed a default weekly schedule for local development.
+- Updated `pkg/db/migrations_test.go` to expect the new migration.
+- Updated `pkg/server/http.go` to auto-wire the appointments service and register `GET /api/availability` plus `POST /api/appointments`.
+- Updated `pkg/server/handlers_public.go` to expose the new endpoints and map booking-domain errors to HTTP status codes.
+- Updated `pkg/server/http_test.go` with handler coverage for availability and booking creation.
+
+### Why
+- Availability and appointment creation are the core dependency for the public consult calendar in the imported frontend.
+- Seeding a default weekly schedule means a local developer can run migrations and immediately see non-empty availability without hand-populating schedule tables first.
+
+### What worked
+- Keeping availability math inside a domain service instead of the handlers made the code testable without HTTP fixtures.
+- The same scheduling logic is now reusable for later portal reschedule/cancel work.
+- `go test ./...` passed after the full slice was wired together.
+
+### What didn't work
+- There were no meaningful debugging detours in this slice after the design was settled. The main risk was getting the availability math wrong, so I wrote the service tests first and used them to pin down the behavior before committing.
+
+### What I learned
+- A small time-window subtraction model covers more of the MVP than I initially expected. It handles normal blocks, blocked dates, custom override windows, and existing appointments without needing a heavier scheduling library.
+- Returning times in `h:mm AM/PM` format keeps the backend closer to the current frontend expectations, while the service still accepts both `HH:MM` and `h:mm AM/PM` inputs for booking creation.
+
+### What was tricky to build
+- The sharp edge here was deciding how `schedule_blocks.is_available` and `schedule_overrides` should combine. I chose a clear rule: available blocks define the baseline windows for the weekday, unavailable blocks subtract from them, and a date override either blocks the date entirely or replaces the baseline with an explicit override window. That rule is simple enough for an intern to follow and strong enough to extend later.
+
+### What warrants a second pair of eyes
+- Whether the seeded local-development schedule should be Monday-Saturday exactly as committed or adjusted to the stylist’s real-world working days before frontend integration.
+- Whether public bookings should continue to create/update clients by email/phone matching alone, or whether the later authenticated portal flow should narrow how contact collisions are resolved.
+
+### What should be done in the future
+- Move on to Phase 5: authenticated profile editing and notification preference updates.
+
+### Code review instructions
+- Start with `pkg/appointments/service.go`.
+- Then review `pkg/appointments/postgres.go`.
+- Finally read `pkg/server/handlers_public.go` and `pkg/server/http.go` to confirm the route and dependency wiring.
+- Re-run:
+
+```bash
+go test ./...
+```
+
+### Technical details
+- Commands run:
+
+```bash
+gofmt -w pkg/appointments/service.go pkg/appointments/postgres.go pkg/appointments/service_test.go pkg/server/http.go pkg/server/handlers_public.go pkg/server/http_test.go pkg/db/migrations_test.go
+go test ./...
+git commit -m "feat: add availability and public booking APIs"
 ```

@@ -37,12 +37,12 @@
 
 ## Phase 4: Availability And Booking
 
-- [ ] Add schema tables for `appointments`, `schedule_blocks`, and `schedule_overrides`
-- [ ] Implement availability calculation from schedule, overrides, and bookings
-- [ ] Implement `GET /api/availability`
-- [ ] Implement `POST /api/appointments`
-- [ ] Snapshot service duration into appointments
-- [ ] Add booking conflict tests and month-availability tests
+- [x] Add schema tables for `appointments`, `schedule_blocks`, and `schedule_overrides`
+- [x] Implement availability calculation from schedule, overrides, and bookings
+- [x] Implement `GET /api/availability`
+- [x] Implement `POST /api/appointments`
+- [x] Snapshot service duration into appointments
+- [x] Add booking conflict tests and month-availability tests
 
 ## Phase 5: Portal Profile And Preferences
 

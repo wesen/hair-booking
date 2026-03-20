@@ -60,3 +60,15 @@ Implemented the Phase 3 public intake slice in commit `f537be4`, adding intake e
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/storage/local.go — Local-disk upload backend for local development
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/handlers_public.go — Public intake and intake-photo handlers
 - /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http.go — Server wiring for intake service and `/uploads/*` static serving
+
+Implemented the Phase 4 availability and booking slice in commit `a11523d`, adding a reusable appointments domain service, seeded local-development schedule blocks, `GET /api/availability`, `POST /api/appointments`, and tests for availability filtering and booking conflicts.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/service.go — Availability calculation and public booking orchestration
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/postgres.go — Postgres-backed schedule, service, client, and appointment persistence
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/service_test.go — Focused tests for booking conflicts and date-level availability
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/db/migrations/0003_seed_schedule.sql — Seeded a default salon schedule for local development
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/handlers_public.go — Public availability and booking handlers
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http.go — Server wiring for the appointments service and new routes
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http_test.go — Handler coverage for availability and appointment creation
