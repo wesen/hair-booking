@@ -19,7 +19,7 @@ RelatedFiles:
       Note: Auth callback redirect behavior to be cleaned up
 ExternalSources: []
 Summary: Short diary describing why HAIR-005 was created and what it is intended to fix.
-LastUpdated: 2026-03-20T18:25:00-04:00
+LastUpdated: 2026-03-20T18:40:00-04:00
 WhatFor: Use this diary to understand the motivation and boundary of the app-shell cleanup stream.
 WhenToUse: Use while implementing or reviewing HAIR-005.
 ---
@@ -93,6 +93,18 @@ Validation for this slice:
 go test ./...
 npm --prefix web run typecheck
 ```
+
+### Roadmap Clarification
+
+After the shell work stabilized, the next product decisions were clarified.
+
+Confirmed:
+
+- production should embed the built React app in Go
+- photos are still part of the MVP, but they should be handled in a dedicated follow-up ticket instead of bloating HAIR-005
+- broader runtime/store/demo cleanup should also become a dedicated follow-up ticket after HAIR-006 and HAIR-007 land
+
+That changed the meaning of the remaining HAIR-005 open items. The ticket is no longer the home for every leftover frontend concern. It is now specifically the shell and hosting ticket.
 
 ### Fifth Implementation Slice
 

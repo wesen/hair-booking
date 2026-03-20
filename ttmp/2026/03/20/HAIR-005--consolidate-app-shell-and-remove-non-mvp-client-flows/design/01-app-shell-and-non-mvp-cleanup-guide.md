@@ -29,7 +29,7 @@ RelatedFiles:
       Note: Shared store mixing RTK Query state with mock/demo slices
 ExternalSources: []
 Summary: Detailed guide for consolidating the frontend shell and removing visible features that do not belong in the booking-focused MVP.
-LastUpdated: 2026-03-20T09:40:00-04:00
+LastUpdated: 2026-03-20T18:40:00-04:00
 WhatFor: Use this guide to make the app feel like one coherent product before continuing broader feature work.
 WhenToUse: Use when implementing routing cleanup, auth redirect cleanup, and visible scope cleanup.
 ---
@@ -47,6 +47,11 @@ The three main problems are:
 - the runtime still exposes rewards, referrals, loyalty, and fake payment behaviors that are not part of the intended MVP
 
 The point of HAIR-005 is to make the product understandable.
+
+The production direction is now explicit:
+
+- local development may use direct Vite or Go-proxied Vite
+- production should embed the built React frontend into the Go server
 
 ## Problem Statement
 
@@ -154,6 +159,7 @@ The user has already said:
 - no reminders
 - no payment
 - no rewards
+- photos remain in the MVP, but not as part of HAIR-005
 
 That means runtime UI should not show:
 
@@ -163,6 +169,8 @@ That means runtime UI should not show:
 - deposit/payment sheet
 - fake Stripe security wording
 - marketing preferences row
+
+It does not mean photo workflows are cut forever. Photo work has been moved into a dedicated follow-up MVP ticket because it is real product scope, just not the critical-path shell cleanup slice.
 
 Keep stories if useful for design history, but do not keep them in the production runtime.
 
@@ -184,6 +192,8 @@ Practical cleanup targets:
 - shrink `portalSlice`
 - retire runtime dependence on `data/constants.ts`
 - keep only local booking draft state where it is still useful
+
+This larger cleanup should happen after the stylist backend and frontend tickets land, when the real runtime state boundaries are visible.
 
 ### 5. Treat Storybook As An Archive, Not As Runtime
 
@@ -231,6 +241,11 @@ if a screen is out of MVP scope:
 - replace backend bootstrap page
 - run route and auth smoke testing
 
+### Phase 6
+
+- embed the built React app into Go for production
+- retire the embedded inspector shell as the primary `/` production surface
+
 ## Pseudocode
 
 ```text
@@ -258,6 +273,7 @@ runtimeStateRule(data):
 - login redirects land on the intended frontend route
 - logout returns the browser to the intended public route
 - rewards/referrals/payment are no longer visible in the MVP runtime
+- production hosting direction is clear: embed React in Go
 - backend root no longer looks like an obsolete integration stub
 
 ## Intern Notes

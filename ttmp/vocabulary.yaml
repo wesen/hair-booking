@@ -17,6 +17,12 @@ topics:
       description: Code review, architecture assessment, and implementation quality analysis
     - slug: mvp
       description: Minimum viable product scope and release planning
+    - slug: photos
+      description: Photo-related workflows and assets
+    - slug: cleanup
+      description: Post-implementation cleanup and consolidation work
+    - slug: deploy
+      description: Deployment and hosting concerns
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes

@@ -4,7 +4,8 @@
 
 - [x] Confirm final public default route for MVP is the booking landing on `/`
 - [x] Confirm local MVP frontend hosting is environment-dependent: direct Vite or Go proxied to Vite in development
-- [ ] Confirm whether any portal photos functionality remains visible in MVP or is hidden with rewards
+- [x] Confirm production hosting direction is to embed the built React app in Go
+- [x] Move portal/client photos into a dedicated MVP follow-up ticket instead of leaving them inside HAIR-005
 
 ## App Shell And Routing
 
@@ -14,7 +15,7 @@
 - [x] Add bookmarkable top-level routes for booking, portal, and stylist areas
 - [x] Replace the seeded runtime `/stylist` dashboard with a safe shell until real stylist operations land
 - [x] Ensure refresh/deep-link behavior works in local proxied development hosting
-- [ ] Ensure refresh/deep-link behavior works in production hosting
+- [ ] Ensure refresh/deep-link behavior works in production embedded-React hosting
 
 ## Auth Redirects
 
@@ -36,16 +37,13 @@
 
 ## Store And Runtime Cleanup
 
-- [ ] Keep in-progress booking draft state local and explicit
-- [ ] Stop using seeded domain data in production runtime pages
-- [ ] Restrict local Redux to UI state and form draft state where appropriate
-- [ ] Ensure canonical server-backed data comes from RTK Query in production views
+- [ ] Defer broader store/runtime cleanup into the post-HAIR-006/007 cleanup ticket
 
 ## Backend Root Surface
 
 - [x] Replace or retire the legacy bootstrap page language in `pkg/web/public/index.html`
 - [x] Align `/` behavior with the intended frontend app shell in proxied local development mode
-- [ ] Align `/` behavior with the intended frontend app shell in production hosting
+- [ ] Align `/` behavior with the intended frontend app shell in production embedded-React hosting
 - [x] Ensure backend root no longer looks like an outdated prototype surface
 
 ## Validation
