@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	hairappointments "github.com/go-go-golems/hair-booking/pkg/appointments"
 	hairclients "github.com/go-go-golems/hair-booking/pkg/clients"
 	hairintake "github.com/go-go-golems/hair-booking/pkg/intake"
 	"github.com/google/uuid"
@@ -19,12 +20,16 @@ type fakeRepository struct {
 	appointmentRows       []Appointment
 	appointmentDetail     *AppointmentDetail
 	updatedAppointment    *Appointment
+	clientRows            []ClientListItem
+	clientDetail          *ClientDetail
 	listFilter            IntakeListFilter
 	appointmentListFilter AppointmentListFilter
+	clientListFilter      ClientListFilter
 	lastUpdate            IntakeReviewUpdate
 	lastAppointmentUpdate AppointmentUpdate
 	lastIntakeID          uuid.UUID
 	lastAppointmentID     uuid.UUID
+	lastClientID          uuid.UUID
 	lastNow               time.Time
 }
 
@@ -82,6 +87,16 @@ func (f *fakeRepository) UpdateAppointment(ctx context.Context, appointmentID uu
 		ID:     appointmentID,
 		Status: "confirmed",
 	}, nil
+}
+
+func (f *fakeRepository) ListClients(ctx context.Context, filter ClientListFilter) ([]ClientListItem, error) {
+	f.clientListFilter = filter
+	return f.clientRows, nil
+}
+
+func (f *fakeRepository) GetClient(ctx context.Context, clientID uuid.UUID) (*ClientDetail, error) {
+	f.lastClientID = clientID
+	return f.clientDetail, nil
 }
 
 func TestListIntakesNormalizesFilterDefaults(t *testing.T) {
@@ -292,5 +307,68 @@ func TestUpdateAppointmentNormalizesNotes(t *testing.T) {
 	}
 	if !repo.lastNow.Equal(now) {
 		t.Fatalf("expected update time %s, got %s", now, repo.lastNow)
+	}
+}
+
+func TestListClientsNormalizesFilterDefaults(t *testing.T) {
+	repo := &fakeRepository{}
+	service := NewService(repo)
+
+	_, err := service.ListClients(context.Background(), ClientListFilter{Search: "  alice  "})
+	if err != nil {
+		t.Fatalf("ListClients returned error: %v", err)
+	}
+
+	if repo.clientListFilter.Search != "alice" {
+		t.Fatalf("expected trimmed search, got %q", repo.clientListFilter.Search)
+	}
+	if repo.clientListFilter.Limit != defaultListLimit {
+		t.Fatalf("expected default list limit %d, got %d", defaultListLimit, repo.clientListFilter.Limit)
+	}
+}
+
+func TestGetClientRequiresValidClientPayload(t *testing.T) {
+	service := NewService(&fakeRepository{})
+
+	_, err := service.GetClient(context.Background(), uuid.New())
+	if err == nil {
+		t.Fatal("expected GetClient to reject missing client detail")
+	}
+}
+
+func TestGetClientNormalizesNestedCollections(t *testing.T) {
+	clientID := uuid.New()
+	intakeID := uuid.New()
+	repo := &fakeRepository{
+		clientDetail: &ClientDetail{
+			Client: &hairclients.Client{
+				ID:   clientID,
+				Name: "Alice Example",
+			},
+			RecentIntakes: []ClientIntakeSummary{{
+				ID:          intakeID,
+				ServiceType: "extensions",
+			}},
+			MaintenancePlan: &hairappointments.MaintenancePlan{
+				ID:       uuid.New(),
+				ClientID: clientID,
+			},
+		},
+	}
+	service := NewService(repo)
+
+	detail, err := service.GetClient(context.Background(), clientID)
+	if err != nil {
+		t.Fatalf("GetClient returned error: %v", err)
+	}
+
+	if detail.RecentIntakes[0].Review.Status != ReviewStatusNew {
+		t.Fatalf("expected default intake review status %q, got %q", ReviewStatusNew, detail.RecentIntakes[0].Review.Status)
+	}
+	if detail.MaintenanceItems == nil {
+		t.Fatal("expected maintenance items slice to be initialized")
+	}
+	if repo.lastClientID != clientID {
+		t.Fatalf("expected repo to receive client id %s, got %s", clientID, repo.lastClientID)
 	}
 }

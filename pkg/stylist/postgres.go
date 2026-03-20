@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	hairappointments "github.com/go-go-golems/hair-booking/pkg/appointments"
 	hairclients "github.com/go-go-golems/hair-booking/pkg/clients"
 	hairintake "github.com/go-go-golems/hair-booking/pkg/intake"
 	"github.com/google/uuid"
@@ -528,6 +529,146 @@ join services s on s.id = u.service_id
 	return item, nil
 }
 
+func (r *PostgresRepository) ListClients(ctx context.Context, filter ClientListFilter) ([]ClientListItem, error) {
+	if r == nil || r.pool == nil {
+		return nil, errors.New("postgres pool is not configured")
+	}
+
+	search := strings.TrimSpace(filter.Search)
+	searchPattern := "%"
+	if search != "" {
+		searchPattern = "%" + search + "%"
+	}
+
+	rows, err := r.pool.Query(ctx, `
+select
+  c.id,
+  c.name,
+  coalesce(c.email, ''),
+  coalesce(c.phone, ''),
+  coalesce(c.scalp_notes, ''),
+  coalesce(c.service_summary, ''),
+  c.created_at,
+  c.updated_at,
+  coalesce(appointment_counts.appointment_count, 0),
+  coalesce(intake_counts.intake_count, 0),
+  coalesce(last_appointment.last_date, ''),
+  coalesce(upcoming.appointment_id, ''),
+  coalesce(upcoming.appointment_date, ''),
+  coalesce(upcoming.start_time, ''),
+  coalesce(last_intake.intake_id, ''),
+  coalesce(last_intake.review_status, '')
+from clients c
+left join lateral (
+  select count(*)::int as appointment_count
+  from appointments a
+  where a.client_id = c.id
+) appointment_counts on true
+left join lateral (
+  select count(*)::int as intake_count
+  from intake_submissions i
+  where i.client_id = c.id
+) intake_counts on true
+left join lateral (
+  select to_char(a.date, 'YYYY-MM-DD') as last_date
+  from appointments a
+  where a.client_id = c.id
+  order by a.date desc, a.start_time desc
+  limit 1
+) last_appointment on true
+left join lateral (
+  select
+    a.id::text as appointment_id,
+    to_char(a.date, 'YYYY-MM-DD') as appointment_date,
+    trim(to_char(a.start_time, 'HH12:MI AM')) as start_time
+  from appointments a
+  where a.client_id = c.id
+    and a.status <> 'cancelled'
+    and (a.date > current_date or (a.date = current_date and a.start_time >= localtime))
+  order by a.date, a.start_time
+  limit 1
+) upcoming on true
+left join lateral (
+  select
+    i.id::text as intake_id,
+    coalesce(ir.status, 'new') as review_status
+  from intake_submissions i
+  left join intake_reviews ir on ir.intake_id = i.id
+  where i.client_id = c.id
+  order by i.created_at desc
+  limit 1
+) last_intake on true
+where (
+  $1 = '%'
+  or c.name ilike $1
+  or coalesce(c.email, '') ilike $1
+  or coalesce(c.phone, '') ilike $1
+)
+order by
+  case when upcoming.appointment_date <> '' then 0 else 1 end,
+  upcoming.appointment_date,
+  upcoming.start_time,
+  c.updated_at desc,
+  c.name
+limit $2 offset $3
+`, searchPattern, filter.Limit, filter.Offset)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query stylist clients")
+	}
+	defer rows.Close()
+
+	items := []ClientListItem{}
+	for rows.Next() {
+		item, err := scanClientListItem(rows)
+		if err != nil {
+			return nil, err
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed to iterate stylist clients")
+	}
+	return items, nil
+}
+
+func (r *PostgresRepository) GetClient(ctx context.Context, clientID uuid.UUID) (*ClientDetail, error) {
+	if r == nil || r.pool == nil {
+		return nil, errors.New("postgres pool is not configured")
+	}
+
+	detail, err := r.loadClientBaseDetail(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+
+	upcoming, err := r.loadUpcomingClientAppointment(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+	detail.UpcomingAppointment = upcoming
+
+	recentAppointments, err := r.loadRecentClientAppointments(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+	detail.RecentAppointments = recentAppointments
+
+	recentIntakes, err := r.loadRecentClientIntakes(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+	detail.RecentIntakes = recentIntakes
+
+	plan, items, err := r.loadClientMaintenancePlan(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+	detail.MaintenancePlan = plan
+	detail.MaintenanceItems = items
+
+	return detail, nil
+}
+
 func (r *PostgresRepository) UpsertIntakeReview(ctx context.Context, intakeID uuid.UUID, update IntakeReviewUpdate, reviewedAt time.Time) (*IntakeReview, error) {
 	if r == nil || r.pool == nil {
 		return nil, errors.New("postgres pool is not configured")
@@ -914,4 +1055,317 @@ func derefString(value *string) string {
 		return ""
 	}
 	return *value
+}
+
+func scanClientListItem(rows pgx.Rows) (ClientListItem, error) {
+	item := ClientListItem{}
+	var upcomingAppointmentID string
+	var lastIntakeID string
+	if err := rows.Scan(
+		&item.ID,
+		&item.Name,
+		&item.Email,
+		&item.Phone,
+		&item.ScalpNotes,
+		&item.ServiceSummary,
+		&item.CreatedAt,
+		&item.UpdatedAt,
+		&item.AppointmentCount,
+		&item.IntakeCount,
+		&item.LastAppointmentDate,
+		&upcomingAppointmentID,
+		&item.UpcomingAppointmentDate,
+		&item.UpcomingAppointmentTime,
+		&lastIntakeID,
+		&item.LastReviewStatus,
+	); err != nil {
+		return ClientListItem{}, errors.Wrap(err, "failed to scan stylist client row")
+	}
+
+	if strings.TrimSpace(upcomingAppointmentID) != "" {
+		parsedID, err := uuid.Parse(upcomingAppointmentID)
+		if err != nil {
+			return ClientListItem{}, errors.Wrap(err, "failed to parse stylist upcoming appointment id")
+		}
+		item.UpcomingAppointmentID = &parsedID
+	}
+	if strings.TrimSpace(lastIntakeID) != "" {
+		parsedID, err := uuid.Parse(lastIntakeID)
+		if err != nil {
+			return ClientListItem{}, errors.Wrap(err, "failed to parse stylist last intake id")
+		}
+		item.LastIntakeID = &parsedID
+	}
+	return item, nil
+}
+
+func (r *PostgresRepository) loadClientBaseDetail(ctx context.Context, clientID uuid.UUID) (*ClientDetail, error) {
+	row := r.pool.QueryRow(ctx, `
+select
+  c.id,
+  c.auth_subject,
+  c.auth_issuer,
+  c.name,
+  coalesce(c.email, ''),
+  coalesce(c.phone, ''),
+  coalesce(c.scalp_notes, ''),
+  coalesce(c.service_summary, ''),
+  c.created_at,
+  c.updated_at,
+  (select count(*)::int from appointments a where a.client_id = c.id) as appointment_count,
+  (select count(*)::int from intake_submissions i where i.client_id = c.id) as intake_count
+from clients c
+where c.id = $1
+`, clientID)
+
+	client := &hairclients.Client{}
+	detail := &ClientDetail{
+		Client:             client,
+		RecentAppointments: []ClientAppointmentSummary{},
+		RecentIntakes:      []ClientIntakeSummary{},
+		MaintenanceItems:   []hairappointments.MaintenancePlanItem{},
+	}
+	if err := row.Scan(
+		&client.ID,
+		&client.AuthSubject,
+		&client.AuthIssuer,
+		&client.Name,
+		&client.Email,
+		&client.Phone,
+		&client.ScalpNotes,
+		&client.ServiceSummary,
+		&client.CreatedAt,
+		&client.UpdatedAt,
+		&detail.AppointmentCount,
+		&detail.IntakeCount,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) || strings.Contains(err.Error(), "no rows") {
+			return nil, errors.Wrap(ErrNotFound, "client not found")
+		}
+		return nil, errors.Wrap(err, "failed to load stylist client detail")
+	}
+	return detail, nil
+}
+
+func (r *PostgresRepository) loadUpcomingClientAppointment(ctx context.Context, clientID uuid.UUID) (*ClientAppointmentSummary, error) {
+	row := r.pool.QueryRow(ctx, `
+select
+  a.id,
+  a.service_id,
+  coalesce(s.name, ''),
+  a.intake_id,
+  to_char(a.date, 'YYYY-MM-DD'),
+  trim(to_char(a.start_time, 'HH12:MI AM')),
+  a.status
+from appointments a
+join services s on s.id = a.service_id
+where a.client_id = $1
+  and a.status <> 'cancelled'
+  and (a.date > current_date or (a.date = current_date and a.start_time >= localtime))
+order by a.date, a.start_time
+limit 1
+`, clientID)
+
+	item := &ClientAppointmentSummary{}
+	if err := row.Scan(
+		&item.ID,
+		&item.ServiceID,
+		&item.ServiceName,
+		&item.IntakeID,
+		&item.Date,
+		&item.StartTime,
+		&item.Status,
+	); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) || strings.Contains(err.Error(), "no rows") {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "failed to load stylist client upcoming appointment")
+	}
+	return item, nil
+}
+
+func (r *PostgresRepository) loadRecentClientAppointments(ctx context.Context, clientID uuid.UUID) ([]ClientAppointmentSummary, error) {
+	rows, err := r.pool.Query(ctx, `
+select
+  a.id,
+  a.service_id,
+  coalesce(s.name, ''),
+  a.intake_id,
+  to_char(a.date, 'YYYY-MM-DD'),
+  trim(to_char(a.start_time, 'HH12:MI AM')),
+  a.status
+from appointments a
+join services s on s.id = a.service_id
+where a.client_id = $1
+order by a.date desc, a.start_time desc
+limit 8
+`, clientID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query stylist client appointments")
+	}
+	defer rows.Close()
+
+	items := []ClientAppointmentSummary{}
+	for rows.Next() {
+		item := ClientAppointmentSummary{}
+		if err := rows.Scan(
+			&item.ID,
+			&item.ServiceID,
+			&item.ServiceName,
+			&item.IntakeID,
+			&item.Date,
+			&item.StartTime,
+			&item.Status,
+		); err != nil {
+			return nil, errors.Wrap(err, "failed to scan stylist client appointment")
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed to iterate stylist client appointments")
+	}
+	return items, nil
+}
+
+func (r *PostgresRepository) loadRecentClientIntakes(ctx context.Context, clientID uuid.UUID) ([]ClientIntakeSummary, error) {
+	rows, err := r.pool.Query(ctx, `
+select
+  i.id,
+  i.service_type,
+  coalesce(i.dream_result, ''),
+  coalesce(i.estimate_low, 0),
+  coalesce(i.estimate_high, 0),
+  i.created_at,
+  count(p.id)::int,
+  coalesce(ir.id::text, ''),
+  coalesce(ir.status, 'new'),
+  coalesce(ir.priority, 'normal'),
+  coalesce(ir.summary, ''),
+  coalesce(ir.internal_notes, ''),
+  ir.quoted_price_low,
+  ir.quoted_price_high,
+  ir.reviewed_at,
+  ir.created_at,
+  ir.updated_at
+from intake_submissions i
+left join intake_photos p on p.intake_id = i.id
+left join intake_reviews ir on ir.intake_id = i.id
+where i.client_id = $1
+group by
+  i.id, i.service_type, i.dream_result, i.estimate_low, i.estimate_high, i.created_at,
+  ir.id, ir.status, ir.priority, ir.summary, ir.internal_notes, ir.quoted_price_low, ir.quoted_price_high, ir.reviewed_at, ir.created_at, ir.updated_at
+order by i.created_at desc
+limit 6
+`, clientID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query stylist client intakes")
+	}
+	defer rows.Close()
+
+	items := []ClientIntakeSummary{}
+	for rows.Next() {
+		item := ClientIntakeSummary{}
+		var reviewIDText string
+		var reviewLow sql.NullInt64
+		var reviewHigh sql.NullInt64
+		var reviewReviewedAt sql.NullTime
+		var reviewCreatedAt sql.NullTime
+		var reviewUpdatedAt sql.NullTime
+		if err := rows.Scan(
+			&item.ID,
+			&item.ServiceType,
+			&item.DreamResult,
+			&item.EstimateLow,
+			&item.EstimateHigh,
+			&item.SubmittedAt,
+			&item.PhotoCount,
+			&reviewIDText,
+			&item.Review.Status,
+			&item.Review.Priority,
+			&item.Review.Summary,
+			&item.Review.InternalNotes,
+			&reviewLow,
+			&reviewHigh,
+			&reviewReviewedAt,
+			&reviewCreatedAt,
+			&reviewUpdatedAt,
+		); err != nil {
+			return nil, errors.Wrap(err, "failed to scan stylist client intake")
+		}
+		if strings.TrimSpace(reviewIDText) != "" {
+			reviewID, err := uuid.Parse(reviewIDText)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to parse stylist client intake review id")
+			}
+			item.Review.ID = reviewID
+		}
+		item.Review.IntakeID = item.ID
+		item.Review.QuotedPriceLow = nullableIntPtr(reviewLow)
+		item.Review.QuotedPriceHigh = nullableIntPtr(reviewHigh)
+		item.Review.ReviewedAt = nullableTimePtr(reviewReviewedAt)
+		item.Review.CreatedAt = nullableTimePtr(reviewCreatedAt)
+		item.Review.UpdatedAt = nullableTimePtr(reviewUpdatedAt)
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed to iterate stylist client intakes")
+	}
+	return items, nil
+}
+
+func (r *PostgresRepository) loadClientMaintenancePlan(ctx context.Context, clientID uuid.UUID) (*hairappointments.MaintenancePlan, []hairappointments.MaintenancePlanItem, error) {
+	plan := &hairappointments.MaintenancePlan{}
+	row := r.pool.QueryRow(ctx, `
+select id, client_id
+from maintenance_plans
+where client_id = $1
+`, clientID)
+	if err := row.Scan(&plan.ID, &plan.ClientID); err != nil {
+		if errors.Is(err, pgx.ErrNoRows) || strings.Contains(err.Error(), "no rows") {
+			return nil, []hairappointments.MaintenancePlanItem{}, nil
+		}
+		return nil, nil, errors.Wrap(err, "failed to load stylist client maintenance plan")
+	}
+
+	rows, err := r.pool.Query(ctx, `
+select
+  mi.id,
+  mi.plan_id,
+  mi.service_id,
+  s.name,
+  to_char(mi.due_date, 'YYYY-MM-DD'),
+  mi.status,
+  mi.appointment_id,
+  coalesce(mi.sort_order, 0)
+from maintenance_items mi
+join services s on s.id = mi.service_id
+where mi.plan_id = $1
+order by mi.sort_order, mi.due_date, mi.id
+`, plan.ID)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "failed to query stylist client maintenance items")
+	}
+	defer rows.Close()
+
+	items := []hairappointments.MaintenancePlanItem{}
+	for rows.Next() {
+		item := hairappointments.MaintenancePlanItem{}
+		if err := rows.Scan(
+			&item.ID,
+			&item.PlanID,
+			&item.ServiceID,
+			&item.ServiceName,
+			&item.DueDate,
+			&item.Status,
+			&item.AppointmentID,
+			&item.SortOrder,
+		); err != nil {
+			return nil, nil, errors.Wrap(err, "failed to scan stylist client maintenance item")
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, nil, errors.Wrap(err, "failed to iterate stylist client maintenance items")
+	}
+	return plan, items, nil
 }

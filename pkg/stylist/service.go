@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	hairappointments "github.com/go-go-golems/hair-booking/pkg/appointments"
 	hairclients "github.com/go-go-golems/hair-booking/pkg/clients"
 	hairintake "github.com/go-go-golems/hair-booking/pkg/intake"
 	"github.com/google/uuid"
@@ -139,6 +140,63 @@ type AppointmentUpdate struct {
 	StylistNotes *string `json:"stylist_notes"`
 }
 
+type ClientListFilter struct {
+	Search string
+	Limit  int
+	Offset int
+}
+
+type ClientListItem struct {
+	ID                      uuid.UUID  `json:"id"`
+	Name                    string     `json:"name"`
+	Email                   string     `json:"email,omitempty"`
+	Phone                   string     `json:"phone,omitempty"`
+	ScalpNotes              string     `json:"scalp_notes,omitempty"`
+	ServiceSummary          string     `json:"service_summary,omitempty"`
+	AppointmentCount        int        `json:"appointment_count"`
+	IntakeCount             int        `json:"intake_count"`
+	LastAppointmentDate     string     `json:"last_appointment_date,omitempty"`
+	UpcomingAppointmentID   *uuid.UUID `json:"upcoming_appointment_id,omitempty"`
+	UpcomingAppointmentDate string     `json:"upcoming_appointment_date,omitempty"`
+	UpcomingAppointmentTime string     `json:"upcoming_appointment_time,omitempty"`
+	LastIntakeID            *uuid.UUID `json:"last_intake_id,omitempty"`
+	LastReviewStatus        string     `json:"last_review_status,omitempty"`
+	CreatedAt               time.Time  `json:"created_at"`
+	UpdatedAt               time.Time  `json:"updated_at"`
+}
+
+type ClientAppointmentSummary struct {
+	ID          uuid.UUID  `json:"id"`
+	ServiceID   uuid.UUID  `json:"service_id"`
+	ServiceName string     `json:"service_name"`
+	IntakeID    *uuid.UUID `json:"intake_id,omitempty"`
+	Date        string     `json:"date"`
+	StartTime   string     `json:"start_time"`
+	Status      string     `json:"status"`
+}
+
+type ClientIntakeSummary struct {
+	ID           uuid.UUID    `json:"id"`
+	ServiceType  string       `json:"service_type"`
+	DreamResult  string       `json:"dream_result,omitempty"`
+	EstimateLow  int          `json:"estimate_low"`
+	EstimateHigh int          `json:"estimate_high"`
+	SubmittedAt  time.Time    `json:"submitted_at"`
+	PhotoCount   int          `json:"photo_count"`
+	Review       IntakeReview `json:"review"`
+}
+
+type ClientDetail struct {
+	Client              *hairclients.Client                    `json:"client"`
+	AppointmentCount    int                                    `json:"appointment_count"`
+	IntakeCount         int                                    `json:"intake_count"`
+	UpcomingAppointment *ClientAppointmentSummary              `json:"upcoming_appointment,omitempty"`
+	RecentAppointments  []ClientAppointmentSummary             `json:"recent_appointments"`
+	RecentIntakes       []ClientIntakeSummary                  `json:"recent_intakes"`
+	MaintenancePlan     *hairappointments.MaintenancePlan      `json:"maintenance_plan,omitempty"`
+	MaintenanceItems    []hairappointments.MaintenancePlanItem `json:"maintenance_items"`
+}
+
 type Repository interface {
 	ListIntakes(ctx context.Context, filter IntakeListFilter) ([]IntakeListItem, error)
 	GetIntake(ctx context.Context, intakeID uuid.UUID) (*IntakeDetail, error)
@@ -148,6 +206,8 @@ type Repository interface {
 	ListAppointments(ctx context.Context, filter AppointmentListFilter) ([]Appointment, error)
 	GetAppointment(ctx context.Context, appointmentID uuid.UUID) (*AppointmentDetail, error)
 	UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, update AppointmentUpdate, updatedAt time.Time) (*Appointment, error)
+	ListClients(ctx context.Context, filter ClientListFilter) ([]ClientListItem, error)
+	GetClient(ctx context.Context, clientID uuid.UUID) (*ClientDetail, error)
 }
 
 type Service struct {
@@ -309,6 +369,45 @@ func (s *Service) UpdateAppointment(ctx context.Context, appointmentID uuid.UUID
 	return s.repo.UpdateAppointment(ctx, appointmentID, normalized, s.now())
 }
 
+func (s *Service) ListClients(ctx context.Context, filter ClientListFilter) ([]ClientListItem, error) {
+	if s == nil || s.repo == nil {
+		return nil, errors.New("stylist repository is not configured")
+	}
+
+	normalized := normalizeClientListFilter(filter)
+	return s.repo.ListClients(ctx, normalized)
+}
+
+func (s *Service) GetClient(ctx context.Context, clientID uuid.UUID) (*ClientDetail, error) {
+	if s == nil || s.repo == nil {
+		return nil, errors.New("stylist repository is not configured")
+	}
+	if clientID == uuid.Nil {
+		return nil, errors.Wrap(ErrInvalidInput, "client id is required")
+	}
+
+	detail, err := s.repo.GetClient(ctx, clientID)
+	if err != nil {
+		return nil, err
+	}
+	if detail == nil || detail.Client == nil {
+		return nil, errors.Wrap(ErrNotFound, "client not found")
+	}
+	if detail.RecentAppointments == nil {
+		detail.RecentAppointments = []ClientAppointmentSummary{}
+	}
+	if detail.RecentIntakes == nil {
+		detail.RecentIntakes = []ClientIntakeSummary{}
+	}
+	if detail.MaintenanceItems == nil {
+		detail.MaintenanceItems = []hairappointments.MaintenancePlanItem{}
+	}
+	for i := range detail.RecentIntakes {
+		detail.RecentIntakes[i].Review = normalizeReview(detail.RecentIntakes[i].Review, detail.RecentIntakes[i].ID)
+	}
+	return detail, nil
+}
+
 func normalizeListFilter(filter IntakeListFilter) (IntakeListFilter, error) {
 	filter.Status = normalizeEnum(filter.Status)
 	if filter.Status != "" && !isValidReviewStatus(filter.Status) {
@@ -412,6 +511,20 @@ func normalizeAppointmentUpdate(update AppointmentUpdate) (AppointmentUpdate, er
 		update.StylistNotes = &value
 	}
 	return update, nil
+}
+
+func normalizeClientListFilter(filter ClientListFilter) ClientListFilter {
+	filter.Search = strings.TrimSpace(filter.Search)
+	if filter.Limit <= 0 {
+		filter.Limit = defaultListLimit
+	}
+	if filter.Limit > maxListLimit {
+		filter.Limit = maxListLimit
+	}
+	if filter.Offset < 0 {
+		filter.Offset = 0
+	}
+	return filter
 }
 
 func normalizeReview(review IntakeReview, intakeID uuid.UUID) IntakeReview {

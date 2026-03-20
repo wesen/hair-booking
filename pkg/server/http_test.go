@@ -491,6 +491,90 @@ func TestHandleStylistIntakeReviewReturnsReview(t *testing.T) {
 	}
 }
 
+func TestHandleStylistClientsDevMode(t *testing.T) {
+	service := hairstylist.NewService(&fakeStylistRepo{
+		clientRows: []hairstylist.ClientListItem{{
+			ID:   uuid.New(),
+			Name: "Alice Example",
+		}},
+	})
+
+	handler := NewHandler(HandlerOptions{
+		Version:        "dev",
+		StartedAt:      time.Now().UTC(),
+		AuthSettings:   &hairauth.Settings{Mode: hairauth.AuthModeDev, DevUserID: "intern"},
+		StylistService: service,
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/stylist/clients?search=alice", nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"clients\"") {
+		t.Fatalf("expected clients payload, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandleStylistClientDetailDevMode(t *testing.T) {
+	clientID := uuid.New()
+	service := hairstylist.NewService(&fakeStylistRepo{
+		clientDetail: &hairstylist.ClientDetail{
+			Client: &hairclients.Client{
+				ID:   clientID,
+				Name: "Alice Example",
+			},
+		},
+	})
+
+	handler := NewHandler(HandlerOptions{
+		Version:        "dev",
+		StartedAt:      time.Now().UTC(),
+		AuthSettings:   &hairauth.Settings{Mode: hairauth.AuthModeDev, DevUserID: "intern"},
+		StylistService: service,
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/stylist/clients/"+clientID.String(), nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"Alice Example\"") {
+		t.Fatalf("expected client detail payload, got %s", recorder.Body.String())
+	}
+}
+
+func TestHandleStylistClientDetailNotFound(t *testing.T) {
+	service := hairstylist.NewService(&fakeStylistRepo{clientErr: hairstylist.ErrNotFound})
+	handler := NewHandler(HandlerOptions{
+		Version:        "dev",
+		StartedAt:      time.Now().UTC(),
+		AuthSettings:   &hairauth.Settings{Mode: hairauth.AuthModeDev, DevUserID: "intern"},
+		StylistService: service,
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/stylist/clients/"+uuid.NewString(), nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusNotFound {
+		t.Fatalf("expected 404, got %d", recorder.Code)
+	}
+}
+
 type fakeClientServiceRepo struct{}
 
 type fakeStylistRepo struct {
@@ -502,8 +586,11 @@ type fakeStylistRepo struct {
 	appointmentRows       []hairstylist.Appointment
 	appointmentDetail     *hairstylist.AppointmentDetail
 	updatedAppointment    *hairstylist.Appointment
+	clientRows            []hairstylist.ClientListItem
+	clientDetail          *hairstylist.ClientDetail
 	detailErr             error
 	updateErr             error
+	clientErr             error
 }
 
 func (f *fakeStylistRepo) ListIntakes(ctx context.Context, filter hairstylist.IntakeListFilter) ([]hairstylist.IntakeListItem, error) {
@@ -565,6 +652,25 @@ func (f *fakeStylistRepo) UpsertIntakeReview(ctx context.Context, intakeID uuid.
 		IntakeID: intakeID,
 		Status:   hairstylist.ReviewStatusInReview,
 		Priority: hairstylist.ReviewPriorityNormal,
+	}, nil
+}
+
+func (f *fakeStylistRepo) ListClients(ctx context.Context, filter hairstylist.ClientListFilter) ([]hairstylist.ClientListItem, error) {
+	return f.clientRows, nil
+}
+
+func (f *fakeStylistRepo) GetClient(ctx context.Context, clientID uuid.UUID) (*hairstylist.ClientDetail, error) {
+	if f.clientErr != nil {
+		return nil, f.clientErr
+	}
+	if f.clientDetail != nil {
+		return f.clientDetail, nil
+	}
+	return &hairstylist.ClientDetail{
+		Client: &hairclients.Client{
+			ID:   clientID,
+			Name: "Alice Example",
+		},
 	}, nil
 }
 
