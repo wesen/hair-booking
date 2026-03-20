@@ -45,10 +45,10 @@
 
 ## Client APIs
 
-- [ ] Add stylist client list/search query
-- [ ] Add stylist client detail aggregate query
-- [ ] Add `GET /api/stylist/clients`
-- [ ] Add `GET /api/stylist/clients/:id`
+- [x] Add stylist client list/search query
+- [x] Add stylist client detail aggregate query
+- [x] Add `GET /api/stylist/clients`
+- [x] Add `GET /api/stylist/clients/:id`
 
 ## Testing And Validation
 

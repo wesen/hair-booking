@@ -20,3 +20,7 @@
 - Added stylist appointment list/detail/update services and routes
 - Added service tests plus a live smoke playbook for stylist appointment flows
 - Fixed the appointment update response shape so patched rows still include client and service names
+- Added stylist client list/detail aggregate services and routes
+- Added `GET /api/stylist/clients` and `GET /api/stylist/clients/:id`
+- Added service and HTTP tests for stylist client search and detail loading
+- Added a stylist client smoke playbook for manual backend verification

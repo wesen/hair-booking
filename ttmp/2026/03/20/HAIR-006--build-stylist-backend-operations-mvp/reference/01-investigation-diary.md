@@ -170,3 +170,45 @@ Final validation for the appointment slice:
 - `GET /api/stylist/appointments` returned `200`
 - `GET /api/stylist/appointments/:id` returned `200`
 - `PATCH /api/stylist/appointments/:id` returned `200` with client and service names preserved
+
+The next backend slice filled in the remaining major read model for the stylist-side MVP: clients.
+
+This slice added:
+
+- `GET /api/stylist/clients`
+- `GET /api/stylist/clients/:id`
+- stylist service DTOs for client list rows, client appointment summaries, and client intake summaries
+- repository queries that aggregate client profile, appointment history, intake history, and maintenance plan data
+
+The main design choice here was to return one aggregated client detail payload instead of forcing the future stylist frontend to fan out requests across unrelated packages. The stylist workflow is "search client, open client, review context, act," so the backend should serve that workflow directly.
+
+The list query is intentionally light but operationally useful:
+
+- identity and contact fields
+- counts for appointments and intakes
+- last appointment date
+- next upcoming appointment when one exists
+- latest intake review status
+
+The detail query goes deeper and combines:
+
+- the canonical `clients` row
+- total appointment and intake counts
+- the next upcoming appointment
+- recent appointment history
+- recent intakes with review state and photo counts
+- maintenance plan header and maintenance items
+
+Implementation-wise, the repository uses multiple focused aggregate queries for detail instead of one giant join. That is deliberate. The earlier intake slice already showed that large nullable join graphs are easy to break in ways the test suite can miss until a live smoke reaches the exact row shape. Keeping the client detail loader split into base-profile, upcoming-appointment, recent-appointments, recent-intakes, and maintenance-plan queries makes the scan logic easier to reason about and safer to extend.
+
+Validation for the client slice was automated only in this pass:
+
+- `go test ./...`
+
+I did not rerun the browser-backed OIDC smoke for the client routes in this pass because the local runtime shells had already been torn down. To keep the ticket useful for the next pass, I added a dedicated manual smoke playbook for stylist clients so the route can be replayed quickly once the local stack is back up.
+
+At this point, the remaining HAIR-006 work is narrower infrastructure work rather than feature-surface work:
+
+- supporting indexes for stylist queue and search use cases
+- local/dev seed data for stylist workflows
+- explicit documentation that `appointments` remains unassigned for the single-stylist MVP
