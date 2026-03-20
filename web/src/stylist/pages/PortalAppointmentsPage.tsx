@@ -4,12 +4,14 @@ import { setAppointmentFilter } from "../store/portalSlice";
 import { SegmentToggle } from "../components/SegmentToggle";
 import { PortalAppointmentCard } from "../components/PortalAppointmentCard";
 import { getApiErrorMessage, useCancelMyAppointmentMutation, usePortalAppointmentsView } from "../store/api";
+import { AppointmentReschedulePanel } from "../components/AppointmentReschedulePanel";
 
 export function PortalAppointmentsPage() {
   const dispatch = useAppDispatch();
   const filter = useAppSelector(s => s.portal.appointmentFilter);
   const { appointments, isLoading, errorMessage } = usePortalAppointmentsView(filter);
   const [cancelMyAppointment] = useCancelMyAppointmentMutation();
+  const [rescheduleAppointmentId, setRescheduleAppointmentId] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   return (
@@ -36,25 +38,36 @@ export function PortalAppointmentsPage() {
         </div>
       ) : (
         appointments.map(a => (
-          <PortalAppointmentCard
-            key={a.id}
-            appointment={a}
-            onCancel={filter === "upcoming" && a.remoteId ? async () => {
-              const appointmentId = a.remoteId;
-              if (!appointmentId) {
-                return;
-              }
-              setSubmitError(null);
-              try {
-                await cancelMyAppointment({
-                  appointmentId,
-                  body: { reason: "Cancelled from client portal" },
-                }).unwrap();
-              } catch (error) {
-                setSubmitError(getApiErrorMessage(error, "We could not cancel that appointment yet."));
-              }
-            } : undefined}
-          />
+          <div key={a.id}>
+            <PortalAppointmentCard
+              appointment={a}
+              onReschedule={filter === "upcoming" && a.remoteId && a.serviceId ? () => {
+                setSubmitError(null);
+                setRescheduleAppointmentId(a.remoteId ?? null);
+              } : undefined}
+              onCancel={filter === "upcoming" && a.remoteId ? async () => {
+                const appointmentId = a.remoteId;
+                if (!appointmentId) {
+                  return;
+                }
+                setSubmitError(null);
+                try {
+                  await cancelMyAppointment({
+                    appointmentId,
+                    body: { reason: "Cancelled from client portal" },
+                  }).unwrap();
+                } catch (error) {
+                  setSubmitError(getApiErrorMessage(error, "We could not cancel that appointment yet."));
+                }
+              } : undefined}
+            />
+            {rescheduleAppointmentId === a.remoteId ? (
+              <AppointmentReschedulePanel
+                appointment={a}
+                onClose={() => setRescheduleAppointmentId(null)}
+              />
+            ) : null}
+          </div>
         ))
       )}
 

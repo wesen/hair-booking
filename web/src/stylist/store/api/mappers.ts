@@ -173,6 +173,9 @@ export function mapPortalAppointmentToAppointmentDetail(appointment: PortalAppoi
   return {
     id: stableNumericId(appointment.id),
     remoteId: appointment.id,
+    serviceId: appointment.service_id,
+    scheduledDate: appointment.date,
+    scheduledTime: appointment.start_time,
     date: appointment.date_label,
     service: appointment.service_name,
     time: appointment.start_time,

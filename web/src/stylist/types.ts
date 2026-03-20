@@ -160,6 +160,9 @@ export type AppointmentStatus = "confirmed" | "pending" | "complete" | "cancelle
 export interface AppointmentDetail {
   id: number;
   remoteId?: string;
+  serviceId?: string;
+  scheduledDate?: string;
+  scheduledTime?: string;
   date: string;
   service: string;
   time: string;

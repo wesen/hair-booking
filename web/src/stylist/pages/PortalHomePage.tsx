@@ -4,11 +4,13 @@ import { LoyaltyBadgeCompact } from "../components/LoyaltyBadgeCompact";
 import { MaintenancePlanCard } from "../components/MaintenancePlanCard";
 import { getApiErrorMessage, useCancelMyAppointmentMutation, usePortalHomeView } from "../store/api";
 import { useState } from "react";
+import { AppointmentReschedulePanel } from "../components/AppointmentReschedulePanel";
 
 export function PortalHomePage() {
   const rewardsUser = useAppSelector(s => s.portal.user);
   const { user, nextAppointment, maintenance, isLoading, errorMessage } = usePortalHomeView();
   const [cancelMyAppointment] = useCancelMyAppointmentMutation();
+  const [showReschedule, setShowReschedule] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   if (isLoading) {
@@ -51,6 +53,10 @@ export function PortalHomePage() {
           service={nextAppointment.service}
           date={nextAppointment.date.replace(", 2026", "")}
           time={nextAppointment.time}
+          onReschedule={nextAppointment.remoteId && nextAppointment.serviceId ? () => {
+            setSubmitError(null);
+            setShowReschedule(true);
+          } : undefined}
           onCancel={nextAppointment.remoteId ? async () => {
             const appointmentId = nextAppointment.remoteId;
             if (!appointmentId) {
@@ -68,6 +74,13 @@ export function PortalHomePage() {
           } : undefined}
         />
       )}
+
+      {nextAppointment && showReschedule ? (
+        <AppointmentReschedulePanel
+          appointment={nextAppointment}
+          onClose={() => setShowReschedule(false)}
+        />
+      ) : null}
 
       {submitError ? (
         <div style={{ fontSize: 13, color: "var(--color-danger)", marginTop: 10 }}>
