@@ -11,6 +11,20 @@ DocType: reference
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: docs/smoke-testing-playbook.md
+      Note: Durable repo-level playbook created from the live smoke findings and meant to be updated over time
+    - Path: pkg/clients/postgres.go
+      Note: Fixed nullable authenticated-client scan handling and guest-to-auth email linking
+    - Path: pkg/intake/postgres.go
+      Note: Fixed nullable intake scan handling exposed by the smoke test
+    - Path: ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/inspect_latest_booking.sh
+      Note: Replayable Postgres inspection for the latest booking rows
+    - Path: ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/playwright_smoke_flow.mjs
+      Note: Replayable browser smoke sequence for booking and portal auth
+    - Path: ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/start_local_smoke_stack.sh
+      Note: Replayable tmux stack startup for the local smoke environment
+    - Path: web/src/main.tsx
+      Note: Added Vite app selection for booking and portal smoke testing
     - Path: web/src/stylist/ClientPortalApp.tsx
       Note: Recorded authenticated portal gate for Phase 2 (commit dd3bcda)
     - Path: web/src/stylist/components/CalendarGrid.tsx
@@ -43,6 +57,8 @@ RelatedFiles:
         Recorded consultation-to-intake mapping and consult-service selection for Phase 3 (commit a49a02a)
     - Path: web/src/stylist/store/api/portalApi.ts
       Note: Recorded portal endpoint definitions for Phase 1 (commit bb46c1b)
+    - Path: web/src/stylist/store/api/servicesApi.ts
+      Note: Fixed service catalog response transform for the live calendar path
     - Path: web/src/stylist/store/api/types.ts
       Note: Recorded backend DTO definitions for Phase 1 (commit bb46c1b)
     - Path: web/src/stylist/store/authSlice.ts
@@ -61,12 +77,16 @@ RelatedFiles:
       Note: Portal mock state that should shrink once server state moves to RTK Query
     - Path: web/src/stylist/store/test-utils.ts
       Note: Recorded test-store wiring through createAppStore for Phase 1 (commit bb46c1b)
+    - Path: web/vite.config.ts
+      Note: Added local proxying for backend API
 ExternalSources: []
 Summary: Chronological diary for the frontend integration planning and early implementation work that moves the hair-booking app from mocks to RTK Query-backed backend calls.
 LastUpdated: 2026-03-20T03:05:00-04:00
 WhatFor: Use this diary to understand why the frontend integration ticket exists, what evidence drove the plan, and how to continue implementation.
 WhenToUse: Use when continuing HAIR-003 or reviewing the reasoning behind the RTK Query migration order.
 ---
+
+
 
 
 
@@ -740,3 +760,399 @@ git commit -m "feat: wire booking flow to backend APIs"
   - `web/src/stylist/pages/ConsultEstimatePage.tsx`
   - `web/src/stylist/pages/ConsultCalendarPage.tsx`
   - `web/src/stylist/pages/ConsultConfirmPage.tsx`
+
+## Step 6: Build A Real Local Smoke Harness Around The React App
+
+The next bottleneck was not backend readiness. It was the fact that the Go app still serves the older embedded frontend from `pkg/web/public`, while the work I needed to validate lives in `web/src`. A smoke test against `http://127.0.0.1:8080/` alone would have exercised the wrong UI, so I treated this as a harness problem first.
+
+I added the smallest possible dev-only bridge to expose the actual React booking and portal apps under Vite without disturbing the Go-served asset bundle. Then I started the database, backend, and Vite server in tmux shells so the processes would survive browser interruptions exactly the way the user asked.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, do the real smoke test. Run things in tmux in shells so that killing them doesn't close the tmux. Use playwright."
+
+**Assistant interpretation:** The user wanted a browser-backed end-to-end validation against the local stack and explicitly wanted the runtime processes launched inside tmux shells.
+
+**Inferred user intent:** Validate the real frontend/backend integration instead of relying on typechecking or backend-only tests, while making the setup reproducible and debuggable.
+
+### What I did
+
+- Confirmed the frontend split:
+  - embedded assets served by Go from `pkg/web/public/*`
+  - active React integration work in `web/src`
+- Patched `web/vite.config.ts` to proxy:
+  - `/api`
+  - `/auth`
+  - `/uploads`
+- Patched `web/src/main.tsx` so Vite can render:
+  - `?app=booking` → `ClientBookingApp`
+  - `?app=portal` → `ClientPortalApp`
+  - default → `StylistApp`
+- Re-ran:
+
+```bash
+npm --prefix web run typecheck
+```
+
+- Started the local app database:
+
+```bash
+docker compose -f docker-compose.local.yml up -d app-postgres
+```
+
+- Created tmux shells and launched the backend and Vite there:
+
+```bash
+tmux new-session -d -s hb-backend 'cd /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking && exec zsh -i'
+tmux new-session -d -s hb-web 'cd /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking && exec zsh -i'
+tmux send-keys -t hb-backend 'HAIR_BOOKING_DATABASE_URL=postgres://hair_booking:hair_booking@127.0.0.1:15432/hair_booking?sslmode=disable make run-local-oidc APP_PORT=8080 KEYCLOAK_PORT=18090 SESSION_SECRET=local-session-secret' C-m
+tmux send-keys -t hb-web 'npm --prefix web run dev -- --host 127.0.0.1 --port 5173' C-m
+```
+
+- Added ticket-local reproducibility scripts:
+  - `ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/start_local_smoke_stack.sh`
+  - `ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/inspect_latest_booking.sh`
+
+### Why
+
+- The real React integration could not be validated through the old embedded frontend.
+- The API layer uses relative `/api` paths, so Vite needed to proxy the backend in dev for realistic browser behavior.
+- The smoke pass needed retraceable local scripts instead of one-off terminal history.
+
+### What worked
+
+- `npm --prefix web run typecheck` passed after the harness patch.
+- The backend started cleanly with OIDC enabled and the database configured.
+- `curl -i http://127.0.0.1:8080/api/info` returned `200 OK` and reported `authMode: "oidc"` plus `databaseConfigured: true`.
+- Both requested tmux shells were created successfully.
+
+### What didn't work
+
+- The preferred Vite port was unavailable. The `hb-web` pane reported:
+
+```text
+Port 5173 is in use, trying another one...
+Port 5174 is in use, trying another one...
+  VITE v6.4.1  ready in 166 ms
+  ➜  Local:   http://127.0.0.1:5175/
+```
+
+- My first `curl` against the Vite app failed because the unquoted `?app=booking` URL was interpreted by `zsh`:
+
+```text
+zsh:1: no matches found: http://127.0.0.1:5173/?app=booking
+```
+
+### What I learned
+
+- This repo currently has two frontend realities, and only the Vite one exercises the RTK Query work.
+- A query-param app switch in `main.tsx` is enough to smoke-test the booking and portal apps without forcing a larger routing refactor first.
+- Ticket-local scripts are useful even for smoke work because they preserve the local port and tmux assumptions that are otherwise easy to lose.
+
+### What was tricky to build
+
+- The main trap was architectural: the backend could look healthy while the actual integrated frontend remained completely untested. The symptom was a false sense of readiness from `make run-local-oidc` alone. I handled that by tracing the entrypoints (`pkg/web/assets.go`, `pkg/web/public/index.html`, `web/index.html`, and `web/src/main.tsx`) before deciding how to launch the browser.
+
+### What warrants a second pair of eyes
+
+- The Vite proxy and `main.tsx` app-switch are smoke-test harness changes. They are useful, but they should be reviewed as intentional dev ergonomics rather than accidental product behavior.
+- The occupied `5173` and `5174` ports mean local workstation state can influence the test environment.
+
+### What should be done in the future
+
+- Complete the Playwright booking flow against the Vite app on the actual chosen port.
+- Inspect Postgres afterward to verify intake, intake photo, and appointment persistence.
+- Run a separate portal-auth smoke pass through Keycloak and record what remains mock-backed after login.
+
+### Code review instructions
+
+- Start with:
+  - `web/vite.config.ts`
+  - `web/src/main.tsx`
+- Then review the reproducibility helpers:
+  - `ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/start_local_smoke_stack.sh`
+  - `ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/inspect_latest_booking.sh`
+- Validate with:
+
+```bash
+npm --prefix web run typecheck
+tmux capture-pane -pt hb-backend
+tmux capture-pane -pt hb-web
+curl -i http://127.0.0.1:8080/api/info
+curl -I 'http://127.0.0.1:5175/?app=booking'
+```
+
+### Technical details
+
+- Local runtime assumptions during this step:
+  - database URL: `postgres://hair_booking:hair_booking@127.0.0.1:15432/hair_booking?sslmode=disable`
+  - Keycloak issuer: `http://127.0.0.1:18090/realms/hair-booking-dev`
+  - realm user: `alice` / `secret`
+- tmux sessions used:
+  - `hb-backend`
+  - `hb-web`
+
+## Step 7: Run The Real Browser Smoke Test And Fix The Defects It Exposed
+
+Once the harness was live, I ran the actual browser path with Playwright instead of stopping at service health checks. That immediately paid off. The first end-to-end attempt did not fail in the frontend. It failed in the backend intake repository on a null-scan bug. After fixing that, the booking flow advanced and exposed a second issue in the frontend services query contract. After fixing that, the booking flow completed and persisted exactly the rows the confirmation screen claimed. Then I ran the OIDC portal login path and found a third issue in authenticated client bootstrap, fixed it, and confirmed that the browser session worked end to end.
+
+The smoke pass therefore did what it was supposed to do: it converted “typechecks and backend tests pass” into “the real browser path works,” and it found bugs in exactly the seams that unit-style validation had missed.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 6)
+
+**Assistant interpretation:** Continue the live smoke pass until the real browser path either succeeds or exposes concrete defects, then fix those defects and re-verify.
+
+**Inferred user intent:** Use the live app as the truth source, not assumptions from tests or local reasoning.
+
+### What I did
+
+- Drove the booking flow through Playwright on `http://127.0.0.1:5175/?app=booking`.
+- Used real image uploads from local files:
+  - `web/node_modules/@storybook/icons/dist/public/cover.jpg`
+  - `web/node_modules/@storybook/icons/dist/public/logo.png`
+  - `web/node_modules/polished/docs/assets/meta.png`
+  - `web/node_modules/@storybook/core/assets/docs/message-reference.png`
+- Hit the first booking defect:
+
+```text
+failed to create intake submission: can't scan into dest[7] (col: color_service): cannot scan NULL into *string
+```
+
+- Patched `pkg/intake/postgres.go` to scan nullable text and int columns through `sql.NullString` / `sql.NullInt64`.
+- Re-ran:
+
+```bash
+go test ./...
+```
+
+- Replayed the booking flow and hit the second defect on the calendar step. The browser console showed:
+
+```text
+TypeError: result.map is not a function
+```
+
+- Traced that to `web/src/stylist/store/api/servicesApi.ts`, where the query treated the backend payload as a bare array instead of `{ services: [...] }`.
+- Added `transformResponse: (response) => response.services`.
+- Re-ran:
+
+```bash
+npm --prefix web run typecheck
+```
+
+- Replayed the booking flow again and completed it successfully:
+  - intake ref: `c8d50291`
+  - appointment ref: `56741fda`
+  - booked slot: `2026-03-19` at `9:00 AM`
+- Verified the DB state with:
+
+```bash
+ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/inspect_latest_booking.sh
+```
+
+- Switched to portal auth smoke on `http://127.0.0.1:5175/?app=portal`.
+- Logged in through Keycloak as `alice` / `secret`.
+- Hit the third defect after the callback: `/api/me` returned `client-bootstrap-failed`.
+- Patched `pkg/clients/postgres.go` to:
+  - scan nullable client columns safely
+  - upsert on email conflict so a guest-booking client can be linked to an authenticated identity
+- Re-ran:
+
+```bash
+go test ./...
+npm --prefix web run typecheck
+```
+
+- Restarted the backend tmux shell and reloaded the portal app.
+- Verified from inside the browser that `/api/me` returned `200` with the authenticated `Alice Example` client and linked auth identity.
+- Confirmed sign-out clears the session and returns the Vite portal app to the unauthenticated sign-in gate.
+- Added a replayable browser script:
+  - `ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/playwright_smoke_flow.mjs`
+
+### Why
+
+- Browser smoke work only matters if failures are fixed and replayed immediately.
+- The booking path spans Redux draft state, RTK Query writes, multipart upload handling, backend persistence, and confirmation-screen rendering. It is exactly the sort of flow that exposes nullability and contract mismatches.
+- The portal auth path is the highest-value authenticated check available before the portal read integration is complete.
+
+### What worked
+
+- The booking flow now works end to end in the browser against local Postgres and the live Go server.
+- The DB inspection matched the UI confirmation exactly:
+  - client email: `alice@example.com`
+  - intake ID: `c8d50291-1700-4ba6-8d42-1ef58082d2b4`
+  - appointment ID: `56741fda-8bfa-4d6d-8b2d-2c98978df6a9`
+- `GET /api/availability` returned the same day/time inventory the calendar screen rendered.
+- Keycloak login and logout both work in the browser.
+- After the client bootstrap fix, `/api/me` returned:
+  - `name: "Alice Example"`
+  - `email: "alice@example.com"`
+  - `auth_subject: "0a51850b-070b-471e-83c7-229ba830f1ac"`
+
+### What didn't work
+
+- First booking attempt failed on intake null scanning:
+
+```text
+failed to create intake submission: can't scan into dest[7] (col: color_service): cannot scan NULL into *string
+```
+
+- Second booking attempt failed on the services-query shape mismatch:
+
+```text
+TypeError: result.map is not a function
+```
+
+- First portal login attempt established the OIDC session but failed on the authenticated client bootstrap path, surfacing `client-bootstrap-failed` from `/api/me`.
+
+- Even after auth was fixed, the main portal content still showed mock records like `Mia Kovacs` and `K-Tip Move-Up`. That is not a new bug from this step; it confirms that Phase 4 portal reads are still pending and the authenticated shell is ahead of the data integration.
+
+### What I learned
+
+- The booking flow had three different contract boundaries that tests had not exercised together:
+  - nullable SQL return values
+  - RTK Query response shape assumptions
+  - guest-to-authenticated client identity linking
+- The portal session bootstrap is working as designed, but the UI makes the mock/data split visible because the avatar can show authenticated initials while the body still renders seeded portal data.
+- Ticket-local scripts are worth keeping even for exploratory smoke work because the verification story becomes much easier to repeat.
+
+### What was tricky to build
+
+- The hard part was not the Playwright interactions themselves. It was preserving the debugging context across multiple failures without losing the exact browser state that produced them. The symptoms came from three layers: backend repository scans, frontend RTK Query transforms, and auth bootstrap. I handled that by fixing one defect at a time, restarting only the backend when required, and replaying the same booking and portal paths from the browser until each seam held.
+
+### What warrants a second pair of eyes
+
+- Review the `CreateAuthenticatedClient` upsert in `pkg/clients/postgres.go`. It intentionally links a guest-booking row to an authenticated identity on matching email when no auth subject is already attached. That is pragmatic for the MVP, but it is identity-sensitive logic.
+- Review the Vite dev-harness changes as long-term developer ergonomics, not just smoke-test scaffolding.
+- Review the portal shell behavior now that the authenticated session and the mock portal body can visibly disagree.
+
+### What should be done in the future
+
+- Phase 4 should replace the remaining portal mock reads so the authenticated shell and the visible portal body reflect the same source of truth.
+- Add focused tests around nullable database scans in `pkg/intake/postgres.go` and `pkg/clients/postgres.go`.
+- Decide whether the post-login redirect should eventually return directly to the Vite/React app in local development instead of the backend placeholder page.
+
+### Code review instructions
+
+- Start with the backend fixes:
+  - `pkg/intake/postgres.go`
+  - `pkg/clients/postgres.go`
+- Then review the frontend contract fix and smoke harness:
+  - `web/src/stylist/store/api/servicesApi.ts`
+  - `web/vite.config.ts`
+  - `web/src/main.tsx`
+- Then review the replay helpers:
+  - `ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/inspect_latest_booking.sh`
+  - `ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/playwright_smoke_flow.mjs`
+  - `ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/start_local_smoke_stack.sh`
+- Validate with:
+
+```bash
+go test ./...
+npm --prefix web run typecheck
+tmux capture-pane -pt hb-backend
+tmux capture-pane -pt hb-web
+ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/inspect_latest_booking.sh
+```
+
+### Technical details
+
+- Browser-confirmed booking references:
+  - intake ref shown in UI: `c8d50291`
+  - appointment ref shown in UI: `56741fda`
+- DB rows confirmed by `inspect_latest_booking.sh`:
+  - client: `0e6934a4-b0a9-4f3e-ae05-6b9ea259214a`
+  - intake: `c8d50291-1700-4ba6-8d42-1ef58082d2b4`
+  - appointment: `56741fda-8bfa-4d6d-8b2d-2c98978df6a9`
+- Successful browser-side `/api/me` payload after auth bootstrap fix:
+
+```json
+{
+  "client": {
+    "id": "0e6934a4-b0a9-4f3e-ae05-6b9ea259214a",
+    "auth_subject": "0a51850b-070b-471e-83c7-229ba830f1ac",
+    "auth_issuer": "http://127.0.0.1:18090/realms/hair-booking-dev",
+    "name": "Alice Example",
+    "email": "alice@example.com",
+    "phone": "401-555-0123"
+  }
+}
+```
+
+## Step 8: Promote The Smoke Knowledge Into A Repo-Level Playbook
+
+The smoke test had crossed the line from “ticket-specific implementation detail” into “core operating knowledge for the repo.” At that point, keeping the procedure only inside the ticket diary would have been too fragile. The next person running local validation should not need to reverse-engineer the Vite entrypoint split, the tmux shell pattern, the Keycloak callback behavior, or the Postgres verification commands from ticket history alone.
+
+I therefore promoted the smoke procedure into a durable repo-level playbook under `docs/`, written for an intern who may not know the architecture yet. I also wrote it as a document that is supposed to change over time, not a frozen artifact from one successful run.
+
+### Prompt Context
+
+**User prompt (verbatim):** "add a full playbook for smoke testing, very detailed for our intern, upload to remarkable. Save in docs/"
+
+**Assistant interpretation:** The user wanted the smoke-test knowledge turned into a permanent repo document, detailed enough for a new contributor, and also uploaded to reMarkable.
+
+**Inferred user intent:** Preserve operational knowledge beyond this ticket so future smoke runs are faster, more consistent, and less dependent on individual memory.
+
+### What I did
+
+- Added:
+  - `docs/smoke-testing-playbook.md`
+- Structured it as a long-lived runbook with:
+  - architecture context
+  - startup commands
+  - Vite-versus-embedded-frontend explanation
+  - booking smoke steps
+  - portal auth smoke steps
+  - DB verification
+  - known failure signatures
+  - evidence capture requirements
+  - explicit update guidance for future runs
+- Updated the ticket tasks so this playbook is treated as an ongoing maintenance target, not a one-time checkbox.
+
+### Why
+
+- A durable playbook belongs in the repo, not only inside a ticket.
+- The smoke procedure now contains enough non-obvious details that a new intern would otherwise lose time rediscovering them.
+- The repo needs a place where new smoke knowledge can accumulate over time.
+
+### What worked
+
+- The existing smoke findings translated cleanly into a structured runbook.
+- The repo already had a `docs/` area, so the playbook fits naturally with other operational documentation.
+- The playbook can point to the ticket-local helper scripts without forcing an immediate script migration.
+
+### What didn't work
+
+- N/A
+
+### What I learned
+
+- The most valuable smoke documentation is not just “what command do I run,” but “why this repo has to be tested this way.”
+- Capturing the frontend entrypoint split explicitly is just as important as capturing the happy-path browser steps.
+
+### What was tricky to build
+
+- The tricky part was choosing what belonged in a durable repo playbook versus what should remain ticket-local. The rule I used was simple: if a future intern will need it even after HAIR-003 is closed, it belongs in `docs/smoke-testing-playbook.md`. If it is mostly about this ticket’s chronology, it belongs in the diary.
+
+### What warrants a second pair of eyes
+
+- Review whether the ticket-local scripts should eventually be promoted to the top-level `scripts/` directory once the smoke workflow stabilizes further.
+- Review the playbook after Phase 4 and Phase 5 so it reflects the point where portal content stops being mock-backed.
+
+### What should be done in the future
+
+- Keep `docs/smoke-testing-playbook.md` updated every time the smoke procedure gains a new invariant, a new route, or a new expected result.
+- Expand the portal section once the live portal reads and writes are fully integrated.
+
+### Code review instructions
+
+- Start with:
+  - `docs/smoke-testing-playbook.md`
+- Then confirm the task bookkeeping reflects the new durable-doc expectation:
+  - `ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/tasks.md`
+
+### Technical details
+
+- The playbook is intended to become the canonical local smoke runbook for this repo.
+- Ticket diaries should continue to record chronological findings, but the stable procedure should now live in `docs/smoke-testing-playbook.md`.

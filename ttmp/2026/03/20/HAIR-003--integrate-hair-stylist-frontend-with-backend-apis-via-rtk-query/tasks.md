@@ -5,6 +5,8 @@
 - [x] Create HAIR-003 for frontend/backend integration
 - [x] Write the RTK Query integration guide for the frontend
 - [x] Record the investigation diary and migration rationale
+- [x] Write a repo-level smoke testing playbook in `docs/`
+- [ ] Keep `docs/smoke-testing-playbook.md` updated as smoke knowledge changes
 - [ ] Keep the ticket changelog and diary updated for each completed implementation slice
 
 ## Phase 1: RTK Query Foundation
@@ -82,8 +84,8 @@
 
 - [x] Run `npm --prefix web run typecheck`
 - [ ] Run frontend tests once the integration test harness is in place
-- [ ] Smoke test against local Go server + Keycloak + Postgres
-- [ ] Verify booking flow end-to-end with real intake, availability, and appointment creation
+- [x] Smoke test against local Go server + Keycloak + Postgres
+- [x] Verify booking flow end-to-end with real intake, availability, and appointment creation
 - [ ] Verify portal flow end-to-end for profile, prefs, appointments, and maintenance
 - [x] Update HAIR-003 diary with exact commands and outcomes
 - [x] Re-run `docmgr doctor --ticket HAIR-003 --stale-after 30`

@@ -2,6 +2,22 @@
 
 ## 2026-03-20
 
+Ran a real smoke test against local Postgres, Keycloak, the Go backend, and the Vite-hosted React app. Added a dev harness for exposing the booking and portal apps under Vite, added ticket-local scripts for stack startup, DB inspection, and Playwright replay, fixed the defects the smoke pass exposed, and wrote a repo-level playbook in `docs/smoke-testing-playbook.md` so the smoke procedure can keep evolving beyond this ticket. The browser booking flow now completes end to end and persists matching DB rows, while portal auth now succeeds even though the main portal body is still mock-backed pending Phase 4.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/intake/postgres.go — Fixed nullable intake scan handling surfaced by the browser booking flow
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/clients/postgres.go — Fixed nullable authenticated-client scan handling and linked guest bookings to OIDC identities by email
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/stylist/store/api/servicesApi.ts — Fixed `GET /api/services` response normalization for the calendar step
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/src/main.tsx — Added query-param app switching for Vite smoke testing
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/web/vite.config.ts — Added local proxying for `/api`, `/auth`, and `/uploads`
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/smoke-testing-playbook.md — Long-lived intern-facing smoke test runbook to keep updating over time
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/start_local_smoke_stack.sh — Reproducible tmux-based stack startup
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/inspect_latest_booking.sh — Postgres inspection for latest booking artifacts
+- /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/ttmp/2026/03/20/HAIR-003--integrate-hair-stylist-frontend-with-backend-apis-via-rtk-query/scripts/playwright_smoke_flow.mjs — Replayable browser smoke sequence
+
+## 2026-03-20
+
 Implemented the Phase 3 public consultation slice and committed it as `a49a02a`. The booking flow now creates a real intake, uploads selected photos to that intake, queries live availability, creates a real consult appointment, and surfaces the resulting intake and appointment references on the confirmation screen. The draft form still lives in `consultationSlice`, but server writes now happen through RTK Query mutations.
 
 The deposit behavior remains intentionally local-only for MVP. The frontend still shows the deposit sheet and deposit-paid state, but it does not create a payment backend object. That preserves the UI affordance without inventing a nonexistent payments contract.
