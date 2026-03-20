@@ -28,3 +28,4 @@
 - Added a local-only stylist workflow seed SQL file, repo script, Make target, and ticket replay script instead of putting fake salon data into always-on migrations
 - Added a local seed playbook and README guidance for loading deterministic stylist workflow fixtures
 - Validated the local seed script against Postgres and confirmed `go test ./...` plus `docmgr doctor --ticket HAIR-006 --stale-after 30`
+- Fixed nullable stylist appointment/client detail scans exposed by the first HAIR-007 browser smoke against locally seeded clients without OIDC identity fields

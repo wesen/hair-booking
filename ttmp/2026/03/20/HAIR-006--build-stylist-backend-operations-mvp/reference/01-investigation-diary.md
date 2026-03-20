@@ -17,7 +17,7 @@ RelatedFiles:
       Note: Current schema showing absence of stylist review state
 ExternalSources: []
 Summary: Short diary describing why HAIR-006 was created, and how the plan was simplified after confirming a single-stylist MVP.
-LastUpdated: 2026-03-20T10:55:00-04:00
+LastUpdated: 2026-03-20T18:10:00-04:00
 WhatFor: Use this diary to understand the purpose and scope of the stylist backend ticket.
 WhenToUse: Use while implementing or reviewing HAIR-006.
 ---
@@ -238,6 +238,52 @@ The index additions were kept conservative and portable:
 I considered heavier search-specific indexing, but for the MVP-sized dataset in this repo, the better tradeoff was to add the obvious queue/history support without pulling in extra extension requirements. If client search gets large enough later, trigram indexing can be a focused follow-up.
 
 The more important operational improvement was the new local-only stylist workflow seed path.
+
+After the first HAIR-007 runtime smoke, one more backend issue surfaced that the earlier backend-only playbooks had not hit.
+
+The symptom was specific and useful:
+
+- `GET /api/stylist/appointments/:id` failed in the live UI
+- the frontend showed "Failed to load the stylist appointment detail."
+- the affected route was a seeded appointment for a locally seeded client without OIDC identity fields
+
+The root cause was another nullable-scan problem in `pkg/stylist/postgres.go`, but this time in the appointment detail and client detail aggregate paths rather than the intake queue path.
+
+Two different nullable cases were involved:
+
+- `clients.auth_subject` and `clients.auth_issuer` were scanned directly into Go strings even though the local stylist seeds intentionally leave them null
+- linked intake IDs in the appointment detail loader mixed `sql.NullString` handling with direct UUID pointer scans
+
+That combination was enough to make the route fail only when the browser opened the exact seeded record shape that contained:
+
+- a null-auth local client
+- a linked intake row
+
+The fix was to normalize those join results in SQL before scanning:
+
+- `coalesce(c.auth_subject, '')`
+- `coalesce(c.auth_issuer, '')`
+- `coalesce(i.id::text, '')`
+- `coalesce(i.client_id::text, '')`
+
+Then the repository parses the optional intake UUID strings explicitly before assigning them into the Go aggregate. That is slightly more verbose, but it is safer than relying on mixed null behavior across joined UUID and text columns.
+
+This is a good example of why HAIR-006 needed both:
+
+- narrow repository tests
+- live browser-backed smoke through the HAIR-007 runtime
+
+The repository code was structurally correct for the happy path, but the real stylist runtime reached a row shape that the earlier tests had not modeled closely enough.
+
+Validation after the fix:
+
+- `go test ./...`
+- restarted the backend on `127.0.0.1:8080`
+- reopened the same stylist appointment detail in the browser
+- confirmed the page loaded and saved a status/notes change successfully
+- opened the linked client detail and confirmed it also loaded successfully
+
+That closes the last known backend defect uncovered during the initial stylist runtime smoke pass.
 
 I deliberately did not add fake clients, fake intakes, and fake appointments to always-on migrations. That would have made an empty production database look pre-populated with demo salon data on first boot, which is the wrong boundary. Instead, the repo now has:
 

@@ -52,4 +52,4 @@
 
 - [ ] Add route/component tests for dashboard and detail pages
 - [x] Run frontend typecheck
-- [ ] Run manual stylist smoke flow
+- [x] Run manual stylist smoke flow

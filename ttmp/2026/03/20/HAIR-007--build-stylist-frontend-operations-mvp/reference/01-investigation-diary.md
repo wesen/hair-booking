@@ -20,7 +20,7 @@ RelatedFiles:
       Note: Seeded runtime data to retire
 ExternalSources: []
 Summary: Short diary describing why HAIR-007 was created and how the plan was simplified for a single-stylist MVP.
-LastUpdated: 2026-03-20T16:20:00-04:00
+LastUpdated: 2026-03-20T18:10:00-04:00
 WhatFor: Use this diary to understand the purpose and boundary of the stylist frontend ticket.
 WhenToUse: Use while implementing or reviewing HAIR-007.
 ---
@@ -147,3 +147,55 @@ I did not run the browser-backed stylist smoke in this pass because the local ru
 - open `/stylist/appointments`
 - filter by status or client
 - open one appointment and save note/status changes
+
+The next pass was that real browser-backed stylist smoke.
+
+This validation pass mattered because HAIR-007 had crossed the line from "frontend wiring compiles" to "the stylist can do real operational work through the browser." At that point, compile-only confidence was no longer enough. The route shell, auth flow, RTK invalidation, and backend aggregate shapes all had to survive real navigation with live seeded data.
+
+The local smoke stack used:
+
+- Keycloak on `127.0.0.1:18090`
+- Postgres on `127.0.0.1:15432`
+- Vite on `127.0.0.1:5175`
+- the Go app on `127.0.0.1:8080` with `FRONTEND_DEV_PROXY_URL=http://127.0.0.1:5175`
+- seeded stylist workflow fixtures from `./scripts/seed_stylist_workflows.sh`
+
+The successful intake path was:
+
+- open `/stylist`
+- log in as `alice`
+- navigate to `/stylist/intakes`
+- filter to `status=in_review` and `priority=urgent`
+- open Avery Moss intake `a36bb5f1-e22d-4a88-9a75-84af8fe40111`
+- update the review to `approved_to_book`
+- save successfully and verify the detail view reflected the new review state
+
+The first appointment attempt exposed a real backend bug:
+
+- navigate to `/stylist/appointments`
+- filter to `status=pending` and client `Bianca`
+- open appointment `ef5bb36a-d2bc-4a19-9cc0-57d2eaf70882`
+- runtime error: "Failed to load the stylist appointment detail."
+
+That failure turned out to be a HAIR-006 repository bug around nullable auth fields and linked intake UUID scans for locally seeded clients. Once that backend fix landed and the app server was restarted, the same route loaded correctly.
+
+The successful appointment path after the backend fix was:
+
+- reopen Bianca Reed appointment detail
+- update status from `pending` to `confirmed`
+- save stylist notes `Confirmed after stylist runtime smoke test.`
+- verify the detail page reflected both the confirmed status and saved notes
+
+The client-detail path then confirmed invalidation and cross-route consistency:
+
+- navigate to `/stylist/clients`
+- open Bianca Reed client detail `2dfed0aa-cd8f-4f78-85c9-15a574f3d202`
+- verify recent appointments showed the freshly confirmed appointment state
+
+This is the first point where HAIR-007 can credibly claim that the live stylist runtime is not just reading real data, but also performing real operational writes through the browser.
+
+The remaining HAIR-007 work is now narrower and more structural:
+
+- add a dedicated stylist view-model mapping layer instead of formatting directly in the workspace
+- keep Storybook/demo fixtures fully isolated from runtime data paths
+- add route/component coverage around the new stylist pages

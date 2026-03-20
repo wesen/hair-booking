@@ -15,3 +15,5 @@
 - Added appointment status/date/client filters plus a real inline operational update form backed by `PATCH /api/stylist/appointments/:id`
 - Kept the live stylist runtime on direct RTK Query data instead of reintroducing the old seeded Redux demo slices
 - Validated the mutation/filter slice with `npm --prefix web run typecheck`
+- Ran the first full browser-backed stylist runtime smoke through `/stylist`, including live intake review and appointment update flows
+- Fixed a backend nullable-detail bug exposed by that smoke and revalidated appointment and client detail loading
