@@ -11,16 +11,20 @@ import (
 	"time"
 
 	hairauth "github.com/go-go-golems/hair-booking/pkg/auth"
+	hairclients "github.com/go-go-golems/hair-booking/pkg/clients"
 	hairdb "github.com/go-go-golems/hair-booking/pkg/db"
+	hairservices "github.com/go-go-golems/hair-booking/pkg/services"
 	"github.com/go-go-golems/hair-booking/pkg/web"
 )
 
 type ServerOptions struct {
-	Host         string
-	Port         int
-	Version      string
-	AuthSettings *hairauth.Settings
-	Database     *hairdb.DB
+	Host           string
+	Port           int
+	Version        string
+	AuthSettings   *hairauth.Settings
+	Database       *hairdb.DB
+	ClientService  *hairclients.Service
+	CatalogService *hairservices.Service
 }
 
 type HandlerOptions struct {
@@ -31,6 +35,8 @@ type HandlerOptions struct {
 	WebAuth        hairauth.WebHandler
 	PublicFS       fs.FS
 	Database       *hairdb.DB
+	ClientService  *hairclients.Service
+	CatalogService *hairservices.Service
 }
 
 type infoResponse struct {
@@ -52,6 +58,8 @@ type appHandler struct {
 	authSettings   *hairauth.Settings
 	sessionManager *hairauth.SessionManager
 	database       *hairdb.DB
+	clientService  *hairclients.Service
+	catalogService *hairservices.Service
 }
 
 type apiEnvelope struct {
@@ -95,6 +103,17 @@ func NewHTTPServer(ctx context.Context, options ServerOptions) (*http.Server, er
 		}
 	}
 
+	clientService := options.ClientService
+	catalogService := options.CatalogService
+	if options.Database != nil && options.Database.Pool() != nil {
+		if clientService == nil {
+			clientService = hairclients.NewService(hairclients.NewPostgresRepository(options.Database.Pool()))
+		}
+		if catalogService == nil {
+			catalogService = hairservices.NewService(hairservices.NewPostgresRepository(options.Database.Pool()))
+		}
+	}
+
 	return &http.Server{
 		Addr: fmt.Sprintf("%s:%d", options.Host, options.Port),
 		Handler: NewHandler(HandlerOptions{
@@ -105,6 +124,8 @@ func NewHTTPServer(ctx context.Context, options ServerOptions) (*http.Server, er
 			WebAuth:        webAuth,
 			PublicFS:       web.PublicFS,
 			Database:       options.Database,
+			ClientService:  clientService,
+			CatalogService: catalogService,
 		}),
 		ReadHeaderTimeout: 10 * time.Second,
 	}, nil
@@ -127,6 +148,8 @@ func NewHandler(options HandlerOptions) http.Handler {
 		authSettings:   authSettings,
 		sessionManager: options.SessionManager,
 		database:       options.Database,
+		clientService:  options.ClientService,
+		catalogService: options.CatalogService,
 	}
 
 	mux := http.NewServeMux()
@@ -135,6 +158,7 @@ func NewHandler(options HandlerOptions) http.Handler {
 	})
 	mux.HandleFunc("GET /api/info", h.handleInfo)
 	mux.HandleFunc("GET /api/me", h.handleMe)
+	mux.HandleFunc("GET /api/services", h.handleServices)
 
 	if options.WebAuth != nil {
 		mux.HandleFunc("GET /auth/login", options.WebAuth.HandleLogin)
@@ -162,40 +186,17 @@ func (h *appHandler) handleInfo(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, apiEnvelope{Data: response})
 }
 
-func (h *appHandler) handleMe(w http.ResponseWriter, r *http.Request) {
-	userInfo, ok := h.currentUser(r)
-	if !ok {
-		writeAPIError(w, http.StatusUnauthorized, "not-authenticated", "No active browser session was found.")
-		return
-	}
-	writeJSON(w, http.StatusOK, apiEnvelope{Data: userInfo})
-}
-
 func (h *appHandler) currentUser(r *http.Request) (*hairauth.UserInfo, bool) {
-	switch h.authSettings.Mode {
-	case hairauth.AuthModeDev:
-		user := (&hairauth.SessionClaims{
-			Issuer:            "dev",
-			Subject:           h.authSettings.DevUserID,
-			PreferredUsername: h.authSettings.DevUserID,
-			DisplayName:       "Development User",
-			IssuedAt:          time.Now().UTC(),
-			ExpiresAt:         time.Now().UTC().Add(24 * time.Hour),
-		}).UserInfo(hairauth.AuthModeDev)
-		return &user, true
-	case hairauth.AuthModeOIDC:
-		if h.sessionManager == nil {
-			return nil, false
-		}
-		claims, err := h.sessionManager.ReadSession(r)
-		if err != nil {
-			return nil, false
-		}
-		user := claims.UserInfo(hairauth.AuthModeOIDC)
-		return &user, true
-	default:
+	claims, ok := h.currentClaims(r)
+	if !ok {
 		return nil, false
 	}
+	user := claims.UserInfo(h.authSettings.Mode)
+	return &user, true
+}
+
+func timeNowUTC() time.Time {
+	return time.Now().UTC()
 }
 
 func registerWeb(mux *http.ServeMux, publicFS fs.FS) {
