@@ -2,6 +2,7 @@ import { getApiErrorMessage } from "./base";
 import {
   mapClientToUserProfile,
   mapMaintenancePlanItemToMaintenanceItem,
+  mapNotificationPrefsToViewModel,
   mapPortalAppointmentToAppointmentDetail,
 } from "./mappers";
 import { useGetMaintenancePlanQuery, useGetMeQuery, useGetMyAppointmentsQuery } from "./portalApi";
@@ -11,6 +12,9 @@ export function usePortalProfileView() {
 
   return {
     user: meQuery.data?.client ? mapClientToUserProfile(meQuery.data.client) : null,
+    notificationPrefs: meQuery.data?.notification_prefs
+      ? mapNotificationPrefsToViewModel(meQuery.data.notification_prefs)
+      : [],
     isLoading: meQuery.isLoading,
     errorMessage: meQuery.error ? getApiErrorMessage(meQuery.error, "We could not load your profile yet.") : null,
   };

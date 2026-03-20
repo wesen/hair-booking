@@ -191,14 +191,19 @@ export function mapMaintenancePlanItemToMaintenanceItem(item: MaintenancePlanIte
 
 export function mapNotificationPrefsToViewModel(
   prefs: NotificationPrefsDto,
-  marketingEnabled = false,
+  includeMarketing = false,
 ): NotificationPref[] {
-  return [
+  const items: NotificationPref[] = [
     { key: "remind48hr", label: "Text reminders (48hr)", on: prefs.remind_48hr },
     { key: "remind2hr", label: "Text reminders (2hr)", on: prefs.remind_2hr },
     { key: "maintAlerts", label: "Maintenance alerts", on: prefs.maint_alerts },
-    { key: "marketing", label: "Marketing / promos", on: marketingEnabled },
   ];
+
+  if (includeMarketing) {
+    items.push({ key: "marketing", label: "Marketing / promos", on: false });
+  }
+
+  return items;
 }
 
 export function mapClientToUserProfile(client: ClientDto, rewardsPoints = 0): UserProfile {

@@ -6,14 +6,12 @@ import type {
   PhotoEntry,
   PointsHistoryItem,
   RedeemableReward,
-  NotificationPref,
 } from "../types";
 import {
   MOCK_USER,
   MOCK_PHOTOS,
   MOCK_POINTS_HISTORY,
   MOCK_REDEEMABLE,
-  DEFAULT_NOTIFICATION_PREFS,
 } from "../data/portal-data";
 
 interface PortalState {
@@ -23,7 +21,6 @@ interface PortalState {
   photos: PhotoEntry[];
   pointsHistory: PointsHistoryItem[];
   redeemable: RedeemableReward[];
-  notificationPrefs: NotificationPref[];
   appointmentFilter: "upcoming" | "past";
 }
 
@@ -34,7 +31,6 @@ const initialState: PortalState = {
   photos: MOCK_PHOTOS,
   pointsHistory: MOCK_POINTS_HISTORY,
   redeemable: MOCK_REDEEMABLE,
-  notificationPrefs: DEFAULT_NOTIFICATION_PREFS,
   appointmentFilter: "upcoming",
 };
 
@@ -55,10 +51,6 @@ const portalSlice = createSlice({
     setAppointmentFilter(state, action: PayloadAction<"upcoming" | "past">) {
       state.appointmentFilter = action.payload;
     },
-    toggleNotificationPref(state, action: PayloadAction<string>) {
-      const pref = state.notificationPrefs.find(p => p.key === action.payload);
-      if (pref) pref.on = !pref.on;
-    },
     redeemReward(state, action: PayloadAction<number>) {
       const reward = state.redeemable.find(r => r.cost === action.payload);
       if (reward && !reward.locked && state.user.points >= action.payload) {
@@ -77,7 +69,6 @@ export const {
   goToProfile,
   goBackFromProfile,
   setAppointmentFilter,
-  toggleNotificationPref,
   redeemReward,
 } = portalSlice.actions;
 

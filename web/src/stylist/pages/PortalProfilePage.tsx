@@ -1,15 +1,17 @@
-import { useAppSelector, useAppDispatch } from "../store";
-import { goBackFromProfile, toggleNotificationPref } from "../store/portalSlice";
+import { useState } from "react";
+import { useAppDispatch } from "../store";
+import { goBackFromProfile } from "../store/portalSlice";
 import { goToScreen } from "../store/consultationSlice";
-import { usePortalProfileView, useSessionBootstrap } from "../store/api";
+import { getApiErrorMessage, usePortalProfileView, useSessionBootstrap, useUpdateNotificationPrefsMutation } from "../store/api";
 import { NotificationPrefs } from "../components/NotificationPrefs";
 import { Icon } from "../components/Icon";
 
 export function PortalProfilePage() {
   const dispatch = useAppDispatch();
-  const notifPrefs = useAppSelector(s => s.portal.notificationPrefs);
   const session = useSessionBootstrap();
-  const { user, isLoading, errorMessage } = usePortalProfileView();
+  const { user, notificationPrefs, isLoading, errorMessage } = usePortalProfileView();
+  const [updateNotificationPrefs, updateNotificationPrefsState] = useUpdateNotificationPrefsMutation();
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   if (isLoading) {
     return (
@@ -62,9 +64,30 @@ export function PortalProfilePage() {
       <div data-part="profile-section">
         <div data-part="profile-section-title">PREFERENCES</div>
         <NotificationPrefs
-          prefs={notifPrefs}
-          onToggle={key => dispatch(toggleNotificationPref(key))}
+          prefs={notificationPrefs}
+          onToggle={async key => {
+            const selected = notificationPrefs.find(pref => pref.key === key);
+            if (!selected || key === "marketing" || updateNotificationPrefsState.isLoading) {
+              return;
+            }
+
+            setSubmitError(null);
+            try {
+              await updateNotificationPrefs({
+                ...(key === "remind48hr" ? { remind_48hr: !selected.on } : {}),
+                ...(key === "remind2hr" ? { remind_2hr: !selected.on } : {}),
+                ...(key === "maintAlerts" ? { maint_alerts: !selected.on } : {}),
+              }).unwrap();
+            } catch (error) {
+              setSubmitError(getApiErrorMessage(error, "We could not update your notification preferences."));
+            }
+          }}
         />
+        {submitError ? (
+          <div style={{ fontSize: 13, color: "var(--color-danger)", marginTop: 10 }}>
+            {submitError}
+          </div>
+        ) : null}
       </div>
 
       <div data-part="profile-section">
