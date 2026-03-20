@@ -68,7 +68,7 @@ func (r *PostgresRepository) CreateAuthenticatedClient(ctx context.Context, iden
 	client := &Client{}
 	row := r.pool.QueryRow(ctx, `
 insert into clients(id, auth_subject, auth_issuer, name, email)
-values($1, $2, $3, $4, nullif($5, ''))
+values($1, $2, $3, $4, nullif($5::text, ''))
 on conflict (email) do update
 set auth_subject = excluded.auth_subject,
     auth_issuer = excluded.auth_issuer,
@@ -116,11 +116,11 @@ func (r *PostgresRepository) UpdateAuthenticatedClient(ctx context.Context, clie
 	row := r.pool.QueryRow(ctx, `
 update clients
 set name = case
-      when coalesce(nullif(trim(name), ''), '') = '' and nullif($2, '') is not null then $2
+      when coalesce(nullif(trim(name), ''), '') = '' and nullif($2::text, '') is not null then $2::text
       else name
     end,
     email = case
-      when coalesce(nullif(trim(email), ''), '') = '' and nullif($3, '') is not null then $3
+      when coalesce(nullif(trim(email), ''), '') = '' and nullif($3::text, '') is not null then $3::text
       else email
     end,
     updated_at = now()
@@ -185,26 +185,31 @@ func (r *PostgresRepository) UpdateProfile(ctx context.Context, clientID uuid.UU
 		return nil, errors.New("postgres pool is not configured")
 	}
 
+	nameArg := nullableStringPointer(update.Name)
+	emailArg := nullableStringPointer(update.Email)
+	phoneArg := nullableStringPointer(update.Phone)
+	scalpNotesArg := nullableStringPointer(update.ScalpNotes)
+
 	client := &Client{}
 	row := r.pool.QueryRow(ctx, `
 update clients
-set name = coalesce($2, name),
+set name = coalesce($2::text, name),
     email = case
-      when $3 is null then email
-      else nullif($3, '')
+      when $3::text is null then email
+      else nullif($3::text, '')
     end,
     phone = case
-      when $4 is null then phone
-      else nullif($4, '')
+      when $4::text is null then phone
+      else nullif($4::text, '')
     end,
     scalp_notes = case
-      when $5 is null then scalp_notes
-      else nullif($5, '')
+      when $5::text is null then scalp_notes
+      else nullif($5::text, '')
     end,
     updated_at = now()
 where id = $1
 returning id, auth_subject, auth_issuer, name, email, phone, scalp_notes, service_summary, created_at, updated_at
-`, clientID, update.Name, update.Email, update.Phone, update.ScalpNotes)
+`, clientID, nameArg, emailArg, phoneArg, scalpNotesArg)
 
 	var authSubject sql.NullString
 	var authIssuer sql.NullString
@@ -279,4 +284,11 @@ func nullableString(value sql.NullString) string {
 		return value.String
 	}
 	return ""
+}
+
+func nullableStringPointer(value *string) any {
+	if value == nil {
+		return nil
+	}
+	return *value
 }

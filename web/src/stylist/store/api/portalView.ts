@@ -11,6 +11,7 @@ export function usePortalProfileView() {
   const meQuery = useGetMeQuery();
 
   return {
+    client: meQuery.data?.client ?? null,
     user: meQuery.data?.client ? mapClientToUserProfile(meQuery.data.client) : null,
     notificationPrefs: meQuery.data?.notification_prefs
       ? mapNotificationPrefsToViewModel(meQuery.data.notification_prefs)

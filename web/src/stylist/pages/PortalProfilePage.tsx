@@ -1,17 +1,70 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAppDispatch } from "../store";
 import { goBackFromProfile } from "../store/portalSlice";
 import { goToScreen } from "../store/consultationSlice";
-import { getApiErrorMessage, usePortalProfileView, useSessionBootstrap, useUpdateNotificationPrefsMutation } from "../store/api";
+import { getApiErrorMessage, usePortalProfileView, useSessionBootstrap, useUpdateMeMutation, useUpdateNotificationPrefsMutation } from "../store/api";
 import { NotificationPrefs } from "../components/NotificationPrefs";
 import { Icon } from "../components/Icon";
+
+interface ProfileFormState {
+  name: string;
+  email: string;
+  phone: string;
+  scalpNotes: string;
+}
+
+function buildProfileFormState(values: {
+  name?: string;
+  email?: string;
+  phone?: string;
+  scalpNotes?: string;
+}): ProfileFormState {
+  return {
+    name: values.name ?? "",
+    email: values.email ?? "",
+    phone: values.phone ?? "",
+    scalpNotes: values.scalpNotes ?? "",
+  };
+}
 
 export function PortalProfilePage() {
   const dispatch = useAppDispatch();
   const session = useSessionBootstrap();
-  const { user, notificationPrefs, isLoading, errorMessage } = usePortalProfileView();
+  const { client, user, notificationPrefs, isLoading, errorMessage } = usePortalProfileView();
+  const [updateMe, updateMeState] = useUpdateMeMutation();
   const [updateNotificationPrefs, updateNotificationPrefsState] = useUpdateNotificationPrefsMutation();
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [profileForm, setProfileForm] = useState<ProfileFormState>(() => buildProfileFormState({}));
+  const [profileSubmitError, setProfileSubmitError] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setProfileForm(buildProfileFormState({
+      name: client?.name,
+      email: client?.email,
+      phone: client?.phone,
+      scalpNotes: client?.scalp_notes,
+    }));
+  }, [client?.email, client?.name, client?.phone, client?.scalp_notes]);
+
+  const normalizedCurrent = useMemo(() => ({
+    name: client?.name?.trim() ?? "",
+    email: client?.email?.trim().toLowerCase() ?? "",
+    phone: client?.phone?.trim() ?? "",
+    scalpNotes: client?.scalp_notes?.trim() ?? "",
+  }), [client?.email, client?.name, client?.phone, client?.scalp_notes]);
+
+  const normalizedDraft = useMemo(() => ({
+    name: profileForm.name.trim(),
+    email: profileForm.email.trim().toLowerCase(),
+    phone: profileForm.phone.trim(),
+    scalpNotes: profileForm.scalpNotes.trim(),
+  }), [profileForm.email, profileForm.name, profileForm.phone, profileForm.scalpNotes]);
+
+  const profileIsDirty = normalizedDraft.name !== normalizedCurrent.name
+    || normalizedDraft.email !== normalizedCurrent.email
+    || normalizedDraft.phone !== normalizedCurrent.phone
+    || normalizedDraft.scalpNotes !== normalizedCurrent.scalpNotes;
 
   if (isLoading) {
     return (
@@ -61,6 +114,100 @@ export function PortalProfilePage() {
         </div>
       </div>
 
+      {isEditingProfile ? (
+        <div data-part="profile-section">
+          <div data-part="profile-section-title">EDIT PROFILE</div>
+          <div data-part="form-group">
+            <label data-part="form-label">Name</label>
+            <input
+              data-part="text-input"
+              placeholder="First & last name"
+              value={profileForm.name}
+              onChange={event => setProfileForm(current => ({ ...current, name: event.target.value }))}
+            />
+          </div>
+          <div data-part="form-group">
+            <label data-part="form-label">Email</label>
+            <input
+              data-part="text-input"
+              type="email"
+              placeholder="your@email.com"
+              value={profileForm.email}
+              onChange={event => setProfileForm(current => ({ ...current, email: event.target.value }))}
+            />
+          </div>
+          <div data-part="form-group">
+            <label data-part="form-label">Phone</label>
+            <input
+              data-part="text-input"
+              type="tel"
+              placeholder="(401) 555-0123"
+              value={profileForm.phone}
+              onChange={event => setProfileForm(current => ({ ...current, phone: event.target.value }))}
+            />
+          </div>
+          <div data-part="form-group">
+            <label data-part="form-label">Scalp / care notes</label>
+            <textarea
+              data-part="text-input"
+              rows={4}
+              placeholder="Sensitive scalp, maintenance preferences, or other important notes"
+              value={profileForm.scalpNotes}
+              onChange={event => setProfileForm(current => ({ ...current, scalpNotes: event.target.value }))}
+            />
+          </div>
+          <div style={{ display: "flex", gap: 10, marginTop: 16 }}>
+            <button
+              data-part="btn-accent"
+              disabled={updateMeState.isLoading || !profileIsDirty}
+              onClick={async () => {
+                if (!profileIsDirty) {
+                  setIsEditingProfile(false);
+                  return;
+                }
+
+                setProfileSubmitError(null);
+                try {
+                  await updateMe({
+                    ...(normalizedDraft.name !== normalizedCurrent.name ? { name: profileForm.name } : {}),
+                    ...(normalizedDraft.email !== normalizedCurrent.email ? { email: profileForm.email } : {}),
+                    ...(normalizedDraft.phone !== normalizedCurrent.phone ? { phone: profileForm.phone } : {}),
+                    ...(normalizedDraft.scalpNotes !== normalizedCurrent.scalpNotes ? { scalp_notes: profileForm.scalpNotes } : {}),
+                  }).unwrap();
+                  setIsEditingProfile(false);
+                } catch (error) {
+                  setProfileSubmitError(getApiErrorMessage(error, "We could not update your profile yet."));
+                }
+              }}
+            >
+              {updateMeState.isLoading ? "Saving..." : "Save Profile"}
+            </button>
+            <button
+              data-part="profile-action-item"
+              style={{ marginTop: 0, flex: "0 0 auto" }}
+              disabled={updateMeState.isLoading}
+              onClick={() => {
+                setProfileSubmitError(null);
+                setProfileForm(buildProfileFormState({
+                  name: client?.name,
+                  email: client?.email,
+                  phone: client?.phone,
+                  scalpNotes: client?.scalp_notes,
+                }));
+                setIsEditingProfile(false);
+              }}
+            >
+              Cancel
+            </button>
+          </div>
+          {profileSubmitError ? (
+            <div style={{ fontSize: 13, color: "var(--color-danger)", marginTop: 10 }}>
+              {profileSubmitError}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+
       <div data-part="profile-section">
         <div data-part="profile-section-title">PREFERENCES</div>
         <NotificationPrefs
@@ -104,7 +251,15 @@ export function PortalProfilePage() {
 
       <div data-part="profile-section">
         <div data-part="profile-action-list">
-          <button data-part="profile-action-item">Edit Profile</button>
+          <button
+            data-part="profile-action-item"
+            onClick={() => {
+              setProfileSubmitError(null);
+              setIsEditingProfile(true);
+            }}
+          >
+            Edit Profile
+          </button>
           <button data-part="profile-action-item">Payment Methods</button>
           <button
             data-part="profile-action-item"
