@@ -7,6 +7,10 @@ export function setPendingConsultationPhoto(slot: ConsultationPhotoSlot, file: F
   pendingPhotos.set(slot, file);
 }
 
+export function clearPendingConsultationPhoto(slot: ConsultationPhotoSlot) {
+  pendingPhotos.delete(slot);
+}
+
 export function addPendingInspirationPhoto(file: File) {
   pendingInspirationPhotos.push(file);
 }
@@ -17,6 +21,11 @@ export function getPendingConsultationPhoto(slot: ConsultationPhotoSlot): File |
 
 export function listPendingInspirationPhotos(): File[] {
   return [...pendingInspirationPhotos];
+}
+
+export function replacePendingInspirationPhotos(files: File[]) {
+  pendingInspirationPhotos.length = 0;
+  pendingInspirationPhotos.push(...files);
 }
 
 export function clearPendingConsultationUploads() {
