@@ -9,13 +9,13 @@
 
 ## Phase 1: RTK Query Foundation
 
-- [ ] Create a shared API module under `web/src/stylist/store/api/`
-- [ ] Add a `fetchBaseQuery` wrapper that sends credentials and normalizes JSON envelopes
-- [ ] Register the API reducer and middleware in `web/src/stylist/store/index.ts`
-- [ ] Add shared frontend DTO types for backend payloads
-- [ ] Add shared mapping helpers from backend DTOs to current widget-friendly shapes
-- [ ] Add tag strategy for `Me`, `Services`, `Availability`, `Appointments`, `Maintenance`, and `Photos`
-- [ ] Add test scaffolding for store + RTK Query provider wiring
+- [x] Create a shared API module under `web/src/stylist/store/api/`
+- [x] Add a `fetchBaseQuery` wrapper that sends credentials and normalizes JSON envelopes
+- [x] Register the API reducer and middleware in `web/src/stylist/store/index.ts`
+- [x] Add shared frontend DTO types for backend payloads
+- [x] Add shared mapping helpers from backend DTOs to current widget-friendly shapes
+- [x] Add tag strategy for `Me`, `Services`, `Availability`, `Appointments`, `Maintenance`, and `Photos`
+- [x] Add test scaffolding for store + RTK Query provider wiring
 
 ## Phase 2: Auth And Session Integration
 
@@ -80,10 +80,10 @@
 
 ## Phase 8: Validation
 
-- [ ] Run `npm --prefix web run typecheck`
+- [x] Run `npm --prefix web run typecheck`
 - [ ] Run frontend tests once the integration test harness is in place
 - [ ] Smoke test against local Go server + Keycloak + Postgres
 - [ ] Verify booking flow end-to-end with real intake, availability, and appointment creation
 - [ ] Verify portal flow end-to-end for profile, prefs, appointments, and maintenance
-- [ ] Update HAIR-003 diary with exact commands and outcomes
-- [ ] Re-run `docmgr doctor --ticket HAIR-003 --stale-after 30`
+- [x] Update HAIR-003 diary with exact commands and outcomes
+- [x] Re-run `docmgr doctor --ticket HAIR-003 --stale-after 30`

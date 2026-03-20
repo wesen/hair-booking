@@ -13,20 +13,35 @@ Owners: []
 RelatedFiles:
     - Path: web/src/stylist/data/portal-data.ts
       Note: Mock portal fixtures that currently block realistic backend testing
+    - Path: web/src/stylist/store/api/base.ts
+      Note: Recorded shared fetchBaseQuery envelope normalization and tag setup for Phase 1 (commit bb46c1b)
+    - Path: web/src/stylist/store/api/bookingApi.ts
+      Note: Recorded booking endpoint definitions for Phase 1 (commit bb46c1b)
+    - Path: web/src/stylist/store/api/mappers.ts
+      Note: Recorded backend-to-widget mapping helpers for Phase 1 (commit bb46c1b)
+    - Path: web/src/stylist/store/api/portalApi.ts
+      Note: Recorded portal endpoint definitions for Phase 1 (commit bb46c1b)
+    - Path: web/src/stylist/store/api/types.ts
+      Note: Recorded backend DTO definitions for Phase 1 (commit bb46c1b)
     - Path: web/src/stylist/store/authSlice.ts
       Note: Current OTP-shaped auth state that must be retired or reduced
     - Path: web/src/stylist/store/consultationSlice.ts
       Note: Booking draft state that should remain client-owned
     - Path: web/src/stylist/store/index.ts
-      Note: Current Redux store wiring that will host RTK Query reducer and middleware
+      Note: |-
+        Current Redux store wiring that will host RTK Query reducer and middleware
+        Recorded RTK Query reducer and middleware wiring for Phase 1 (commit bb46c1b)
     - Path: web/src/stylist/store/portalSlice.ts
       Note: Portal mock state that should shrink once server state moves to RTK Query
+    - Path: web/src/stylist/store/test-utils.ts
+      Note: Recorded test-store wiring through createAppStore for Phase 1 (commit bb46c1b)
 ExternalSources: []
-Summary: Chronological diary for the frontend integration planning work that moves the hair-booking app from mocks to RTK Query-backed backend calls.
-LastUpdated: 2026-03-20T00:28:00-04:00
+Summary: Chronological diary for the frontend integration planning and Phase 1 implementation work that moves the hair-booking app from mocks to RTK Query-backed backend calls.
+LastUpdated: 2026-03-20T01:15:00-04:00
 WhatFor: Use this diary to understand why the frontend integration ticket exists, what evidence drove the plan, and how to continue implementation.
 WhenToUse: Use when continuing HAIR-003 or reviewing the reasoning behind the RTK Query migration order.
 ---
+
 
 
 # Investigation Diary
@@ -263,3 +278,169 @@ sed -n '1,220p' web/src/stylist/pages/VerifyCodePage.tsx
 sed -n '1,220p' web/src/stylist/pages/ConsultCalendarPage.tsx
 sed -n '1,220p' web/src/stylist/pages/PortalHomePage.tsx
 ```
+
+## Step 3: Build The RTK Query Foundation Without Changing Screen Behavior
+
+I implemented the first code slice as infrastructure only and kept the UI behavior unchanged on purpose. The goal of this step was to create the shared server-state layer that later slices can use, without mixing that work with auth redesign or booking-page rewrites. That meant adding the API package, registering RTK Query in the store, and capturing backend DTOs and mapper functions up front.
+
+I also treated validation as part of the feature instead of as an afterthought. The first typecheck failed because the frontend dependencies had not been installed in this workspace, which is exactly the kind of continuation hazard the diary should record. After installing the dependencies, the typecheck passed and the slice was committed cleanly.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Start executing the new frontend integration ticket, beginning with the lowest-risk RTK Query foundation work.
+
+**Inferred user intent:** Move from planning into implementation in small, testable slices instead of keeping the ticket purely documentary.
+
+**Commit (code):** bb46c1b — "feat: add RTK Query frontend foundation"
+
+### What I did
+
+- Added `web/src/stylist/store/api/` with:
+  - `base.ts`
+  - `types.ts`
+  - `mappers.ts`
+  - `servicesApi.ts`
+  - `bookingApi.ts`
+  - `portalApi.ts`
+  - `authApi.ts`
+  - `index.ts`
+- Added a shared `fetchBaseQuery` wrapper that:
+  - sends browser credentials
+  - unwraps backend `{ data: ... }` envelopes
+  - normalizes backend `{ error: ... }` responses into a single frontend error shape
+- Registered the RTK Query reducer and middleware in `web/src/stylist/store/index.ts`.
+- Refactored the store module to export `rootReducer`, `createAppStore`, `store`, and typed store aliases so both the app and tests can build the same store shape.
+- Updated `web/src/stylist/store/test-utils.ts` to delegate to `createAppStore` instead of duplicating reducer wiring.
+- Exported the new API package through `web/src/stylist/index.ts`.
+- Added DTOs for the current backend endpoints and mapping helpers for current widget-facing portal and booking shapes.
+- Defined endpoint modules and tags for:
+  - app info
+  - services
+  - intake creation
+  - intake photo upload
+  - availability
+  - appointment creation
+  - `/api/me`
+  - profile and notification preference updates
+  - portal appointments
+  - maintenance-plan reads
+
+### Why
+
+- Later frontend slices need a stable API layer before pages can be migrated one by one.
+- The store had to be refactored first so RTK Query could be shared between the real app store and any future test harness.
+- Defining DTOs and mappers now reduces the chance that each page will invent its own network assumptions later.
+
+### What worked
+
+- The backend envelope format mapped cleanly to a shared RTK Query base query.
+- The current store structure accepted the RTK Query reducer and middleware without forcing any page-level changes.
+- `createAppStore` gave the project a better seam for tests and future provider setup than the previous singleton-only store export.
+- The compiler only found two issues after the initial pass, and both were narrow fixes rather than structural rewrites.
+
+### What didn't work
+
+- The first validation attempt failed because TypeScript was not installed locally yet:
+
+```bash
+npm --prefix web run typecheck
+```
+
+```text
+> hair-booking-web@0.1.0 typecheck
+> tsc --noEmit
+
+sh: 1: tsc: not found
+```
+
+- I fixed that with:
+
+```bash
+npm --prefix web ci
+```
+
+- After dependencies were installed, the next compiler run exposed two code issues:
+
+```text
+src/stylist/store/api/base.ts(82,41): error TS2345: Argument of type 'FetchBaseQueryError | undefined' is not assignable to parameter of type 'FetchBaseQueryError'.
+src/stylist/store/api/mappers.ts(122,21): error TS2339: Property 'sort_order' does not exist on type 'PortalAppointmentDto'.
+```
+
+- I fixed both and reran:
+
+```bash
+npm --prefix web run typecheck
+```
+
+which then passed.
+
+### What I learned
+
+- The frontend workspace cannot be assumed to have dependencies installed, even when the backend side of the repo is already active.
+- A dedicated API package with injected endpoints keeps the code easier to review than one oversized `api.ts`.
+- The current widget types still reflect mock-era assumptions, especially numeric IDs in portal view models, so mapper functions are the right buffer for now.
+
+### What was tricky to build
+
+- The sharp edge here was the mismatch between backend identity shapes and the existing widget-friendly types. For example, backend IDs are UUID strings, while some current portal widgets still expect numeric IDs. The symptom was immediate in the mapper layer. I handled it by introducing explicit mapping helpers instead of mutating the existing widget types in the same slice. That keeps the infrastructure commit focused and postpones UI-facing type cleanup to the later page-migration work where it can be reviewed in context.
+
+### What warrants a second pair of eyes
+
+- The mapper layer deserves review, especially the temporary conversions that smooth over mock-era widget types.
+- The endpoint return types for reschedule/cancel flows should be revisited when those mutations are actually consumed by portal pages, because the current slice defines the contract but does not yet prove the UI assumptions.
+- The exported API surface in `web/src/stylist/index.ts` should be reviewed if the widget package is intended to be consumed externally, since it now exposes the RTK Query package in addition to the previous store exports.
+
+### What should be done in the future
+
+- Phase 2 should replace the OTP-only auth assumptions with Keycloak/OIDC-aware entry behavior.
+- The booking and portal screens should adopt these hooks gradually rather than switching all pages in one commit.
+- A real frontend test runner should be added before claiming deeper behavioral test coverage.
+
+### Code review instructions
+
+- Start with the store setup:
+  - `web/src/stylist/store/index.ts`
+  - `web/src/stylist/store/test-utils.ts`
+- Then review the API package in order:
+  - `web/src/stylist/store/api/base.ts`
+  - `web/src/stylist/store/api/types.ts`
+  - `web/src/stylist/store/api/mappers.ts`
+  - `web/src/stylist/store/api/authApi.ts`
+  - `web/src/stylist/store/api/servicesApi.ts`
+  - `web/src/stylist/store/api/bookingApi.ts`
+  - `web/src/stylist/store/api/portalApi.ts`
+- Finally check the top-level export change in:
+  - `web/src/stylist/index.ts`
+- Validate with:
+
+```bash
+npm --prefix web run typecheck
+```
+
+### Technical details
+
+- Commands run during this slice:
+
+```bash
+mkdir -p web/src/stylist/store/api
+npm --prefix web run typecheck
+npm --prefix web ci
+npm --prefix web run typecheck
+git add web/src/stylist/index.ts web/src/stylist/store/index.ts web/src/stylist/store/test-utils.ts web/src/stylist/store/api
+git commit -m "feat: add RTK Query frontend foundation"
+```
+
+- Files changed in the code slice:
+  - `web/src/stylist/index.ts`
+  - `web/src/stylist/store/index.ts`
+  - `web/src/stylist/store/test-utils.ts`
+  - `web/src/stylist/store/api/base.ts`
+  - `web/src/stylist/store/api/types.ts`
+  - `web/src/stylist/store/api/mappers.ts`
+  - `web/src/stylist/store/api/authApi.ts`
+  - `web/src/stylist/store/api/servicesApi.ts`
+  - `web/src/stylist/store/api/bookingApi.ts`
+  - `web/src/stylist/store/api/portalApi.ts`
+  - `web/src/stylist/store/api/index.ts`

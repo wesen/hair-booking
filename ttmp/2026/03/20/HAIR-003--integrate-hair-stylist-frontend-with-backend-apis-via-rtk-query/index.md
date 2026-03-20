@@ -17,6 +17,10 @@ RelatedFiles:
       Note: Calendar page still uses deterministic availability and is a primary integration target
     - Path: web/src/stylist/pages/PortalHomePage.tsx
       Note: Portal home still hydrates from mock data and should move to API-backed reads
+    - Path: web/src/stylist/store/api/base.ts
+      Note: New shared RTK Query base layer for the frontend integration
+    - Path: web/src/stylist/store/api/index.ts
+      Note: New API package entrypoint exported through the stylist bundle
     - Path: web/src/stylist/store/index.ts
       Note: Store setup is the main integration seam for the API reducer and middleware
 ExternalSources: []
@@ -25,6 +29,7 @@ LastUpdated: 2026-03-20T00:01:14.783333783-04:00
 WhatFor: Use this ticket to design and implement the frontend integration layer for the imported booking and portal widgets.
 WhenToUse: Use when wiring the React+Redux frontend to the backend APIs, removing mock state, or reviewing the RTK Query migration plan.
 ---
+
 
 
 # Integrate Hair Stylist Frontend With Backend APIs Via RTK Query
