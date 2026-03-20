@@ -35,17 +35,6 @@ function pageTitle(route: StylistRoute): string {
   }
 }
 
-function formatDate(value?: string | null): string {
-  if (!value) {
-    return "Not set";
-  }
-  const date = new Date(`${value}T12:00:00`);
-  if (Number.isNaN(date.getTime())) {
-    return value;
-  }
-  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
-}
-
 function navigateTo(route: StylistRoute) {
   const nextPath = buildStylistPath(route);
   if (window.location.pathname !== nextPath) {
@@ -101,12 +90,12 @@ function EmptyState({ message }: { message: string }) {
 }
 
 function DashboardPage() {
-  const { dashboard, isLoading, errorMessage } = useStylistDashboardView();
+  const { view, isLoading, errorMessage } = useStylistDashboardView();
 
   if (isLoading) {
     return <LoadingSection title="Stylist Dashboard" />;
   }
-  if (errorMessage || !dashboard) {
+  if (errorMessage || !view) {
     return <ErrorSection title="Stylist Dashboard" message={errorMessage ?? "We could not load the dashboard yet."} />;
   }
 
@@ -116,39 +105,38 @@ function DashboardPage() {
       subtitle="The live single-stylist home view now comes from the backend summary instead of seeded runtime widgets."
     >
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginBottom: 18 }}>
-        <SummaryCard label="New Intakes" value={dashboard.intakes.new_count} />
-        <SummaryCard label="In Review" value={dashboard.intakes.in_review_count} />
-        <SummaryCard label="Needs Reply" value={dashboard.intakes.needs_client_reply_count} />
-        <SummaryCard label="Today" value={dashboard.today_appointments} />
+        {view.summaryCards.map((card) => (
+          <SummaryCard key={card.label} label={card.label} value={card.value} />
+        ))}
       </div>
 
       <ListBlock title="Today Schedule">
-        {dashboard.today_schedule.length === 0 ? (
+        {view.todayRows.length === 0 ? (
           <EmptyState message="No appointments on today’s schedule." />
         ) : (
-          dashboard.today_schedule.map((appointment) => (
+          view.todayRows.map((appointment) => (
             <ListRow
-              key={appointment.appointment_id}
-              title={appointment.client_name}
-              meta={`${appointment.service_name} · ${appointment.start_time}`}
-              badge={appointment.status}
-              onClick={() => navigateTo({ section: "appointments", id: appointment.appointment_id })}
+              key={appointment.id}
+              title={appointment.title}
+              meta={appointment.meta}
+              badge={appointment.badge}
+              onClick={() => navigateTo({ section: "appointments", id: appointment.id })}
             />
           ))
         )}
       </ListBlock>
 
       <ListBlock title="Upcoming Appointments">
-        {dashboard.upcoming_appointments.length === 0 ? (
+        {view.upcomingRows.length === 0 ? (
           <EmptyState message="No upcoming appointments found." />
         ) : (
-          dashboard.upcoming_appointments.map((appointment) => (
+          view.upcomingRows.map((appointment) => (
             <ListRow
-              key={appointment.appointment_id}
-              title={appointment.client_name}
-              meta={`${appointment.service_name} · ${formatDate(appointment.date)} · ${appointment.start_time}`}
-              badge={appointment.status}
-              onClick={() => navigateTo({ section: "appointments", id: appointment.appointment_id })}
+              key={appointment.id}
+              title={appointment.title}
+              meta={appointment.meta}
+              badge={appointment.badge}
+              onClick={() => navigateTo({ section: "appointments", id: appointment.id })}
             />
           ))
         )}
@@ -172,52 +160,35 @@ function IntakesPage({ intakeId }: { intakeId?: string }) {
   const [reviewFeedback, setReviewFeedback] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!detailView.intake) {
+    if (!detailView.view) {
       return;
     }
-    setReviewStatus(detailView.intake.review.status || "new");
-    setReviewPriority(detailView.intake.review.priority || "normal");
-    setReviewSummary(detailView.intake.review.summary || "");
-    setReviewNotes(detailView.intake.review.internal_notes || "");
-    setReviewLow(
-      typeof detailView.intake.review.quoted_price_low === "number"
-        ? String(detailView.intake.review.quoted_price_low)
-        : "",
-    );
-    setReviewHigh(
-      typeof detailView.intake.review.quoted_price_high === "number"
-        ? String(detailView.intake.review.quoted_price_high)
-        : "",
-    );
+    setReviewStatus(detailView.view.reviewDefaults.status);
+    setReviewPriority(detailView.view.reviewDefaults.priority);
+    setReviewSummary(detailView.view.reviewDefaults.summary);
+    setReviewNotes(detailView.view.reviewDefaults.internalNotes);
+    setReviewLow(detailView.view.reviewDefaults.quotedPriceLow);
+    setReviewHigh(detailView.view.reviewDefaults.quotedPriceHigh);
     setReviewFeedback(null);
-  }, [detailView.intake]);
+  }, [detailView.view]);
 
   if (intakeId) {
     if (detailView.isLoading) {
       return <LoadingSection title="Intake Detail" />;
     }
-    if (detailView.errorMessage || !detailView.intake) {
+    if (detailView.errorMessage || !detailView.intake || !detailView.view) {
       return <ErrorSection title="Intake Detail" message={detailView.errorMessage ?? "We could not load this intake yet."} />;
     }
 
     const intake = detailView.intake;
+    const view = detailView.view;
     return (
       <WorkspaceSection
         title="Intake Detail"
         subtitle="This route now reads and writes the real stylist review state."
       >
         <BackLink onClick={() => navigateTo({ section: "intakes" })} label="Back to intake queue" />
-        <KeyValueList
-          items={[
-            ["Client", intake.client?.name ?? "Guest intake"],
-            ["Service Type", intake.submission.service_type],
-            ["Budget", intake.submission.budget ?? "Not provided"],
-            ["Dream Result", intake.submission.dream_result ?? "Not provided"],
-            ["Estimate", `$${intake.submission.estimate_low}-$${intake.submission.estimate_high}`],
-            ["Review Status", intake.review.status],
-            ["Priority", intake.review.priority],
-          ]}
-        />
+        <KeyValueList items={view.summaryItems} />
         <ListBlock title="Review">
           <FormGrid>
             <FormSelect
@@ -273,11 +244,11 @@ function IntakesPage({ intakeId }: { intakeId?: string }) {
           />
         </ListBlock>
         <ListBlock title="Uploaded Photos">
-          {intake.photos.length === 0 ? (
+          {view.photoRows.length === 0 ? (
             <EmptyState message="No intake photos uploaded yet." />
           ) : (
-            intake.photos.map((photo) => (
-              <ListRow key={photo.id} title={photo.slot} meta={photo.url} />
+            view.photoRows.map((photo) => (
+              <ListRow key={photo.id} title={photo.title} meta={photo.meta} />
             ))
           )}
         </ListBlock>
@@ -292,8 +263,8 @@ function IntakesPage({ intakeId }: { intakeId?: string }) {
     return <ErrorSection title="Intake Queue" message={listView.errorMessage} />;
   }
 
-  const filteredIntakes = listView.intakes.filter((intake) => {
-    if (priorityFilter && intake.review.priority !== priorityFilter) {
+  const filteredIntakes = listView.rows.filter((intake) => {
+    if (priorityFilter && intake.priority !== priorityFilter) {
       return false;
     }
     return true;
@@ -335,9 +306,9 @@ function IntakesPage({ intakeId }: { intakeId?: string }) {
         filteredIntakes.map((intake) => (
           <ListRow
             key={intake.id}
-            title={intake.client?.name ?? "Guest intake"}
-            meta={`${intake.service_type} · ${intake.review.status} · ${formatDate(intake.submitted_at)}`}
-            badge={intake.review.priority}
+            title={intake.title}
+            meta={intake.meta}
+            badge={intake.badge}
             onClick={() => navigateTo({ section: "intakes", id: intake.id })}
           />
         ))
@@ -359,41 +330,32 @@ function AppointmentsPage({ appointmentId }: { appointmentId?: string }) {
   const [appointmentFeedback, setAppointmentFeedback] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!detailView.appointment) {
+    if (!detailView.view) {
       return;
     }
-    setAppointmentStatus(detailView.appointment.appointment.status || "pending");
-    setPrepNotes(detailView.appointment.appointment.prep_notes || "");
-    setStylistNotes(detailView.appointment.appointment.stylist_notes || "");
+    setAppointmentStatus(detailView.view.formDefaults.status);
+    setPrepNotes(detailView.view.formDefaults.prepNotes);
+    setStylistNotes(detailView.view.formDefaults.stylistNotes);
     setAppointmentFeedback(null);
-  }, [detailView.appointment]);
+  }, [detailView.view]);
 
   if (appointmentId) {
     if (detailView.isLoading) {
       return <LoadingSection title="Appointment Detail" />;
     }
-    if (detailView.errorMessage || !detailView.appointment) {
+    if (detailView.errorMessage || !detailView.appointment || !detailView.view) {
       return <ErrorSection title="Appointment Detail" message={detailView.errorMessage ?? "We could not load this appointment yet."} />;
     }
 
     const detail = detailView.appointment;
+    const view = detailView.view;
     return (
       <WorkspaceSection
         title="Appointment Detail"
         subtitle="This route now reads and writes real operational appointment data."
       >
         <BackLink onClick={() => navigateTo({ section: "appointments" })} label="Back to appointments" />
-        <KeyValueList
-          items={[
-            ["Client", detail.client?.name ?? detail.appointment.client_name],
-            ["Service", detail.appointment.service_name],
-            ["Date", formatDate(detail.appointment.date)],
-            ["Time", detail.appointment.start_time],
-            ["Status", detail.appointment.status],
-            ["Prep Notes", detail.appointment.prep_notes || "None yet"],
-            ["Stylist Notes", detail.appointment.stylist_notes || "None yet"],
-          ]}
-        />
+        <KeyValueList items={view.summaryItems} />
         <ListBlock title="Update Appointment">
           <FormSelect
             label="Status"
@@ -432,12 +394,12 @@ function AppointmentsPage({ appointmentId }: { appointmentId?: string }) {
             error={!!(appointmentFeedback && appointmentFeedback !== "Appointment saved.")}
           />
         </ListBlock>
-        {detail.intake ? (
+        {view.linkedIntakeRow ? (
           <ListBlock title="Linked Intake">
             <ListRow
-              title={detail.intake.service_type}
-              meta={detail.intake.dream_result || "No dream-result note"}
-              onClick={() => detail.intake?.id && navigateTo({ section: "intakes", id: detail.intake.id })}
+              title={view.linkedIntakeRow.title}
+              meta={view.linkedIntakeRow.meta}
+              onClick={() => navigateTo({ section: "intakes", id: view.linkedIntakeRow!.id })}
             />
           </ListBlock>
         ) : null}
@@ -452,11 +414,11 @@ function AppointmentsPage({ appointmentId }: { appointmentId?: string }) {
     return <ErrorSection title="Appointments" message={listView.errorMessage} />;
   }
 
-  const filteredAppointments = listView.appointments.filter((appointment) => {
+  const filteredAppointments = listView.rows.filter((appointment) => {
     if (dateFilter && appointment.date !== dateFilter) {
       return false;
     }
-    if (clientFilter && !appointment.client_name.toLowerCase().includes(clientFilter.trim().toLowerCase())) {
+    if (clientFilter && !appointment.clientName.toLowerCase().includes(clientFilter.trim().toLowerCase())) {
       return false;
     }
     return true;
@@ -490,9 +452,9 @@ function AppointmentsPage({ appointmentId }: { appointmentId?: string }) {
         filteredAppointments.map((appointment) => (
           <ListRow
             key={appointment.id}
-            title={appointment.client_name}
-            meta={`${appointment.service_name} · ${formatDate(appointment.date)} · ${appointment.start_time}`}
-            badge={appointment.status}
+            title={appointment.title}
+            meta={appointment.meta}
+            badge={appointment.badge}
             onClick={() => navigateTo({ section: "appointments", id: appointment.id })}
           />
         ))
@@ -511,65 +473,62 @@ function ClientsPage() {
     if (detailView.isLoading) {
       return <LoadingSection title="Client Detail" />;
     }
-    if (detailView.errorMessage || !detailView.client) {
+    if (detailView.errorMessage || !detailView.client || !detailView.view) {
       return <ErrorSection title="Client Detail" message={detailView.errorMessage ?? "We could not load this client yet."} />;
     }
 
     const client = detailView.client;
+    const view = detailView.view;
     return (
       <WorkspaceSection
         title="Client Detail"
         subtitle="This is the real stylist-side client context: profile, appointments, recent intakes, and maintenance in one payload."
       >
         <BackLink onClick={() => navigateTo({ section: "clients" })} label="Back to client list" />
-        <KeyValueList
-          items={[
-            ["Name", client.client.name],
-            ["Email", client.client.email || "Not set"],
-            ["Phone", client.client.phone || "Not set"],
-            ["Appointments", String(client.appointment_count)],
-            ["Intakes", String(client.intake_count)],
-            ["Service Summary", client.client.service_summary || client.client.scalp_notes || "No notes yet"],
-          ]}
-        />
+        <KeyValueList items={view.summaryItems} />
         <ListBlock title="Recent Appointments">
-          {client.recent_appointments.length === 0 ? (
+          {view.recentAppointmentRows.length === 0 ? (
             <EmptyState message="No appointment history yet." />
           ) : (
-            client.recent_appointments.map((appointment) => (
+            view.recentAppointmentRows.map((appointment) => (
               <ListRow
                 key={appointment.id}
-                title={appointment.service_name}
-                meta={`${formatDate(appointment.date)} · ${appointment.start_time} · ${appointment.status}`}
+                title={appointment.title}
+                meta={appointment.meta}
                 onClick={() => navigateTo({ section: "appointments", id: appointment.id })}
               />
             ))
           )}
         </ListBlock>
         <ListBlock title="Recent Intakes">
-          {client.recent_intakes.length === 0 ? (
+          {view.recentIntakeRows.length === 0 ? (
             <EmptyState message="No intake submissions yet." />
           ) : (
-            client.recent_intakes.map((intake) => (
+            view.recentIntakeRows.map((intake) => (
               <ListRow
                 key={intake.id}
-                title={intake.service_type}
-                meta={`${intake.review.status} · ${formatDate(intake.submitted_at)} · ${intake.photo_count} photos`}
+                title={intake.title}
+                meta={intake.meta}
                 onClick={() => navigateTo({ section: "intakes", id: intake.id })}
               />
             ))
           )}
         </ListBlock>
         <ListBlock title="Maintenance Plan">
-          {client.maintenance_items.length === 0 ? (
+          {view.maintenanceRows.length === 0 ? (
             <EmptyState message="No maintenance plan items yet." />
           ) : (
-            client.maintenance_items.map((item) => (
+            view.maintenanceRows.map((item) => (
               <ListRow
                 key={item.id}
-                title={item.service_name}
-                meta={`${formatDate(item.due_date)} · ${item.status}`}
-                onClick={() => item.appointment_id ? navigateTo({ section: "appointments", id: item.appointment_id }) : undefined}
+                title={item.title}
+                meta={item.meta}
+                onClick={() => {
+                  const linkedAppointment = client.maintenance_items.find((maintenanceItem) => maintenanceItem.id === item.id)?.appointment_id;
+                  if (linkedAppointment) {
+                    navigateTo({ section: "appointments", id: linkedAppointment });
+                  }
+                }}
               />
             ))
           )}
@@ -597,15 +556,15 @@ function ClientsPage() {
         onChange={(event) => setSearch(event.target.value)}
         style={{ width: "100%", marginBottom: 14 }}
       />
-      {listView.clients.length === 0 ? (
+      {listView.rows.length === 0 ? (
         <EmptyState message="No clients matched your search." />
       ) : (
-        listView.clients.map((client) => (
+        listView.rows.map((client) => (
           <ListRow
             key={client.id}
-            title={client.name}
-            meta={`${client.appointment_count} appointments · ${client.intake_count} intakes`}
-            badge={client.last_review_status || undefined}
+            title={client.title}
+            meta={client.meta}
+            badge={client.badge}
             onClick={() => navigateTo({ section: "clients", id: client.id })}
           />
         ))
@@ -848,15 +807,15 @@ function ListRow({
   );
 }
 
-function KeyValueList({ items }: { items: Array<[string, string]> }) {
+function KeyValueList({ items }: { items: Array<{ label: string; value: string }> }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 10, marginBottom: 18 }}>
-      {items.map(([label, value]) => (
-        <div key={label} style={{ borderBottom: "1px solid var(--color-border)", paddingBottom: 10 }}>
+      {items.map((item) => (
+        <div key={item.label} style={{ borderBottom: "1px solid var(--color-border)", paddingBottom: 10 }}>
           <div style={{ fontSize: 11, color: "var(--color-text-muted)", textTransform: "uppercase", letterSpacing: "0.08em", marginBottom: 3 }}>
-            {label}
+            {item.label}
           </div>
-          <div style={{ fontSize: 14, color: "var(--color-text)", lineHeight: 1.5 }}>{value}</div>
+          <div style={{ fontSize: 14, color: "var(--color-text)", lineHeight: 1.5 }}>{item.value}</div>
         </div>
       ))}
     </div>
