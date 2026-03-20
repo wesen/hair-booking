@@ -94,6 +94,7 @@ export interface StylistAppointmentDetailViewModel {
   summaryItems: StylistKeyValueView[];
   formDefaults: StylistAppointmentFormDefaults;
   linkedIntakeRow: StylistListRowView | null;
+  photoCards: StylistPhotoCardView[];
 }
 
 export interface StylistClientListRowView extends StylistListRowView {}
@@ -228,6 +229,11 @@ function mapAppointmentDetailView(detail: StylistAppointmentDetailDto): StylistA
           detail.intake.dream_result || "No dream-result note",
         )
       : null,
+    photoCards: (detail.photos ?? []).map((photo) => ({
+      id: photo.id,
+      title: photo.slot,
+      url: photo.url,
+    })),
   };
 }
 

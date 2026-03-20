@@ -129,9 +129,10 @@ type Appointment struct {
 }
 
 type AppointmentDetail struct {
-	Appointment *Appointment           `json:"appointment"`
-	Client      *hairclients.Client    `json:"client,omitempty"`
-	Intake      *hairintake.Submission `json:"intake,omitempty"`
+	Appointment *Appointment                        `json:"appointment"`
+	Client      *hairclients.Client                 `json:"client,omitempty"`
+	Intake      *hairintake.Submission              `json:"intake,omitempty"`
+	Photos      []hairappointments.AppointmentPhoto `json:"photos"`
 }
 
 type AppointmentUpdate struct {
@@ -350,6 +351,9 @@ func (s *Service) GetAppointment(ctx context.Context, appointmentID uuid.UUID) (
 	}
 	if detail == nil || detail.Appointment == nil {
 		return nil, errors.Wrap(ErrNotFound, "appointment not found")
+	}
+	if detail.Photos == nil {
+		detail.Photos = []hairappointments.AppointmentPhoto{}
 	}
 	return detail, nil
 }

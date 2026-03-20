@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { PhotoBox } from "./components/PhotoBox";
 import {
   getApiErrorMessage,
+  useUploadStylistAppointmentPhotoMutation,
   useStylistAppointmentDetailView,
   useStylistAppointmentsView,
   useStylistClientDetailView,
@@ -326,10 +328,12 @@ function AppointmentsPage({ appointmentId }: { appointmentId?: string }) {
   const listView = useStylistAppointmentsView(statusFilter ? { status: statusFilter } : undefined);
   const detailView = useStylistAppointmentDetailView(appointmentId ?? null);
   const [updateAppointment, updateAppointmentState] = useUpdateStylistAppointmentMutation();
+  const [uploadAppointmentPhoto, uploadAppointmentPhotoState] = useUploadStylistAppointmentPhotoMutation();
   const [appointmentStatus, setAppointmentStatus] = useState("pending");
   const [prepNotes, setPrepNotes] = useState("");
   const [stylistNotes, setStylistNotes] = useState("");
   const [appointmentFeedback, setAppointmentFeedback] = useState<string | null>(null);
+  const [photoFeedback, setPhotoFeedback] = useState<string | null>(null);
 
   useEffect(() => {
     if (!detailView.view) {
@@ -339,6 +343,7 @@ function AppointmentsPage({ appointmentId }: { appointmentId?: string }) {
     setPrepNotes(detailView.view.formDefaults.prepNotes);
     setStylistNotes(detailView.view.formDefaults.stylistNotes);
     setAppointmentFeedback(null);
+    setPhotoFeedback(null);
   }, [detailView.view]);
 
   if (appointmentId) {
@@ -395,6 +400,50 @@ function AppointmentsPage({ appointmentId }: { appointmentId?: string }) {
             feedback={appointmentFeedback}
             error={!!(appointmentFeedback && appointmentFeedback !== "Appointment saved.")}
           />
+        </ListBlock>
+        <ListBlock title="Appointment Photos">
+          {view.photoCards.length === 0 ? (
+            <EmptyState message="No before or after photos uploaded yet." />
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 12, marginBottom: 12 }}>
+              {view.photoCards.map((photo) => (
+                <PhotoCard key={photo.id} title={photo.title} url={photo.url} />
+              ))}
+            </div>
+          )}
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))", gap: 10 }}>
+            <UploadPhotoBox
+              label="Add Before"
+              busy={uploadAppointmentPhotoState.isLoading}
+              onFileSelect={async (file) => {
+                setPhotoFeedback(null);
+                try {
+                  await uploadAppointmentPhoto({ appointmentId, slot: "before", file, caption: "Before" }).unwrap();
+                  setPhotoFeedback("Appointment photo uploaded.");
+                } catch (error) {
+                  setPhotoFeedback(getApiErrorMessage(error, "We could not upload the appointment photo yet."));
+                }
+              }}
+            />
+            <UploadPhotoBox
+              label="Add After"
+              busy={uploadAppointmentPhotoState.isLoading}
+              onFileSelect={async (file) => {
+                setPhotoFeedback(null);
+                try {
+                  await uploadAppointmentPhoto({ appointmentId, slot: "after", file, caption: "After" }).unwrap();
+                  setPhotoFeedback("Appointment photo uploaded.");
+                } catch (error) {
+                  setPhotoFeedback(getApiErrorMessage(error, "We could not upload the appointment photo yet."));
+                }
+              }}
+            />
+          </div>
+          {photoFeedback ? (
+            <div style={{ fontSize: 13, color: photoFeedback === "Appointment photo uploaded." ? "var(--color-text-muted)" : "var(--color-danger)", marginTop: 10 }}>
+              {photoFeedback}
+            </div>
+          ) : null}
         </ListBlock>
         {view.linkedIntakeRow ? (
           <ListBlock title="Linked Intake">
@@ -621,7 +670,7 @@ function PhotoCard({ title, url }: { title: string; url: string }) {
       <div data-part="section-label" style={{ marginBottom: 8, textTransform: "capitalize" }}>{title}</div>
       <img
         src={url}
-        alt={`${title} intake photo`}
+        alt={`${title} photo`}
         style={{
           width: "100%",
           aspectRatio: "1 / 1",
@@ -634,6 +683,27 @@ function PhotoCard({ title, url }: { title: string; url: string }) {
       <div style={{ fontSize: 12, color: "var(--color-text-muted)", lineHeight: 1.4, marginTop: 8, wordBreak: "break-all" }}>
         {url}
       </div>
+    </div>
+  );
+}
+
+function UploadPhotoBox({
+  label,
+  busy,
+  onFileSelect,
+}: {
+  label: string;
+  busy?: boolean;
+  onFileSelect: (file: File) => void | Promise<void>;
+}) {
+  return (
+    <div style={{ opacity: busy ? 0.7 : 1, pointerEvents: busy ? "none" : "auto" }}>
+      <PhotoBox
+        label={busy ? "Uploading..." : label}
+        onFileSelect={(file) => {
+          void onFileSelect(file);
+        }}
+      />
     </div>
   );
 }

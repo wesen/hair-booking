@@ -9,6 +9,7 @@ import type {
   StylistIntakeDetailResponseDto,
   StylistIntakesResponseDto,
   StylistMeDto,
+  UploadStylistAppointmentPhotoResponseDto,
   UpdateStylistAppointmentRequestDto,
   UpdateStylistAppointmentResponseDto,
   UpdateStylistIntakeReviewRequestDto,
@@ -119,6 +120,28 @@ export const stylistOperationsApi = stylistApi.injectEndpoints({
         ...(result ? [{ type: "StylistClients" as const, id: result.client_id }] : []),
       ],
     }),
+    uploadStylistAppointmentPhoto: build.mutation<
+      UploadStylistAppointmentPhotoResponseDto["photo"],
+      { appointmentId: string; slot: "before" | "after"; file: File; caption?: string }
+    >({
+      query: ({ appointmentId, slot, file, caption }) => {
+        const body = new FormData();
+        body.set("slot", slot);
+        body.set("file", file);
+        if (caption && caption.trim() !== "") {
+          body.set("caption", caption.trim());
+        }
+        return {
+          url: `stylist/appointments/${appointmentId}/photos`,
+          method: "POST",
+          body,
+        };
+      },
+      transformResponse: (response: UploadStylistAppointmentPhotoResponseDto) => response.photo,
+      invalidatesTags: (_result, _error, args) => [
+        { type: "StylistAppointments", id: args.appointmentId },
+      ],
+    }),
     getStylistClients: build.query<StylistClientsResponseDto, GetStylistClientsArgs | void>({
       query: (args) => ({
         url: "stylist/clients",
@@ -155,6 +178,7 @@ export const {
   useGetStylistIntakeQuery,
   useGetStylistIntakesQuery,
   useGetStylistMeQuery,
+  useUploadStylistAppointmentPhotoMutation,
   useUpdateStylistAppointmentMutation,
   useUpdateStylistIntakeReviewMutation,
 } = stylistOperationsApi;

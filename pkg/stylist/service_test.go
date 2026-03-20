@@ -150,6 +150,31 @@ func TestGetIntakeAddsDefaultReviewValues(t *testing.T) {
 	if detail.Review.Priority != ReviewPriorityNormal {
 		t.Fatalf("expected default review priority %q, got %q", ReviewPriorityNormal, detail.Review.Priority)
 	}
+	if detail.Photos == nil {
+		t.Fatal("expected intake photos slice to be initialized")
+	}
+}
+
+func TestGetAppointmentInitializesPhotos(t *testing.T) {
+	appointmentID := uuid.New()
+	repo := &fakeRepository{
+		appointmentDetail: &AppointmentDetail{
+			Appointment: &Appointment{
+				ID:     appointmentID,
+				Status: "pending",
+			},
+		},
+	}
+	service := NewService(repo)
+
+	detail, err := service.GetAppointment(context.Background(), appointmentID)
+	if err != nil {
+		t.Fatalf("GetAppointment returned error: %v", err)
+	}
+
+	if detail.Photos == nil {
+		t.Fatal("expected appointment photos slice to be initialized")
+	}
 }
 
 func TestUpdateIntakeReviewRejectsReversedQuoteRange(t *testing.T) {

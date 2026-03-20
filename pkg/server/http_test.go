@@ -411,6 +411,50 @@ func TestHandleStylistAppointmentUpdateRejectsInvalidStatus(t *testing.T) {
 	}
 }
 
+func TestHandleStylistAppointmentDetailReturnsPhotos(t *testing.T) {
+	appointmentID := uuid.New()
+	service := hairstylist.NewService(&fakeStylistRepo{
+		appointmentDetail: &hairstylist.AppointmentDetail{
+			Appointment: &hairstylist.Appointment{
+				ID:          appointmentID,
+				ClientID:    uuid.New(),
+				ClientName:  "Alice Example",
+				ServiceID:   uuid.New(),
+				ServiceName: "Extensions Consultation",
+				Date:        "2026-03-25",
+				StartTime:   "09:30 AM",
+				Status:      "confirmed",
+			},
+			Photos: []hairappointments.AppointmentPhoto{{
+				ID:   uuid.New(),
+				Slot: "after",
+				URL:  "http://127.0.0.1:8080/uploads/after.png",
+			}},
+		},
+	})
+	handler := NewHandler(HandlerOptions{
+		Version:        "dev",
+		StartedAt:      time.Now().UTC(),
+		AuthSettings:   &hairauth.Settings{Mode: hairauth.AuthModeDev, DevUserID: "intern"},
+		StylistService: service,
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>ok</body></html>")},
+		},
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/stylist/appointments/"+appointmentID.String(), nil)
+	request.SetPathValue("id", appointmentID.String())
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"photos\"") || !strings.Contains(recorder.Body.String(), "\"slot\":\"after\"") {
+		t.Fatalf("expected appointment detail photos, got %s", recorder.Body.String())
+	}
+}
+
 func TestHandleStylistAppointmentPhotoUploadsFile(t *testing.T) {
 	appointmentID := uuid.New()
 	handler := NewHandler(HandlerOptions{

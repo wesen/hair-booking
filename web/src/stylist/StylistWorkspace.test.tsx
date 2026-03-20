@@ -11,6 +11,7 @@ const apiMocks = vi.hoisted(() => ({
   useStylistAppointmentDetailView: vi.fn(),
   useStylistClientsView: vi.fn(),
   useStylistClientDetailView: vi.fn(),
+  useUploadStylistAppointmentPhotoMutation: vi.fn(),
   useUpdateStylistAppointmentMutation: vi.fn(),
   useUpdateStylistIntakeReviewMutation: vi.fn(),
 }));
@@ -60,6 +61,7 @@ function setDefaultHookReturns() {
     isLoading: false,
     errorMessage: null,
   });
+  apiMocks.useUploadStylistAppointmentPhotoMutation.mockReturnValue([vi.fn(), { isLoading: false }]);
   apiMocks.useUpdateStylistAppointmentMutation.mockReturnValue([vi.fn(), { isLoading: false }]);
   apiMocks.useUpdateStylistIntakeReviewMutation.mockReturnValue([vi.fn(), { isLoading: false }]);
 }
@@ -135,7 +137,7 @@ describe("StylistWorkspace", () => {
     expect(screen.getByLabelText("Priority")).toHaveValue("urgent");
     expect(screen.getByLabelText("Summary")).toHaveValue("Approved after hair history review.");
     expect(screen.getByText("front")).toBeInTheDocument();
-    expect(screen.getByAltText("front intake photo")).toBeInTheDocument();
+    expect(screen.getByAltText("front photo")).toBeInTheDocument();
   });
 
   it("renders the appointment detail route with mapped detail content and form defaults", () => {
@@ -158,6 +160,9 @@ describe("StylistWorkspace", () => {
           title: "color",
           meta: "No dream-result note",
         },
+        photoCards: [
+          { id: "photo-9", title: "after", url: "https://example.com/after.jpg" },
+        ],
       },
       isLoading: false,
       errorMessage: null,
@@ -170,6 +175,10 @@ describe("StylistWorkspace", () => {
     expect(screen.getByLabelText("Status")).toHaveValue("pending");
     expect(screen.getByLabelText("Prep Notes")).toHaveValue("Prep with extension shade ring.");
     expect(screen.getByLabelText("Stylist Notes")).toHaveValue("Confirm maintenance timing.");
+    expect(screen.getByText("Appointment Photos")).toBeInTheDocument();
+    expect(screen.getByAltText("after photo")).toBeInTheDocument();
+    expect(screen.getByText("Add Before")).toBeInTheDocument();
+    expect(screen.getByText("Add After")).toBeInTheDocument();
     expect(screen.getByText("Linked Intake")).toBeInTheDocument();
   });
 

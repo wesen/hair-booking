@@ -373,6 +373,7 @@ export interface StylistAppointmentDetailDto {
   appointment: StylistAppointmentDto;
   client?: ClientDto | null;
   intake?: IntakeSubmissionDto | null;
+  photos: AppointmentPhotoDto[];
 }
 
 export interface StylistAppointmentDetailResponseDto {
@@ -387,6 +388,10 @@ export interface UpdateStylistAppointmentRequestDto {
 
 export interface UpdateStylistAppointmentResponseDto {
   appointment: StylistAppointmentDto;
+}
+
+export interface UploadStylistAppointmentPhotoResponseDto {
+  photo: AppointmentPhotoDto;
 }
 
 export interface StylistClientListItemDto {

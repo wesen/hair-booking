@@ -366,7 +366,7 @@ left join intake_submissions i on i.id = a.intake_id
 where a.id = $1
 `, appointmentID)
 
-	detail := &AppointmentDetail{Appointment: &Appointment{}}
+	detail := &AppointmentDetail{Appointment: &Appointment{}, Photos: []hairappointments.AppointmentPhoto{}}
 	client := &hairclients.Client{}
 	intake := &hairintake.Submission{}
 	var intakeIDText sql.NullString
@@ -449,6 +449,12 @@ where a.id = $1
 		}
 		detail.Intake = intake
 	}
+
+	photos, err := r.listAppointmentPhotos(ctx, appointmentID)
+	if err != nil {
+		return nil, err
+	}
+	detail.Photos = photos
 
 	return detail, nil
 }
@@ -782,6 +788,32 @@ order by
 	}
 	if err := rows.Err(); err != nil {
 		return nil, errors.Wrap(err, "failed to iterate intake photos")
+	}
+	return photos, nil
+}
+
+func (r *PostgresRepository) listAppointmentPhotos(ctx context.Context, appointmentID uuid.UUID) ([]hairappointments.AppointmentPhoto, error) {
+	rows, err := r.pool.Query(ctx, `
+select id, slot, storage_key, url, coalesce(caption, '')
+from appointment_photos
+where appointment_id = $1
+order by slot, id
+`, appointmentID)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to query appointment photos")
+	}
+	defer rows.Close()
+
+	photos := []hairappointments.AppointmentPhoto{}
+	for rows.Next() {
+		photo := hairappointments.AppointmentPhoto{}
+		if err := rows.Scan(&photo.ID, &photo.Slot, &photo.StorageKey, &photo.URL, &photo.Caption); err != nil {
+			return nil, errors.Wrap(err, "failed to scan appointment photo")
+		}
+		photos = append(photos, photo)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, errors.Wrap(err, "failed to iterate appointment photos")
 	}
 	return photos, nil
 }
