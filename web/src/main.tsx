@@ -72,9 +72,9 @@ if (resolvedApp.canonicalPath) {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={store}>
-      {resolvedApp.app === "portal" ? <ClientPortalApp /> : null}
-      {resolvedApp.app === "booking" ? <ClientBookingApp /> : null}
-      {resolvedApp.app === "stylist" ? <StylistApp /> : null}
+      {resolvedApp.app === "portal" ? <ClientPortalApp showNonMvpFeatures={false} /> : null}
+      {resolvedApp.app === "booking" ? <ClientBookingApp showDepositOption={false} /> : null}
+      {resolvedApp.app === "stylist" ? <StylistApp showNonMvpFeatures={false} /> : null}
     </Provider>
   </StrictMode>,
 );

@@ -1,6 +1,6 @@
 import { useAppSelector, useAppDispatch } from "../store";
 import { setSearch, selectClient, logVisit, addBookingPoints } from "../store/clientsSlice";
-import { setTab, openReferralModal, showToast } from "../store/uiSlice";
+import { setTab, showToast } from "../store/uiSlice";
 import { setStep, setClientInfo } from "../store/bookingSlice";
 import { TopBar } from "../components/TopBar";
 import { Input } from "../components/Input";
@@ -8,7 +8,11 @@ import { Icon } from "../components/Icon";
 import { ClientCard } from "../components/ClientCard";
 import { ClientDetail } from "../components/ClientDetail";
 
-export function ClientsPage() {
+interface ClientsPageProps {
+  showNonMvpActions?: boolean;
+}
+
+export function ClientsPage({ showNonMvpActions = true }: ClientsPageProps) {
   const dispatch = useAppDispatch();
   const clients = useAppSelector((state) => state.clients.clients);
   const search = useAppSelector((state) => state.clients.search);
@@ -33,8 +37,8 @@ export function ClientsPage() {
             dispatch(logVisit(selectedClient.id));
             dispatch(showToast(`Visit logged for ${selectedClient.name} ✓`));
           }}
-          onAddReferral={() => dispatch(openReferralModal(selectedClient.name))}
-          onMessage={() => dispatch(openReferralModal(selectedClient.name))}
+          onAddReferral={showNonMvpActions ? () => undefined : undefined}
+          onMessage={showNonMvpActions ? () => undefined : undefined}
         />
       </div>
     );

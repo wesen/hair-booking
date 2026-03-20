@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useAppSelector, useAppDispatch } from "../store";
 import { goNext, updateData } from "../store/consultationSlice";
-import { openDepositSheet } from "../store/authSlice";
 import { getApiErrorMessage, mapConsultationDataToIntakeRequest, useCreateIntakeMutation, useUploadIntakePhotoMutation } from "../store/api";
 import { getPendingConsultationPhoto, listPendingInspirationPhotos } from "../store/consultationUploads";
 import { EstimateCard } from "../components/EstimateCard";
@@ -10,7 +9,11 @@ import { Icon } from "../components/Icon";
 import { estimatePrice } from "../utils/estimate";
 import { EXT_TYPES, COLOR_SERVICES } from "../data/consultation-constants";
 
-export function ConsultEstimatePage() {
+interface ConsultEstimatePageProps {
+  showDepositOption?: boolean;
+}
+
+export function ConsultEstimatePage({ showDepositOption = true }: ConsultEstimatePageProps) {
   const dispatch = useAppDispatch();
   const data = useAppSelector(s => s.consultation.data);
   const [createIntake] = useCreateIntakeMutation();
@@ -113,19 +116,21 @@ export function ConsultEstimatePage() {
         >
           ✨ Book Free Consult — 15 min
         </button>
-        <button
-          data-part="btn-primary"
-          disabled={isSubmitting}
-          onClick={async () => {
-            const submission = await persistIntake();
-            if (submission) {
-              dispatch(openDepositSheet());
-            }
-          }}
-          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-        >
-          <Icon name="dollar" size={16} /> Book + Pay $75 Deposit — skip the wait
-        </button>
+        {showDepositOption ? (
+          <button
+            data-part="btn-primary"
+            disabled={isSubmitting}
+            onClick={async () => {
+              const submission = await persistIntake();
+              if (submission) {
+                dispatch(goNext());
+              }
+            }}
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
+          >
+            <Icon name="dollar" size={16} /> Book + Pay $75 Deposit — skip the wait
+          </button>
+        ) : null}
       </div>
 
       {submitError && (
@@ -134,9 +139,11 @@ export function ConsultEstimatePage() {
         </div>
       )}
 
-      <Hint>
-        Deposit applies to your first service. Skip the waitlist and lock in your spot.
-      </Hint>
+      {showDepositOption ? (
+        <Hint>
+          Deposit applies to your first service. Skip the waitlist and lock in your spot.
+        </Hint>
+      ) : null}
     </div>
   );
 }

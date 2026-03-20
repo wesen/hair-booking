@@ -1,8 +1,6 @@
 import { useAppSelector, useAppDispatch } from "./store";
-import { goBack, goNext, setDepositPaid } from "./store/consultationSlice";
-import { closeDepositSheet, setCardNumber, setCardExpiry, setCardCvc, setCardZip, startPayment, paymentSuccess } from "./store/authSlice";
+import { goBack } from "./store/consultationSlice";
 import { ConsultNavBar } from "./components/ConsultNavBar";
-import { DepositPaymentSheet } from "./components/DepositPaymentSheet";
 import { ConsultWelcomePage } from "./pages/ConsultWelcomePage";
 import { IntakeExtPage } from "./pages/IntakeExtPage";
 import { IntakeColorPage } from "./pages/IntakeColorPage";
@@ -33,13 +31,12 @@ const SCREEN_TITLES: Record<string, string> = {
 interface ClientBookingAppProps {
   unstyled?: boolean;
   themeVars?: Record<string, string>;
+  showDepositOption?: boolean;
 }
 
-export function ClientBookingApp({ unstyled, themeVars }: ClientBookingAppProps) {
+export function ClientBookingApp({ unstyled, themeVars, showDepositOption = true }: ClientBookingAppProps) {
   const dispatch = useAppDispatch();
   const screen = useAppSelector(s => s.consultation.screen);
-  const depositPaid = useAppSelector(s => s.consultation.data.depositPaid);
-  const auth = useAppSelector(s => s.auth);
   const serviceType = useAppSelector(s => s.consultation.data.serviceType);
 
   const steps = getSteps(serviceType);
@@ -47,9 +44,7 @@ export function ClientBookingApp({ unstyled, themeVars }: ClientBookingAppProps)
   const totalSteps = steps.length;
   const stepNum = currentIdx + 1;
 
-  const title = screen === "calendar" && depositPaid
-    ? "Book + Deposit"
-    : SCREEN_TITLES[screen] || "";
+  const title = SCREEN_TITLES[screen] || "";
 
   const showNav = screen !== "welcome" && screen !== "confirm" && screen !== "sign-in" && screen !== "verify-code" && screen !== "care-guide";
 
@@ -78,38 +73,12 @@ export function ClientBookingApp({ unstyled, themeVars }: ClientBookingAppProps)
       {screen === "photos" && <PhotosPage />}
       {screen === "goals-ext" && <GoalsExtPage />}
       {screen === "goals-color" && <GoalsColorPage />}
-      {screen === "estimate" && <ConsultEstimatePage />}
+      {screen === "estimate" && <ConsultEstimatePage showDepositOption={showDepositOption} />}
       {screen === "calendar" && <ConsultCalendarPage />}
       {screen === "confirm" && <ConsultConfirmPage />}
       {screen === "sign-in" && <SignInPage />}
       {screen === "verify-code" && <VerifyCodePage />}
       {screen === "care-guide" && <CareGuidePage />}
-
-      {auth.showDepositSheet && (
-        <DepositPaymentSheet
-          amount={75}
-          cardNumber={auth.cardNumber}
-          cardExpiry={auth.cardExpiry}
-          cardCvc={auth.cardCvc}
-          cardZip={auth.cardZip}
-          onCardNumberChange={v => dispatch(setCardNumber(v))}
-          onCardExpiryChange={v => dispatch(setCardExpiry(v))}
-          onCardCvcChange={v => dispatch(setCardCvc(v))}
-          onCardZipChange={v => dispatch(setCardZip(v))}
-          onPay={() => {
-            dispatch(startPayment());
-            // Simulate payment processing
-            setTimeout(() => {
-              dispatch(paymentSuccess());
-              dispatch(setDepositPaid(true));
-              dispatch(goNext());
-            }, 1000);
-          }}
-          onClose={() => dispatch(closeDepositSheet())}
-          processing={auth.paymentProcessing}
-          error={auth.paymentError}
-        />
-      )}
     </div>
   );
 }

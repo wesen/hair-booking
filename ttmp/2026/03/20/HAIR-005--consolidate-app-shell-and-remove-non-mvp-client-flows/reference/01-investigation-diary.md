@@ -93,3 +93,30 @@ Validation for this slice:
 go test ./...
 npm --prefix web run typecheck
 ```
+
+### Third Implementation Slice
+
+The third code slice focused on visible non-MVP runtime features.
+
+What changed:
+
+- the runtime app shell now passes explicit flags that hide non-MVP features while leaving the underlying pages/components available by default for Storybook
+- booking runtime no longer mounts the deposit/payment path
+- portal runtime no longer shows rewards or photos tabs
+- portal home no longer shows the loyalty badge in runtime
+- portal profile no longer shows the payment-methods placeholder in runtime
+- stylist runtime no longer shows the loyalty tab
+- stylist client runtime no longer shows referral/message quick actions
+
+Why this shape was chosen:
+
+- it preserves Storybook/design history
+- it stops the runtime product from advertising out-of-scope behavior
+- it avoids deleting imported widgets that may still be useful later
+
+Validation for this slice:
+
+```bash
+go test ./...
+npm --prefix web run typecheck
+```

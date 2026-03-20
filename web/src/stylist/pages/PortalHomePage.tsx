@@ -1,4 +1,3 @@
-import { useAppSelector } from "../store";
 import { NextAppointmentCard } from "../components/NextAppointmentCard";
 import { LoyaltyBadgeCompact } from "../components/LoyaltyBadgeCompact";
 import { MaintenancePlanCard } from "../components/MaintenancePlanCard";
@@ -6,8 +5,11 @@ import { getApiErrorMessage, useCancelMyAppointmentMutation, usePortalHomeView }
 import { useState } from "react";
 import { AppointmentReschedulePanel } from "../components/AppointmentReschedulePanel";
 
-export function PortalHomePage() {
-  const rewardsUser = useAppSelector(s => s.portal.user);
+interface PortalHomePageProps {
+  showLoyaltyBadge?: boolean;
+}
+
+export function PortalHomePage({ showLoyaltyBadge = true }: PortalHomePageProps) {
   const { user, nextAppointment, maintenance, isLoading, errorMessage } = usePortalHomeView();
   const [cancelMyAppointment] = useCancelMyAppointmentMutation();
   const [showReschedule, setShowReschedule] = useState(false);
@@ -32,15 +34,6 @@ export function PortalHomePage() {
     );
   }
 
-  const loyaltyUser = {
-    ...rewardsUser,
-    name: user.name,
-    email: user.email,
-    phone: user.phone,
-    since: user.since,
-    initials: user.initials,
-    serviceDescription: user.serviceDescription,
-  };
   const firstName = user.name.split(" ")[0];
   const tierIcons: Record<string, string> = { Bronze: "\u{1F949}", Silver: "\u{1F948}", Gold: "\u{1F947}", Diamond: "\u{1F48E}" };
 
@@ -88,13 +81,15 @@ export function PortalHomePage() {
         </div>
       ) : null}
 
-      <LoyaltyBadgeCompact
-        tier={loyaltyUser.tier}
-        tierIcon={tierIcons[loyaltyUser.tier] || "\u{1F949}"}
-        points={loyaltyUser.points}
-        pointsToNext={loyaltyUser.pointsToNext}
-        nextTier={loyaltyUser.nextTier}
-      />
+      {showLoyaltyBadge ? (
+        <LoyaltyBadgeCompact
+          tier={user.tier}
+          tierIcon={tierIcons[user.tier] || "\u{1F949}"}
+          points={user.points}
+          pointsToNext={user.pointsToNext}
+          nextTier={user.nextTier}
+        />
+      ) : null}
 
       <MaintenancePlanCard items={maintenance} />
 

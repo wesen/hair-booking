@@ -28,7 +28,11 @@ function buildProfileFormState(values: {
   };
 }
 
-export function PortalProfilePage() {
+interface PortalProfilePageProps {
+  showPaymentMethodsAction?: boolean;
+}
+
+export function PortalProfilePage({ showPaymentMethodsAction = true }: PortalProfilePageProps) {
   const dispatch = useAppDispatch();
   const session = useSessionBootstrap();
   const { client, user, notificationPrefs, isLoading, errorMessage } = usePortalProfileView();
@@ -261,7 +265,7 @@ export function PortalProfilePage() {
           >
             Edit Profile
           </button>
-          <button data-part="profile-action-item">Payment Methods</button>
+          {showPaymentMethodsAction ? <button data-part="profile-action-item">Payment Methods</button> : null}
           <button
             data-part="profile-action-item"
             data-danger

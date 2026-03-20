@@ -4,8 +4,6 @@ import { PortalTopBar } from "./components/PortalTopBar";
 import { PortalTabBar } from "./components/PortalTabBar";
 import { PortalHomePage } from "./pages/PortalHomePage";
 import { PortalAppointmentsPage } from "./pages/PortalAppointmentsPage";
-import { PortalPhotosPage } from "./pages/PortalPhotosPage";
-import { PortalRewardsPage } from "./pages/PortalRewardsPage";
 import { PortalProfilePage } from "./pages/PortalProfilePage";
 import type { PortalTab } from "./types";
 import { SignInPage } from "./pages/SignInPage";
@@ -15,9 +13,10 @@ import { getInitials } from "./utils/avatar";
 interface ClientPortalAppProps {
   unstyled?: boolean;
   themeVars?: Record<string, string>;
+  showNonMvpFeatures?: boolean;
 }
 
-export function ClientPortalApp({ unstyled, themeVars }: ClientPortalAppProps) {
+export function ClientPortalApp({ unstyled, themeVars, showNonMvpFeatures = true }: ClientPortalAppProps) {
   const dispatch = useAppDispatch();
   const screen = useAppSelector(s => s.portal.screen);
   const activeTab = useAppSelector(s => s.portal.activeTab);
@@ -79,15 +78,15 @@ export function ClientPortalApp({ unstyled, themeVars }: ClientPortalAppProps) {
         />
       )}
 
-      {screen === "home" && <PortalHomePage />}
+      {screen === "home" && <PortalHomePage showLoyaltyBadge={showNonMvpFeatures} />}
       {screen === "appointments" && <PortalAppointmentsPage />}
-      {screen === "photos" && <PortalPhotosPage />}
-      {screen === "rewards" && <PortalRewardsPage />}
-      {screen === "profile" && <PortalProfilePage />}
+      {screen === "profile" && <PortalProfilePage showPaymentMethodsAction={showNonMvpFeatures} />}
 
       {screen !== "profile" && (
         <PortalTabBar
           activeTab={activeTab}
+          showPhotos={showNonMvpFeatures}
+          showRewards={showNonMvpFeatures}
           onTabChange={(tab: PortalTab) => dispatch(setPortalTab(tab))}
         />
       )}
