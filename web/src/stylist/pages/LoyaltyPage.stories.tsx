@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { Provider } from "react-redux";
 import { LoyaltyPage } from "./LoyaltyPage";
-import { store } from "../store";
+import { legacyStore } from "../store";
 import "../styles/stylist.css";
 import "../styles/theme-default.css";
 
@@ -10,7 +10,7 @@ const meta: Meta<typeof LoyaltyPage> = {
   component: LoyaltyPage,
   decorators: [
     (Story) => (
-      <Provider store={store}>
+      <Provider store={legacyStore}>
         <div data-widget="stylist" style={{ maxWidth: 430 }}>
           <Story />
         </div>

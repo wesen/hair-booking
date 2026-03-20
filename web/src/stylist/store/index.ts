@@ -47,7 +47,8 @@ export function createRuntimeStore(preloadedState?: Partial<RuntimeRootState>) {
   });
 }
 
-export const store = createAppStore();
+export const legacyStore = createAppStore();
+export const store = legacyStore;
 export const runtimeStore = createRuntimeStore();
 
 export type AppStore = ReturnType<typeof createAppStore>;
