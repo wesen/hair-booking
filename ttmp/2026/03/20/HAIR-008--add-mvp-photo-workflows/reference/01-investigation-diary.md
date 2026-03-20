@@ -15,7 +15,7 @@ RelatedFiles:
       Note: Review context for what the MVP still needs
 ExternalSources: []
 Summary: Diary for the deferred MVP photo execution track.
-LastUpdated: 2026-03-20T19:55:00-04:00
+LastUpdated: 2026-03-20T13:56:41-04:00
 WhatFor: Use this to understand why photos were split into a dedicated follow-up ticket.
 WhenToUse: Use while implementing or reviewing HAIR-008.
 ---
@@ -75,3 +75,52 @@ The next HAIR-008 slice should move back to backend and booking quality work:
 - audit and harden upload validation
 - add the missing appointment-photo write path
 - improve public booking photo-step retry and failure handling
+
+The next slice landed on the backend and closed the main contract gap.
+
+Before this change, the system had an asymmetry:
+
+- intake photo upload already existed publicly
+- portal and stylist read paths already returned photo metadata
+- stylist appointment photo creation did not yet exist as a tested server contract
+
+That meant the read side looked more complete than the write side. The backend also had a hidden runtime issue: the real HTTP server constructed the appointments service without a blob store, so the new upload path would have failed in a real database-backed process even if the handler existed.
+
+This slice fixed the backend around one shared rule set instead of adding a second special-case upload path.
+
+Changes in the slice:
+
+- added `pkg/server/photo_upload.go` as a shared upload validator
+- enforced the same image rules for public intake uploads and stylist appointment uploads
+- added `POST /api/stylist/appointments/:id/photos`
+- added appointment photo persistence in `pkg/appointments`
+- fixed `NewHTTPServer` so database-backed appointment services receive the configured blob store
+
+The shared validator now enforces:
+
+- required file presence
+- non-empty uploads
+- 10 MB maximum size
+- allowed mime types: JPEG, PNG, WebP
+
+This is the right level for MVP. It is strict enough to reject obvious garbage and oversized uploads, but it does not try to solve future concerns like virus scanning or signed CDN delivery.
+
+Validation for the slice:
+
+- `go test ./...`
+- `npm --prefix web run typecheck`
+
+Manual verification instructions were also written down in:
+
+- `ttmp/2026/03/20/HAIR-008--add-mvp-photo-workflows/playbooks/01-intake-and-appointment-photo-smoke.md`
+
+That playbook is important because this ticket spans two product areas:
+
+- public booking intake photos
+- stylist appointment aftercare/result photos
+
+The next HAIR-008 slice should return to frontend quality:
+
+- improve booking photo-step retries and error states
+- make the stylist runtime use the live appointment-photo write path
+- run a real browser smoke for full photo capture and display

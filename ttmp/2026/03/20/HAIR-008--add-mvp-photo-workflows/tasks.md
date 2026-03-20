@@ -8,11 +8,11 @@
 
 ## Backend
 
-- [ ] Audit current intake photo handlers, DTOs, and tests
-- [ ] Add or complete appointment photo create/read endpoints
-- [ ] Ensure stylist detail APIs return intake and appointment photo metadata where needed
-- [ ] Add validation for mime type, size, and slot values
-- [ ] Add backend tests for photo upload and read flows
+- [x] Audit current intake photo handlers, DTOs, and tests
+- [x] Add or complete appointment photo create/read endpoints
+- [x] Ensure stylist detail APIs return intake and appointment photo metadata where needed
+- [x] Add validation for mime type, size, and slot values
+- [x] Add backend tests for photo upload and read flows
 
 ## Frontend
 
@@ -23,6 +23,6 @@
 
 ## Validation
 
-- [ ] Add manual smoke steps for intake photos and appointment photos
-- [ ] Run `go test ./...`
-- [ ] Run `npm --prefix web run typecheck`
+- [x] Add manual smoke steps for intake photos and appointment photos
+- [x] Run `go test ./...`
+- [x] Run `npm --prefix web run typecheck`
