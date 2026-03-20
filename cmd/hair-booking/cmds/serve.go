@@ -80,7 +80,7 @@ func NewServeCommand(version string) (*ServeCommand, error) {
 		cmds.WithLong(`Start the hair-booking website with Keycloak-backed login.
 
 The app serves:
-- a minimal browser UI on /
+- an embedded browser UI on /, or a proxied frontend dev server when configured
 - session-backed auth routes on /auth/*
 - JSON endpoints on /api/*
 - static assets on /static/*
@@ -148,6 +148,7 @@ func (c *ServeCommand) Run(ctx context.Context, parsedValues *values.Values) err
 		Database:        applicationDB,
 		Storage:         blobStore,
 		LocalUploadsDir: backendSettings.StorageLocalDir,
+		FrontendDevProxyURL: backendSettings.FrontendDevProxyURL,
 	})
 	if err != nil {
 		return pkgerrors.Wrap(err, "failed to create http server")
@@ -167,6 +168,7 @@ func (c *ServeCommand) Run(ctx context.Context, parsedValues *values.Values) err
 		Str("auth_mode", authSettings.Mode).
 		Bool("database_configured", backendSettings.DatabaseURL != "").
 		Bool("auto_migrate", backendSettings.AutoMigrate).
+		Str("frontend_dev_proxy_url", backendSettings.FrontendDevProxyURL).
 		Str("issuer", authSettings.OIDCIssuerURL).
 		Str("client_id", authSettings.OIDCClientID).
 		Msg("Starting hair-booking server")

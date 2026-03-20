@@ -11,6 +11,7 @@ APP_PORT ?= 8080
 KEYCLOAK_PORT ?= 18080
 SESSION_SECRET ?= local-session-secret
 TMUX_SESSION ?= hair-booking-dev
+FRONTEND_DEV_PROXY_URL ?=
 
 TAPES=$(wildcard doc/vhs/*tape)
 gifs: $(TAPES)
@@ -76,9 +77,11 @@ local-keycloak-config:
 	docker compose -f docker-compose.local.yml config
 
 run-local-dev:
+	HAIR_BOOKING_FRONTEND_DEV_PROXY_URL=$(FRONTEND_DEV_PROXY_URL) \
 	GOWORK=off go run ./cmd/$(BINARY) serve --auth-mode dev --listen-host 0.0.0.0 --listen-port $(APP_PORT)
 
 run-local-oidc:
+	HAIR_BOOKING_FRONTEND_DEV_PROXY_URL=$(FRONTEND_DEV_PROXY_URL) \
 	HAIR_BOOKING_AUTH_MODE=oidc \
 	HAIR_BOOKING_AUTH_SESSION_SECRET=$(SESSION_SECRET) \
 	HAIR_BOOKING_OIDC_ISSUER_URL=http://127.0.0.1:$(KEYCLOAK_PORT)/realms/hair-booking-dev \

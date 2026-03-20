@@ -7,6 +7,8 @@ import (
 	"io"
 	"io/fs"
 	"net/http"
+	"net/http/httputil"
+	"net/url"
 	"os"
 	"strings"
 	"time"
@@ -33,6 +35,7 @@ type ServerOptions struct {
 	CatalogService     *hairservices.Service
 	IntakeService      *hairintake.Service
 	LocalUploadsDir    string
+	FrontendDevProxyURL string
 }
 
 type HandlerOptions struct {
@@ -49,6 +52,7 @@ type HandlerOptions struct {
 	CatalogService     *hairservices.Service
 	IntakeService      *hairintake.Service
 	LocalUploadsDir    string
+	FrontendDevProxyURL string
 }
 
 type infoResponse struct {
@@ -153,6 +157,7 @@ func NewHTTPServer(ctx context.Context, options ServerOptions) (*http.Server, er
 			CatalogService:     catalogService,
 			IntakeService:      intakeService,
 			LocalUploadsDir:    options.LocalUploadsDir,
+			FrontendDevProxyURL: options.FrontendDevProxyURL,
 		}),
 		ReadHeaderTimeout: 10 * time.Second,
 	}, nil
@@ -208,7 +213,7 @@ func NewHandler(options HandlerOptions) http.Handler {
 		mux.HandleFunc("GET /auth/logout/callback", options.WebAuth.HandleLogoutCallback)
 	}
 
-	registerWeb(mux, publicFS, options.LocalUploadsDir)
+	registerWeb(mux, publicFS, options.LocalUploadsDir, options.FrontendDevProxyURL)
 	return mux
 }
 
@@ -241,9 +246,20 @@ func timeNowUTC() time.Time {
 	return time.Now().UTC()
 }
 
-func registerWeb(mux *http.ServeMux, publicFS fs.FS, localUploadsDir string) {
+func registerWeb(mux *http.ServeMux, publicFS fs.FS, localUploadsDir, frontendDevProxyURL string) {
 	if mux == nil || publicFS == nil {
 		return
+	}
+
+	var frontendDevProxy *httputil.ReverseProxy
+	if strings.TrimSpace(frontendDevProxyURL) != "" {
+		targetURL, err := url.Parse(frontendDevProxyURL)
+		if err == nil && targetURL.Scheme != "" && targetURL.Host != "" {
+			frontendDevProxy = httputil.NewSingleHostReverseProxy(targetURL)
+			frontendDevProxy.ErrorHandler = func(w http.ResponseWriter, r *http.Request, proxyErr error) {
+				http.Error(w, "frontend dev proxy unavailable", http.StatusBadGateway)
+			}
+		}
 	}
 
 	if strings.TrimSpace(localUploadsDir) != "" {
@@ -262,6 +278,10 @@ func registerWeb(mux *http.ServeMux, publicFS fs.FS, localUploadsDir string) {
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		if strings.HasPrefix(r.URL.Path, "/api/") || strings.HasPrefix(r.URL.Path, "/auth/") {
 			http.NotFound(w, r)
+			return
+		}
+		if frontendDevProxy != nil {
+			frontendDevProxy.ServeHTTP(w, r)
 			return
 		}
 

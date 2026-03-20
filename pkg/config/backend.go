@@ -20,11 +20,12 @@ const (
 )
 
 type Settings struct {
-	DatabaseURL     string `glazed:"database-url"`
-	StorageMode     string `glazed:"storage-mode"`
-	StorageLocalDir string `glazed:"storage-local-dir"`
-	PublicBaseURL   string `glazed:"public-base-url"`
-	AutoMigrate     bool   `glazed:"auto-migrate"`
+	DatabaseURL         string `glazed:"database-url"`
+	StorageMode         string `glazed:"storage-mode"`
+	StorageLocalDir     string `glazed:"storage-local-dir"`
+	PublicBaseURL       string `glazed:"public-base-url"`
+	FrontendDevProxyURL string `glazed:"frontend-dev-proxy-url"`
+	AutoMigrate         bool   `glazed:"auto-migrate"`
 }
 
 func NewSection() (schema.Section, error) {
@@ -56,6 +57,12 @@ func NewSection() (schema.Section, error) {
 				fields.TypeString,
 				fields.WithHelp("Base URL used to build public upload URLs"),
 				fields.WithDefault(envOr("HAIR_BOOKING_PUBLIC_BASE_URL", DefaultPublicBaseURL)),
+			),
+			fields.New(
+				"frontend-dev-proxy-url",
+				fields.TypeString,
+				fields.WithHelp("Optional frontend dev-server origin to proxy non-API browser routes to in local integration mode"),
+				fields.WithDefault(strings.TrimSpace(os.Getenv("HAIR_BOOKING_FRONTEND_DEV_PROXY_URL"))),
 			),
 			fields.New(
 				"auto-migrate",
@@ -103,6 +110,7 @@ func NormalizeSettings(settings *Settings) (*Settings, error) {
 	if settings.PublicBaseURL == "" {
 		settings.PublicBaseURL = DefaultPublicBaseURL
 	}
+	settings.FrontendDevProxyURL = strings.TrimSpace(settings.FrontendDevProxyURL)
 
 	return settings, nil
 }

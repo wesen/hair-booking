@@ -99,6 +99,67 @@ func TestRootServesSPAIndex(t *testing.T) {
 	}
 }
 
+func TestRootProxiesToFrontendDevServerWhenConfigured(t *testing.T) {
+	frontend := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/portal" {
+			t.Fatalf("expected proxied request path /portal, got %s", r.URL.Path)
+		}
+		_, _ = io.WriteString(w, "<html><body>frontend portal</body></html>")
+	}))
+	defer frontend.Close()
+
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>landing</body></html>")},
+		},
+		FrontendDevProxyURL: frontend.URL,
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/portal", nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "frontend portal") {
+		t.Fatalf("expected proxied frontend body, got %s", recorder.Body.String())
+	}
+}
+
+func TestAPIRoutesBypassFrontendDevProxy(t *testing.T) {
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>landing</body></html>")},
+		},
+		ClientService: hairclients.NewService(&fakeClientServiceRepo{}),
+		FrontendDevProxyURL: "http://127.0.0.1:65535",
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/api/info", nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Code != http.StatusOK {
+		t.Fatalf("expected 200, got %d", recorder.Code)
+	}
+	if !strings.Contains(recorder.Body.String(), "\"service\":\"hair-booking\"") {
+		t.Fatalf("expected API response body, got %s", recorder.Body.String())
+	}
+}
+
 type fakeClientServiceRepo struct{}
 
 func (f *fakeClientServiceRepo) FindByAuthIdentity(ctx context.Context, issuer, subject string) (*hairclients.Client, error) {
