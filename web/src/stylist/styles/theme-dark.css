@@ -1,0 +1,21 @@
+:where([data-widget="stylist"][data-theme="dark"]) {
+  --color-bg: #1a1412;
+  --color-bg2: #241e1a;
+  --color-surface: #2a2420;
+  --color-accent: #d4a080;
+  --color-accent-light: #3a2e28;
+  --color-accent-dark: #e8b898;
+  --color-gold: #d4b878;
+  --color-gold-light: #3a3428;
+  --color-text: #f0e8e4;
+  --color-text-secondary: #b8a89e;
+  --color-text-muted: #887870;
+  --color-border: #3a3430;
+  --color-success: #7bb08a;
+  --color-warning: #d4935a;
+  --color-danger: #c97070;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 6px 20px rgba(0, 0, 0, 0.4);
+  --shadow-overlay: 0 10px 40px rgba(0, 0, 0, 0.5);
+}
