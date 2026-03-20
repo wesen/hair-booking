@@ -23,13 +23,13 @@ const (
 	defaultJWKSRefresh     = 5 * time.Minute
 	authStateCookieName    = "hair_booking_auth_state"
 	authNonceCookieName    = "hair_booking_auth_nonce"
-	authReturnToCookieName = "hair_booking_auth_return_to"
 )
 
 type WebHandler interface {
 	HandleLogin(w http.ResponseWriter, r *http.Request)
 	HandleCallback(w http.ResponseWriter, r *http.Request)
 	HandleLogout(w http.ResponseWriter, r *http.Request)
+	HandleLogoutCallback(w http.ResponseWriter, r *http.Request)
 }
 
 type oidcDiscoveryDocument struct {
@@ -48,6 +48,11 @@ type idTokenClaims struct {
 	PreferredUsername string `json:"preferred_username,omitempty"`
 	Name              string `json:"name,omitempty"`
 	Picture           string `json:"picture,omitempty"`
+}
+
+type oauthStatePayload struct {
+	ID       string `json:"id"`
+	ReturnTo string `json:"rt,omitempty"`
 }
 
 type OIDCAuthenticator struct {
@@ -153,15 +158,18 @@ func (a *OIDCAuthenticator) HandleLogin(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "invalid return_to parameter", http.StatusBadRequest)
 		return
 	}
+	stateValue, err := marshalOAuthState(oauthStatePayload{
+		ID:       state,
+		ReturnTo: returnTo,
+	})
+	if err != nil {
+		http.Error(w, "failed to encode auth state", http.StatusInternalServerError)
+		return
+	}
 	setShortLivedCookie(w, authStateCookieName, state, secureCookies)
 	setShortLivedCookie(w, authNonceCookieName, nonce, secureCookies)
-	if returnTo != "" {
-		setShortLivedCookie(w, authReturnToCookieName, returnTo, secureCookies)
-	} else {
-		clearCookie(w, authReturnToCookieName, secureCookies)
-	}
 
-	loginURL := a.oauthConfig.AuthCodeURL(state, oauth2.SetAuthURLParam("nonce", nonce))
+	loginURL := a.oauthConfig.AuthCodeURL(stateValue, oauth2.SetAuthURLParam("nonce", nonce))
 	http.Redirect(w, r, loginURL, http.StatusFound)
 }
 
@@ -172,9 +180,14 @@ func (a *OIDCAuthenticator) HandleCallback(w http.ResponseWriter, r *http.Reques
 		http.Error(w, "missing oauth callback parameters", http.StatusBadRequest)
 		return
 	}
+	statePayload, err := unmarshalOAuthState(queryState)
+	if err != nil {
+		http.Error(w, "invalid oauth state", http.StatusBadRequest)
+		return
+	}
 
 	stateCookie, err := r.Cookie(authStateCookieName)
-	if err != nil || strings.TrimSpace(stateCookie.Value) == "" || stateCookie.Value != queryState {
+	if err != nil || strings.TrimSpace(stateCookie.Value) == "" || stateCookie.Value != statePayload.ID {
 		http.Error(w, "invalid oauth state", http.StatusBadRequest)
 		return
 	}
@@ -187,10 +200,6 @@ func (a *OIDCAuthenticator) HandleCallback(w http.ResponseWriter, r *http.Reques
 	secureCookies := shouldUseSecureCookies(r, a.oauthConfig.RedirectURL)
 	clearCookie(w, authStateCookieName, secureCookies)
 	clearCookie(w, authNonceCookieName, secureCookies)
-	returnToCookie, err := r.Cookie(authReturnToCookieName)
-	if err == nil {
-		clearCookie(w, authReturnToCookieName, secureCookies)
-	}
 
 	ctx := context.WithValue(r.Context(), oauth2.HTTPClient, a.httpClient)
 	token, err := a.oauthConfig.Exchange(ctx, code)
@@ -235,8 +244,8 @@ func (a *OIDCAuthenticator) HandleCallback(w http.ResponseWriter, r *http.Reques
 	}
 
 	redirectTarget := a.postLoginPath
-	if returnToCookie != nil && strings.TrimSpace(returnToCookie.Value) != "" {
-		redirectTarget = returnToCookie.Value
+	if strings.TrimSpace(statePayload.ReturnTo) != "" {
+		redirectTarget = statePayload.ReturnTo
 	}
 	http.Redirect(w, r, redirectTarget, http.StatusSeeOther)
 }
@@ -249,6 +258,20 @@ func (a *OIDCAuthenticator) HandleLogout(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	http.Redirect(w, r, a.buildLogoutRedirectURL(returnTo), http.StatusSeeOther)
+}
+
+func (a *OIDCAuthenticator) HandleLogoutCallback(w http.ResponseWriter, r *http.Request) {
+	returnTo, err := a.resolveRequestedRedirect(r, r.URL.Query().Get("return_to"))
+	if err != nil {
+		http.Error(w, "invalid return_to parameter", http.StatusBadRequest)
+		return
+	}
+
+	redirectTarget := a.postLoginPath
+	if strings.TrimSpace(returnTo) != "" {
+		redirectTarget = returnTo
+	}
+	http.Redirect(w, r, redirectTarget, http.StatusSeeOther)
 }
 
 func (a *OIDCAuthenticator) buildLogoutRedirectURL(returnTo string) string {
@@ -266,7 +289,7 @@ func (a *OIDCAuthenticator) buildLogoutRedirectURL(returnTo string) string {
 		return fallback
 	}
 
-	postLogoutURL, err := derivePostLogoutRedirectURL(a.oauthConfig.RedirectURL, fallback)
+	postLogoutURL, err := buildLogoutCallbackURL(a.oauthConfig.RedirectURL, returnTo)
 	if err != nil {
 		return fallback
 	}
@@ -280,11 +303,7 @@ func (a *OIDCAuthenticator) buildLogoutRedirectURL(returnTo string) string {
 	return endSessionURL.String()
 }
 
-func derivePostLogoutRedirectURL(redirectURL, fallback string) (string, error) {
-	if strings.TrimSpace(fallback) != "" {
-		return fallback, nil
-	}
-
+func buildLogoutCallbackURL(redirectURL, returnTo string) (string, error) {
 	parsed, err := url.Parse(strings.TrimSpace(redirectURL))
 	if err != nil {
 		return "", err
@@ -292,10 +311,16 @@ func derivePostLogoutRedirectURL(redirectURL, fallback string) (string, error) {
 	if parsed.Scheme == "" || parsed.Host == "" {
 		return "", errors.New("redirect url must include scheme and host")
 	}
-	parsed.Path = "/"
+	parsed.Path = "/auth/logout/callback"
 	parsed.RawPath = ""
-	parsed.RawQuery = ""
 	parsed.Fragment = ""
+	query := parsed.Query()
+	if strings.TrimSpace(returnTo) != "" {
+		query.Set("return_to", returnTo)
+	} else {
+		query.Del("return_to")
+	}
+	parsed.RawQuery = query.Encode()
 	return parsed.String(), nil
 }
 
@@ -503,6 +528,30 @@ func clearCookie(w http.ResponseWriter, name string, secure bool) {
 		MaxAge:   -1,
 		Expires:  time.Unix(0, 0).UTC(),
 	})
+}
+
+func marshalOAuthState(payload oauthStatePayload) (string, error) {
+	raw, err := json.Marshal(payload)
+	if err != nil {
+		return "", err
+	}
+	return base64.RawURLEncoding.EncodeToString(raw), nil
+}
+
+func unmarshalOAuthState(value string) (oauthStatePayload, error) {
+	raw, err := base64.RawURLEncoding.DecodeString(value)
+	if err != nil {
+		return oauthStatePayload{}, err
+	}
+
+	var payload oauthStatePayload
+	if err := json.Unmarshal(raw, &payload); err != nil {
+		return oauthStatePayload{}, err
+	}
+	if strings.TrimSpace(payload.ID) == "" {
+		return oauthStatePayload{}, errors.New("oauth state id is required")
+	}
+	return payload, nil
 }
 
 func randomToken() (string, error) {

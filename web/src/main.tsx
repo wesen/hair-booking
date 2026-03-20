@@ -5,6 +5,7 @@ import { store } from "./stylist/store";
 import { StylistApp } from "./stylist/StylistApp";
 import { ClientBookingApp } from "./stylist/ClientBookingApp";
 import { ClientPortalApp } from "./stylist/ClientPortalApp";
+import { StylistRuntimeApp } from "./stylist/StylistRuntimeApp";
 import "./stylist/styles/stylist.css";
 import "./stylist/styles/theme-default.css";
 
@@ -74,7 +75,7 @@ createRoot(document.getElementById("root")!).render(
     <Provider store={store}>
       {resolvedApp.app === "portal" ? <ClientPortalApp showNonMvpFeatures={false} /> : null}
       {resolvedApp.app === "booking" ? <ClientBookingApp showDepositOption={false} /> : null}
-      {resolvedApp.app === "stylist" ? <StylistApp showNonMvpFeatures={false} /> : null}
+      {resolvedApp.app === "stylist" ? <StylistRuntimeApp /> : null}
     </Provider>
   </StrictMode>,
 );

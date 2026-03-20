@@ -6,7 +6,7 @@ import { Icon } from "../components/Icon";
 import { buildAuthPath, buildRuntimeURL, resolveLoginReturnTo } from "../utils/authNavigation";
 
 interface SignInPageProps {
-  context?: "booking" | "portal";
+  context?: "booking" | "portal" | "stylist";
   onBack?: () => void;
 }
 
@@ -15,6 +15,11 @@ export function SignInPage({ context = "booking", onBack }: SignInPageProps) {
   const session = useSessionBootstrap();
   const backHandler = onBack ?? (() => dispatch(goToScreen("welcome")));
   const showNav = context === "booking";
+  const heading = context === "portal"
+    ? "Client Portal"
+    : context === "stylist"
+      ? "Stylist Workspace"
+      : "Welcome back";
 
   const handleLogin = () => {
     const returnTo = resolveLoginReturnTo(context);
@@ -39,7 +44,7 @@ export function SignInPage({ context = "booking", onBack }: SignInPageProps) {
         <div data-part="welcome-header" style={{ paddingBottom: 20 }}>
           <div data-part="welcome-logo">&#x2726;&ensp;Luxe Hair Studio&ensp;&#x2726;</div>
           <div style={{ fontFamily: "var(--font-serif)", fontSize: 28, fontWeight: 400, color: "var(--color-text)" }}>
-            {context === "portal" ? "Client Portal" : "Welcome back"}
+            {heading}
           </div>
         </div>
 

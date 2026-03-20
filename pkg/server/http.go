@@ -205,6 +205,7 @@ func NewHandler(options HandlerOptions) http.Handler {
 		mux.HandleFunc("GET /auth/login", options.WebAuth.HandleLogin)
 		mux.HandleFunc("GET /auth/callback", options.WebAuth.HandleCallback)
 		mux.HandleFunc("GET /auth/logout", options.WebAuth.HandleLogout)
+		mux.HandleFunc("GET /auth/logout/callback", options.WebAuth.HandleLogoutCallback)
 	}
 
 	registerWeb(mux, publicFS, options.LocalUploadsDir)

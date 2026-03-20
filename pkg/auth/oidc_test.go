@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"encoding/base64"
+	"encoding/json"
 	"net/http/httptest"
 	"testing"
 )
@@ -42,12 +44,45 @@ func TestResolveRequestedRedirectRejectsDifferentHost(t *testing.T) {
 	}
 }
 
-func TestDerivePostLogoutRedirectURLUsesFallback(t *testing.T) {
-	redirectURL, err := derivePostLogoutRedirectURL("http://127.0.0.1:8080/auth/callback", "http://127.0.0.1:5175/")
+func TestBuildLogoutCallbackURLUsesBackendHostAndReturnTo(t *testing.T) {
+	redirectURL, err := buildLogoutCallbackURL("http://127.0.0.1:8080/auth/callback", "http://127.0.0.1:5175/")
 	if err != nil {
-		t.Fatalf("derivePostLogoutRedirectURL returned error: %v", err)
+		t.Fatalf("buildLogoutCallbackURL returned error: %v", err)
 	}
-	if redirectURL != "http://127.0.0.1:5175/" {
-		t.Fatalf("expected fallback redirect, got %q", redirectURL)
+	if redirectURL != "http://127.0.0.1:8080/auth/logout/callback?return_to=http%3A%2F%2F127.0.0.1%3A5175%2F" {
+		t.Fatalf("expected backend logout callback redirect, got %q", redirectURL)
+	}
+}
+
+func TestOAuthStateRoundTripPreservesReturnTo(t *testing.T) {
+	value, err := marshalOAuthState(oauthStatePayload{
+		ID:       "state-123",
+		ReturnTo: "http://127.0.0.1:5175/stylist",
+	})
+	if err != nil {
+		t.Fatalf("marshalOAuthState returned error: %v", err)
+	}
+
+	payload, err := unmarshalOAuthState(value)
+	if err != nil {
+		t.Fatalf("unmarshalOAuthState returned error: %v", err)
+	}
+	if payload.ID != "state-123" {
+		t.Fatalf("expected state id to round-trip, got %q", payload.ID)
+	}
+	if payload.ReturnTo != "http://127.0.0.1:5175/stylist" {
+		t.Fatalf("expected return_to to round-trip, got %q", payload.ReturnTo)
+	}
+}
+
+func TestUnmarshalOAuthStateRejectsMissingID(t *testing.T) {
+	raw, err := json.Marshal(oauthStatePayload{ReturnTo: "/portal"})
+	if err != nil {
+		t.Fatalf("json.Marshal returned error: %v", err)
+	}
+
+	value := base64.RawURLEncoding.EncodeToString(raw)
+	if _, err := unmarshalOAuthState(value); err == nil {
+		t.Fatal("expected unmarshalOAuthState to reject missing state id")
 	}
 }
