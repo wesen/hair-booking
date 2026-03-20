@@ -2,9 +2,9 @@
 
 ## Analysis And Decisions
 
-- [ ] Confirm final MVP UX for appointment photos in the client portal
-- [ ] Confirm whether appointment photo upload is stylist-only or also client-visible
-- [ ] Confirm whether photo URLs need stronger protection in MVP
+- [x] Confirm final MVP UX for appointment photos in the client portal
+- [x] Confirm whether appointment photo upload is stylist-only or also client-visible
+- [x] Confirm whether photo URLs need stronger protection in MVP
 
 ## Backend
 
@@ -17,8 +17,8 @@
 ## Frontend
 
 - [ ] Improve the booking photo step UX for retries and clearer failure states
-- [ ] Show intake photos in the real stylist intake detail view
-- [ ] Show appointment photos in the chosen portal MVP surface
+- [x] Show intake photos in the real stylist intake detail view
+- [x] Show appointment photos in the chosen portal MVP surface
 - [ ] Ensure all photo views use real API data rather than seeded data
 
 ## Validation

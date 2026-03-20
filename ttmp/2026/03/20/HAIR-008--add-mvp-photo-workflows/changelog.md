@@ -6,3 +6,6 @@
 - Added implementation guide for MVP photo workflows
 - Added granular task list for backend, frontend, and validation work
 - Recorded the roadmap decision that photos remain in MVP but follow HAIR-006 and HAIR-007
+- Chose the MVP portal photo surface as appointment history/detail rather than restoring a top-level Photos tab, and kept appointment photo upload stylist-side for MVP
+- Added real intake image previews to the stylist intake detail view
+- Added real appointment photo rendering to the portal appointments surface using live appointment-detail photo data
