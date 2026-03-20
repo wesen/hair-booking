@@ -631,3 +631,94 @@ I also confirmed that the older `smailnail` workspace has local Terraform state 
 - Local hosted Terraform state found at:
   - `/home/manuel/workspaces/2026-03-08/update-imap-mcp/smailnail/deployments/terraform/keycloak/envs/hosted/terraform.tfstate`
   - `/home/manuel/workspaces/2026-03-08/update-imap-mcp/smailnail/deployments/terraform/keycloak/envs/hosted/terraform.tfstate.backup`
+
+## Step 7: Deploy the hosted app on Coolify and move it to `hair-booking.app.scapegoat.dev`
+
+After the shared Keycloak client existed in the hosted realm, the next task was to prove the full hosted app path instead of stopping at local tmux and local Keycloak. That meant connecting three different systems: the GitHub repo branch Coolify actually clones, the shared hosted Keycloak client managed through Terraform, and the Coolify runtime configuration that tells the app which redirect URL to advertise during login.
+
+The first hosted deployment attempt failed for an operational reason, not a code reason. Coolify was configured to build `wesen/hair-booking` from branch `task/hair-signup`, but that branch only existed locally on the workstation at first. Coolify clones from GitHub, not from the local checkout, so the deployment failed immediately with a `fatal: Remote branch task/hair-signup not found in upstream origin` error. I fixed that by committing the local app/bootstrap work, pushing `task/hair-signup` to GitHub, and redeploying. The second deployment built the Dockerfile successfully, started the container, and passed the internal `/healthz` probe.
+
+Once the app was healthy under the initial `hair-booking.scapegoat.dev` hostname, the user requested a better final hostname: `hair-booking.app.scapegoat.dev`. That change had to be propagated through both identity and runtime layers. I updated the Terraform operator environment in `/home/manuel/code/wesen/terraform/.envrc`, applied the shared Keycloak client update so that the valid redirect URI and web origin moved to the new hostname, patched the Coolify application FQDN through the API, patched the `HAIR_BOOKING_OIDC_REDIRECT_URL` runtime env through the API, and triggered another rolling deployment. The new container came up healthy, the old one was drained, and the hosted `/auth/login` route now redirects to Keycloak with `redirect_uri=https://hair-booking.app.scapegoat.dev/auth/callback`.
+
+I verified the final result in three ways. First, Coolify reported the app as `running:healthy`. Second, host-header requests on the server returned `200` for `/healthz` and `/api/info`, and `302` for `/auth/login` with the new callback URL. Third, external DNS for `hair-booking.app.scapegoat.dev` resolved publicly to `89.167.52.236`, and direct external requests from this workstation returned a healthy `200` from `/healthz` and the expected Keycloak redirect from `/auth/login`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "do hair-booking.app.scapegoat.dev"
+
+**Assistant interpretation:** Move the hosted `hair-booking` deployment and Keycloak callback configuration to the new public hostname `hair-booking.app.scapegoat.dev`.
+
+**Inferred user intent:** Make the real hosted deployment use the final app-specific subdomain instead of the earlier placeholder hostname.
+
+**Commit (code):** `1de54da` — `Add Keycloak login bootstrap and deploy docs`
+
+### What I did
+
+- Confirmed that the first hosted deploy had failed because the configured Git branch did not yet exist on GitHub.
+- Committed and pushed the local `task/hair-signup` branch so Coolify could clone it.
+- Re-ran the Coolify deployment and confirmed the hosted container became healthy.
+- Updated `/home/manuel/code/wesen/terraform/.envrc` so `TF_VAR_public_app_url` became `https://hair-booking.app.scapegoat.dev`.
+- Ran a Terraform plan and apply for the shared `hair-booking-web` Keycloak client so the hosted redirect URI and web origin switched to the new hostname.
+- Patched the Coolify application FQDN to `https://hair-booking.app.scapegoat.dev`.
+- Patched the Coolify runtime env `HAIR_BOOKING_OIDC_REDIRECT_URL` to `https://hair-booking.app.scapegoat.dev/auth/callback`.
+- Triggered a second Coolify rolling deployment and verified the new container became healthy.
+- Verified external DNS and public HTTPS responses for the new hostname.
+
+### Why
+
+- The hosted app, the shared Keycloak client, and the app runtime redirect env must all agree on the same public callback URL.
+- Coolify can only deploy branches that exist on the remote repository, so the branch had to be pushed before hosted deployment could succeed.
+- The new hostname is more consistent with a shared platform layout where application UIs live under `*.app.scapegoat.dev`.
+
+### What worked
+
+- Querying `application_deployment_queues.logs` in the Coolify Postgres made the deployment failure immediately clear.
+- Pushing the Git branch resolved the first hosted deployment issue without requiring any code change.
+- Terraform updated the Keycloak redirect URI and web origin cleanly in place.
+- Coolify accepted both the application FQDN update and the runtime env update through its API.
+- The rolling deployment completed successfully, and the new container passed health checks on the first probe.
+- Public DNS for `hair-booking.app.scapegoat.dev` was already in place by the time I verified the final deployment.
+
+### What didn't work
+
+- The first deployment failed because the branch name existed only locally.
+- My first attempt to patch the Coolify API used bad nested shell quoting and produced `Invalid JSON`; I corrected that by sending the JSON bodies via heredoc payloads.
+- The `make apply-hair-booking` target in the shared Terraform repo failed in this non-interactive shell because it expected a typed approval. I re-ran the same apply with `terraform apply -auto-approve`.
+
+### What I learned
+
+- Hosted deployment debugging is much faster when you read Coolify’s deployment queue table directly instead of inferring from the dashboard state alone.
+- For app platforms like Coolify, “deployed branch” is a GitHub fact, not a local git fact.
+- The domain move is a multi-system change: Keycloak client, Coolify app FQDN, runtime env, deployment, and DNS all need to line up.
+
+### What was tricky to build
+
+- The tricky part was that the app looked healthy from one layer while still being wrong from another. After the first successful build, the container was healthy, but the redirect hostname still had to be coordinated with Keycloak and the final public domain.
+- The second tricky part was that the same hostname value appears in multiple places that are owned by different systems and repos.
+
+### What warrants a second pair of eyes
+
+- Whether the shared Terraform repo should gain a non-interactive `apply` target that explicitly uses `-auto-approve` only in controlled contexts.
+- Whether the Coolify app/domain/env updates should also be codified in a stable script rather than repeated ad hoc through API calls.
+
+### What should be done in the future
+
+- Add a scripted hosted smoke test that checks `/healthz`, `/api/info`, and `/auth/login` against the public hostname after each deploy.
+- Decide whether Coolify application definitions themselves should eventually move into a declarative infra layer.
+- Add a real browser login verification step against the public hostname, not only host-header and redirect checks.
+
+### Code review instructions
+
+- Review `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/deployments/hair-booking-coolify.md`.
+- Review `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/main.tf`.
+- Review `/home/manuel/code/wesen/terraform/.envrc` locally if you are the operator; it is intentionally not committed.
+
+### Technical details
+
+- Coolify application UUID: `uion8lttbypsijf8ww9b4c3e`
+- Successful deployment queue rows:
+  - `8` for the first successful hosted deploy
+  - `9` for the final hostname cutover deploy
+- Final public app URL: `https://hair-booking.app.scapegoat.dev`
+- Final Keycloak redirect URL: `https://hair-booking.app.scapegoat.dev/auth/callback`
+- Final public DNS resolution observed from the workstation: `89.167.52.236`

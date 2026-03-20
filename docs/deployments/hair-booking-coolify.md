@@ -10,6 +10,15 @@ It follows the same operational model as `smailnail`:
 - use Keycloak for browser login
 - inject runtime configuration through environment variables
 
+## Current hosted instance
+
+As of 2026-03-20, the live hosted app is configured at:
+
+- Public app URL: `https://hair-booking.app.scapegoat.dev`
+- Keycloak issuer: `https://auth.scapegoat.dev/realms/smailnail`
+- Keycloak client: `hair-booking-web`
+- Hosted health check: `https://hair-booking.app.scapegoat.dev/healthz`
+
 ## Target shape
 
 - Public app URL: `https://hair-booking.example.com`
@@ -97,6 +106,17 @@ HAIR_BOOKING_OIDC_REDIRECT_URL=https://hair-booking.example.com/auth/callback
 - Domain: `https://hair-booking.example.com`
 - Health check path: `/healthz`
 
+## Deployment prerequisites
+
+Before triggering the first hosted deployment, make sure these are true:
+
+- the selected Git branch has been pushed to GitHub
+- the `hair-booking-web` client exists in the shared Keycloak realm
+- the Coolify app environment contains the same client secret that Terraform applied
+- the public hostname already has a DNS record pointing at the Coolify edge
+
+The first real rollout on 2026-03-20 failed because Coolify was configured to build branch `task/hair-signup` before that branch existed on GitHub. Coolify does not use the local workstation checkout. It clones from the remote repository, so an unpushed branch will fail immediately during the import step.
+
 ## Keycloak provisioning with Terraform
 
 The Keycloak client should be managed from the shared infra repo via:
@@ -171,9 +191,21 @@ After deployment, validate in this order:
 4. browser login through `/auth/login`
 5. `GET /api/me` returns the session-backed user
 
+For host-side debugging before DNS is live, you can verify through the Coolify host itself:
+
+```bash
+ssh root@your-server 'curl -ksS -H "Host: hair-booking.example.com" https://127.0.0.1/healthz -D -'
+ssh root@your-server 'curl -ksS -H "Host: hair-booking.example.com" https://127.0.0.1/api/info -D -'
+ssh root@your-server 'curl -ksSI -H "Host: hair-booking.example.com" https://127.0.0.1/auth/login'
+```
+
+Those requests exercise Traefik routing on the host even if public DNS has not been created yet.
+
 ## Cutover notes
 
 Do not switch the public app hostname until both of these are true:
 
 - the `hair-booking-web` client exists in the shared Keycloak realm with the exact hosted callback URL
 - the Coolify deployment passes `/healthz`, `/api/info`, and a real browser login
+
+Also ensure the public DNS record exists. Without that, the service can be healthy inside Coolify and still be unreachable from a browser outside the server.
