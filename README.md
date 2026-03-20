@@ -4,7 +4,7 @@
 
 In local development, the backend can either:
 
-- serve the older embedded inspector UI from `pkg/web/public`, or
+- serve the embedded production React app from `pkg/web/public`, or
 - proxy the active React frontend dev server so `http://127.0.0.1:8080/` behaves like the real app shell
 
 This repo includes its own local Keycloak stack and realm import so it can be tested standalone.
@@ -21,7 +21,7 @@ For Keycloak client provisioning, see the central infra repo at [keycloak/README
 - `/auth/login`, `/auth/callback`, `/auth/logout`
 - `/api/info` and `/api/me`
 - optional frontend-dev proxy for single-origin local integration
-- embedded static inspector UI served from Go when no frontend dev proxy is configured
+- embedded production React UI served from Go when no frontend dev proxy is configured
 
 ## Quick start
 
@@ -44,7 +44,7 @@ HAIR_BOOKING_KEYCLOAK_PORT=18090 docker compose -f docker-compose.local.yml up -
 make run-local-oidc
 ```
 
-4. For backend-only inspection, open `http://127.0.0.1:8080/`.
+4. For the embedded production shell, open `http://127.0.0.1:8080/booking`.
 
 5. For the real React app on a single origin, start Vite and proxy frontend routes through the backend:
 
@@ -53,7 +53,7 @@ npm --prefix web run dev -- --host 127.0.0.1 --port 5175
 FRONTEND_DEV_PROXY_URL=http://127.0.0.1:5175 make run-local-oidc KEYCLOAK_PORT=18090
 ```
 
-Then open `http://127.0.0.1:8080/` or `http://127.0.0.1:8080/portal`.
+Then open `http://127.0.0.1:8080/booking` or `http://127.0.0.1:8080/portal`.
 
 6. If you want reusable stylist test data for dashboard, intake, appointment, and client API smoke checks, seed the local workflow fixtures:
 
@@ -114,7 +114,7 @@ For local OIDC work with the Go server proxying the Vite app on one origin:
 FRONTEND_DEV_PROXY_URL=http://127.0.0.1:5175 make run-local-oidc KEYCLOAK_PORT=18090
 ```
 
-`FRONTEND_DEV_PROXY_URL` is optional. If it is unset, the Go server falls back to the embedded inspector UI on `/`.
+`FRONTEND_DEV_PROXY_URL` is optional. If it is unset, the Go server serves the embedded production React app and redirects `/` to `/booking`.
 
 `make local-seed-stylist-workflows` is optional. It loads deterministic local-only clients, intakes, reviews, appointments, and maintenance items from [seed_stylist_workflows.sql](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/dev/sql/seed_stylist_workflows.sql) so the stylist APIs have realistic data to inspect.
 
@@ -164,6 +164,7 @@ make tmux-local-oidc-down
 Basic checks:
 
 ```bash
+curl -i -sS http://127.0.0.1:8080/
 curl -sS http://127.0.0.1:8080/api/info
 curl -sS http://127.0.0.1:8080/api/me
 curl -i -sS http://127.0.0.1:8080/auth/login
@@ -171,6 +172,7 @@ curl -i -sS http://127.0.0.1:8080/auth/login
 
 Expected behavior:
 
+- `/` redirects to `/booking`.
 - `/api/info` returns service metadata and auth configuration surface.
 - `/api/me` returns unauthenticated state until login completes.
 - `/auth/login` redirects to the local Keycloak realm.

@@ -9,6 +9,7 @@ This repo currently supports:
 - a standalone local Keycloak fixture for development
 - a Go web server started with `hair-booking serve`
 - environment-driven OIDC configuration
+- an embedded production React build served by Go
 
 This repo does not yet ship:
 
@@ -20,6 +21,7 @@ This repo does ship:
 - a root Dockerfile for container builds
 - a container entrypoint script
 - a Terraform scaffold for the Keycloak browser client
+- a `go generate` pipeline that copies `web/dist` into `pkg/web/public`
 
 That means the deploy procedure here is now container-oriented, but still documentation-driven rather than fully automated.
 
@@ -127,7 +129,7 @@ Expected results:
 
 ### Browser login check
 
-1. Open `http://127.0.0.1:8080/`.
+1. Open `http://127.0.0.1:8080/booking`.
 2. Click `Login with Keycloak`.
 3. Log in as `alice` with password `secret`.
 4. Confirm the page updates with authenticated `/api/me` data.
@@ -195,6 +197,7 @@ If you started Keycloak on another host port, the same `down` command still work
 Production deployment currently assumes:
 
 - the app is built from this repo’s root Dockerfile
+- the Docker build embeds the compiled React frontend into the Go binary
 - Keycloak already exists outside this repo
 - the production Keycloak realm is shared with `smailnail`
 - `hair-booking` gets its own client in that shared Keycloak deployment
@@ -208,6 +211,12 @@ The default runtime command inside the container is:
 ```
 
 The command does not need inline OIDC flags if the environment variables are present.
+
+The runtime behavior is:
+
+- `/` redirects to `/booking`
+- `/booking`, `/portal`, and `/stylist` serve the embedded React SPA shell
+- `/api/*` and `/auth/*` continue to terminate in Go handlers
 
 ### Required production environment variables
 
@@ -234,19 +243,22 @@ The canonical Terraform for that client now lives in the shared infra repo under
 ### Build and handoff steps
 
 1. Run `go test ./...`
-2. Build the image with `make docker-build`
-3. Create or update the `hair-booking-web` client in the shared Keycloak deployment using Terraform
-4. Ensure the production redirect URI matches the real public hostname exactly
-5. Configure the Coolify app to build from the root Dockerfile
-6. Set the production environment variables in Coolify
-7. Deploy the container
-8. Verify `/healthz`, `/api/info`, `/auth/login`, and a real browser login
+2. Run `npm --prefix web run typecheck`
+3. Build the image with `make docker-build`
+4. Optionally run `GOWORK=off go generate ./pkg/web` locally to inspect the exact embedded assets before container build
+5. Create or update the `hair-booking-web` client in the shared Keycloak deployment using Terraform
+6. Ensure the production redirect URI matches the real public hostname exactly
+7. Configure the Coolify app to build from the root Dockerfile
+8. Set the production environment variables in Coolify
+9. Deploy the container
+10. Verify `/healthz`, `/`, `/booking`, `/api/info`, `/auth/login`, and a real browser login
 
 ### Suggested pre-deploy validation
 
 ```bash
 cd /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking
 go test ./...
+npm --prefix web run typecheck
 make docker-build
 docker compose -f docker-compose.local.yml config
 ```

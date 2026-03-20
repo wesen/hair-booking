@@ -14,7 +14,7 @@ RelatedFiles:
     - Path: pkg/web/assets.go
       Note: Current embedded asset entrypoint
     - Path: pkg/web/public/index.html
-      Note: Current embedded inspector shell
+      Note: Embedded frontend asset entrypoint that should now carry the built React app
     - Path: pkg/server/http.go
       Note: Catch-all web serving logic
     - Path: web/package.json
@@ -25,7 +25,7 @@ RelatedFiles:
       Note: Runtime Redux composition to simplify later
 ExternalSources: []
 Summary: Detailed guide for final runtime cleanup and embedding the built React app into the Go server after the stylist MVP work lands.
-LastUpdated: 2026-03-20T18:45:00-04:00
+LastUpdated: 2026-03-20T18:55:00-04:00
 WhatFor: Use this guide to make production hosting coherent and to remove lingering prototype/demo runtime state.
 WhenToUse: Use after HAIR-006 and HAIR-007, not before.
 ---
@@ -60,7 +60,7 @@ Production direction is now fixed:
 
 - build the React app
 - copy the build output into an embedded asset location
-- serve that build from Go on `/`
+- serve that build from Go on `/booking` with `/` redirecting there
 
 This should replace the inspector shell as the default production experience.
 
@@ -137,8 +137,10 @@ Once embedding is real:
 serveWeb(request):
   if local frontend proxy configured:
     proxy to vite
+  else if request.path == "/":
+    redirect to /booking
   else if embedded react build exists:
-    serve embedded react app
+    serve embedded react app shell
   else:
     serve fallback inspector
 ```
@@ -155,7 +157,8 @@ runtimeDataSource(data):
 
 ## Acceptance Criteria
 
-- production `/` serves the embedded React app from Go
+- production `/` redirects to `/booking`
+- production `/booking`, `/portal`, and `/stylist` serve the embedded React app from Go
 - the old inspector shell is no longer the main product entry
 - runtime no longer depends on seeded demo state for core pages
 - Storybook remains available without driving production behavior

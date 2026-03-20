@@ -33,6 +33,12 @@ As of 2026-03-20, the live hosted app is configured at:
 The hosted runtime serves:
 
 - `/`
+  - redirect to `/booking`
+- `/booking`
+  - embedded web UI
+- `/portal`
+  - embedded web UI
+- `/stylist`
   - embedded web UI
 - `/auth/login`
   - browser redirect to Keycloak
@@ -51,9 +57,10 @@ The hosted runtime serves:
 
 The root [Dockerfile](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/Dockerfile) builds the hosted app image:
 
-- stage 1 downloads Go modules
-- stage 2 builds `cmd/hair-booking`
-- stage 3 packages the binary plus the container entrypoint
+- stage 1 builds the React frontend with Vite
+- stage 2 copies `web/dist` into the Go build context and runs `go generate ./pkg/web`
+- stage 3 builds `cmd/hair-booking`
+- stage 4 packages the binary plus the container entrypoint
 
 The container entrypoint is [docker-entrypoint.hair-booking.sh](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/scripts/docker-entrypoint.hair-booking.sh).
 
@@ -64,6 +71,12 @@ hair-booking serve --listen-host 0.0.0.0 --listen-port 8080 --auth-mode oidc
 ```
 
 The auth settings themselves come from environment variables, not from hardcoded flags in the image.
+
+The embedded runtime behavior is:
+
+- `GET /` redirects to `/booking`
+- `GET /booking`, `GET /portal`, and `GET /stylist` all serve the React SPA shell
+- API and auth routes still terminate in Go
 
 ## Required environment variables
 
@@ -177,6 +190,7 @@ Then verify:
 
 ```bash
 curl -s http://127.0.0.1:8081/healthz | jq
+curl -i http://127.0.0.1:8081/
 curl -s http://127.0.0.1:8081/api/info | jq
 curl -i http://127.0.0.1:8081/auth/login
 ```
@@ -186,10 +200,12 @@ curl -i http://127.0.0.1:8081/auth/login
 After deployment, validate in this order:
 
 1. `GET /healthz`
-2. `GET /api/info`
-3. `GET /auth/login` returns a redirect to Keycloak
-4. browser login through `/auth/login`
-5. `GET /api/me` returns the session-backed user
+2. `GET /` redirects to `/booking`
+3. `GET /booking` returns the React shell, not the legacy inspector HTML
+4. `GET /api/info`
+5. `GET /auth/login` returns a redirect to Keycloak
+6. browser login through `/auth/login`
+7. `GET /api/me` returns the session-backed user
 
 For host-side debugging before DNS is live, you can verify through the Coolify host itself:
 
