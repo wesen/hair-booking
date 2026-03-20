@@ -62,7 +62,9 @@ export { ConsultConfirmPage } from "./pages/ConsultConfirmPage";
 
 // Store
 export { store, useAppDispatch, useAppSelector } from "./store";
-export type { RootState, AppDispatch } from "./store";
+export { createAppStore, stylistApi } from "./store";
+export type { RootState, AppDispatch, AppStore } from "./store";
+export * from "./store/api";
 
 // Types
 export type { Service, Client, Appointment, LoyaltyTier, BookingData, Tab, IconName } from "./types";
