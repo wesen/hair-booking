@@ -5,6 +5,7 @@ import { goToScreen } from "../store/consultationSlice";
 import { getApiErrorMessage, usePortalProfileView, useSessionBootstrap, useUpdateMeMutation, useUpdateNotificationPrefsMutation } from "../store/api";
 import { NotificationPrefs } from "../components/NotificationPrefs";
 import { Icon } from "../components/Icon";
+import { buildAuthPath, buildRuntimeURL } from "../utils/authNavigation";
 
 interface ProfileFormState {
   name: string;
@@ -264,7 +265,7 @@ export function PortalProfilePage() {
           <button
             data-part="profile-action-item"
             data-danger
-            onClick={() => window.location.assign(session.logoutPath)}
+            onClick={() => window.location.assign(buildAuthPath(session.logoutPath, buildRuntimeURL("/")))}
           >
             Sign Out
           </button>

@@ -6,6 +6,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -22,6 +23,7 @@ const (
 	defaultJWKSRefresh     = 5 * time.Minute
 	authStateCookieName    = "hair_booking_auth_state"
 	authNonceCookieName    = "hair_booking_auth_nonce"
+	authReturnToCookieName = "hair_booking_auth_return_to"
 )
 
 type WebHandler interface {
@@ -146,8 +148,18 @@ func (a *OIDCAuthenticator) HandleLogin(w http.ResponseWriter, r *http.Request) 
 	}
 
 	secureCookies := shouldUseSecureCookies(r, a.oauthConfig.RedirectURL)
+	returnTo, err := a.resolveRequestedRedirect(r, r.URL.Query().Get("return_to"))
+	if err != nil {
+		http.Error(w, "invalid return_to parameter", http.StatusBadRequest)
+		return
+	}
 	setShortLivedCookie(w, authStateCookieName, state, secureCookies)
 	setShortLivedCookie(w, authNonceCookieName, nonce, secureCookies)
+	if returnTo != "" {
+		setShortLivedCookie(w, authReturnToCookieName, returnTo, secureCookies)
+	} else {
+		clearCookie(w, authReturnToCookieName, secureCookies)
+	}
 
 	loginURL := a.oauthConfig.AuthCodeURL(state, oauth2.SetAuthURLParam("nonce", nonce))
 	http.Redirect(w, r, loginURL, http.StatusFound)
@@ -175,6 +187,10 @@ func (a *OIDCAuthenticator) HandleCallback(w http.ResponseWriter, r *http.Reques
 	secureCookies := shouldUseSecureCookies(r, a.oauthConfig.RedirectURL)
 	clearCookie(w, authStateCookieName, secureCookies)
 	clearCookie(w, authNonceCookieName, secureCookies)
+	returnToCookie, err := r.Cookie(authReturnToCookieName)
+	if err == nil {
+		clearCookie(w, authReturnToCookieName, secureCookies)
+	}
 
 	ctx := context.WithValue(r.Context(), oauth2.HTTPClient, a.httpClient)
 	token, err := a.oauthConfig.Exchange(ctx, code)
@@ -218,27 +234,41 @@ func (a *OIDCAuthenticator) HandleCallback(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	http.Redirect(w, r, a.postLoginPath, http.StatusSeeOther)
+	redirectTarget := a.postLoginPath
+	if returnToCookie != nil && strings.TrimSpace(returnToCookie.Value) != "" {
+		redirectTarget = returnToCookie.Value
+	}
+	http.Redirect(w, r, redirectTarget, http.StatusSeeOther)
 }
 
 func (a *OIDCAuthenticator) HandleLogout(w http.ResponseWriter, r *http.Request) {
 	a.sessions.ClearSession(w, r)
-	http.Redirect(w, r, a.buildLogoutRedirectURL(), http.StatusSeeOther)
+	returnTo, err := a.resolveRequestedRedirect(r, r.URL.Query().Get("return_to"))
+	if err != nil {
+		http.Error(w, "invalid return_to parameter", http.StatusBadRequest)
+		return
+	}
+	http.Redirect(w, r, a.buildLogoutRedirectURL(returnTo), http.StatusSeeOther)
 }
 
-func (a *OIDCAuthenticator) buildLogoutRedirectURL() string {
+func (a *OIDCAuthenticator) buildLogoutRedirectURL(returnTo string) string {
+	fallback := a.postLoginPath
+	if strings.TrimSpace(returnTo) != "" {
+		fallback = returnTo
+	}
+
 	if strings.TrimSpace(a.discovery.EndSessionEndpoint) == "" {
-		return a.postLoginPath
+		return fallback
 	}
 
 	endSessionURL, err := url.Parse(a.discovery.EndSessionEndpoint)
 	if err != nil {
-		return a.postLoginPath
+		return fallback
 	}
 
-	postLogoutURL, err := derivePostLogoutRedirectURL(a.oauthConfig.RedirectURL)
+	postLogoutURL, err := derivePostLogoutRedirectURL(a.oauthConfig.RedirectURL, fallback)
 	if err != nil {
-		return a.postLoginPath
+		return fallback
 	}
 
 	query := endSessionURL.Query()
@@ -250,7 +280,11 @@ func (a *OIDCAuthenticator) buildLogoutRedirectURL() string {
 	return endSessionURL.String()
 }
 
-func derivePostLogoutRedirectURL(redirectURL string) (string, error) {
+func derivePostLogoutRedirectURL(redirectURL, fallback string) (string, error) {
+	if strings.TrimSpace(fallback) != "" {
+		return fallback, nil
+	}
+
 	parsed, err := url.Parse(strings.TrimSpace(redirectURL))
 	if err != nil {
 		return "", err
@@ -263,6 +297,69 @@ func derivePostLogoutRedirectURL(redirectURL string) (string, error) {
 	parsed.RawQuery = ""
 	parsed.Fragment = ""
 	return parsed.String(), nil
+}
+
+func (a *OIDCAuthenticator) resolveRequestedRedirect(r *http.Request, rawValue string) (string, error) {
+	value := strings.TrimSpace(rawValue)
+	if value == "" {
+		return "", nil
+	}
+
+	if strings.HasPrefix(value, "/") {
+		return value, nil
+	}
+
+	parsed, err := url.Parse(value)
+	if err != nil {
+		return "", err
+	}
+	if parsed.Scheme != "http" && parsed.Scheme != "https" {
+		return "", errors.New("return_to must use http or https")
+	}
+	if parsed.Host == "" {
+		return "", errors.New("return_to must include a host")
+	}
+
+	redirectURL, err := url.Parse(strings.TrimSpace(a.oauthConfig.RedirectURL))
+	if err != nil {
+		return "", err
+	}
+
+	allowedHosts := []string{
+		hostWithoutPort(r.Host),
+		hostWithoutPort(redirectURL.Host),
+		redirectURL.Hostname(),
+	}
+	for _, host := range allowedHosts {
+		if hostnamesMatch(parsed.Hostname(), host) {
+			return parsed.String(), nil
+		}
+	}
+
+	return "", errors.New("return_to host is not allowed")
+}
+
+func hostWithoutPort(value string) string {
+	host := strings.TrimSpace(value)
+	if host == "" {
+		return ""
+	}
+	if parsedHost, _, err := net.SplitHostPort(host); err == nil {
+		return parsedHost
+	}
+	return host
+}
+
+func hostnamesMatch(a, b string) bool {
+	left := strings.ToLower(strings.TrimSpace(a))
+	right := strings.ToLower(strings.TrimSpace(b))
+	if left == "" || right == "" {
+		return false
+	}
+	if left == right {
+		return true
+	}
+	return (left == "localhost" && right == "127.0.0.1") || (left == "127.0.0.1" && right == "localhost")
 }
 
 func (a *OIDCAuthenticator) verifyIDToken(ctx context.Context, rawIDToken, expectedNonce string) (*idTokenClaims, error) {

@@ -16,11 +16,11 @@
 
 ## Auth Redirects
 
-- [ ] Make post-login redirect configurable in `pkg/auth/oidc.go`
-- [ ] Ensure client login lands on the portal route
-- [ ] Ensure stylist login lands on the stylist route
-- [ ] Ensure logout returns the browser to the intended public route
-- [ ] Remove the current manual step of navigating back from the backend root after login
+- [x] Add request-driven post-login redirect support in `pkg/auth/oidc.go` via validated `return_to`
+- [x] Ensure client login can land on the portal route
+- [ ] Ensure stylist login lands on the stylist route once the stylist auth entrypoint is exposed in the runtime shell
+- [x] Ensure logout can return the browser to the intended public route
+- [x] Remove the current manual step of navigating back from the backend root after login
 
 ## Non-MVP Scope Cleanup
 

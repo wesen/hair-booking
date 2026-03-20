@@ -68,3 +68,28 @@ Validation for this slice:
 ```bash
 npm --prefix web run typecheck
 ```
+
+### Second Implementation Slice
+
+The second code slice focused on the login/logout round-trip.
+
+What changed:
+
+- `pkg/auth/oidc.go` now accepts a validated `return_to` query parameter on `/auth/login`
+- the desired destination is stored in a short-lived cookie through the OIDC redirect
+- `/auth/callback` now redirects to that requested destination after session creation
+- `/auth/logout` can now return the browser to a requested public destination
+- frontend sign-in and sign-out actions now pass explicit return targets
+
+Why this approach was used:
+
+- the local SPA runs on `127.0.0.1:5175`
+- the OIDC callback runs on `127.0.0.1:8080`
+- a fixed `"/"` post-login path cannot return the browser to the SPA correctly in that setup
+
+Validation for this slice:
+
+```bash
+go test ./...
+npm --prefix web run typecheck
+```

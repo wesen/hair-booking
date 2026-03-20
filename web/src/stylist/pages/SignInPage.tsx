@@ -3,6 +3,7 @@ import { goToScreen } from "../store/consultationSlice";
 import { useSessionBootstrap } from "../store/api";
 import { ConsultNavBar } from "../components/ConsultNavBar";
 import { Icon } from "../components/Icon";
+import { buildAuthPath, buildRuntimeURL, resolveLoginReturnTo } from "../utils/authNavigation";
 
 interface SignInPageProps {
   context?: "booking" | "portal";
@@ -16,11 +17,12 @@ export function SignInPage({ context = "booking", onBack }: SignInPageProps) {
   const showNav = context === "booking";
 
   const handleLogin = () => {
-    window.location.assign(session.loginPath);
+    const returnTo = resolveLoginReturnTo(context);
+    window.location.assign(buildAuthPath(session.loginPath, returnTo));
   };
 
   const handleLogout = () => {
-    window.location.assign(session.logoutPath);
+    window.location.assign(buildAuthPath(session.logoutPath, buildRuntimeURL("/")));
   };
 
   return (
@@ -82,7 +84,7 @@ export function SignInPage({ context = "booking", onBack }: SignInPageProps) {
           <>
             <div style={{ textAlign: "center", marginBottom: 20, fontSize: 14, color: "var(--color-text-muted)", lineHeight: 1.7 }}>
               Secure sign in now runs through {session.authMode === "oidc" ? "Keycloak" : "the configured browser auth flow"}.
-              Use your normal email and password there, then return to the app.
+              Use your normal email and password there and the browser will return to the correct app section.
             </div>
 
             <button

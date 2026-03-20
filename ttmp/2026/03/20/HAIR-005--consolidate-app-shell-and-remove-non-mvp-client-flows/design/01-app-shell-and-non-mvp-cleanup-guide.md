@@ -135,12 +135,17 @@ The OIDC callback should not blindly land on `/`.
 
 At minimum:
 
-- make post-login target configurable
+- make post-login target request-aware
 - set a sane default route for each audience
 
 If the login entry is portal-specific, land on `/portal`.
 
 If the login entry is stylist-specific, land on `/stylist`.
+
+Implementation note for this repo:
+
+- the current slice uses a validated `return_to` parameter stored in a short-lived cookie across the OIDC round-trip
+- this is necessary in local development because the SPA and callback host are on different ports
 
 ### 3. Remove Visible Non-MVP Features
 
