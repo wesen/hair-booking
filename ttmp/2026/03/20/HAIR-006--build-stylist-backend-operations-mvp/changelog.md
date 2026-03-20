@@ -9,3 +9,5 @@
 - Added single-stylist authorization bootstrap from OIDC email or subject allowlists
 - Added `/api/stylist/me` and shared stylist-session authorization checks
 - Added automated tests plus a manual local-Keycloak smoke playbook for stylist auth
+- Added `0004_add_intake_reviews.sql` for persisted stylist review state with checked status and priority values
+- Validated the new migration by applying the full embedded migration set to a disposable local Postgres database

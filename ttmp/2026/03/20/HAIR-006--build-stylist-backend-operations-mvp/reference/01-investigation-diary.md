@@ -72,3 +72,21 @@ Validation for the slice covered both automated and real-session paths:
 - a real browser login as `alice` through local Keycloak returned `200` from `/api/stylist/me`
 
 This closes the first gating concern for HAIR-006: later stylist routes can now use one shared `currentStylist` guard instead of repeating ad hoc auth checks in each handler.
+
+The next slice added the core schema primitive for stylist workflow state: `intake_reviews`.
+
+The table was added in `0004_add_intake_reviews.sql` with:
+
+- one row per intake through `unique intake_id`
+- default `status = 'new'`
+- default `priority = 'normal'`
+- explicit `check` constraints for both workflow status and priority values
+
+This matters because the intake-review API should not need to invent review state on the fly. A persisted review row gives the stylist queue and detail screens somewhere stable to store triage status, quote ranges, and internal notes.
+
+Validation for the migration used two layers:
+
+- `go test ./...` to keep the embedded migration list in sync
+- a disposable Postgres database to apply all embedded migrations in order, including `0004_add_intake_reviews.sql`
+
+The first attempt at the disposable migration check prompted for a password because the shell did not have `PGPASSWORD` set. The rerun succeeded once the local dev password was exported explicitly. That is worth keeping in the diary because the same issue can make future migration validation look like a SQL problem when it is really just shell configuration.
