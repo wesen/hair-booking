@@ -13,8 +13,8 @@ Intent: long-term
 Owners: []
 RelatedFiles: []
 ExternalSources: []
-Summary: Detailed implementation ticket for replacing the mock stylist runtime with a real RTK Query-backed operations frontend.
-LastUpdated: 2026-03-20T09:07:11.914571936-04:00
+Summary: Detailed implementation ticket for replacing the mock stylist runtime with a real RTK Query-backed single-stylist operations frontend.
+LastUpdated: 2026-03-20T16:20:00-04:00
 WhatFor: Use this ticket to build the real stylist dashboard, intake review, appointment, and client detail frontend.
 WhenToUse: Use once the route shell is being consolidated and the stylist backend contract is defined.
 ---
@@ -23,7 +23,7 @@ WhenToUse: Use once the route shell is being consolidated and the stylist backen
 
 ## Overview
 
-This ticket isolates the frontend work needed to turn the current mock stylist app into a real workflow surface for daily salon operations.
+This ticket isolates the frontend work needed to turn the current mock stylist app into a real workflow surface for daily single-stylist salon operations.
 
 ## Key Links
 

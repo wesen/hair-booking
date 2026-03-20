@@ -10,8 +10,8 @@ Intent: long-term
 Owners: []
 RelatedFiles: []
 ExternalSources: []
-Summary: Detailed implementation ticket for the backend schema, authz, and API work needed to make the stylist workflow real.
-LastUpdated: 2026-03-20T09:07:11.908916255-04:00
+Summary: Detailed implementation ticket for the backend schema, authz, and API work needed to make the single-stylist workflow real.
+LastUpdated: 2026-03-20T16:20:00-04:00
 WhatFor: Use this ticket to implement the backend surface for stylist intake review, appointment operations, and client context.
 WhenToUse: Use after the MVP review when beginning the real stylist operations backend.
 ---
@@ -20,7 +20,7 @@ WhenToUse: Use after the MVP review when beginning the real stylist operations b
 
 ## Overview
 
-This ticket isolates the backend work needed to let the stylist operate inside the app. It covers schema additions, staff authz, stylist-facing routes, and test coverage for intake review and appointment operations.
+This ticket isolates the backend work needed to let the stylist operate inside the app. It covers schema additions, single-stylist authorization, stylist-facing routes, and test coverage for intake review and appointment operations.
 
 ## Key Links
 

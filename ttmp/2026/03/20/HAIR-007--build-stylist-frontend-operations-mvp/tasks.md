@@ -5,6 +5,7 @@
 - [ ] Confirm final stylist navigation structure
 - [ ] Confirm which presentational widgets are worth reusing versus retiring
 - [ ] Confirm stylist route placement under the consolidated app shell
+- [x] Confirm stylist workflow assumes one operator and no staff-switching UI
 
 ## Data Layer
 
@@ -44,6 +45,7 @@
 - [ ] Remove seeded stylist domain data from runtime pages
 - [ ] Keep Storybook fixtures isolated from runtime hydration
 - [ ] Retire or shrink slices that only existed for demo data
+- [ ] Avoid introducing staff-switching, assignment, or multi-operator controls
 
 ## Testing And Validation
 

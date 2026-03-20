@@ -19,8 +19,8 @@ RelatedFiles:
     - Path: web/src/stylist/data/constants.ts
       Note: Seeded runtime data to retire
 ExternalSources: []
-Summary: Short diary describing why HAIR-007 was created and what it is intended to replace.
-LastUpdated: 2026-03-20T09:45:00-04:00
+Summary: Short diary describing why HAIR-007 was created and how the plan was simplified for a single-stylist MVP.
+LastUpdated: 2026-03-20T16:20:00-04:00
 WhatFor: Use this diary to understand the purpose and boundary of the stylist frontend ticket.
 WhenToUse: Use while implementing or reviewing HAIR-007.
 ---
@@ -38,3 +38,11 @@ The main review findings were:
 - loyalty and referral concepts are still mixed into runtime
 
 This ticket exists to replace that mock runtime with a real dashboard, queue, appointment, and client workflow.
+
+The product direction was later clarified as single stylist for MVP. That means the frontend should not spend time on:
+
+- staff pickers
+- appointment assignment controls
+- multi-operator queue filters
+
+The right target is one operator dashboard with clear review, schedule, and client context.

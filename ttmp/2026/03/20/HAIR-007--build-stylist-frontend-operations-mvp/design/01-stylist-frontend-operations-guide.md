@@ -29,8 +29,8 @@ RelatedFiles:
     - Path: web/src/stylist/data/constants.ts
       Note: Seeded stylist-side data to retire from runtime
 ExternalSources: []
-Summary: Detailed guide for replacing the mock stylist runtime with a real operations UI backed by stylist APIs.
-LastUpdated: 2026-03-20T09:44:00-04:00
+Summary: Detailed guide for replacing the mock stylist runtime with a real single-stylist operations UI backed by stylist APIs.
+LastUpdated: 2026-03-20T16:20:00-04:00
 WhatFor: Use this guide to build the real stylist dashboard, queue, appointment, and client views.
 WhenToUse: Use after the route shell is stabilizing and the stylist backend contract is available.
 ---
@@ -47,6 +47,8 @@ This ticket should replace the current mock-heavy admin-like experience with a r
 - seeing today’s work
 - managing appointments
 - opening client context
+
+This is a single-stylist MVP. The frontend should not assume staff assignment, staff switching, or multi-operator scheduling.
 
 ## Problem Statement
 
@@ -85,6 +87,8 @@ Recommended additions:
 
 Do not keep runtime dependence on seeded data files.
 
+Do not invent multi-staff abstractions in the frontend before the backend needs them.
+
 ## Screen Design
 
 ### Dashboard
@@ -94,6 +98,7 @@ Must answer:
 - what needs attention today
 - what new intakes exist
 - what upcoming appointments matter right now
+- what the one stylist should handle next
 
 ### Intake Queue
 
@@ -102,6 +107,7 @@ Must answer:
 - what intake submissions are new
 - what is already in review
 - which items are urgent
+- without any reviewer ownership or assignment concepts
 
 ### Intake Detail
 
@@ -118,6 +124,7 @@ Must answer:
 - what is scheduled
 - what prep or stylist notes are attached
 - what intake context is linked to the appointment
+- without exposing stylist assignment controls
 
 ### Client List And Detail
 
@@ -172,6 +179,7 @@ Bad reuse:
 - loyalty-specific widgets
 - referral widgets
 - anything whose copy assumes points or rewards
+- anything that implies multiple operators if the underlying workflow is single stylist
 
 ## Validation
 
@@ -182,6 +190,7 @@ At minimum, confirm:
 - stylist can save review changes
 - stylist can open appointments and update notes/status
 - stylist can open client detail
+- the runtime never asks the stylist to choose between operators or assignments
 
 ## Acceptance Criteria
 

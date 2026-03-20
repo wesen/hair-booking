@@ -2,24 +2,23 @@
 
 ## Analysis And Decisions
 
-- [ ] Confirm whether MVP is single-stylist only or must support assignment now
-- [ ] Confirm what staff roles exist in MVP
-- [ ] Confirm whether intake review state should live in a dedicated table
+- [x] Confirm MVP is single-stylist only and does not need assignment yet
+- [x] Confirm there is one stylist operator role for MVP
+- [x] Confirm intake review state should live in a dedicated table
 
 ## Schema And Migrations
 
-- [ ] Add `staff_users`
 - [ ] Add `intake_reviews`
-- [ ] Decide whether to add `appointments.stylist_id`
+- [ ] Keep `appointments` unassigned for MVP and document why `stylist_id` is intentionally omitted
 - [ ] Add supporting indexes for stylist queue and search use cases
-- [ ] Add local/dev seed data for at least one staff user
+- [ ] Add local/dev seed data for intake review workflows without introducing stylist rows
 
-## Staff Auth And Authorization
+## Stylist Auth And Authorization
 
-- [ ] Add staff identity bootstrap from OIDC session
-- [ ] Add stylist/staff authorization middleware
+- [ ] Add single-stylist authorization bootstrap from OIDC session or claims
+- [ ] Add stylist authorization middleware
 - [ ] Add `GET /api/stylist/me`
-- [ ] Ensure non-staff users cannot access stylist endpoints
+- [ ] Ensure client users cannot access stylist endpoints
 
 ## Intake Review APIs
 
@@ -53,7 +52,7 @@
 
 ## Testing And Validation
 
-- [ ] Add service tests for staff bootstrap/authz
+- [ ] Add service tests for stylist bootstrap/authz
 - [ ] Add service tests for intake review transitions
 - [ ] Add service tests for stylist appointment updates
 - [ ] Add HTTP tests for authorization and handler validation

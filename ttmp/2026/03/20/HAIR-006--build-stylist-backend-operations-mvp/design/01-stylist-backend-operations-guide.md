@@ -22,8 +22,8 @@ RelatedFiles:
     - Path: pkg/intake/service.go
       Note: Existing intake logic and repository boundaries
 ExternalSources: []
-Summary: Detailed guide for adding the backend schema, authz, and API surface that makes the stylist workflow real.
-LastUpdated: 2026-03-20T09:42:00-04:00
+Summary: Detailed guide for adding the backend schema, authz, and API surface that makes the single-stylist workflow real.
+LastUpdated: 2026-03-20T16:20:00-04:00
 WhatFor: Use this guide to implement the missing stylist operations backend for the booking MVP.
 WhenToUse: Use before or alongside the stylist frontend implementation.
 ---
@@ -36,7 +36,7 @@ The current backend supports the client side of the booking workflow. It does no
 
 This ticket adds the missing operational layer:
 
-- staff identity
+- stylist identity
 - stylist authorization
 - intake review state
 - stylist-facing dashboard and detail endpoints
@@ -63,24 +63,15 @@ That gap makes the current product unsuitable as a real stylist workflow tool.
 
 ## Proposed Data Model
 
-### Staff Users
+### Single-Stylist Authorization
 
-```yaml
-staff_users:
-  id: uuid PK
-  auth_subject: text UNIQUE NOT NULL
-  auth_issuer: text NOT NULL
-  name: text NOT NULL
-  email: text
-  role: text NOT NULL
-  is_active: bool default true
-  created_at: timestamptz
-  updated_at: timestamptz
-```
+The MVP is single stylist. Do not add `staff_users` yet.
 
-Purpose:
+Instead:
 
-- map authenticated Keycloak identities to staff capability
+- gate stylist routes with a dedicated Keycloak role or claim
+- optionally expose the authenticated operator through `GET /api/stylist/me`
+- keep the backend authorization layer simple enough that a future `staff_users` table can still be added later if the salon grows
 
 ### Intake Reviews
 
@@ -88,18 +79,18 @@ Purpose:
 intake_reviews:
   id: uuid PK
   intake_id: uuid FK -> intake_submissions UNIQUE NOT NULL
-  reviewer_id: uuid FK -> staff_users
   status: text NOT NULL
   priority: text NOT NULL
   summary: text
   internal_notes: text
-  quoted_service_id: uuid FK -> services
   quoted_price_low: int
   quoted_price_high: int
   reviewed_at: timestamptz
   created_at: timestamptz
   updated_at: timestamptz
 ```
+
+`quoted_service_id` can be deferred unless the stylist UI actually needs to attach a normalized service recommendation in MVP. The simpler first slice is quote range plus review notes.
 
 Suggested allowed `status` values:
 
@@ -114,16 +105,15 @@ Suggested allowed `priority` values:
 - `normal`
 - `urgent`
 
-### Optional Appointment Assignment
+### Appointment Ownership
 
-If assignment matters for MVP, add:
+Do not add `appointments.stylist_id` in MVP.
 
-```yaml
-appointments:
-  stylist_id: uuid FK -> staff_users
-```
+Reason:
 
-If the MVP is truly single-stylist, this can be deferred.
+- there is only one stylist
+- assignment would be dead weight in the schema and handlers
+- it can be added later in a forward-compatible migration if multi-stylist scheduling becomes real
 
 ## API Surface
 
@@ -144,42 +134,40 @@ GET /api/stylist/clients/:id
 
 ## Authorization Design
 
-The backend should not infer staff access from client identity. Add a dedicated staff bootstrap path.
+The backend should not infer stylist access from client identity. Add a dedicated stylist bootstrap path.
 
 Pseudocode:
 
 ```text
-currentStaff(request):
+currentStylist(request):
   claims = current session claims
   if no claims:
     return unauthorized
 
-  staff = find staff by issuer + subject
-  if no staff or inactive:
+  if claims do not contain the required stylist capability:
     return forbidden
 
-  return staff
+  return stylist session context
 ```
 
 ## Package Design Recommendation
 
 Recommended additions:
 
-- `pkg/staff`
 - `pkg/stylist`
 
 Rationale:
 
-- `pkg/staff` keeps identity/bootstrap/authz concerns separate
-- `pkg/stylist` can own queue and aggregate views without bloating existing client/public packages
+- `pkg/stylist` can own authorization helpers, queue logic, and aggregate views without bloating existing client/public packages
+- a separate `pkg/staff` package is unnecessary until the product actually supports multiple operators
 
 ## Implementation Order
 
 ### Phase 1: Schema And Identity
 
 - add migrations
-- add seed data
-- add staff bootstrap service
+- add seed data for review states
+- add stylist bootstrap service
 - add auth middleware
 
 ### Phase 2: Intake Review
@@ -204,14 +192,14 @@ Rationale:
 
 ## Testing Requirements
 
-- service tests for staff auth and review rules
+- service tests for stylist auth and review rules
 - repository tests for new joins and filters
 - HTTP tests for auth failures and payload validation
 - full `go test ./...`
 
 ## Acceptance Criteria
 
-- stylist can authenticate as staff
+- stylist can authenticate as stylist
 - stylist can view new intakes
 - stylist can open an intake and save review state
 - stylist can list appointments and update operational notes
