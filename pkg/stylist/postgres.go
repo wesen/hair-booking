@@ -107,8 +107,8 @@ func (r *PostgresRepository) GetIntake(ctx context.Context, intakeID uuid.UUID) 
 
 	row := r.pool.QueryRow(ctx, `
 select
-  i.id,
-  i.client_id,
+  coalesce(i.id::text, ''),
+  coalesce(i.client_id::text, ''),
   i.service_type,
   coalesce(i.hair_length, ''),
   coalesce(i.hair_density, ''),
@@ -331,8 +331,8 @@ select
   coalesce(a.stylist_notes, ''),
   a.cancelled_at,
   coalesce(a.cancel_reason, ''),
-  c.auth_subject,
-  c.auth_issuer,
+  coalesce(c.auth_subject, ''),
+  coalesce(c.auth_issuer, ''),
   coalesce(c.email, ''),
   coalesce(c.phone, ''),
   coalesce(c.scalp_notes, ''),
@@ -370,6 +370,7 @@ where a.id = $1
 	client := &hairclients.Client{}
 	intake := &hairintake.Submission{}
 	var intakeIDText sql.NullString
+	var intakeClientIDText string
 	var intakeDesiredLength sql.NullInt64
 	var cancelledAt sql.NullTime
 	var clientCreatedAt time.Time
@@ -397,7 +398,7 @@ where a.id = $1
 		&clientCreatedAt,
 		&clientUpdatedAt,
 		&intakeIDText,
-		&intake.ClientID,
+		&intakeClientIDText,
 		&intake.ServiceType,
 		&intake.HairLength,
 		&intake.HairDensity,
@@ -436,6 +437,13 @@ where a.id = $1
 			return nil, errors.Wrap(err, "failed to parse linked intake id")
 		}
 		intake.ID = parsedIntakeID
+		if strings.TrimSpace(intakeClientIDText) != "" {
+			parsedClientID, err := uuid.Parse(intakeClientIDText)
+			if err != nil {
+				return nil, errors.Wrap(err, "failed to parse linked intake client id")
+			}
+			intake.ClientID = &parsedClientID
+		}
 		if intakeDesiredLength.Valid {
 			intake.DesiredLength = int(intakeDesiredLength.Int64)
 		}
@@ -1103,8 +1111,8 @@ func (r *PostgresRepository) loadClientBaseDetail(ctx context.Context, clientID 
 	row := r.pool.QueryRow(ctx, `
 select
   c.id,
-  c.auth_subject,
-  c.auth_issuer,
+  coalesce(c.auth_subject, ''),
+  coalesce(c.auth_issuer, ''),
   c.name,
   coalesce(c.email, ''),
   coalesce(c.phone, ''),
