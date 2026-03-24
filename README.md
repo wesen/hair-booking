@@ -11,6 +11,7 @@ This repo includes its own local Keycloak stack and realm import so it can be te
 
 For day-to-day operations, see [docs/operations-playbook.md](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/operations-playbook.md).
 For hosted deployment, see [docs/deployments/hair-booking-coolify.md](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/deployments/hair-booking-coolify.md).
+For the operator deployment runbook, see [docs/deployments/hair-booking-coolify-playbook.md](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/deployments/hair-booking-coolify-playbook.md).
 For Keycloak client provisioning, see the central infra repo at [keycloak/README.md](/home/manuel/code/wesen/terraform/keycloak/README.md).
 
 ## Features
