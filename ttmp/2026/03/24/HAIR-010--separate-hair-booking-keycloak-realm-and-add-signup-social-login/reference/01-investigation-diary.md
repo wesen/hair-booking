@@ -18,7 +18,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Diary for the auth-separation work that moves hair-booking to its own Keycloak realm with local signup and social login.
-LastUpdated: 2026-03-24T23:55:00-04:00
+LastUpdated: 2026-03-25T00:10:00-04:00
 WhatFor: Use this to understand why the Keycloak plan moved into its own docmgr ticket and what conclusions were reached from the official docs.
 WhenToUse: Use while implementing or reviewing HAIR-010.
 ---
@@ -72,12 +72,15 @@ Later the user asked for a more implementation-heavy guide that explains how the
 
 The most important infrastructure finding is that the hosted `hair-booking` Terraform workspace still does **not** own a realm. It only manages one browser client inside `smailnail`. In contrast, local `hair-booking` Terraform already creates its own realm, and hosted `smailnail` already demonstrates the full hosted-realm ownership pattern. That means the migration should not invent a new Terraform architecture. It should promote hosted `hair-booking` into an ownership model that already exists elsewhere in the shared repo.
 
-One subtle operational risk also became obvious during that review: a naive edit to the hosted `hair-booking` workspace could cause Terraform to replace the shared-realm `hair-booking-web` client before the app has been cut over to the new issuer. The updated guide therefore recommends a safer overlap phase:
+After that Terraform review, the user clarified an important product fact: this auth setup is still pre-production. That changes the migration recommendation materially.
 
-- create the new `hair-booking` realm first
-- create a dedicated `hair-booking-web` client inside that new realm
-- keep the legacy shared-realm client alive during the app cutover window
-- switch the hosted app to the new issuer and secret
-- remove the legacy client only after the hosted login flow is proven stable
+Because there are no real customer users depending on login continuity yet, the guide no longer needs a temporary overlap phase. The cleaner approach is now a hard cutover:
+
+- update hosted `hair-booking` Terraform so it owns the `hair-booking` realm directly
+- create the dedicated `hair-booking-web` client in that realm
+- switch the app to the new issuer and secret
+- remove stale shared-realm assumptions from docs and deployment examples
+
+That is simpler, easier for an intern to reason about, and better aligned with the real stage of the product.
 
 The Terraform review also confirmed that social-provider rollout should probably be split from the realm migration. The shared Terraform repo currently has reusable realm and browser-client modules, but no existing identity-provider resources. So Google and Facebook should be treated as a second, follow-on codification step after the dedicated realm is stable.

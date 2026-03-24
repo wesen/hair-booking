@@ -14,21 +14,20 @@
 ## Terraform Realm Migration Design
 
 - [ ] Add hosted `hair-booking` realm ownership to `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/main.tf`
-- [ ] Add hosted `realm_display_name` and migration variables to `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/variables.tf`
-- [ ] Design a safe overlap phase that keeps the legacy shared-realm browser client alive during cutover
+- [ ] Add hosted `realm_display_name` and dedicated-realm variables to `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/variables.tf`
+- [ ] Remove the shared-realm-only ownership model from the hosted `hair-booking` workspace
 - [ ] Validate that the hosted plan creates a new `hair-booking` realm without destroying unrelated shared-realm resources
-- [ ] Document the hosted cleanup phase that removes the old shared-realm client after cutover
+- [ ] Document the hard pre-production cutover sequence in the implementation guide
 
 ## Realm Separation Execution
 
 - [ ] Create hosted realm `hair-booking`
 - [ ] Create dedicated hosted `hair-booking-web` client in the new realm
-- [ ] Keep legacy shared `hair-booking-web` client alive during the overlap window
 - [ ] Configure hosted redirect URI for `https://hair-booking.app.scapegoat.dev/auth/callback`
 - [ ] Configure hosted web origin for `https://hair-booking.app.scapegoat.dev`
 - [ ] Update hosted app env to use the `hair-booking` realm issuer
 - [ ] Redeploy hosted app after the dedicated realm exists
-- [ ] Remove the legacy shared-realm `hair-booking-web` client after successful hosted validation
+- [ ] Remove stale hosted docs and examples that still describe `hair-booking` as a shared-realm client
 
 ## Local Alignment
 

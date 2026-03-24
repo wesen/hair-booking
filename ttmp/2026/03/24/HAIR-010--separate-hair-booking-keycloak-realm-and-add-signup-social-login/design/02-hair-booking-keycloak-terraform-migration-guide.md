@@ -27,9 +27,9 @@ RelatedFiles:
 ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
-Summary: Detailed design and rollout guide for moving hair-booking Keycloak ownership into the shared Terraform repo, including safe hosted cutover sequencing and social-login follow-up recommendations.
-LastUpdated: 2026-03-24T23:55:00-04:00
-WhatFor: Use this to implement the Keycloak Terraform work safely without cutting over production auth prematurely.
+Summary: Detailed design and rollout guide for moving hair-booking Keycloak ownership into the shared Terraform repo, using a hard pre-production cutover to a dedicated realm plus social-login follow-up recommendations.
+LastUpdated: 2026-03-25T00:10:00-04:00
+WhatFor: Use this to implement the Keycloak Terraform work safely and directly now that hosted auth is still pre-production.
 WhenToUse: Use before editing /home/manuel/code/wesen/terraform or changing hosted hair-booking OIDC env vars.
 ---
 
@@ -39,7 +39,7 @@ WhenToUse: Use before editing /home/manuel/code/wesen/terraform or changing host
 
 `hair-booking` is no longer at the stage where it should authenticate against the shared `smailnail` realm as a tenant-style add-on. It now has its own hosted domain, its own customer population, and its own product-specific login requirements. That means the correct next step is to make `hair-booking` own a dedicated Keycloak realm in Terraform, while still reusing the same Keycloak server deployment at `https://auth.scapegoat.dev`.
 
-The important operational detail is that the current hosted Terraform workspace for `hair-booking` does not own a realm. It only owns one browser client inside `smailnail`. If an intern edits that workspace in a naive way, Terraform can destroy the old shared-realm client before the app has finished cutting over to the new realm. This guide exists to prevent that mistake. The safest approach is a staged migration: create the new realm and new browser client first, switch the app to the new issuer and secret, validate login, and only then remove the old shared-realm client definition.
+The important operational detail is that the current hosted Terraform workspace for `hair-booking` does not own a realm. It only owns one browser client inside `smailnail`. Because the app is not in real production yet, the migration does **not** need a temporary overlap phase. The simplest and best approach is a hard cutover: change the hosted Terraform workspace so it owns the `hair-booking` realm directly, apply that change, update the app to the new issuer and secret, and stop carrying the old shared-realm shape forward.
 
 ## What This System Actually Is
 
@@ -217,90 +217,61 @@ Manual Keycloak admin changes are acceptable only for:
 
 They should not be the steady-state system of record.
 
-## One Critical Migration Rule
+## Hard Cutover Rule
 
-Do **not** replace the current shared-realm client definition in one step.
+This migration should be implemented as a hard cutover, not as a temporary overlap.
 
-If you do that, Terraform can produce a plan that effectively means:
+Why that is acceptable here:
 
-1. destroy old client in `smailnail`
-2. create new realm
-3. create new client in `hair-booking`
+- the app is not yet in real customer production
+- we do not need to preserve live login continuity
+- carrying a temporary legacy client path makes the Terraform and documentation more confusing
+- the long-term end state is already clear
 
-Even if Terraform does not literally execute in that order, the logical effect is still dangerous because the production app may still be pointing at the old issuer while the old client is being changed or destroyed.
+That means the hosted `hair-booking` Terraform workspace should move directly from:
 
-The safe migration requires an overlap window.
+- shared-realm client only
 
-## Safe Hosted Migration Design
+to:
 
-### Phase A: dual-definition overlap
+- dedicated `hair-booking` realm
+- dedicated `hair-booking-web` client inside that realm
 
-Add the dedicated realm and a dedicated browser client while keeping the legacy shared-realm client alive.
+in one coherent change set.
 
-Recommended temporary shape:
+## Hosted Migration Design
+
+The migration should be a single clean promotion of hosted `hair-booking` into realm ownership.
+
+Recommended shape:
 
 ```hcl
 module "realm" {
-  source                      = "../../../../modules/realm-base"
-  realm_name                  = var.realm_name
-  display_name                = var.realm_display_name
-  registration_allowed        = true
-  reset_password_allowed      = true
-  login_with_email_allowed    = true
-  duplicate_emails_allowed    = false
+  source                   = "../../../../modules/realm-base"
+  realm_name               = var.realm_name
+  display_name             = var.realm_display_name
+  registration_allowed     = true
+  login_with_email_allowed = true
+  duplicate_emails_allowed = false
+  reset_password_allowed   = true
 }
 
-module "browser_client_dedicated" {
-  source        = "../../../../modules/browser-client"
-  realm_id      = module.realm.id
-  client_id     = var.browser_client_id
-  client_secret = var.web_client_secret
-}
-
-module "browser_client_legacy" {
-  source        = "../../../../modules/browser-client"
-  realm_id      = var.legacy_shared_realm_name
-  client_id     = var.browser_client_id
-  client_secret = var.legacy_web_client_secret
+module "browser_client" {
+  source                   = "../../../../modules/browser-client"
+  realm_id                 = module.realm.id
+  client_id                = var.browser_client_id
+  client_secret            = var.web_client_secret
+  manage_scope_attachments = false
+  valid_redirect_uris      = local.valid_redirect_uris
+  web_origins              = local.web_origins
 }
 ```
 
-Important notes:
-
-- the temporary legacy module name should be explicit, such as `browser_client_legacy`
-- the new module should also be explicit, such as `browser_client_dedicated`
-- this is intentionally a migration-only shape
-- client IDs can remain the same across different realms because realm isolation makes them distinct in Keycloak
-
-### Phase B: application cutover
-
-After Phase A is applied:
-
-1. update Coolify app env:
-   - `HAIR_BOOKING_OIDC_ISSUER_URL=https://auth.scapegoat.dev/realms/hair-booking`
-   - `HAIR_BOOKING_OIDC_CLIENT_ID=hair-booking-web`
-   - `HAIR_BOOKING_OIDC_CLIENT_SECRET=<new dedicated secret>`
-2. redeploy `hair-booking`
-3. verify browser login
-4. verify logout
-5. verify local `clients` bootstrap still works
-
-Only after that verification succeeds should the shared-realm legacy client be removed.
-
-### Phase C: cleanup
-
-Once the hosted app is stable on the dedicated realm:
-
-1. remove `module "browser_client_legacy"`
-2. remove temporary legacy variables
-3. re-run Terraform plan
-4. apply cleanup
-
-That leaves the workspace in the final dedicated-realm-only shape.
+There should be no migration-only `browser_client_legacy` module in this plan.
 
 ## Recommended Terraform End State
 
-Once the overlap is complete, the hosted `hair-booking` env should look conceptually like this:
+After the hard cutover, the hosted `hair-booking` env should look conceptually like this:
 
 ```hcl
 locals {
@@ -383,8 +354,6 @@ Add variables such as:
 
 - `realm_name` defaulting to `hair-booking`
 - `realm_display_name` defaulting to `hair-booking`
-- `legacy_shared_realm_name` defaulting to `smailnail`
-- `legacy_web_client_secret` if the temporary overlap client needs an independently managed secret
 - booleans only if needed for registration policy overrides
 
 Pseudocode:
@@ -400,10 +369,6 @@ variable "realm_display_name" {
   default = "hair-booking"
 }
 
-variable "legacy_shared_realm_name" {
-  type    = string
-  default = "smailnail"
-}
 ```
 
 ### Step 3: add hosted realm ownership
@@ -432,37 +397,14 @@ Reasoning:
 - duplicate emails create identity ambiguity
 - password reset is table stakes for a real consumer app
 
-### Step 4: implement temporary overlap client modules
+### Step 4: switch the hosted workspace to dedicated realm ownership
 
-During migration, keep both:
+Replace the current hosted `browser_client` module shape so it points at `module.realm.id` instead of `var.realm_name`.
 
-- dedicated client in new realm
-- legacy client in shared realm
+This is the critical Terraform change:
 
-This can be done with two module blocks or a conditional migration switch. For an intern, explicit duplicate module blocks are clearer and less error-prone than clever conditionals.
-
-Recommended short-lived variable:
-
-```hcl
-variable "keep_legacy_shared_client" {
-  type    = bool
-  default = true
-}
-```
-
-Recommended pattern:
-
-```hcl
-module "browser_client_legacy" {
-  count         = var.keep_legacy_shared_client ? 1 : 0
-  source        = "../../../../modules/browser-client"
-  realm_id      = var.legacy_shared_realm_name
-  client_id     = var.browser_client_id
-  client_secret = var.legacy_web_client_secret
-}
-```
-
-Using `count` here is acceptable because this is explicitly a migration-only module.
+- before: hosted workspace assumes a shared realm exists
+- after: hosted workspace creates and owns the `hair-booking` realm itself
 
 ### Step 5: validate Terraform before planning hosted changes
 
@@ -490,10 +432,8 @@ export TF_VAR_keycloak_username=...
 export TF_VAR_keycloak_password=...
 export TF_VAR_realm_name=hair-booking
 export TF_VAR_realm_display_name=hair-booking
-export TF_VAR_legacy_shared_realm_name=smailnail
 export TF_VAR_public_app_url=https://hair-booking.app.scapegoat.dev
 export TF_VAR_web_client_secret=...
-export TF_VAR_legacy_web_client_secret=...
 
 make plan-hair-booking
 ```
@@ -504,17 +444,17 @@ The plan should show something close to:
 
 - create realm `hair-booking`
 - create dedicated `hair-booking-web` client in that new realm
-- keep or continue managing legacy shared client during overlap
+- stop managing `hair-booking` as a shared-realm tenant
 
 The plan should **not** show:
 
 - destroy realm `smailnail`
 - modify unrelated `smailnail` clients
-- remove `hair-booking-web` from `smailnail` before the hosted app cutover is ready
+- change unrelated shared-platform resources
 
 If the plan is ambiguous, stop and refactor the Terraform shape before applying.
 
-### Step 7: apply the overlap phase
+### Step 7: apply the hard cutover phase
 
 Run:
 
@@ -527,7 +467,6 @@ Then verify in Keycloak:
 - realm `hair-booking` exists
 - browser client `hair-booking-web` exists inside it
 - registration is enabled
-- legacy shared client still exists in `smailnail`
 
 ### Step 8: update application runtime env
 
@@ -561,15 +500,13 @@ API checks after login:
 - `GET /api/me`
 - `GET /api/stylist/me`
 
-### Step 10: remove the legacy shared client
+### Step 10: clean up stale docs and examples
 
-Only after the hosted app is proven stable:
+After the hosted app is stable:
 
-1. set `keep_legacy_shared_client = false`
-2. remove legacy variables if the cleanup is ready
-3. run `make plan-hair-booking`
-4. confirm the only destructive change is the legacy client
-5. apply cleanup
+1. remove stale references to hosted `smailnail` usage from app docs
+2. update deployment examples to point to `https://auth.scapegoat.dev/realms/hair-booking`
+3. confirm the stable operator docs describe the new ownership model
 
 ## Social Provider Rollout And Terraform Boundaries
 
@@ -654,7 +591,6 @@ Even though Terraform owns the hosted realm, the app repo still needs coordinate
 - self-registration enabled
 - forgot-password enabled
 - `hair-booking-web` present in `hair-booking`
-- old `hair-booking-web` remains in `smailnail` during overlap
 
 ### Hosted app validation
 
@@ -667,15 +603,15 @@ Even though Terraform owns the hosted realm, the app repo still needs coordinate
 
 ## Common Failure Modes
 
-### Failure mode 1: destructive one-step plan
+### Failure mode 1: destructive plan touches unrelated shared resources
 
 Symptom:
 
-- plan wants to replace the existing shared client immediately
+- plan wants to modify or destroy more than the new `hair-booking` realm/client scope
 
 Fix:
 
-- reintroduce overlap with explicit legacy and dedicated client modules
+- refactor the hosted `hair-booking` workspace so it cleanly owns only the dedicated realm and client it is supposed to manage
 
 ### Failure mode 2: wrong secret after cutover
 
@@ -712,11 +648,11 @@ Fix:
 When reviewing a PR or change set for this migration, ask these questions in order:
 
 1. Does hosted `hair-booking` now own a realm in Terraform?
-2. Is there an overlap phase, or does the plan dangerously replace the old shared client immediately?
+2. Does the plan stay within `hair-booking` scope instead of mutating unrelated shared resources?
 3. Are registration and password-reset realm settings enabled deliberately?
 4. Do app runtime env examples now point to `https://auth.scapegoat.dev/realms/hair-booking`?
 5. Did the author separate realm migration from social-provider rollout?
-6. Is the cleanup of the legacy shared client deferred until after hosted validation?
+6. Did the author remove migration-only complexity instead of preserving it without need?
 
 ## Recommended Next Tickets After This Guide
 
@@ -727,4 +663,3 @@ After the Terraform realm migration is implemented, the next follow-up work shou
 3. decide whether Instagram should exist at all
 4. add hosted smoke tests for registration and broker login
 5. update the stable deployment and auth docs in the app repo
-
