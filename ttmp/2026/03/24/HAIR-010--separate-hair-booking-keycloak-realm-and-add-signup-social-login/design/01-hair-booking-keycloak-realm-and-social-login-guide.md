@@ -19,12 +19,16 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Recommended Keycloak target architecture for separating hair-booking from smailnail while supporting password signup plus Google and Meta-based login.
-LastUpdated: 2026-03-24T22:40:00-04:00
+LastUpdated: 2026-03-24T23:55:00-04:00
 WhatFor: Use this to scope the dedicated hosted realm, client configuration, self-registration path, and social login rollout order.
 WhenToUse: Use before changing the hosted issuer away from the shared smailnail realm.
 ---
 
 # hair-booking Keycloak Realm And Social Login Guide
+
+Companion document:
+
+- use [02-hair-booking-keycloak-terraform-migration-guide.md](./02-hair-booking-keycloak-terraform-migration-guide.md) for the detailed shared-Terraform rollout plan in `/home/manuel/code/wesen/terraform`
 
 ## Executive Summary
 

@@ -18,7 +18,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Diary for the auth-separation work that moves hair-booking to its own Keycloak realm with local signup and social login.
-LastUpdated: 2026-03-24T22:40:00-04:00
+LastUpdated: 2026-03-24T23:55:00-04:00
 WhatFor: Use this to understand why the Keycloak plan moved into its own docmgr ticket and what conclusions were reached from the official docs.
 WhenToUse: Use while implementing or reviewing HAIR-010.
 ---
@@ -67,3 +67,17 @@ The resulting recommendation is:
 3. Google
 4. Facebook
 5. Instagram only if the business case is strong enough to justify the extra maintenance and provider risk
+
+Later the user asked for a more implementation-heavy guide that explains how the Terraform work should actually happen. That forced a second pass over the infrastructure repo at `/home/manuel/code/wesen/terraform`, because the migration details are easy to get wrong if you only think in app-repo terms.
+
+The most important infrastructure finding is that the hosted `hair-booking` Terraform workspace still does **not** own a realm. It only manages one browser client inside `smailnail`. In contrast, local `hair-booking` Terraform already creates its own realm, and hosted `smailnail` already demonstrates the full hosted-realm ownership pattern. That means the migration should not invent a new Terraform architecture. It should promote hosted `hair-booking` into an ownership model that already exists elsewhere in the shared repo.
+
+One subtle operational risk also became obvious during that review: a naive edit to the hosted `hair-booking` workspace could cause Terraform to replace the shared-realm `hair-booking-web` client before the app has been cut over to the new issuer. The updated guide therefore recommends a safer overlap phase:
+
+- create the new `hair-booking` realm first
+- create a dedicated `hair-booking-web` client inside that new realm
+- keep the legacy shared-realm client alive during the app cutover window
+- switch the hosted app to the new issuer and secret
+- remove the legacy client only after the hosted login flow is proven stable
+
+The Terraform review also confirmed that social-provider rollout should probably be split from the realm migration. The shared Terraform repo currently has reusable realm and browser-client modules, but no existing identity-provider resources. So Google and Facebook should be treated as a second, follow-on codification step after the dedicated realm is stable.

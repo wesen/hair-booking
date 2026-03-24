@@ -5,16 +5,38 @@
 - [x] Confirm the current hosted app still points at the shared `smailnail` realm
 - [x] Confirm official Keycloak support for self-registration and identity brokering
 - [x] Confirm official Keycloak support status for Google, Facebook, and Instagram providers
+- [x] Confirm the shared Terraform repo already owns hosted Keycloak state for `smailnail` and `hair-booking`
+- [x] Confirm hosted `hair-booking` Terraform currently manages only a browser client in the shared realm
+- [x] Confirm local `hair-booking` Terraform already creates its own realm and browser client
+- [x] Confirm there are currently no existing identity-provider Terraform resources in the shared repo
 - [ ] Decide whether Instagram is actually required for MVP despite the deprecation warning
 
-## Realm Separation
+## Terraform Realm Migration Design
+
+- [ ] Add hosted `hair-booking` realm ownership to `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/main.tf`
+- [ ] Add hosted `realm_display_name` and migration variables to `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/variables.tf`
+- [ ] Design a safe overlap phase that keeps the legacy shared-realm browser client alive during cutover
+- [ ] Validate that the hosted plan creates a new `hair-booking` realm without destroying unrelated shared-realm resources
+- [ ] Document the hosted cleanup phase that removes the old shared-realm client after cutover
+
+## Realm Separation Execution
 
 - [ ] Create hosted realm `hair-booking`
-- [ ] Create local realm import `hair-booking-dev`
-- [ ] Create confidential client `hair-booking-web` in the new realm
+- [ ] Create dedicated hosted `hair-booking-web` client in the new realm
+- [ ] Keep legacy shared `hair-booking-web` client alive during the overlap window
 - [ ] Configure hosted redirect URI for `https://hair-booking.app.scapegoat.dev/auth/callback`
-- [ ] Configure local redirect URI for `http://127.0.0.1:8080/auth/callback`
-- [ ] Configure matching web origins
+- [ ] Configure hosted web origin for `https://hair-booking.app.scapegoat.dev`
+- [ ] Update hosted app env to use the `hair-booking` realm issuer
+- [ ] Redeploy hosted app after the dedicated realm exists
+- [ ] Remove the legacy shared-realm `hair-booking-web` client after successful hosted validation
+
+## Local Alignment
+
+- [ ] Decide whether the Terraform sandbox realm should stay `hair-booking-dev-tf` or be renamed
+- [ ] Keep the repo-local imported realm `hair-booking-dev` aligned with the documented local app flow
+- [ ] Update local app defaults to use `hair-booking-dev` consistently in docs and examples
+- [ ] Update local Keycloak realm import files if any realm settings change
+- [ ] Document the difference between repo-local realm import and Terraform sandbox realm clearly for new operators
 
 ## Local Signup Flow
 
@@ -35,18 +57,19 @@
 - [ ] Configure Facebook identity provider
 - [ ] Test first broker login with Facebook
 - [ ] Test repeat login with Facebook
+- [ ] Decide whether social providers will be codified in Terraform immediately or managed manually for a first rollout
 - [ ] Decide whether to enable the `instagram-broker` feature
 - [ ] If Instagram stays in scope, configure and test Instagram identity provider
 
 ## App Integration
 
-- [ ] Update hosted app env to use the `hair-booking` realm issuer
-- [ ] Update local app defaults to use `hair-booking-dev`
-- [ ] Update local Keycloak realm import files
+- [ ] Update hosted deployment docs to reference the dedicated `hair-booking` realm
+- [ ] Update any remaining hosted app docs that still reference the shared `smailnail` realm
 - [ ] Update smoke tests for registration and social login
 
 ## Validation
 
+- [ ] Confirm Terraform plan/apply can be reviewed cleanly in `/home/manuel/code/wesen/terraform`
 - [ ] Confirm hosted `/auth/login` uses the new realm
 - [ ] Confirm new local signup works end to end
 - [ ] Confirm Google login works end to end
