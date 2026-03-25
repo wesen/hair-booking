@@ -123,6 +123,12 @@ Expected results:
 - `/api/info` shows `"issuerUrl":"https://auth.scapegoat.dev/realms/hair-booking"`
 - `/auth/login` redirects into `/realms/hair-booking/`
 
+Important:
+
+- successful OIDC redirect alone is not enough to prove the hosted app is usable
+- the app also needs `HAIR_BOOKING_DATABASE_URL` in Coolify, otherwise `/api/me`
+  and portal bootstrap will fail with `Client service is not configured.`
+
 ### Replay script
 
 ```bash

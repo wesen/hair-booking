@@ -35,6 +35,9 @@
 - Verified hosted `VERIFY_EMAIL` and `UPDATE_PASSWORD` action emails return `204`
 - Updated the shared Terraform realm module to ignore manual `smtp_server` drift
 - Enabled hosted `verify_email` through Terraform without removing the manual SMTP configuration
+- Completed a real hosted registration smoke and observed the verify-email browser gate for a new test user
+- Completed a real hosted forgot-password initiation smoke and observed the reset-mail browser confirmation
+- Identified a separate hosted app deployment blocker after successful auth: the live app has no database env, so `/api/me` cannot build the client service
 
 ## 2026-03-24
 

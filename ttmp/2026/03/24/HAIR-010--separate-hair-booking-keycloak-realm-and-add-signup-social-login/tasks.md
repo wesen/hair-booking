@@ -76,15 +76,19 @@
 - [x] Send a Keycloak test email successfully
 - [x] Document the final SMTP settings shape in HAIR-010 without exposing secrets
 
-## Phase 7: Local Signup Validation
+## Phase 7: Hosted Signup Validation
 
-- [ ] Create a fresh local test account through Keycloak registration
-- [ ] Confirm verify-email mail is sent
-- [ ] Confirm email verification completes successfully
-- [ ] Confirm password reset mail is sent
-- [ ] Confirm password reset completes successfully
+- [x] Create a fresh hosted test account through Keycloak registration
+- [x] Confirm verify-email mail is sent
+- [ ] Confirm email verification completes successfully from the mailbox itself
+- [x] Confirm password reset mail is sent
+- [ ] Confirm password reset completes successfully from the mailbox itself
 - [ ] Confirm the app login flow works after verification
 - [ ] Confirm no duplicate local `clients` record is created for repeat login of the same Keycloak account
+
+Current blocker:
+
+- hosted `hair-booking` deployment does not currently expose `HAIR_BOOKING_DATABASE_URL`, so `/api/me` returns `backend-not-configured` after a successful auth callback
 
 ## Phase 8: Google Rollout
 

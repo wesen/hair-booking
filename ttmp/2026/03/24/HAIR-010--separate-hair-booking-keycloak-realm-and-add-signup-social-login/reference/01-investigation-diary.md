@@ -376,6 +376,94 @@ This completed the main hosted SMTP/verify-email slice cleanly. The remaining
 auth work after this point is no longer SES wiring. It is signup-flow validation
 and then Google/Facebook rollout.
 
+After the SMTP/verify-email slice was stable, I switched to a browser-driven
+hosted signup smoke with Playwright.
+
+I used the live hosted portal and Keycloak registration flow. To keep the send
+path automated, I reused the SES mailbox simulator recipient
+`success@simulator.amazonses.com`. That required deleting the earlier
+`hair-booking-ses-smtp-probe` user first so the email address was free again.
+
+The registration created:
+
+- username: `hb-smoke-20260325a`
+- email: `success@simulator.amazonses.com`
+
+The important browser result was the Keycloak verify-email gate:
+
+```text
+You need to verify your email address to activate your account.
+An email with instructions to verify your email address has been sent to your address success@simulator.amazonses.com.
+```
+
+That proved the real hosted user path up to the verification step:
+
+- public self-registration is enabled
+- the user record is created
+- verify-email mail is sent
+- the browser is correctly gated until verification
+
+I confirmed through the admin API that the created user was still
+`emailVerified: false`.
+
+Because the SES mailbox simulator does not expose a mailbox to click through, I
+did one admin-assisted step solely to validate the post-verification path: I set
+`emailVerified = true` for that exact test user through the admin API. That does
+**not** count as mailbox-driven verification completion, so the task list still
+marks true end-to-end verification as pending.
+
+I then exercised the hosted forgot-password page and got the real browser
+confirmation:
+
+```text
+You should receive an email shortly with further instructions.
+```
+
+So the hosted Keycloak-side user flow now proves:
+
+- registration mail is sent
+- verify-email gating is enforced
+- forgot-password mail is sent
+
+The next check should have been "verified user can log into the app and the app
+bootstraps the local client row correctly." That is where the next blocker
+appeared.
+
+After a successful Keycloak sign-in with the verified test user, the hosted app
+returned:
+
+```text
+Client service is not configured.
+```
+
+That error comes from:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/handlers_me.go`
+
+where `/api/me` bails out if `clientService` is nil.
+
+I inspected the live Coolify app env:
+
+```bash
+ssh manuel@89.167.52.236 'sudo -n sed -n "1,240p" /data/coolify/applications/uion8lttbypsijf8ww9b4c3e/.env'
+```
+
+The env contains the OIDC settings, but no database URL at all. That explains
+the behavior:
+
+- auth callback succeeds
+- `/api/me` runs
+- the backend cannot build `ClientService` because there is no configured DB
+- portal bootstrap fails with `backend-not-configured`
+
+This is not a Keycloak bug. It is a hosted app deployment/configuration gap.
+
+For HAIR-010, the practical consequence is:
+
+- Keycloak-side hosted signup and reset initiation are proven
+- app login after verification is blocked by missing hosted DB config
+- duplicate-client-row validation is blocked by the same hosted app issue
+
 ## 2026-03-24
 
 The user asked for a proper Keycloak setup that separates `hair-booking` from `smailnail` and supports:

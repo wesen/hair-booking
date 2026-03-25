@@ -81,6 +81,7 @@ The embedded runtime behavior is:
 ## Required environment variables
 
 ```env
+HAIR_BOOKING_DATABASE_URL=postgres://user:pass@host:5432/hair_booking?sslmode=disable
 HAIR_BOOKING_LISTEN_PORT=8080
 HAIR_BOOKING_AUTH_MODE=oidc
 HAIR_BOOKING_AUTH_SESSION_SECRET=replace-with-long-random-secret
@@ -97,11 +98,12 @@ HAIR_BOOKING_LOG_LEVEL=debug
 HAIR_BOOKING_EXTRA_ARGS=
 ```
 
-Note: `HAIR_BOOKING_LOG_LEVEL` is not currently consumed by the app runtime, so only the auth and listen variables above are essential today.
+Note: `HAIR_BOOKING_LOG_LEVEL` is not currently consumed by the app runtime. `HAIR_BOOKING_DATABASE_URL` is operationally required for authenticated portal and stylist flows, because `/api/me` and profile bootstrap depend on the database-backed client service.
 
 ## Recommended Coolify environment
 
 ```env
+HAIR_BOOKING_DATABASE_URL=postgres://user:pass@host:5432/hair_booking?sslmode=disable
 HAIR_BOOKING_LISTEN_PORT=8080
 HAIR_BOOKING_AUTH_MODE=oidc
 HAIR_BOOKING_AUTH_SESSION_SECRET=replace-with-long-random-secret
@@ -127,6 +129,7 @@ Before triggering the first hosted deployment, make sure these are true:
 - the `hair-booking` realm exists in Keycloak
 - the `hair-booking-web` client exists in that realm
 - the Coolify app environment contains the same client secret that Terraform applied
+- the Coolify app environment contains `HAIR_BOOKING_DATABASE_URL`
 - the public hostname already has a DNS record pointing at the Coolify edge
 
 The first real rollout on 2026-03-20 failed because Coolify was configured to build branch `task/hair-signup` before that branch existed on GitHub. Coolify does not use the local workstation checkout. It clones from the remote repository, so an unpushed branch will fail immediately during the import step.
