@@ -32,6 +32,7 @@ This ticket covers two related production issues:
 
 - Main analysis and implementation guide: [design/01-prod-booking-bug-and-logging-guide.md](./design/01-prod-booking-bug-and-logging-guide.md)
 - Investigation diary: [reference/01-investigation-diary.md](./reference/01-investigation-diary.md)
+- Production debug playbook: [playbooks/01-production-booking-debug-playbook.md](./playbooks/01-production-booking-debug-playbook.md)
 - Tasks: [tasks.md](./tasks.md)
 - Changelog: [changelog.md](./changelog.md)
 

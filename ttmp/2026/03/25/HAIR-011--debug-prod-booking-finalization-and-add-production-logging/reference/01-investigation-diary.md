@@ -20,7 +20,7 @@ RelatedFiles:
       Note: Current startup/shutdown logging only
 ExternalSources: []
 Summary: Diary for the production booking failure and the follow-on observability work.
-LastUpdated: 2026-03-25T17:56:00-04:00
+LastUpdated: 2026-03-25T18:00:00-04:00
 WhatFor: Use this to understand how the hosted bug was reported and why logging became part of the same ticket.
 WhenToUse: Use while implementing or reviewing HAIR-011.
 ---
@@ -325,3 +325,90 @@ pattern:
 - production instrumentation work often exposes unrelated test fragility
 - the right fix is usually to make the test time-stable, not to weaken the new
   instrumentation
+
+After the local code and test checkpoints were green, I deployed the fix to the
+hosted Coolify app so the ticket could be validated against the real failing
+payload instead of a local substitute.
+
+The repo remote for this project is `wesen`, not `origin`, so the correct push
+was:
+
+```bash
+git -C /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking push wesen task/hair-signup
+```
+
+The Coolify app did not auto-roll forward immediately, so I used the host-side
+operator path:
+
+1. archive the committed repo tree locally
+2. copy it to `/tmp/hair-booking-deploy` on `89.167.52.236`
+3. build a new image on the host tagged with the exact commit SHA
+4. update the Coolify app compose file image tag
+5. recreate the container with `docker compose up -d`
+
+The exact deployed app image became:
+
+- `uion8lttbypsijf8ww9b4c3e:9fcd9f4f127058586e0949aac3ed86684e3dbd9d`
+
+That matters because it proves the hosted validation was not against a stale
+image.
+
+I then re-ran the exact production request that originally failed:
+
+```bash
+curl -sS -D - -o /tmp/hair011_appointment_response.txt \
+  -X POST https://hair-booking.app.scapegoat.dev/api/appointments \
+  -H 'content-type: application/json' \
+  --data '{"intake_id":"7428cb8d-0b7b-49ca-b590-84e363aa11a9","service_id":"fb964f96-5ac4-4e54-8561-59c6b0f5dd77","date":"2026-03-10","start_time":"11:00 AM","client_name":"man","client_email":"wesen@ruinwesen.com"}'
+```
+
+The result changed from the original `500` to:
+
+- `201 Created`
+- request header `X-Request-Id: 70d94aa6-868d-483e-842c-7d6db8424ec6`
+
+The response body now included a real appointment:
+
+- `id = a722f588-44d1-4c5a-9908-f3d94923de9f`
+- `client_id = e31c0518-4c3a-4a89-a7a8-6c073860a392`
+- `service_id = fb964f96-5ac4-4e54-8561-59c6b0f5dd77`
+- `intake_id = 7428cb8d-0b7b-49ca-b590-84e363aa11a9`
+- `status = pending`
+
+I then checked hosted logs again:
+
+```bash
+ssh manuel@89.167.52.236 \
+  'sudo -n docker logs --tail 120 uion8lttbypsijf8ww9b4c3e-185456125584 2>&1'
+```
+
+This time the container emitted the expected request-level lines, including:
+
+- startup log
+- `/healthz` request log
+- `POST /api/appointments` request log with `status=201`
+
+That closes the original operational gap. Earlier in the ticket, the same log
+command returned only the startup line. After HAIR-011 logging landed, the same
+container now provides enough information to debug request-level failures.
+
+At this point the core ticket conclusion is:
+
+- the booking failure was fixed by the null-safe booking-client scan patch
+- the production observability gap was fixed by the request/error logging slice
+
+The remaining value in HAIR-011 is mostly durable operator documentation, so I
+added:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/ttmp/2026/03/25/HAIR-011--debug-prod-booking-finalization-and-add-production-logging/playbooks/01-production-booking-debug-playbook.md`
+
+and updated the long-lived deployment runbook in:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/deployments/hair-booking-coolify-playbook.md`
+
+so the next operator has a concrete path for:
+
+1. replaying a booking request
+2. extracting the request ID
+3. reading hosted logs
+4. checking database state

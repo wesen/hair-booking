@@ -103,6 +103,24 @@ sudo docker logs --tail 80 uion8lttbypsijf8ww9b4c3e-185456125584
 
 If the currently running app image tag contains the new Git commit SHA, the rollout has already reached the host.
 
+If you need to read request-level logs for a production bug, use:
+
+```bash
+sudo docker logs --tail 200 uion8lttbypsijf8ww9b4c3e-185456125584 2>&1
+```
+
+The application now emits:
+
+- startup logs
+- request completion logs with `request_id`, `method`, `path`, `status`, and `duration`
+- booking failure logs at handler/service/repository boundaries
+
+If a response includes `X-Request-Id`, grep for it in the container logs:
+
+```bash
+sudo docker logs --tail 400 uion8lttbypsijf8ww9b4c3e-185456125584 2>&1 | grep '<request-id>'
+```
+
 ## Hosted verification
 
 ### Public checks
@@ -143,6 +161,27 @@ embedded shell looks healthy at https://hair-booking.app.scapegoat.dev
 hosted shell check passed for https://hair-booking.app.scapegoat.dev
 ```
 
+### Booking failure replay
+
+If a user reports a booking finalization bug, replay the exact payload and keep
+the response headers:
+
+```bash
+curl -sS -D - -o /tmp/hair-booking-appointment.json \
+  -X POST https://hair-booking.app.scapegoat.dev/api/appointments \
+  -H 'content-type: application/json' \
+  --data '{"intake_id":"7428cb8d-0b7b-49ca-b590-84e363aa11a9","service_id":"fb964f96-5ac4-4e54-8561-59c6b0f5dd77","date":"2026-03-10","start_time":"11:00 AM","client_name":"man","client_email":"wesen@ruinwesen.com"}'
+
+cat /tmp/hair-booking-appointment.json
+```
+
+Then correlate the `X-Request-Id` header with:
+
+```bash
+ssh manuel@89.167.52.236
+sudo docker logs --tail 400 uion8lttbypsijf8ww9b4c3e-185456125584 2>&1 | grep '<request-id>'
+```
+
 ## Host-header checks from the server
 
 If public DNS or CDN behavior is confusing, verify directly on the box:
@@ -171,6 +210,7 @@ If any of those appear in the public HTML, the new embedded React build is not w
 - The Git branch must exist on GitHub. A local-only branch cannot be deployed.
 - A host-side running container with the new image tag is a stronger signal than stale UI state in the Coolify dashboard.
 - If the public root already returns `307 -> /booking`, the new runtime is almost certainly active.
+- There are no new logging env vars for HAIR-011. The request/error logging is always on in the current production binary.
 
 ## Minimal rollback/debug checklist
 

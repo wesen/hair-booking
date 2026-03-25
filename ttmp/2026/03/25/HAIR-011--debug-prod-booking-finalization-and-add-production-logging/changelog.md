@@ -14,3 +14,6 @@
 - Added HTTP request logging middleware with request IDs, status, duration, and authenticated context
 - Added structured booking failure logs in the public handler plus appointment service and repository boundaries
 - Added request ID middleware tests and stabilized stale date-based portal tests so the server package remains time-safe
+- Deployed commits `d333549` and `9fcd9f4` to the hosted Coolify app by building the new image on the host and updating the app compose tag
+- Re-ran the exact previously failing hosted booking request and confirmed it now returns `201` with an `X-Request-Id`
+- Added a ticket-local production booking debug playbook and updated the long-lived Coolify deployment playbook with log-reading guidance

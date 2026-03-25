@@ -35,14 +35,14 @@
 
 ## Phase 5: Validate The Fix
 
-- [ ] Reproduce the previous hosted booking flow after the logging patch
-- [ ] Confirm logs now explain the failure path or confirm the bug is fixed
-- [ ] Add automated tests for the failing appointment-create case
+- [x] Reproduce the previous hosted booking flow after the logging patch
+- [x] Confirm logs now explain the failure path or confirm the bug is fixed
+- [x] Add automated tests for the failing appointment-create case
 - [x] Add automated tests for logging middleware behavior where practical
 
 ## Phase 6: Document The Operational Model
 
-- [ ] Write a production debug playbook for booking failures
-- [ ] Document where hosted logs live and how to read them on Coolify
-- [ ] Document the expected fields in request/error logs
-- [ ] Update deployment docs if runtime log configuration needs new env vars
+- [x] Write a production debug playbook for booking failures
+- [x] Document where hosted logs live and how to read them on Coolify
+- [x] Document the expected fields in request/error logs
+- [x] Update deployment docs if runtime log configuration needs new env vars
