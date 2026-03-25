@@ -11,3 +11,6 @@
 - Narrowed the root cause to nullable `clients.email` and `clients.phone` scans inside `FindOrCreateBookingClient`
 - Added a booking-client scan helper that safely handles null email/phone values
 - Added regression tests for nullable booking-client scan behavior
+- Added HTTP request logging middleware with request IDs, status, duration, and authenticated context
+- Added structured booking failure logs in the public handler plus appointment service and repository boundaries
+- Added request ID middleware tests and stabilized stale date-based portal tests so the server package remains time-safe

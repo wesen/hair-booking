@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -69,6 +70,51 @@ func TestHandleMeOIDCRequiresSession(t *testing.T) {
 
 	if recorder.Code != http.StatusUnauthorized {
 		t.Fatalf("expected 401, got %d", recorder.Code)
+	}
+}
+
+func TestRequestIDHeaderIsGenerated(t *testing.T) {
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>landing</body></html>")},
+		},
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Header().Get("X-Request-Id") == "" {
+		t.Fatal("expected middleware to attach an X-Request-Id header")
+	}
+}
+
+func TestRequestIDHeaderPreservesIncomingValue(t *testing.T) {
+	handler := NewHandler(HandlerOptions{
+		Version:   "dev",
+		StartedAt: time.Now().UTC(),
+		AuthSettings: &hairauth.Settings{
+			Mode:      hairauth.AuthModeDev,
+			DevUserID: "intern",
+		},
+		PublicFS: fstest.MapFS{
+			"index.html": &fstest.MapFile{Data: []byte("<html><body>landing</body></html>")},
+		},
+	})
+
+	request := httptest.NewRequest(http.MethodGet, "/healthz", nil)
+	request.Header.Set("X-Request-Id", "req-123")
+	recorder := httptest.NewRecorder()
+	handler.ServeHTTP(recorder, request)
+
+	if recorder.Header().Get("X-Request-Id") != "req-123" {
+		t.Fatalf("expected X-Request-Id req-123, got %q", recorder.Header().Get("X-Request-Id"))
 	}
 }
 
@@ -1355,6 +1401,8 @@ func TestHandleCreateAppointmentReturnsPendingAppointment(t *testing.T) {
 }
 
 func TestHandleMyAppointmentsReturnsFilteredRows(t *testing.T) {
+	futureDate := time.Now().UTC().AddDate(0, 0, 7).Format(time.DateOnly)
+	pastDate := time.Now().UTC().AddDate(0, 0, -7).Format(time.DateOnly)
 	handler := NewHandler(HandlerOptions{
 		Version:   "dev",
 		StartedAt: time.Now().UTC(),
@@ -1369,8 +1417,8 @@ func TestHandleMyAppointmentsReturnsFilteredRows(t *testing.T) {
 		ClientService: hairclients.NewService(&fakeClientServiceRepo{}),
 		AppointmentService: hairappointments.NewService(&fakeAppointmentRepo{
 			portalRows: []hairappointments.PortalAppointment{
-				{Appointment: hairappointments.Appointment{ID: uuid.New(), ClientID: uuid.New(), ServiceID: uuid.New(), Date: "2026-03-25", StartTime: "10:00 AM", Status: "confirmed", DurationMinSnapshot: 30}, ServiceName: "Gloss / Toner"},
-				{Appointment: hairappointments.Appointment{ID: uuid.New(), ClientID: uuid.New(), ServiceID: uuid.New(), Date: "2026-03-05", StartTime: "10:00 AM", Status: "completed", DurationMinSnapshot: 30}, ServiceName: "Gloss / Toner"},
+				{Appointment: hairappointments.Appointment{ID: uuid.New(), ClientID: uuid.New(), ServiceID: uuid.New(), Date: futureDate, StartTime: "10:00 AM", Status: "confirmed", DurationMinSnapshot: 30}, ServiceName: "Gloss / Toner"},
+				{Appointment: hairappointments.Appointment{ID: uuid.New(), ClientID: uuid.New(), ServiceID: uuid.New(), Date: pastDate, StartTime: "10:00 AM", Status: "completed", DurationMinSnapshot: 30}, ServiceName: "Gloss / Toner"},
 			},
 		}),
 	})
@@ -1444,6 +1492,8 @@ func TestHandleMyAppointmentDetailReturnsServiceAndPhotos(t *testing.T) {
 func TestHandleMyAppointmentRescheduleReturnsUpdatedAppointment(t *testing.T) {
 	appointmentID := uuid.New()
 	serviceID := uuid.New()
+	originalDate := nextWeekday(time.Now().UTC(), time.Monday).Format(time.DateOnly)
+	rescheduledDate := nextWeekday(time.Now().UTC().AddDate(0, 0, 7), time.Monday).Format(time.DateOnly)
 	handler := NewHandler(HandlerOptions{
 		Version:   "dev",
 		StartedAt: time.Now().UTC(),
@@ -1462,7 +1512,7 @@ func TestHandleMyAppointmentRescheduleReturnsUpdatedAppointment(t *testing.T) {
 					ID:                  appointmentID,
 					ClientID:            uuid.New(),
 					ServiceID:           serviceID,
-					Date:                "2026-03-25",
+					Date:                originalDate,
 					StartTime:           "10:00 AM",
 					Status:              "confirmed",
 					DurationMinSnapshot: 30,
@@ -1472,7 +1522,7 @@ func TestHandleMyAppointmentRescheduleReturnsUpdatedAppointment(t *testing.T) {
 		}),
 	})
 
-	request := httptest.NewRequest(http.MethodPatch, "/api/me/appointments/"+appointmentID.String(), strings.NewReader(`{"date":"2026-03-30","start_time":"9:00 AM"}`))
+	request := httptest.NewRequest(http.MethodPatch, "/api/me/appointments/"+appointmentID.String(), strings.NewReader(fmt.Sprintf(`{"date":"%s","start_time":"9:00 AM"}`, rescheduledDate)))
 	request.Header.Set("Content-Type", "application/json")
 	request.SetPathValue("id", appointmentID.String())
 	recorder := httptest.NewRecorder()
@@ -1483,6 +1533,16 @@ func TestHandleMyAppointmentRescheduleReturnsUpdatedAppointment(t *testing.T) {
 	}
 	if !strings.Contains(recorder.Body.String(), "\"appointment\"") {
 		t.Fatalf("expected updated appointment response, got %s", recorder.Body.String())
+	}
+}
+
+func nextWeekday(base time.Time, weekday time.Weekday) time.Time {
+	dateValue := time.Date(base.Year(), base.Month(), base.Day(), 0, 0, 0, 0, time.UTC)
+	for {
+		dateValue = dateValue.AddDate(0, 0, 1)
+		if dateValue.Weekday() == weekday {
+			return dateValue
+		}
 	}
 }
 

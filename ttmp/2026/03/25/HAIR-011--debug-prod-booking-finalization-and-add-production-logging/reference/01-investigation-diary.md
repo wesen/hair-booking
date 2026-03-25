@@ -20,7 +20,7 @@ RelatedFiles:
       Note: Current startup/shutdown logging only
 ExternalSources: []
 Summary: Diary for the production booking failure and the follow-on observability work.
-LastUpdated: 2026-03-25T17:52:00-04:00
+LastUpdated: 2026-03-25T17:56:00-04:00
 WhatFor: Use this to understand how the hosted bug was reported and why logging became part of the same ticket.
 WhenToUse: Use while implementing or reviewing HAIR-011.
 ---
@@ -237,3 +237,91 @@ remaining major slice is still the observability slice:
 - request middleware
 - request IDs
 - explicit handler/service/repository error logs
+
+I then implemented that observability slice.
+
+At the HTTP layer, I added a wrapper in:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http.go`
+
+The wrapper now:
+
+- generates a request ID when the caller did not provide one
+- preserves an incoming `X-Request-Id` when present
+- stores the request ID in request context
+- echoes the request ID back in the response header
+- records request method, path, status, and duration
+- includes authenticated subject, issuer, and only the email domain when auth
+  context exists
+
+That last point matters. This ticket is production-facing, so I explicitly kept
+the logs useful without dumping raw personally identifiable fields. The request
+log includes `example.com`, not `alice@example.com`.
+
+At the handler boundary, I added an explicit error log in:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/handlers_public.go`
+
+That log captures the exact booking context that operators need:
+
+- request ID
+- service ID
+- date
+- start time
+- intake ID when present
+- email domain when present
+
+At the service and repository boundaries, I added structured logs in:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/service.go`
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/postgres.go`
+
+Those logs cover:
+
+- booking client resolution failures
+- transaction start failures
+- matching-client query failures
+- nullable scan failures
+- insert/update `returning` scan failures
+- appointment time-parse failures
+- appointment insert failures
+- commit failures
+
+This is the main production observability improvement for HAIR-011. Before this
+slice, a production `500` could be real but almost silent. After this slice,
+operators should be able to correlate:
+
+1. the request-level access log
+2. the handler failure log
+3. the repository or service failure log
+
+using the same request ID.
+
+While validating the logging slice, I hit a smaller but important secondary
+issue: the new logging made stale portal test dates visible because those tests
+were written against fixed March 2026 calendar dates. They had simply aged out.
+
+I fixed those tests in:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http_test.go`
+
+The adjustments were:
+
+- compute upcoming and past dates relative to `time.Now().UTC()` for the portal
+  listing filter test
+- compute the reschedule target as the next Monday because the fake repository
+  only exposes Monday availability from `09:00` to `11:00`
+- add request ID middleware tests proving both generated and preserved
+  `X-Request-Id` behavior
+
+After those changes:
+
+- `go test ./pkg/appointments ./pkg/server` passed
+- `go test ./...` passed
+
+This matters for the intern because it demonstrates a recurring maintenance
+pattern:
+
+- production instrumentation work often exposes unrelated test fragility
+- the right fix is usually to make the test time-stable, not to weaken the new
+  instrumentation

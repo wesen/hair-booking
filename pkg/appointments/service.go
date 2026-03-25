@@ -13,6 +13,7 @@ import (
 	hairstorage "github.com/go-go-golems/hair-booking/pkg/storage"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 var (
@@ -268,6 +269,14 @@ func (s *Service) CreatePublicAppointment(ctx context.Context, input CreatePubli
 
 	client, err := s.repo.FindOrCreateBookingClient(ctx, normalized.ClientName, normalized.ClientEmail, normalized.ClientPhone)
 	if err != nil {
+		log.Error().
+			Err(err).
+			Str("service_id", normalized.ServiceID.String()).
+			Str("date", normalized.Date).
+			Str("start_time", normalized.StartTime).
+			Str("client_email_domain", emailDomain(normalized.ClientEmail)).
+			Bool("has_phone", normalized.ClientPhone != "").
+			Msg("public appointment client resolution failed")
 		return nil, err
 	}
 
@@ -281,7 +290,19 @@ func (s *Service) CreatePublicAppointment(ctx context.Context, input CreatePubli
 		Status:              "pending",
 	}
 
-	return s.repo.CreateAppointment(ctx, appointment)
+	created, err := s.repo.CreateAppointment(ctx, appointment)
+	if err != nil {
+		log.Error().
+			Err(err).
+			Str("service_id", normalized.ServiceID.String()).
+			Str("client_id", client.ID.String()).
+			Str("date", appointment.Date).
+			Str("start_time", appointment.StartTime).
+			Msg("public appointment persistence failed")
+		return nil, err
+	}
+
+	return created, nil
 }
 
 func (s *Service) ListClientAppointments(ctx context.Context, clientID uuid.UUID, filter AppointmentListFilter) ([]PortalAppointment, int, error) {

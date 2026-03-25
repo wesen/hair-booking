@@ -22,6 +22,8 @@ import (
 	hairstorage "github.com/go-go-golems/hair-booking/pkg/storage"
 	hairstylist "github.com/go-go-golems/hair-booking/pkg/stylist"
 	"github.com/go-go-golems/hair-booking/pkg/web"
+	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 )
 
 type ServerOptions struct {
@@ -98,6 +100,10 @@ type apiError struct {
 	Code    string `json:"code"`
 	Message string `json:"message"`
 }
+
+type contextKey string
+
+const requestIDContextKey contextKey = "request_id"
 
 func NewHTTPServer(ctx context.Context, options ServerOptions) (*http.Server, error) {
 	var (
@@ -237,7 +243,7 @@ func NewHandler(options HandlerOptions) http.Handler {
 	}
 
 	registerWeb(mux, publicFS, options.LocalUploadsDir, options.FrontendDevProxyURL)
-	return mux
+	return withObservability(h, mux)
 }
 
 func (h *appHandler) handleInfo(w http.ResponseWriter, r *http.Request) {
@@ -347,4 +353,87 @@ func writeAPIError(w http.ResponseWriter, status int, code, message string) {
 			Message: message,
 		},
 	})
+}
+
+type responseRecorder struct {
+	http.ResponseWriter
+	status int
+}
+
+func (r *responseRecorder) WriteHeader(status int) {
+	r.status = status
+	r.ResponseWriter.WriteHeader(status)
+}
+
+func (r *responseRecorder) Write(data []byte) (int, error) {
+	if r.status == 0 {
+		r.status = http.StatusOK
+	}
+	return r.ResponseWriter.Write(data)
+}
+
+func withObservability(h *appHandler, next http.Handler) http.Handler {
+	if next == nil {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.NotFound(w, r)
+		})
+	}
+
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requestID := strings.TrimSpace(r.Header.Get("X-Request-Id"))
+		if requestID == "" {
+			requestID = uuid.NewString()
+		}
+
+		ctx := context.WithValue(r.Context(), requestIDContextKey, requestID)
+		r = r.WithContext(ctx)
+
+		recorder := &responseRecorder{ResponseWriter: w}
+		recorder.Header().Set("X-Request-Id", requestID)
+		started := time.Now()
+
+		next.ServeHTTP(recorder, r)
+
+		status := recorder.status
+		if status == 0 {
+			status = http.StatusOK
+		}
+
+		event := log.Info().
+			Str("request_id", requestID).
+			Str("method", r.Method).
+			Str("path", r.URL.Path).
+			Int("status", status).
+			Dur("duration", time.Since(started))
+
+		if claims, ok := h.currentClaims(r); ok {
+			event = event.
+				Str("auth_subject", claims.Subject).
+				Str("auth_issuer", claims.Issuer)
+			if claims.Email != "" {
+				event = event.Str("auth_email_domain", emailDomain(claims.Email))
+			}
+		}
+
+		event.Msg("http request completed")
+	})
+}
+
+func requestIDFromRequest(r *http.Request) string {
+	if r == nil {
+		return ""
+	}
+	if value, ok := r.Context().Value(requestIDContextKey).(string); ok {
+		return value
+	}
+	return ""
+}
+
+func emailDomain(email string) string {
+	email = strings.TrimSpace(strings.ToLower(email))
+	at := strings.LastIndex(email, "@")
+	if at == -1 || at == len(email)-1 {
+		return ""
+	}
+	return email[at+1:]
 }

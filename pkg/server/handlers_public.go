@@ -9,6 +9,7 @@ import (
 	hairintake "github.com/go-go-golems/hair-booking/pkg/intake"
 	hairservices "github.com/go-go-golems/hair-booking/pkg/services"
 	"github.com/google/uuid"
+	"github.com/rs/zerolog/log"
 )
 
 type servicesResponse struct {
@@ -241,6 +242,20 @@ func (h *appHandler) handleCreateAppointment(w http.ResponseWriter, r *http.Requ
 		case errors.Is(err, hairappointments.ErrSlotUnavailable):
 			writeAPIError(w, http.StatusConflict, "slot-unavailable", err.Error())
 		default:
+			event := log.Error().
+				Err(err).
+				Str("request_id", requestIDFromRequest(r)).
+				Str("handler", "handleCreateAppointment").
+				Str("service_id", request.ServiceID).
+				Str("date", request.Date).
+				Str("start_time", request.StartTime)
+			if request.IntakeID != "" {
+				event = event.Str("intake_id", request.IntakeID)
+			}
+			if request.ClientEmail != "" {
+				event = event.Str("client_email_domain", emailDomain(request.ClientEmail))
+			}
+			event.Msg("public appointment creation failed")
 			writeAPIError(w, http.StatusInternalServerError, "appointment-create-failed", "Failed to create appointment.")
 		}
 		return

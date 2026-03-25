@@ -10,7 +10,7 @@
 
 ## Phase 2: Narrow The Root Cause
 
-- [ ] Trace the hosted appointment-create path from HTTP handler to service to repository
+- [x] Trace the hosted appointment-create path from HTTP handler to service to repository
 - [x] Identify all code paths that can currently surface `appointment-create-failed`
 - [x] Determine which of those paths currently collapse to `500` without logging
 - [x] Check for schema, constraint, input-normalization, and availability-edge hypotheses
@@ -19,12 +19,12 @@
 
 ## Phase 3: Add Production Logging Baseline
 
-- [ ] Add request-level structured logging middleware for all HTTP requests
-- [ ] Log request method, path, status, duration, request ID, and authenticated user context when available
-- [ ] Add explicit structured error logs in public booking handlers
-- [ ] Add explicit structured error logs in appointment service and repository boundaries
-- [ ] Ensure sensitive fields are redacted or omitted
-- [ ] Keep logs compact enough for production use
+- [x] Add request-level structured logging middleware for all HTTP requests
+- [x] Log request method, path, status, duration, request ID, and authenticated user context when available
+- [x] Add explicit structured error logs in public booking handlers
+- [x] Add explicit structured error logs in appointment service and repository boundaries
+- [x] Ensure sensitive fields are redacted or omitted
+- [x] Keep logs compact enough for production use
 
 ## Phase 4: Improve Error Surfaces
 
@@ -38,7 +38,7 @@
 - [ ] Reproduce the previous hosted booking flow after the logging patch
 - [ ] Confirm logs now explain the failure path or confirm the bug is fixed
 - [ ] Add automated tests for the failing appointment-create case
-- [ ] Add automated tests for logging middleware behavior where practical
+- [x] Add automated tests for logging middleware behavior where practical
 
 ## Phase 6: Document The Operational Model
 

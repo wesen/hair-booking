@@ -10,6 +10,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/pkg/errors"
+	"github.com/rs/zerolog/log"
 )
 
 type PostgresRepository struct {
@@ -171,6 +172,7 @@ func (r *PostgresRepository) FindOrCreateBookingClient(ctx context.Context, name
 
 	tx, err := r.pool.Begin(ctx)
 	if err != nil {
+		log.Error().Err(err).Msg("failed to start booking client transaction")
 		return nil, errors.Wrap(err, "failed to start booking client transaction")
 	}
 	defer func() { _ = tx.Rollback(ctx) }()
@@ -183,6 +185,11 @@ order by updated_at desc
 limit 2
 `, email, phone)
 	if err != nil {
+		log.Error().
+			Err(err).
+			Str("client_email_domain", emailDomain(email)).
+			Bool("has_phone", phone != "").
+			Msg("failed to query booking client")
 		return nil, errors.Wrap(err, "failed to query booking client")
 	}
 
@@ -191,17 +198,31 @@ limit 2
 		client, err := scanBookingClient(rows)
 		if err != nil {
 			rows.Close()
+			log.Error().
+				Err(err).
+				Str("client_email_domain", emailDomain(email)).
+				Bool("has_phone", phone != "").
+				Msg("failed to scan booking client")
 			return nil, errors.Wrap(err, "failed to scan booking client")
 		}
 		matches = append(matches, *client)
 	}
 	if err := rows.Err(); err != nil {
 		rows.Close()
+		log.Error().
+			Err(err).
+			Str("client_email_domain", emailDomain(email)).
+			Bool("has_phone", phone != "").
+			Msg("failed to iterate booking clients")
 		return nil, errors.Wrap(err, "failed to iterate booking clients")
 	}
 	rows.Close()
 
 	if len(matches) > 1 && matches[0].ID != matches[1].ID {
+		log.Error().
+			Str("client_email_domain", emailDomain(email)).
+			Bool("has_phone", phone != "").
+			Msg("booking client lookup matched different existing clients")
 		return nil, errors.Wrap(ErrInvalidInput, "client_email and client_phone matched different clients")
 	}
 
@@ -213,9 +234,15 @@ returning id, name, email, phone
 `, uuid.New(), name, email, phone)
 		client, err := scanBookingClient(row)
 		if err != nil {
+			log.Error().
+				Err(err).
+				Str("client_email_domain", emailDomain(email)).
+				Bool("has_phone", phone != "").
+				Msg("failed to create booking client")
 			return nil, errors.Wrap(err, "failed to create booking client")
 		}
 		if err := tx.Commit(ctx); err != nil {
+			log.Error().Err(err).Msg("failed to commit booking client creation")
 			return nil, errors.Wrap(err, "failed to commit booking client creation")
 		}
 		return client, nil
@@ -232,9 +259,19 @@ returning id, name, email, phone
 `, matches[0].ID, name, email, phone)
 	client, err := scanBookingClient(row)
 	if err != nil {
+		log.Error().
+			Err(err).
+			Str("client_id", matches[0].ID.String()).
+			Str("client_email_domain", emailDomain(email)).
+			Bool("has_phone", phone != "").
+			Msg("failed to update booking client")
 		return nil, errors.Wrap(err, "failed to update booking client")
 	}
 	if err := tx.Commit(ctx); err != nil {
+		log.Error().
+			Err(err).
+			Str("client_id", matches[0].ID.String()).
+			Msg("failed to commit booking client update")
 		return nil, errors.Wrap(err, "failed to commit booking client update")
 	}
 	return client, nil
@@ -251,6 +288,12 @@ func (r *PostgresRepository) CreateAppointment(ctx context.Context, appointment 
 
 	startMinute, err := parseMinuteOfDay(appointment.StartTime)
 	if err != nil {
+		log.Error().
+			Err(err).
+			Str("appointment_id", appointment.ID.String()).
+			Str("date", appointment.Date).
+			Str("start_time", appointment.StartTime).
+			Msg("failed to parse appointment start time")
 		return nil, err
 	}
 	startClock := time.Date(2000, 1, 1, startMinute/60, startMinute%60, 0, 0, time.UTC).Format("15:04:05")
@@ -287,10 +330,27 @@ returning id, client_id, service_id, intake_id, to_char(date, 'YYYY-MM-DD'), to_
 		&created.CreatedAt,
 		&created.UpdatedAt,
 	); err != nil {
+		log.Error().
+			Err(err).
+			Str("appointment_id", appointment.ID.String()).
+			Str("client_id", appointment.ClientID.String()).
+			Str("service_id", appointment.ServiceID.String()).
+			Str("date", appointment.Date).
+			Str("start_time", appointment.StartTime).
+			Msg("failed to create appointment")
 		return nil, errors.Wrap(err, "failed to create appointment")
 	}
 	created.StartTime = strings.TrimSpace(created.StartTime)
 	return created, nil
+}
+
+func emailDomain(email string) string {
+	email = strings.TrimSpace(strings.ToLower(email))
+	at := strings.LastIndex(email, "@")
+	if at == -1 || at == len(email)-1 {
+		return ""
+	}
+	return email[at+1:]
 }
 
 func (r *PostgresRepository) ListClientAppointments(ctx context.Context, clientID uuid.UUID) ([]PortalAppointment, error) {
