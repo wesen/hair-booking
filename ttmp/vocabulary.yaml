@@ -27,6 +27,14 @@ topics:
       description: Authentication and login flows
     - slug: keycloak
       description: Keycloak realms, clients, and identity providers
+    - slug: booking
+      description: Booking flows, appointment creation, and scheduling behavior
+    - slug: logging
+      description: Application and request logging behavior
+    - slug: observability
+      description: Operational visibility through logs, metrics, tracing, and diagnostics
+    - slug: production
+      description: Hosted deployment and production runtime behavior
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes
