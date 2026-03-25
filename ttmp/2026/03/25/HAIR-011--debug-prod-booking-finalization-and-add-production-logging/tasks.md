@@ -29,8 +29,8 @@
 ## Phase 4: Improve Error Surfaces
 
 - [ ] Stop collapsing all booking-finalization failures into a bare `appointment-create-failed` without internal traceability
-- [ ] Map known validation and conflict cases to stable 4xx responses
-- [ ] Preserve user-safe error messages while logging full internal causes
+- [x] Map known validation and conflict cases to stable 4xx responses
+- [x] Preserve user-safe error messages while logging full internal causes
 - [ ] Add request IDs to error responses if that helps operator support
 
 ## Phase 5: Validate The Fix

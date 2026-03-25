@@ -20,7 +20,7 @@ RelatedFiles:
       Note: Current startup/shutdown logging only
 ExternalSources: []
 Summary: Diary for the production booking failure and the follow-on observability work.
-LastUpdated: 2026-03-25T18:00:00-04:00
+LastUpdated: 2026-03-25T18:04:00-04:00
 WhatFor: Use this to understand how the hosted bug was reported and why logging became part of the same ticket.
 WhenToUse: Use while implementing or reviewing HAIR-011.
 ---
@@ -412,3 +412,89 @@ so the next operator has a concrete path for:
 2. extracting the request ID
 3. reading hosted logs
 4. checking database state
+
+One more production behavior issue surfaced immediately after that success: the
+original failing payload used a past date relative to the investigation day.
+Once the null-scan bug was fixed, the same stale payload no longer failed; it
+created a real backdated appointment. That is not an acceptable MVP behavior.
+
+The service logic had no explicit guard against public bookings in the past. If
+the requested date and time matched the seeded schedule blocks, the service
+would proceed even when the date was historically earlier than `now`.
+
+I fixed that in:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/service.go`
+
+The new rule is:
+
+- if the requested public appointment start time is not strictly after
+  `nowFunc()`, return `ErrSlotUnavailable`
+
+I chose `ErrSlotUnavailable` instead of a new public error type because the
+handler already maps that cleanly to:
+
+- `409 slot-unavailable`
+
+That gives users a stable conflict response without exposing backend internals.
+
+I added regression coverage in:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/service_test.go`
+
+The important new test fixes the exact stale-date class:
+
+- `TestCreatePublicAppointmentRejectsPastDateTime`
+
+I also updated success-path tests that had become invalid under the new rule.
+Those tests were previously using hard-coded March 2026 dates, which are now in
+the past. I switched them to future Mondays in:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/service_test.go`
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/server/http_test.go`
+
+After the code slice, I deployed commit:
+
+- `9ce0f2acbca97d7e031feb1b62e58148248a1987`
+
+to the hosted Coolify app using the same host-build method as the previous
+slice.
+
+I then replayed the exact original user-reported request again:
+
+```bash
+curl -sS -D - -o /tmp/hair011_appointment_response2.txt \
+  -X POST https://hair-booking.app.scapegoat.dev/api/appointments \
+  -H 'content-type: application/json' \
+  --data '{"intake_id":"7428cb8d-0b7b-49ca-b590-84e363aa11a9","service_id":"fb964f96-5ac4-4e54-8561-59c6b0f5dd77","date":"2026-03-10","start_time":"11:00 AM","client_name":"man","client_email":"wesen@ruinwesen.com"}'
+```
+
+The hosted result is now the correct public behavior:
+
+- `409 Conflict`
+- `X-Request-Id: c34ae3bf-c860-4487-8557-9491733fdb26`
+- body:
+
+```json
+{
+  "error": {
+    "code": "slot-unavailable",
+    "message": "requested date/time is no longer available: appointment slot unavailable"
+  }
+}
+```
+
+The hosted container logs confirm the same request now resolves cleanly at the
+HTTP layer:
+
+- `method=POST`
+- `path=/api/appointments`
+- `request_id=c34ae3bf-c860-4487-8557-9491733fdb26`
+- `status=409`
+
+That closes the most important behavioral gap in HAIR-011. The same stale input
+that originally caused a silent `500` now follows the correct progression:
+
+1. no null-scan crash
+2. request is logged
+3. stale past slot is rejected as a user-facing conflict

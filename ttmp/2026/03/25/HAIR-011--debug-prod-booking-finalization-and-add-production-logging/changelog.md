@@ -17,3 +17,5 @@
 - Deployed commits `d333549` and `9fcd9f4` to the hosted Coolify app by building the new image on the host and updating the app compose tag
 - Re-ran the exact previously failing hosted booking request and confirmed it now returns `201` with an `X-Request-Id`
 - Added a ticket-local production booking debug playbook and updated the long-lived Coolify deployment playbook with log-reading guidance
+- Added a past-date guard for public booking creation so stale historical slots now return `409 slot-unavailable`
+- Deployed commit `9ce0f2a` to the hosted Coolify app and confirmed the exact stale-date payload now returns `409` instead of creating a backdated appointment
