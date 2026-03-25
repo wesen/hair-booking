@@ -1354,6 +1354,7 @@ func TestHandleAvailabilityReturnsSlots(t *testing.T) {
 }
 
 func TestHandleCreateAppointmentReturnsPendingAppointment(t *testing.T) {
+	futureMonday := nextWeekday(time.Now().UTC(), time.Monday).Format(time.DateOnly)
 	serviceID := uuid.New()
 	handler := NewHandler(HandlerOptions{
 		Version:   "dev",
@@ -1383,7 +1384,7 @@ func TestHandleCreateAppointmentReturnsPendingAppointment(t *testing.T) {
 
 	request := httptest.NewRequest(http.MethodPost, "/api/appointments", strings.NewReader(`{
 		"service_id":"`+serviceID.String()+`",
-		"date":"2026-03-02",
+		"date":"`+futureMonday+`",
 		"start_time":"10:00 AM",
 		"client_name":"Mia Kovacs",
 		"client_email":"mia@example.com"

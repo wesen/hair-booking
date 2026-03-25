@@ -216,7 +216,47 @@ func TestCreatePublicAppointmentRejectsUnavailableSlot(t *testing.T) {
 	}
 }
 
+func TestCreatePublicAppointmentRejectsPastDateTime(t *testing.T) {
+	nowFunc = func() time.Time { return time.Date(2026, 3, 15, 12, 0, 0, 0, time.UTC) }
+	defer func() { nowFunc = func() time.Time { return time.Now().UTC() } }()
+
+	serviceID := uuid.New()
+	repo := &fakeRepository{
+		service: &ServiceInfo{
+			ID:          serviceID,
+			Name:        "Color Consultation",
+			DurationMin: 15,
+			IsActive:    true,
+		},
+		blocks: []ScheduleBlock{
+			{DayOfWeek: 2, StartTime: "09:00", EndTime: "17:00", IsAvailable: true},
+		},
+	}
+
+	service := NewService(repo)
+	_, err := service.CreatePublicAppointment(context.Background(), CreatePublicAppointmentInput{
+		ServiceID:   serviceID,
+		Date:        "2026-03-10",
+		StartTime:   "11:00 AM",
+		ClientName:  "Man",
+		ClientEmail: "wesen@ruinwesen.com",
+	})
+	if err == nil {
+		t.Fatal("expected CreatePublicAppointment to reject a past date/time")
+	}
+	if !errors.Is(err, ErrSlotUnavailable) {
+		t.Fatalf("expected ErrSlotUnavailable, got %v", err)
+	}
+	if repo.clientCalls != 0 {
+		t.Fatalf("expected no client creation for a past date/time, got %d calls", repo.clientCalls)
+	}
+	if repo.createCalls != 0 {
+		t.Fatalf("expected no appointment create for a past date/time, got %d calls", repo.createCalls)
+	}
+}
+
 func TestCreatePublicAppointmentPersistsPendingAppointment(t *testing.T) {
+	futureMonday := nextWeekday(time.Now().UTC(), time.Monday).Format(time.DateOnly)
 	serviceID := uuid.New()
 	clientID := uuid.New()
 	repo := &fakeRepository{
@@ -235,7 +275,7 @@ func TestCreatePublicAppointmentPersistsPendingAppointment(t *testing.T) {
 	service := NewService(repo)
 	created, err := service.CreatePublicAppointment(context.Background(), CreatePublicAppointmentInput{
 		ServiceID:   serviceID,
-		Date:        "2026-03-02",
+		Date:        futureMonday,
 		StartTime:   "10:00 AM",
 		ClientName:  "Mia Kovacs",
 		ClientEmail: "mia@example.com",
@@ -373,6 +413,16 @@ func TestCancelClientAppointmentRejectsInside24Hours(t *testing.T) {
 	}
 	if !errors.Is(err, ErrPolicyViolation) {
 		t.Fatalf("expected ErrPolicyViolation, got %v", err)
+	}
+}
+
+func nextWeekday(base time.Time, weekday time.Weekday) time.Time {
+	dateValue := time.Date(base.Year(), base.Month(), base.Day(), 0, 0, 0, 0, time.UTC)
+	for {
+		dateValue = dateValue.AddDate(0, 0, 1)
+		if dateValue.Weekday() == weekday {
+			return dateValue
+		}
 	}
 }
 

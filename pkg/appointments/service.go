@@ -243,6 +243,9 @@ func (s *Service) CreatePublicAppointment(ctx context.Context, input CreatePubli
 	if !service.IsActive {
 		return nil, errors.Wrap(ErrNotFound, "service is not active")
 	}
+	if !appointmentStartAt(dateValue, startMinute).After(nowFunc()) {
+		return nil, errors.Wrap(ErrSlotUnavailable, "requested date/time is no longer available")
+	}
 
 	monthStart := time.Date(dateValue.Year(), dateValue.Month(), 1, 0, 0, 0, 0, time.UTC)
 	monthEnd := monthStart.AddDate(0, 1, 0)
@@ -523,6 +526,10 @@ func normalizeCreateInput(input CreatePublicAppointmentInput) (CreatePublicAppoi
 	}
 
 	return input, dateValue, startMinute, nil
+}
+
+func appointmentStartAt(dateValue time.Time, startMinute int) time.Time {
+	return time.Date(dateValue.Year(), dateValue.Month(), dateValue.Day(), startMinute/60, startMinute%60, 0, 0, time.UTC)
 }
 
 func computeAvailability(startDate, endDate time.Time, durationMin int, blocks []ScheduleBlock, overrides []ScheduleOverride, booked []Appointment) (map[string][]string, error) {
