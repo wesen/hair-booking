@@ -19,7 +19,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Recommended Keycloak target architecture for separating hair-booking from smailnail while supporting password signup plus Google and Meta-based login.
-LastUpdated: 2026-03-25T00:40:00-04:00
+LastUpdated: 2026-03-25T01:05:00-04:00
 WhatFor: Use this to scope the dedicated hosted realm, client configuration, self-registration path, and social login rollout order.
 WhenToUse: Use before changing the hosted issuer away from the shared smailnail realm.
 ---
@@ -86,6 +86,11 @@ Practical implication:
 
 - realm settings can be prepared now
 - the full signup flow should not be called done until SES-backed email is actually configured and tested
+- live hosted status after the first settings pass:
+  - `User Registration`: enabled
+  - `Forgot Password`: enabled
+  - `Remember Me`: enabled
+  - `Verify Email`: still pending until SES SMTP is configured
 
 ### Social provider scope
 

@@ -58,13 +58,13 @@
 
 ## Phase 5: Realm Login Settings
 
-- [ ] Confirm current realm `hair-booking` login settings in hosted Keycloak admin
-- [ ] Enable `Remember Me`
+- [x] Confirm current realm `hair-booking` login settings in hosted Keycloak admin
+- [x] Enable `Remember Me`
 - [ ] Enable `Verify Email`
-- [ ] Confirm `User Registration` is enabled
-- [ ] Confirm `Forgot Password` is enabled
-- [ ] Record the exact hosted realm settings in the ticket diary
-- [ ] Update the guide if the live settings differ from the documented defaults
+- [x] Confirm `User Registration` is enabled
+- [x] Confirm `Forgot Password` is enabled
+- [x] Record the exact hosted realm settings in the ticket diary
+- [x] Update the guide if the live settings differ from the documented defaults
 
 ## Phase 6: SMTP Preparation With SES
 

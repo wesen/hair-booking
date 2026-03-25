@@ -18,6 +18,9 @@
 - Rewrote the HAIR-010 tasks into a phased execution plan covering local alignment, SES SMTP work, signup validation, Google, and Facebook
 - Clarified the local `hair-booking-dev` versus `hair-booking-dev-tf` split in both the app repo and the shared Terraform repo
 - Updated the app README production note so it describes the dedicated hosted `hair-booking` realm correctly
+- Queried the live hosted realm settings through the Keycloak admin API and recorded the exact state
+- Enabled `Remember Me` for hosted realm `hair-booking` through Terraform
+- Left `Verify Email` intentionally disabled until the SES SMTP slice is ready
 
 ## 2026-03-24
 

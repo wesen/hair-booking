@@ -18,7 +18,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Diary for the auth-separation work that moves hair-booking to its own Keycloak realm with local signup and social login.
-LastUpdated: 2026-03-25T00:55:00-04:00
+LastUpdated: 2026-03-25T01:05:00-04:00
 WhatFor: Use this to understand why the Keycloak plan moved into its own docmgr ticket and what conclusions were reached from the official docs.
 WhenToUse: Use while implementing or reviewing HAIR-010.
 ---
@@ -251,3 +251,101 @@ That review showed the remaining mentions are now intentional references rather 
 - explain why both realms exist
 - review examples for ambiguity
 - update the docs where the ambiguity could mislead a new operator
+
+The next task after local alignment was the first real realm-settings slice. Before changing anything, I queried the live hosted `hair-booking` realm through the Keycloak admin API using the same admin credentials already loaded in `/home/manuel/code/wesen/terraform/.envrc`.
+
+The read-only check was:
+
+```bash
+cd /home/manuel/code/wesen/terraform
+source .envrc
+ACCESS_TOKEN=$(curl -fsS -X POST "$TF_VAR_keycloak_url/realms/master/protocol/openid-connect/token" \
+  -d grant_type=password \
+  -d client_id=$TF_VAR_keycloak_client_id \
+  --data-urlencode username=$TF_VAR_keycloak_username \
+  --data-urlencode password=$TF_VAR_keycloak_password | jq -r .access_token)
+
+curl -fsS -H "Authorization: Bearer $ACCESS_TOKEN" \
+  "$TF_VAR_keycloak_url/admin/realms/hair-booking" | jq '{
+    realm,
+    displayName,
+    registrationAllowed,
+    loginWithEmailAllowed,
+    duplicateEmailsAllowed,
+    resetPasswordAllowed,
+    rememberMe,
+    verifyEmail,
+    registrationEmailAsUsername,
+    editUsernameAllowed,
+    bruteForceProtected,
+    sslRequired
+  }'
+```
+
+That returned:
+
+- `registrationAllowed: true`
+- `resetPasswordAllowed: true`
+- `rememberMe: false`
+- `verifyEmail: false`
+- `bruteForceProtected: false`
+
+The next question was whether those settings could be codified in Terraform or whether I would have to make them manually in the admin UI. I did not want to guess provider field names, so I queried the Keycloak provider schema in a temporary standalone Terraform directory. That confirmed:
+
+- `remember_me` is supported
+- `verify_email` is supported
+- no obvious brute-force protection attributes are exposed through `keycloak_realm` in this provider
+
+Because SES is not configured yet, the safest incremental change was:
+
+- enable `remember_me` now
+- leave `verify_email` false until SMTP exists
+
+I extended the shared Terraform module in:
+
+- `/home/manuel/code/wesen/terraform/keycloak/modules/realm-base/main.tf`
+- `/home/manuel/code/wesen/terraform/keycloak/modules/realm-base/variables.tf`
+
+and then set hosted `hair-booking` to:
+
+- `remember_me = true`
+- `verify_email = var.verify_email`
+
+with hosted default:
+
+- `verify_email = false`
+
+Then I validated and planned the hosted env:
+
+```bash
+cd /home/manuel/code/wesen/terraform
+source .envrc
+export TF_VAR_realm_name=hair-booking
+export TF_VAR_realm_display_name=hair-booking
+terraform -chdir=keycloak/apps/hair-booking/envs/hosted validate
+terraform -chdir=keycloak/apps/hair-booking/envs/hosted plan
+```
+
+The plan was exactly one in-place change:
+
+- `remember_me: false -> true`
+
+That was the right scope for this slice, so I committed the Terraform code and applied it:
+
+```bash
+terraform -chdir=keycloak/apps/hair-booking/envs/hosted apply -auto-approve
+```
+
+After apply, I re-ran the admin API check and confirmed the hosted realm now reads:
+
+- `registrationAllowed: true`
+- `resetPasswordAllowed: true`
+- `rememberMe: true`
+- `verifyEmail: false`
+
+This means the realm is in the best state currently possible without SMTP:
+
+- users can register
+- users can reset passwords
+- users can use remember-me
+- email verification is intentionally still blocked on the future SES slice
