@@ -1,76 +1,113 @@
 # Tasks
 
-## Research And Product Decisions
+## Locked Decisions
 
-- [x] Confirm the current hosted app still points at the shared `smailnail` realm
-- [x] Confirm official Keycloak support for self-registration and identity brokering
-- [x] Confirm official Keycloak support status for Google, Facebook, and Instagram providers
-- [x] Confirm the shared Terraform repo already owns hosted Keycloak state for `smailnail` and `hair-booking`
-- [x] Confirm hosted `hair-booking` Terraform currently manages only a browser client in the shared realm
-- [x] Confirm local `hair-booking` Terraform already creates its own realm and browser client
-- [x] Confirm there are currently no existing identity-provider Terraform resources in the shared repo
-- [ ] Decide whether Instagram is actually required for MVP despite the deprecation warning
+- [x] Use a dedicated hosted Keycloak realm named `hair-booking`
+- [x] Keep using the shared Keycloak server at `https://auth.scapegoat.dev`
+- [x] Treat this as a hard pre-production cutover, not an overlap migration
+- [x] Keep both local realm names for now:
+  - `hair-booking-dev` for repo-local app development
+  - `hair-booking-dev-tf` for Terraform sandbox work
+- [x] Keep local email/password signup in MVP scope
+- [x] Require verified email before calling signup complete
+- [x] Use Amazon SES later for SMTP
+- [x] Keep Google in MVP scope
+- [x] Keep Facebook in MVP scope
+- [x] Drop Instagram from the initial MVP plan
+- [x] Do social-provider rollout manually in Keycloak first, not Terraform-first
+- [x] Treat Keycloak subject as the canonical auth identity
 
-## Terraform Realm Migration Design
+## Phase 1: Hosted Realm Cutover
 
 - [x] Add hosted `hair-booking` realm ownership to `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/main.tf`
-- [x] Add hosted `realm_display_name` and dedicated-realm variables to `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/variables.tf`
-- [x] Remove the shared-realm-only ownership model from the hosted `hair-booking` workspace
-- [x] Validate that the hosted plan creates a new `hair-booking` realm without destroying unrelated shared-realm resources
-- [x] Document the hard pre-production cutover sequence in the implementation guide
+- [x] Add `realm_display_name` to `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/variables.tf`
+- [x] Update hosted outputs so they resolve through `module.realm`
+- [x] Update hosted example tfvars to use `hair-booking`
+- [x] Run hosted `terraform init`
+- [x] Run hosted `terraform validate`
+- [x] Run hosted `terraform plan` with `TF_VAR_realm_name=hair-booking`
+- [x] Confirm the plan creates realm `hair-booking`
+- [x] Confirm the plan replaces only the `hair-booking-web` client and does not touch unrelated shared resources
+- [x] Apply the hosted cutover
+- [x] Confirm `https://auth.scapegoat.dev/realms/hair-booking/.well-known/openid-configuration` resolves
 
-## Realm Separation Execution
+## Phase 2: Hosted Runtime Alignment
 
-- [x] Create hosted realm `hair-booking`
-- [x] Create dedicated hosted `hair-booking-web` client in the new realm
-- [x] Configure hosted redirect URI for `https://hair-booking.app.scapegoat.dev/auth/callback`
-- [x] Configure hosted web origin for `https://hair-booking.app.scapegoat.dev`
-- [x] Update hosted app env to use the `hair-booking` realm issuer
-- [x] Redeploy hosted app after the dedicated realm exists
-- [x] Remove stale hosted docs and examples that still describe `hair-booking` as a shared-realm client
+- [x] Inspect the live Coolify app env for `hair-booking`
+- [x] Update `HAIR_BOOKING_OIDC_ISSUER_URL` on the Coolify host to `https://auth.scapegoat.dev/realms/hair-booking`
+- [x] Recreate the Coolify application container after the env change
+- [x] Confirm hosted `/api/info` reports the new issuer
+- [x] Confirm hosted `/auth/login` redirects into realm `hair-booking`
 
-## Local Alignment
+## Phase 3: Documentation Alignment
 
-- [ ] Decide whether the Terraform sandbox realm should stay `hair-booking-dev-tf` or be renamed
-- [ ] Keep the repo-local imported realm `hair-booking-dev` aligned with the documented local app flow
-- [ ] Update local app defaults to use `hair-booking-dev` consistently in docs and examples
-- [ ] Update local Keycloak realm import files if any realm settings change
-- [ ] Document the difference between repo-local realm import and Terraform sandbox realm clearly for new operators
+- [x] Update app-repo deployment docs to reference the dedicated `hair-booking` realm
+- [x] Update the Coolify playbook to validate the new issuer at runtime
+- [x] Update shared Terraform repo docs so hosted `hair-booking` is described as an app-owned realm
+- [x] Update the HAIR-010 implementation guide to reflect the executed hard cutover
+- [x] Update the HAIR-010 diary with the exact commands and results
+- [x] Update the HAIR-010 changelog
+- [x] Re-upload the HAIR-010 bundle to reMarkable
 
-## Local Signup Flow
+## Phase 4: Local Alignment
 
-- [ ] Enable `User Registration`
-- [ ] Enable `Forgot Password`
+- [ ] Add a short explicit explanation in HAIR-010 and stable docs for why both `hair-booking-dev` and `hair-booking-dev-tf` exist
+- [ ] Review local scripts and examples for any accidental ambiguity between the two realms
+- [ ] Update local docs if any examples imply the Terraform sandbox realm is the default app-dev realm
+- [ ] Decide later whether to collapse the two local realm names into one
+
+## Phase 5: Realm Login Settings
+
+- [ ] Confirm current realm `hair-booking` login settings in hosted Keycloak admin
 - [ ] Enable `Remember Me`
 - [ ] Enable `Verify Email`
-- [ ] Configure SMTP for outbound auth email
-- [ ] Test new registration
-- [ ] Test password reset
-- [ ] Test verified-email login path
+- [ ] Confirm `User Registration` is enabled
+- [ ] Confirm `Forgot Password` is enabled
+- [ ] Record the exact hosted realm settings in the ticket diary
+- [ ] Update the guide if the live settings differ from the documented defaults
 
-## Social Login
+## Phase 6: SMTP Preparation With SES
 
-- [ ] Configure Google identity provider
-- [ ] Test first broker login with Google
-- [ ] Test repeat login with Google
-- [ ] Configure Facebook identity provider
-- [ ] Test first broker login with Facebook
-- [ ] Test repeat login with Facebook
-- [ ] Decide whether social providers will be codified in Terraform immediately or managed manually for a first rollout
-- [ ] Decide whether to enable the `instagram-broker` feature
-- [ ] If Instagram stays in scope, configure and test Instagram identity provider
+- [ ] Choose the sender domain and default sender address
+- [ ] Verify the sender identity/domain in Amazon SES
+- [ ] Create SES SMTP credentials outside git
+- [ ] Store SES SMTP credentials in the operator secret system, not in the repo
+- [ ] Configure Keycloak realm `hair-booking` email settings with SES
+- [ ] Send a Keycloak test email successfully
+- [ ] Document the final SMTP settings shape in HAIR-010 without exposing secrets
 
-## App Integration
+## Phase 7: Local Signup Validation
 
-- [ ] Update hosted deployment docs to reference the dedicated `hair-booking` realm
-- [ ] Update any remaining hosted app docs that still reference the shared `smailnail` realm
-- [ ] Update smoke tests for registration and social login
+- [ ] Create a fresh local test account through Keycloak registration
+- [ ] Confirm verify-email mail is sent
+- [ ] Confirm email verification completes successfully
+- [ ] Confirm password reset mail is sent
+- [ ] Confirm password reset completes successfully
+- [ ] Confirm the app login flow works after verification
+- [ ] Confirm no duplicate local `clients` record is created for repeat login of the same Keycloak account
 
-## Validation
+## Phase 8: Google Rollout
 
-- [x] Confirm Terraform plan/apply can be reviewed cleanly in `/home/manuel/code/wesen/terraform`
-- [x] Confirm hosted `/auth/login` uses the new realm
-- [ ] Confirm new local signup works end to end
-- [ ] Confirm Google login works end to end
-- [ ] Confirm Facebook login works end to end
-- [ ] Confirm no duplicate local client records are created for the same human account
+- [ ] Create the Google OAuth app/client
+- [ ] Add the correct redirect URI and origin on the Google side
+- [ ] Configure the Google identity provider in realm `hair-booking`
+- [ ] Test first broker login with a brand new Google-backed user
+- [ ] Test repeat login with the same Google-backed user
+- [ ] Test login behavior when the Google email matches an existing local-password account
+- [ ] Record any first-broker-login/account-linking behavior that needs product review
+
+## Phase 9: Facebook Rollout
+
+- [ ] Create the Meta app for Facebook login
+- [ ] Add the correct redirect URI and origin on the Meta side
+- [ ] Configure the Facebook identity provider in realm `hair-booking`
+- [ ] Test first broker login with a brand new Facebook-backed user
+- [ ] Test repeat login with the same Facebook-backed user
+- [ ] Test login behavior when the Facebook email matches an existing local-password account
+- [ ] Record any first-broker-login/account-linking behavior that needs product review
+
+## Deferred Work
+
+- [ ] Decide whether Google and Facebook provider setup should later be codified in Terraform
+- [ ] Decide whether Instagram ever needs to be reconsidered
+- [ ] Decide whether the local dual-realm naming should be collapsed in a cleanup ticket

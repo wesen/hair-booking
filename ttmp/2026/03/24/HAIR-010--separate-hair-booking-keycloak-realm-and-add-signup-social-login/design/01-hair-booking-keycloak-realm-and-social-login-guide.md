@@ -19,7 +19,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Recommended Keycloak target architecture for separating hair-booking from smailnail while supporting password signup plus Google and Meta-based login.
-LastUpdated: 2026-03-24T23:55:00-04:00
+LastUpdated: 2026-03-25T00:40:00-04:00
 WhatFor: Use this to scope the dedicated hosted realm, client configuration, self-registration path, and social login rollout order.
 WhenToUse: Use before changing the hosted issuer away from the shared smailnail realm.
 ---
@@ -56,6 +56,54 @@ Important current-product recommendation:
 - use the same Keycloak server at `auth.scapegoat.dev`
 - create a separate realm
 - do not create a separate Keycloak deployment yet unless there is a hard operational reason
+
+## Locked Decisions
+
+These decisions are now treated as the default execution plan unless the user changes them later.
+
+### Realm ownership
+
+- hosted auth is now cut over to realm `hair-booking`
+- keep using the shared Keycloak server at `https://auth.scapegoat.dev`
+- do not introduce a second Keycloak deployment for MVP
+
+### Local realm naming
+
+- keep both local names for now
+- `hair-booking-dev` remains the repo-local imported realm used for day-to-day app development
+- `hair-booking-dev-tf` remains the Terraform sandbox realm used for infra testing
+
+This is not elegant, but it is operationally clear enough and avoids churn in local scripts right now.
+
+### Signup policy
+
+- local email/password signup stays in scope
+- email verification should be required before calling signup complete
+- `Forgot Password` stays enabled
+- SMTP will be wired later using Amazon SES
+
+Practical implication:
+
+- realm settings can be prepared now
+- the full signup flow should not be called done until SES-backed email is actually configured and tested
+
+### Social provider scope
+
+- Google stays in MVP scope
+- Facebook stays in MVP scope
+- Instagram is out for the initial MVP unless the business case becomes explicit later
+
+### Social provider implementation path
+
+- first rollout should be manual in Keycloak admin, not Terraform-first
+- Terraform codification can happen after the provider settings stabilize
+
+### Identity mapping policy
+
+- Keycloak subject should be the canonical auth identity
+- email should remain useful for UX and matching, but should not become the only permanent identity key
+
+This decision matters for avoiding duplicate local `clients` rows when one person uses password login first and social login later.
 
 ## Current State
 
@@ -262,6 +310,53 @@ Recommended app-level policy:
 3. Configure the Meta/Instagram provider settings
 4. Test first broker login
 5. Decide whether the maintenance burden is acceptable
+
+## Definitive Execution Order
+
+This is the recommended implementation order from this point forward.
+
+### Step 1: stabilize realm and docs
+
+1. keep the hosted realm cutover as the new baseline
+2. update all operator docs and examples so they reference `hair-booking`
+3. keep the local naming split documented clearly
+
+### Step 2: finish realm login settings
+
+1. enable `Remember Me`
+2. enable `Verify Email`
+3. confirm `User Registration` and `Forgot Password` remain enabled
+4. document which pieces are blocked on SMTP
+
+### Step 3: prepare SMTP using SES
+
+1. decide the sender domain/address
+2. create SES SMTP credentials outside the repo
+3. configure Keycloak realm email settings
+4. send test email
+5. test signup verification and password reset end to end
+
+### Step 4: ship Google manually in Keycloak
+
+1. create Google OAuth app
+2. configure Google identity provider in realm `hair-booking`
+3. test first broker login
+4. test repeat login
+5. test duplicate-account behavior against an existing local account
+
+### Step 5: ship Facebook manually in Keycloak
+
+1. create Meta app
+2. configure Facebook identity provider in realm `hair-booking`
+3. test first broker login
+4. test repeat login
+5. test duplicate-account behavior against an existing local account
+
+### Step 6: optional future work
+
+1. decide whether to codify providers in Terraform
+2. decide whether to collapse local realm naming
+3. decide whether Instagram ever needs to exist
 
 ## Repo Changes Required After Realm Cutover
 

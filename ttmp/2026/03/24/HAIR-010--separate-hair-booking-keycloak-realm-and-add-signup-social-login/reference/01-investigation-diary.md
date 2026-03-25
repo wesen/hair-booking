@@ -18,7 +18,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Diary for the auth-separation work that moves hair-booking to its own Keycloak realm with local signup and social login.
-LastUpdated: 2026-03-25T00:25:00-04:00
+LastUpdated: 2026-03-25T00:40:00-04:00
 WhatFor: Use this to understand why the Keycloak plan moved into its own docmgr ticket and what conclusions were reached from the official docs.
 WhenToUse: Use while implementing or reviewing HAIR-010.
 ---
@@ -177,3 +177,37 @@ With the infrastructure and runtime updated, I finished the slice by cleaning th
 
 - app repo deployment docs now reference the dedicated `hair-booking` realm instead of `smailnail`
 - shared Terraform repo docs now describe hosted `hair-booking` as an app-owned realm, not as a client-only tenant of the shared realm
+
+After that implementation slice, the user asked for a definitive plan instead of more execution. The key product/ops decisions are now locked in the ticket so that implementation can continue without re-litigating scope every turn.
+
+The most important planning decisions that were set are:
+
+- keep the hosted dedicated realm and shared Keycloak server model
+- keep both local realm names for now instead of forcing a cleanup rename
+- keep local password signup in MVP scope
+- require verified email before calling signup complete
+- use Amazon SES later for SMTP, but do not block planning on the SMTP credentials existing yet
+- keep Google and Facebook in scope
+- drop Instagram from the initial MVP plan
+- roll out Google and Facebook manually in Keycloak first, not Terraform-first
+- treat the Keycloak subject as the canonical auth identity
+
+That changed the task list from a mixed research/implementation scratchpad into a phased execution checklist:
+
+1. hosted realm cutover
+2. hosted runtime alignment
+3. documentation alignment
+4. local alignment
+5. realm login settings
+6. SES-backed SMTP preparation
+7. local signup validation
+8. Google rollout
+9. Facebook rollout
+
+The point of that restructuring is to make the next review easy. The user can now look at the ticket and decide whether they agree with:
+
+- the product scope
+- the operational order
+- the specific follow-on tasks
+
+before more code or admin-console changes happen.
