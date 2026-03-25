@@ -28,7 +28,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Detailed design and rollout guide for moving hair-booking Keycloak ownership into the shared Terraform repo, using a hard pre-production cutover to a dedicated realm plus social-login follow-up recommendations.
-LastUpdated: 2026-03-25T11:40:00-04:00
+LastUpdated: 2026-03-25T16:55:00-04:00
 WhatFor: Use this to implement the Keycloak Terraform work safely and directly now that hosted auth is still pre-production.
 WhenToUse: Use before editing /home/manuel/code/wesen/terraform or changing hosted hair-booking OIDC env vars.
 ---
@@ -49,6 +49,16 @@ Applied status on 2026-03-25:
 - `https://hair-booking.app.scapegoat.dev/auth/login` now redirects into the dedicated realm
 - hosted realm SMTP was configured manually against SES
 - hosted realm `verify_email` is now managed in Terraform while `smtp_server` is intentionally ignored by Terraform
+- hosted browser client now explicitly allows `/auth/logout/callback` as a post-logout redirect URI
+- hosted portal login creates one app-side client row and repeat login reuses that row instead of duplicating it
+
+Important operator note:
+
+- the shared Terraform repo still exports `TF_VAR_realm_name=smailnail` from `/home/manuel/code/wesen/terraform/.envrc`
+- when working on hosted `hair-booking`, always override:
+  - `TF_VAR_realm_name=hair-booking`
+  - `TF_VAR_realm_display_name=hair-booking`
+- do not trust a plain `source .envrc && terraform plan` in the `hair-booking` env without those overrides
 
 ## What This System Actually Is
 

@@ -18,7 +18,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Diary for the auth-separation work that moves hair-booking to its own Keycloak realm with local signup and social login.
-LastUpdated: 2026-03-25T11:48:00-04:00
+LastUpdated: 2026-03-25T16:55:00-04:00
 WhatFor: Use this to understand why the Keycloak plan moved into its own docmgr ticket and what conclusions were reached from the official docs.
 WhenToUse: Use while implementing or reviewing HAIR-010.
 ---
@@ -788,3 +788,323 @@ This means the realm is in the best state currently possible without SMTP:
 - users can reset passwords
 - users can use remember-me
 - email verification is intentionally still blocked on the future SES slice
+
+From there I moved into the real SES SMTP rollout and hosted signup validation.
+The important architectural choice in this slice was to keep SMTP secrets out of
+git and out of Terraform state. The shared Terraform repo already owns the SES
+control plane, but not the SMTP password material. I followed that split rather
+than fighting it:
+
+- Terraform keeps owning SES identity, DKIM, MAIL FROM, and monitoring
+- a local operator-only env file keeps the SMTP username/password for now
+- Keycloak realm policy stays in Terraform
+- Keycloak `smtpServer` stays operator-managed, with Terraform configured to
+  ignore that remote drift
+
+I added two rerunnable HAIR-010 scripts in the ticket so the operator workflow
+is reproducible:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/ttmp/2026/03/24/HAIR-010--separate-hair-booking-keycloak-realm-and-add-signup-social-login/scripts/create_hair_booking_ses_smtp_credentials.sh`
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/ttmp/2026/03/24/HAIR-010--separate-hair-booking-keycloak-realm-and-add-signup-social-login/scripts/configure_hosted_keycloak_smtp_and_smoke.sh`
+
+The credential generator script created the dedicated SMTP IAM user
+`hair-booking-ses-smtp-prod`, derived an SES SMTP password from the IAM secret,
+and wrote the result to:
+
+- `/home/manuel/.config/hair-booking/hosted-keycloak-smtp.env`
+
+That file is local-only, outside git, and intentionally temporary until the
+user moves it into the shared vault. The first version of the generator had a
+real bug: it wrote `KEYCLOAK_SMTP_FROM_DISPLAY_NAME=Hair Booking` without shell
+escaping, which broke `source` with `Booking: command not found`. I fixed the
+script to write shell-safe values and repaired the local env file in place.
+
+The next failure was more subtle. The initial Keycloak admin update succeeded,
+but the execute-actions-email smoke path returned a `500`. I pulled the live
+Keycloak logs from the Coolify host:
+
+```bash
+ssh manuel@89.167.52.236 'sudo -n docker logs --tail 80 keycloak-k12lm4blpo13louovn3pfsgs 2>&1 | tail -80'
+```
+
+The actual root cause was in the log output:
+
+```text
+554 Message rejected: Email address is not verified. The following identities failed the check in region US-EAST-1: ...
+```
+
+That turned out to be a partial diagnosis only. After correcting the sender
+shape and the execute-actions-email redirect handling, the more important error
+was:
+
+```text
+554 Access denied ... not authorized to perform ses:SendRawEmail on resource arn:aws:ses:us-east-1:745667007186:configuration-set/mail-scapegoat-dev
+```
+
+The IAM policy I had generated for the SMTP user only allowed the SES identity
+ARN. Hosted Keycloak was also sending with the configuration set
+`mail-scapegoat-dev`, so the policy needed both resources. I updated the script
+to allow:
+
+- `arn:aws:ses:us-east-1:745667007186:identity/mail.scapegoat.dev`
+- `arn:aws:ses:us-east-1:745667007186:configuration-set/mail-scapegoat-dev`
+
+I also made the script rerunnable: if the IAM access key already exists and the
+local operator env file already exists, the script now refreshes the inline
+policy and exits cleanly instead of failing.
+
+After that policy fix, the live Keycloak smoke succeeded. I verified both action
+email flows through the admin API against the SES simulator address
+`success@simulator.amazonses.com`:
+
+```bash
+curl -i -X PUT \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  "$TF_VAR_keycloak_url/admin/realms/hair-booking/users/$USER_ID/execute-actions-email?lifespan=1800" \
+  --data '["VERIFY_EMAIL"]'
+
+curl -i -X PUT \
+  -H "Authorization: Bearer $ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  "$TF_VAR_keycloak_url/admin/realms/hair-booking/users/$USER_ID/execute-actions-email?lifespan=1800" \
+  --data '["UPDATE_PASSWORD"]'
+```
+
+Both returned `204 No Content`, which is the Keycloak success path for action
+emails.
+
+The next risk was Terraform drift. Once SMTP existed in the remote realm, a
+plain `terraform plan` for hosted `hair-booking` wanted to wipe the entire
+`smtp_server` block because the Keycloak provider configuration does not own it
+in the current shared module design. That would have made `verify_email = true`
+dangerous. The fix was to update the shared realm module in:
+
+- `/home/manuel/code/wesen/terraform/keycloak/modules/realm-base/main.tf`
+
+with:
+
+```hcl
+lifecycle {
+  ignore_changes = [
+    smtp_server,
+  ]
+}
+```
+
+Then I promoted hosted `verify_email` from `false` to `true` in:
+
+- `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/variables.tf`
+
+I validated and applied that change, then rechecked the live realm state. The
+final hosted realm result after apply was:
+
+- `registrationAllowed: true`
+- `resetPasswordAllowed: true`
+- `rememberMe: true`
+- `verifyEmail: true`
+- `smtpServer` still present with the SES settings
+
+With hosted Keycloak fixed, I moved into end-to-end hosted browser validation.
+Using Playwright against `https://hair-booking.app.scapegoat.dev/portal`, I
+registered a fresh account:
+
+- username: `hb-smoke-20260325a`
+- email: `success@simulator.amazonses.com`
+- password: `SmokePass!2026`
+
+The browser reached the expected verify-email gate and displayed the normal
+Keycloak message telling the user that an email had been sent. I separately
+confirmed through the admin API that the new user existed and had
+`emailVerified: false`.
+
+I then verified hosted password-reset initiation through the browser by using
+Keycloak's `Forgot Password?` flow for that same user. The browser showed the
+normal reset-mail confirmation message. At that point the Keycloak side was
+working, but the app itself still failed after successful auth with:
+
+```text
+Client service is not configured.
+```
+
+That failure was not an auth issue. I traced it to the hosted app runtime:
+
+```bash
+curl -sS https://hair-booking.app.scapegoat.dev/api/info | jq
+```
+
+The result showed `databaseConfigured: false`. I inspected the live Coolify app
+env on the host and found the missing piece: the deployed app had OIDC vars, but
+no `HAIR_BOOKING_DATABASE_URL` at all. That made `/api/me` fail even after a
+successful auth callback.
+
+I located the live hosted Postgres container on the Coolify host:
+
+- container: `go1o5tbegalwy3kesshq3hcp`
+- network alias usable from the app container: `go1o5tbegalwy3kesshq3hcp`
+- database: `postgres`
+
+Then I updated the live app env file on the host:
+
+- `/data/coolify/applications/uion8lttbypsijf8ww9b4c3e/.env`
+
+to include `HAIR_BOOKING_DATABASE_URL`, and recreated the app container with:
+
+```bash
+ssh manuel@89.167.52.236 'sudo -n bash -lc "cd /data/coolify/applications/uion8lttbypsijf8ww9b4c3e && docker compose up -d"'
+```
+
+That cleared the deployment blocker. The validation after restart was:
+
+```bash
+curl -sS https://hair-booking.app.scapegoat.dev/api/info | jq
+```
+
+and the runtime now reports:
+
+- `databaseConfigured: true`
+- issuer still `https://auth.scapegoat.dev/realms/hair-booking`
+
+So the important HAIR-010 state at the end of this slice is:
+
+- hosted Keycloak realm separation is complete
+- hosted signup/password-reset initiation is working
+- hosted verify-email enforcement is enabled
+- hosted SMTP is working through SES
+- Terraform will no longer wipe manual SMTP settings
+- the earlier hosted `backend-not-configured` blocker is fixed
+- the remaining Phase 7 work is now true end-to-end account validation rather
+  than environment repair
+
+Once the app database blocker was gone, the next real end-to-end check was
+repeat-login behavior. I wanted to prove two things:
+
+- logout still works in the new dedicated realm
+- logging in again updates the existing app-side client row instead of creating
+  duplicates
+
+The first repeat-login attempt exposed another authentic Keycloak client gap. I
+triggered logout through the app:
+
+```bash
+https://hair-booking.app.scapegoat.dev/auth/logout
+```
+
+and Keycloak responded with:
+
+```text
+Invalid redirect uri
+```
+
+That narrowed the failure immediately. The app was sending
+`post_logout_redirect_uri=https://hair-booking.app.scapegoat.dev/auth/logout/callback`,
+which is correct for the backend, but the Terraform-managed client only allowed
+the login callback in `valid_redirect_uris`. The browser-client module already
+supports `valid_post_logout_redirect_uris`; the hosted `hair-booking` env had
+simply never set it.
+
+I fixed that in the shared Terraform repo:
+
+- `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/main.tf`
+- `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/variables.tf`
+- `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/local/main.tf`
+
+The hosted client now includes:
+
+- `https://hair-booking.app.scapegoat.dev/auth/logout/callback`
+
+and the local dev client now includes the matching logout callbacks for `:8080`
+and `:8081`.
+
+While validating that change, I hit an operator sharp edge in the shared
+Terraform repo. A plain:
+
+```bash
+source .envrc
+terraform -chdir=keycloak/apps/hair-booking/envs/hosted plan
+```
+
+produced a dangerous plan that tried to move the realm back to `smailnail`. The
+root cause was not the logout change itself. The shared `/home/manuel/code/wesen/terraform/.envrc`
+still exports:
+
+- `TF_VAR_realm_name=smailnail`
+
+So hosted `hair-booking` work must override at least:
+
+- `TF_VAR_realm_name=hair-booking`
+- `TF_VAR_realm_display_name=hair-booking`
+
+I re-ran the hosted plan and apply with those overrides pinned explicitly:
+
+```bash
+cd /home/manuel/code/wesen/terraform
+source .envrc
+TF_VAR_realm_name=hair-booking \
+TF_VAR_realm_display_name=hair-booking \
+terraform -chdir=keycloak/apps/hair-booking/envs/hosted plan
+
+TF_VAR_realm_name=hair-booking \
+TF_VAR_realm_display_name=hair-booking \
+terraform -chdir=keycloak/apps/hair-booking/envs/hosted apply -auto-approve
+```
+
+That resulted in the intended one-line change only:
+
+- add hosted `valid_post_logout_redirect_uris = ["https://hair-booking.app.scapegoat.dev/auth/logout/callback"]`
+
+After apply, I re-ran the browser flow with Playwright:
+
+1. log in to `/portal` with the verified smoke user
+2. trigger `/auth/logout`
+3. confirm Keycloak shows a real logout confirmation instead of `Invalid redirect uri`
+4. confirm logout returns to `https://hair-booking.app.scapegoat.dev/booking`
+5. go back to `/portal`
+6. log in again with the same account
+
+That full flow passed cleanly.
+
+To verify the app-side persistence, I queried the hosted Postgres container on
+the Coolify host before and after the repeat login:
+
+```bash
+ssh manuel@89.167.52.236 'sudo -n docker exec go1o5tbegalwy3kesshq3hcp \
+  psql -U postgres -d postgres -c "select count(*) from clients;"'
+
+ssh manuel@89.167.52.236 'sudo -n docker exec go1o5tbegalwy3kesshq3hcp \
+  psql -U postgres -d postgres -c "select id, name, email, phone, created_at, updated_at from clients order by created_at desc limit 5;"'
+```
+
+The result after the first successful app login was one client row:
+
+- `id = 8d22f1aa-7032-48bd-b1fc-7e5d3ea4c766`
+- `name = SES Smoke`
+- `email = success@simulator.amazonses.com`
+
+After the second login, the table still contained exactly one row. The `id`
+stayed the same and only `updated_at` advanced. That proves the repeat-login
+path is reusing the existing app-side client record rather than creating a
+duplicate.
+
+I also verified the authenticated app payload directly from the browser session:
+
+```javascript
+await fetch('/api/me', { credentials: 'include' }).then(async (res) => ({
+  status: res.status,
+  body: await res.json(),
+}))
+```
+
+The hosted response was `200` and contained:
+
+- the stable `client.id` matching the database row
+- `auth_subject` from the dedicated `hair-booking` realm
+- `auth_issuer = https://auth.scapegoat.dev/realms/hair-booking`
+- default `notification_prefs`
+
+That closes the deployment-repair portion of Phase 7 and most of the real
+runtime validation. The only remaining unchecked tasks in that phase now depend
+on a real inbox rather than the SES simulator:
+
+- following the verify-email link from the mailbox itself
+- following the password-reset link from the mailbox itself

@@ -71,7 +71,7 @@
 - [x] Choose the sender domain and default sender address
 - [x] Verify the sender identity/domain in Amazon SES
 - [x] Create SES SMTP credentials outside git
-- [x] Store SES SMTP credentials in the operator secret system, not in the repo
+- [x] Store SES SMTP credentials outside git and Terraform state in an operator-only secret file for now
 - [x] Configure Keycloak realm `hair-booking` email settings with SES
 - [x] Send a Keycloak test email successfully
 - [x] Document the final SMTP settings shape in HAIR-010 without exposing secrets
@@ -83,12 +83,13 @@
 - [ ] Confirm email verification completes successfully from the mailbox itself
 - [x] Confirm password reset mail is sent
 - [ ] Confirm password reset completes successfully from the mailbox itself
-- [ ] Confirm the app login flow works after verification
-- [ ] Confirm no duplicate local `clients` record is created for repeat login of the same Keycloak account
+- [x] Confirm the app login flow works after verification
+- [x] Confirm no duplicate local `clients` record is created for repeat login of the same Keycloak account
 
-Current blocker:
+Current hosted validation note:
 
-- hosted `hair-booking` deployment does not currently expose `HAIR_BOOKING_DATABASE_URL`, so `/api/me` returns `backend-not-configured` after a successful auth callback
+- the original hosted `backend-not-configured` blocker was fixed by adding `HAIR_BOOKING_DATABASE_URL` to the live Coolify app env and recreating the container
+- the remaining unchecked Phase 7 work requires a real mailbox, not the SES simulator address used for operator smoke tests
 
 ## Phase 8: Google Rollout
 
@@ -115,3 +116,4 @@ Current blocker:
 - [ ] Decide whether Google and Facebook provider setup should later be codified in Terraform
 - [ ] Decide whether Instagram ever needs to be reconsidered
 - [ ] Decide whether the local dual-realm naming should be collapsed in a cleanup ticket
+- [ ] Move hosted SES SMTP credentials from the local operator file into the shared vault/secret system

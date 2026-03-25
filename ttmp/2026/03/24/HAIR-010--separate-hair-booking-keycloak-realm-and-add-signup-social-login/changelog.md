@@ -37,7 +37,13 @@
 - Enabled hosted `verify_email` through Terraform without removing the manual SMTP configuration
 - Completed a real hosted registration smoke and observed the verify-email browser gate for a new test user
 - Completed a real hosted forgot-password initiation smoke and observed the reset-mail browser confirmation
-- Identified a separate hosted app deployment blocker after successful auth: the live app has no database env, so `/api/me` cannot build the client service
+- Identified a separate hosted app deployment blocker after successful auth: the live app had no database env, so `/api/me` could not build the client service
+- Fixed the live Coolify app env by adding `HAIR_BOOKING_DATABASE_URL` and recreating the hosted container
+- Revalidated hosted `/api/info` so the app now reports `databaseConfigured: true`
+- Fixed the hosted Keycloak client logout flow by adding `/auth/logout/callback` as a valid post-logout redirect URI in Terraform
+- Re-ran hosted logout and repeat-login smoke successfully against the dedicated `hair-booking` realm
+- Confirmed hosted `/api/me` returns the authenticated client and notification preferences after verification
+- Confirmed repeat login updates the existing `clients` row instead of creating a duplicate record
 
 ## 2026-03-24
 
