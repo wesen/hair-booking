@@ -11,6 +11,9 @@
 - Updated the diary with the hosted Terraform findings and the recommendation to separate realm migration from social-provider rollout
 - Updated the Terraform migration guide to use a hard pre-production cutover instead of a temporary overlap phase
 - Simplified the task list and diary to match the direct cutover strategy
+- Executed the hosted Terraform hard cutover and created the dedicated `hair-booking` realm in Keycloak
+- Updated the live Coolify app env to point at `https://auth.scapegoat.dev/realms/hair-booking` and restarted the container
+- Updated the app-repo and shared-infra deployment docs to describe the new dedicated realm ownership model
 
 ## 2026-03-24
 

@@ -15,14 +15,14 @@ It follows the same operational model as `smailnail`:
 As of 2026-03-20, the live hosted app is configured at:
 
 - Public app URL: `https://hair-booking.app.scapegoat.dev`
-- Keycloak issuer: `https://auth.scapegoat.dev/realms/smailnail`
+- Keycloak issuer: `https://auth.scapegoat.dev/realms/hair-booking`
 - Keycloak client: `hair-booking-web`
 - Hosted health check: `https://hair-booking.app.scapegoat.dev/healthz`
 
 ## Target shape
 
 - Public app URL: `https://hair-booking.example.com`
-- Keycloak issuer: `https://auth.example.com/realms/smailnail`
+- Keycloak issuer: `https://auth.example.com/realms/hair-booking`
 - Keycloak deployment: shared with `smailnail`
 - Keycloak client for this app: `hair-booking-web`
 - Container port: `8080`
@@ -84,7 +84,7 @@ The embedded runtime behavior is:
 HAIR_BOOKING_LISTEN_PORT=8080
 HAIR_BOOKING_AUTH_MODE=oidc
 HAIR_BOOKING_AUTH_SESSION_SECRET=replace-with-long-random-secret
-HAIR_BOOKING_OIDC_ISSUER_URL=https://auth.example.com/realms/smailnail
+HAIR_BOOKING_OIDC_ISSUER_URL=https://auth.example.com/realms/hair-booking
 HAIR_BOOKING_OIDC_CLIENT_ID=hair-booking-web
 HAIR_BOOKING_OIDC_CLIENT_SECRET=replace-with-generated-client-secret
 HAIR_BOOKING_OIDC_REDIRECT_URL=https://hair-booking.example.com/auth/callback
@@ -105,7 +105,7 @@ Note: `HAIR_BOOKING_LOG_LEVEL` is not currently consumed by the app runtime, so 
 HAIR_BOOKING_LISTEN_PORT=8080
 HAIR_BOOKING_AUTH_MODE=oidc
 HAIR_BOOKING_AUTH_SESSION_SECRET=replace-with-long-random-secret
-HAIR_BOOKING_OIDC_ISSUER_URL=https://auth.example.com/realms/smailnail
+HAIR_BOOKING_OIDC_ISSUER_URL=https://auth.example.com/realms/hair-booking
 HAIR_BOOKING_OIDC_CLIENT_ID=hair-booking-web
 HAIR_BOOKING_OIDC_CLIENT_SECRET=replace-with-generated-client-secret
 HAIR_BOOKING_OIDC_REDIRECT_URL=https://hair-booking.example.com/auth/callback
@@ -124,7 +124,8 @@ HAIR_BOOKING_OIDC_REDIRECT_URL=https://hair-booking.example.com/auth/callback
 Before triggering the first hosted deployment, make sure these are true:
 
 - the selected Git branch has been pushed to GitHub
-- the `hair-booking-web` client exists in the shared Keycloak realm
+- the `hair-booking` realm exists in Keycloak
+- the `hair-booking-web` client exists in that realm
 - the Coolify app environment contains the same client secret that Terraform applied
 - the public hostname already has a DNS record pointing at the Coolify edge
 
@@ -138,7 +139,7 @@ The Keycloak client should be managed from the shared infra repo via:
 - [apps/hair-booking/envs/hosted/main.tf](/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/main.tf)
 - [apps/hair-booking/envs/hosted/versions.tf](/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/versions.tf)
 
-The hosted Terraform environment assumes the shared realm already exists. It manages only the `hair-booking-web` client inside that realm.
+The hosted Terraform environment now owns the `hair-booking` realm directly and manages the `hair-booking-web` client inside that realm.
 
 Example plan:
 
@@ -149,7 +150,8 @@ terraform init
 terraform validate
 terraform plan \
   -var='keycloak_url=https://auth.example.com' \
-  -var='realm_name=smailnail' \
+  -var='realm_name=hair-booking' \
+  -var='realm_display_name=hair-booking' \
   -var='public_app_url=https://hair-booking.example.com' \
   -var='web_client_secret=replace-with-generated-secret' \
   -var='keycloak_username=replace-with-admin-username' \
@@ -221,7 +223,7 @@ Those requests exercise Traefik routing on the host even if public DNS has not b
 
 Do not switch the public app hostname until both of these are true:
 
-- the `hair-booking-web` client exists in the shared Keycloak realm with the exact hosted callback URL
+- the `hair-booking` realm and `hair-booking-web` client exist with the exact hosted callback URL
 - the Coolify deployment passes `/healthz`, `/api/info`, and a real browser login
 
 Also ensure the public DNS record exists. Without that, the service can be healthy inside Coolify and still be unreachable from a browser outside the server.

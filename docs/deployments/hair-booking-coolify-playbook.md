@@ -13,6 +13,7 @@ This playbook complements, but is more operational than, [hair-booking-coolify.m
 ## Current known-good deployment shape
 
 - Public hostname: `https://hair-booking.app.scapegoat.dev`
+- Keycloak issuer: `https://auth.scapegoat.dev/realms/hair-booking`
 - Coolify host: `89.167.52.236`
 - Non-root operator user: `manuel`
 - Coolify application UUID: `uion8lttbypsijf8ww9b4c3e`
@@ -111,6 +112,7 @@ curl -ksSI https://hair-booking.app.scapegoat.dev/
 curl -ksS https://hair-booking.app.scapegoat.dev/booking | sed -n '1,30p'
 curl -ksS https://hair-booking.app.scapegoat.dev/healthz
 curl -ksS https://hair-booking.app.scapegoat.dev/api/info
+curl -ksSI https://hair-booking.app.scapegoat.dev/auth/login
 ```
 
 Expected results:
@@ -118,6 +120,8 @@ Expected results:
 - `/` returns `307` with `Location: /booking`
 - `/booking` serves the Vite/React shell and references `/assets/...`
 - `/healthz` returns `{"data":{"status":"ok"}}`
+- `/api/info` shows `"issuerUrl":"https://auth.scapegoat.dev/realms/hair-booking"`
+- `/auth/login` redirects into `/realms/hair-booking/`
 
 ### Replay script
 

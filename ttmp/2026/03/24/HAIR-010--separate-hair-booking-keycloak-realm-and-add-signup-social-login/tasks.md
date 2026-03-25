@@ -13,21 +13,21 @@
 
 ## Terraform Realm Migration Design
 
-- [ ] Add hosted `hair-booking` realm ownership to `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/main.tf`
-- [ ] Add hosted `realm_display_name` and dedicated-realm variables to `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/variables.tf`
-- [ ] Remove the shared-realm-only ownership model from the hosted `hair-booking` workspace
-- [ ] Validate that the hosted plan creates a new `hair-booking` realm without destroying unrelated shared-realm resources
-- [ ] Document the hard pre-production cutover sequence in the implementation guide
+- [x] Add hosted `hair-booking` realm ownership to `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/main.tf`
+- [x] Add hosted `realm_display_name` and dedicated-realm variables to `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/variables.tf`
+- [x] Remove the shared-realm-only ownership model from the hosted `hair-booking` workspace
+- [x] Validate that the hosted plan creates a new `hair-booking` realm without destroying unrelated shared-realm resources
+- [x] Document the hard pre-production cutover sequence in the implementation guide
 
 ## Realm Separation Execution
 
-- [ ] Create hosted realm `hair-booking`
-- [ ] Create dedicated hosted `hair-booking-web` client in the new realm
-- [ ] Configure hosted redirect URI for `https://hair-booking.app.scapegoat.dev/auth/callback`
-- [ ] Configure hosted web origin for `https://hair-booking.app.scapegoat.dev`
-- [ ] Update hosted app env to use the `hair-booking` realm issuer
-- [ ] Redeploy hosted app after the dedicated realm exists
-- [ ] Remove stale hosted docs and examples that still describe `hair-booking` as a shared-realm client
+- [x] Create hosted realm `hair-booking`
+- [x] Create dedicated hosted `hair-booking-web` client in the new realm
+- [x] Configure hosted redirect URI for `https://hair-booking.app.scapegoat.dev/auth/callback`
+- [x] Configure hosted web origin for `https://hair-booking.app.scapegoat.dev`
+- [x] Update hosted app env to use the `hair-booking` realm issuer
+- [x] Redeploy hosted app after the dedicated realm exists
+- [x] Remove stale hosted docs and examples that still describe `hair-booking` as a shared-realm client
 
 ## Local Alignment
 
@@ -68,8 +68,8 @@
 
 ## Validation
 
-- [ ] Confirm Terraform plan/apply can be reviewed cleanly in `/home/manuel/code/wesen/terraform`
-- [ ] Confirm hosted `/auth/login` uses the new realm
+- [x] Confirm Terraform plan/apply can be reviewed cleanly in `/home/manuel/code/wesen/terraform`
+- [x] Confirm hosted `/auth/login` uses the new realm
 - [ ] Confirm new local signup works end to end
 - [ ] Confirm Google login works end to end
 - [ ] Confirm Facebook login works end to end

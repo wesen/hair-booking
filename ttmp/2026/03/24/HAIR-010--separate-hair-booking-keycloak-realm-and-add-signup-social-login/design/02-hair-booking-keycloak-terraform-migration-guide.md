@@ -41,6 +41,13 @@ WhenToUse: Use before editing /home/manuel/code/wesen/terraform or changing host
 
 The important operational detail is that the current hosted Terraform workspace for `hair-booking` does not own a realm. It only owns one browser client inside `smailnail`. Because the app is not in real production yet, the migration does **not** need a temporary overlap phase. The simplest and best approach is a hard cutover: change the hosted Terraform workspace so it owns the `hair-booking` realm directly, apply that change, update the app to the new issuer and secret, and stop carrying the old shared-realm shape forward.
 
+Applied status on 2026-03-25:
+
+- hosted realm `hair-booking` was created successfully
+- hosted `hair-booking-web` client was recreated in that realm
+- live app issuer was switched to `https://auth.scapegoat.dev/realms/hair-booking`
+- `https://hair-booking.app.scapegoat.dev/auth/login` now redirects into the dedicated realm
+
 ## What This System Actually Is
 
 There are two repos involved, and understanding the boundary between them is the main prerequisite.

@@ -18,7 +18,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Diary for the auth-separation work that moves hair-booking to its own Keycloak realm with local signup and social login.
-LastUpdated: 2026-03-25T00:10:00-04:00
+LastUpdated: 2026-03-25T00:25:00-04:00
 WhatFor: Use this to understand why the Keycloak plan moved into its own docmgr ticket and what conclusions were reached from the official docs.
 WhenToUse: Use while implementing or reviewing HAIR-010.
 ---
@@ -84,3 +84,96 @@ Because there are no real customer users depending on login continuity yet, the 
 That is simpler, easier for an intern to reason about, and better aligned with the real stage of the product.
 
 The Terraform review also confirmed that social-provider rollout should probably be split from the realm migration. The shared Terraform repo currently has reusable realm and browser-client modules, but no existing identity-provider resources. So Google and Facebook should be treated as a second, follow-on codification step after the dedicated realm is stable.
+
+After that planning pass, the user said to go ahead and execute the tasks instead of stopping at design. I started with the hosted Terraform cutover because that was the highest-leverage slice and because the shared repo already had the right primitives. The concrete code changes were:
+
+- add `module "realm"` to `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/main.tf`
+- point the hosted `browser_client` at `module.realm.id` instead of the old shared-realm name
+- add `realm_display_name` to `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/variables.tf`
+- change the hosted example tfvars from `smailnail` to `hair-booking`
+
+I validated the new hosted env with:
+
+```bash
+cd /home/manuel/code/wesen/terraform
+source .envrc
+terraform -chdir=keycloak/apps/hair-booking/envs/hosted init
+terraform -chdir=keycloak/apps/hair-booking/envs/hosted validate
+export TF_VAR_realm_name=hair-booking
+export TF_VAR_realm_display_name=hair-booking
+terraform -chdir=keycloak/apps/hair-booking/envs/hosted plan
+```
+
+The important plan result was clean enough for a hard cutover:
+
+- `module.realm.keycloak_realm.this` would be created as realm `hair-booking`
+- `module.browser_client.keycloak_openid_client.this` would be replaced because `realm_id` was changing from `smailnail`
+- there were no unrelated `smailnail` resources in the plan
+
+Because the user had already clarified that the app is not yet in production, I applied the cutover immediately:
+
+```bash
+cd /home/manuel/code/wesen/terraform
+source .envrc
+export TF_VAR_realm_name=hair-booking
+export TF_VAR_realm_display_name=hair-booking
+terraform -chdir=keycloak/apps/hair-booking/envs/hosted apply -auto-approve
+```
+
+That completed successfully with:
+
+- 2 resources added
+- 1 resource destroyed
+- outputs:
+  - `browser_client_id = "hair-booking-web"`
+  - `public_callback_url = "https://hair-booking.app.scapegoat.dev/auth/callback"`
+  - `realm_name = "hair-booking"`
+
+After the Keycloak side was live, I verified the new issuer document directly:
+
+```bash
+curl -fsS https://auth.scapegoat.dev/realms/hair-booking/.well-known/openid-configuration | jq -r '.issuer,.authorization_endpoint,.token_endpoint'
+```
+
+That returned the expected hosted `hair-booking` realm URLs.
+
+The next operational step was the app runtime cutover on the Coolify host. Since the same client secret value was reused for the new realm client, the only runtime change needed was the issuer URL. I inspected the deployed app under:
+
+- `/data/coolify/applications/uion8lttbypsijf8ww9b4c3e/.env`
+- `/data/coolify/applications/uion8lttbypsijf8ww9b4c3e/docker-compose.yaml`
+
+Then I updated the live env file on `89.167.52.236` and restarted the app with:
+
+```bash
+ssh manuel@89.167.52.236
+sudo -n python3 - <<'PY'
+from pathlib import Path
+path = Path("/data/coolify/applications/uion8lttbypsijf8ww9b4c3e/.env")
+text = path.read_text()
+path.write_text(text.replace(
+    "HAIR_BOOKING_OIDC_ISSUER_URL=https://auth.scapegoat.dev/realms/smailnail",
+    "HAIR_BOOKING_OIDC_ISSUER_URL=https://auth.scapegoat.dev/realms/hair-booking",
+    1,
+))
+PY
+sudo -n bash -lc 'cd /data/coolify/applications/uion8lttbypsijf8ww9b4c3e && docker compose up -d'
+```
+
+I hit one minor operator error there: the first restart attempt failed with `Permission denied` because I tried to `cd` into the Coolify app directory before elevating the whole shell. The fix was to wrap the `cd` and `docker compose up -d` in `sudo -n bash -lc '...'`.
+
+After the restart, the hosted runtime validated cleanly:
+
+```bash
+curl -i -sS https://hair-booking.app.scapegoat.dev/api/info
+curl -I -sS https://hair-booking.app.scapegoat.dev/auth/login
+```
+
+The important results were:
+
+- `/api/info` now reports `"issuerUrl":"https://auth.scapegoat.dev/realms/hair-booking"`
+- `/auth/login` now redirects into `https://auth.scapegoat.dev/realms/hair-booking/protocol/openid-connect/auth?...`
+
+With the infrastructure and runtime updated, I finished the slice by cleaning the written operator story in both repos:
+
+- app repo deployment docs now reference the dedicated `hair-booking` realm instead of `smailnail`
+- shared Terraform repo docs now describe hosted `hair-booking` as an app-owned realm, not as a client-only tenant of the shared realm
