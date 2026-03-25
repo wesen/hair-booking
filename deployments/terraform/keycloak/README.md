@@ -11,15 +11,17 @@ Use the shared infra repo instead:
 The original repo-local scaffold remains as historical context for how the app
 was first bootstrapped.
 
-This directory manages the Keycloak browser client used by `hair-booking`.
+This directory is historical context only. The canonical hosted and local
+Keycloak Terraform now lives in `/home/manuel/code/wesen/terraform`.
 
-It follows the same broad pattern as `smailnail`, but with one important
-difference:
+Important distinction:
 
-- local Terraform can create a sandbox realm plus the `hair-booking-web` client
-- hosted Terraform manages the `hair-booking-web` client inside an existing
-  shared realm, so `hair-booking` can reuse the same Keycloak deployment as
-  `smailnail` without taking ownership of the whole hosted realm
+- `hair-booking-dev`
+  - the JSON-imported local realm used by the app repo day to day
+- `hair-booking-dev-tf`
+  - the Terraform sandbox realm used to test Keycloak Terraform without colliding with the imported local realm
+- hosted `hair-booking`
+  - now owns its own dedicated realm `hair-booking` in the shared Terraform repo
 
 ## Layout
 
@@ -72,11 +74,12 @@ http://127.0.0.1:18090/realms/hair-booking-dev-tf
 
 ## Hosted verification
 
-The hosted Terraform environment assumes:
+The canonical hosted Terraform environment in `/home/manuel/code/wesen/terraform`
+now assumes:
 
-- Keycloak already exists
-- the shared hosted realm already exists
-- `hair-booking` only needs its own confidential browser client
+- the shared Keycloak server already exists
+- hosted `hair-booking` owns a dedicated realm named `hair-booking`
+- the `hair-booking-web` client lives inside that dedicated realm
 
 From:
 
@@ -91,15 +94,17 @@ terraform init -backend=false
 terraform validate
 terraform plan \
   -var='keycloak_url=https://auth.example.com' \
-  -var='realm_name=smailnail' \
+  -var='realm_name=hair-booking' \
+  -var='realm_display_name=hair-booking' \
   -var='public_app_url=https://hair-booking.example.com' \
   -var='web_client_secret=replace-with-generated-secret' \
   -var='keycloak_username=replace-with-admin-username' \
   -var='keycloak_password=replace-with-admin-password'
 ```
 
-This will manage a client with:
+This will manage:
 
+- realm: `hair-booking`
 - client ID: `hair-booking-web`
 - redirect URI: `https://hair-booking.example.com/auth/callback`
 - web origin: `https://hair-booking.example.com`

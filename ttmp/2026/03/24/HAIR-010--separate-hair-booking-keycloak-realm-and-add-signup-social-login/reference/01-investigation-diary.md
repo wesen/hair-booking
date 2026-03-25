@@ -18,7 +18,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Diary for the auth-separation work that moves hair-booking to its own Keycloak realm with local signup and social login.
-LastUpdated: 2026-03-25T00:40:00-04:00
+LastUpdated: 2026-03-25T00:55:00-04:00
 WhatFor: Use this to understand why the Keycloak plan moved into its own docmgr ticket and what conclusions were reached from the official docs.
 WhenToUse: Use while implementing or reviewing HAIR-010.
 ---
@@ -211,3 +211,43 @@ The point of that restructuring is to make the next review easy. The user can no
 - the specific follow-on tasks
 
 before more code or admin-console changes happen.
+
+After that review checkpoint, the user approved the plan and asked to continue task by task with commits and a detailed diary. I took the next lowest-risk slice first: local alignment.
+
+This slice did not change runtime behavior. Its job was to make the local/operator story explicit so a new intern does not confuse the two local realm names.
+
+The specific clarification implemented is:
+
+- `hair-booking-dev`
+  - the repo-local imported realm used for normal application development
+- `hair-booking-dev-tf`
+  - the Terraform sandbox realm used to test Keycloak Terraform itself
+
+I updated these docs to say that directly:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/README.md`
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/deployments/terraform/keycloak/README.md`
+- `/home/manuel/code/wesen/terraform/keycloak/README.md`
+- `/home/manuel/code/wesen/terraform/docs/shared-keycloak-platform-playbook.md`
+
+The app README also got one more important correction while I was there: the production note now says hosted `hair-booking` uses the dedicated `hair-booking` realm, not the old shared `smailnail` realm.
+
+To review for residual ambiguity, I used targeted grep passes instead of editing blindly:
+
+```bash
+rg -n "hair-booking-dev-tf|hair-booking-dev" \
+  /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/README.md \
+  /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs \
+  /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/deployments/terraform/keycloak/README.md -S
+
+rg -n "hair-booking-dev-tf|hair-booking-dev" \
+  /home/manuel/code/wesen/terraform/keycloak/README.md \
+  /home/manuel/code/wesen/terraform/docs/shared-keycloak-platform-playbook.md \
+  /home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/local -S
+```
+
+That review showed the remaining mentions are now intentional references rather than mismatched instructions. This let me check off three Phase 4 tasks:
+
+- explain why both realms exist
+- review examples for ambiguity
+- update the docs where the ambiguity could mislead a new operator

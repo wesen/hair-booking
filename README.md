@@ -78,6 +78,15 @@ Local defaults after the realm import:
 
 The compose stack comes from [docker-compose.local.yml](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docker-compose.local.yml), and the imported realm comes from [hair-booking-dev-realm.json](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/dev/keycloak/realm-import/hair-booking-dev-realm.json).
 
+Important local naming note:
+
+- `hair-booking-dev`
+  - the repo-local imported realm used for normal app development
+- `hair-booking-dev-tf`
+  - a separate Terraform sandbox realm used in `/home/manuel/code/wesen/terraform` when testing the Keycloak Terraform itself
+
+If you are just running the app locally, use `hair-booking-dev`. If you are specifically validating Terraform-managed Keycloak resources, use `hair-booking-dev-tf`.
+
 Useful commands:
 
 ```bash
@@ -180,10 +189,10 @@ Expected behavior:
 
 ## Production note
 
-The local stack is standalone, but production can still point at the shared Keycloak deployment used by `smailnail`. In production, the current supported path is:
+The local stack is standalone, but production now points at the dedicated `hair-booking` realm on the shared Keycloak server. In production, the current supported path is:
 
 - build from the root [Dockerfile](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/Dockerfile)
-- provision the `hair-booking-web` Keycloak client with the central Terraform config under [apps/hair-booking/envs/hosted](/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/main.tf)
+- provision the `hair-booking` realm plus the `hair-booking-web` client with the central Terraform config under [apps/hair-booking/envs/hosted](/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/main.tf)
 - deploy the container to Coolify using the runbook at [docs/deployments/hair-booking-coolify.md](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/deployments/hair-booking-coolify.md)
 
 ## Environment variables

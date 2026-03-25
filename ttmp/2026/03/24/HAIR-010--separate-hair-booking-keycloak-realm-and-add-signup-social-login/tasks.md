@@ -51,9 +51,9 @@
 
 ## Phase 4: Local Alignment
 
-- [ ] Add a short explicit explanation in HAIR-010 and stable docs for why both `hair-booking-dev` and `hair-booking-dev-tf` exist
-- [ ] Review local scripts and examples for any accidental ambiguity between the two realms
-- [ ] Update local docs if any examples imply the Terraform sandbox realm is the default app-dev realm
+- [x] Add a short explicit explanation in HAIR-010 and stable docs for why both `hair-booking-dev` and `hair-booking-dev-tf` exist
+- [x] Review local scripts and examples for any accidental ambiguity between the two realms
+- [x] Update local docs if any examples imply the Terraform sandbox realm is the default app-dev realm
 - [ ] Decide later whether to collapse the two local realm names into one
 
 ## Phase 5: Realm Login Settings

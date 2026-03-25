@@ -16,6 +16,8 @@
 - Updated the app-repo and shared-infra deployment docs to describe the new dedicated realm ownership model
 - Locked the remaining HAIR-010 product and operational decisions into the main auth guide
 - Rewrote the HAIR-010 tasks into a phased execution plan covering local alignment, SES SMTP work, signup validation, Google, and Facebook
+- Clarified the local `hair-booking-dev` versus `hair-booking-dev-tf` split in both the app repo and the shared Terraform repo
+- Updated the app README production note so it describes the dedicated hosted `hair-booking` realm correctly
 
 ## 2026-03-24
 
