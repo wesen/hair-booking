@@ -2,6 +2,7 @@ package appointments
 
 import (
 	"context"
+	"database/sql"
 	"strings"
 	"time"
 
@@ -19,6 +20,22 @@ var _ Repository = (*PostgresRepository)(nil)
 
 func NewPostgresRepository(pool *pgxpool.Pool) *PostgresRepository {
 	return &PostgresRepository{pool: pool}
+}
+
+func scanBookingClient(scanner interface{ Scan(dest ...any) error }) (*Client, error) {
+	client := &Client{}
+	var email sql.NullString
+	var phone sql.NullString
+	if err := scanner.Scan(&client.ID, &client.Name, &email, &phone); err != nil {
+		return nil, err
+	}
+	if email.Valid {
+		client.Email = email.String
+	}
+	if phone.Valid {
+		client.Phone = phone.String
+	}
+	return client, nil
 }
 
 func (r *PostgresRepository) ListScheduleBlocks(ctx context.Context) ([]ScheduleBlock, error) {
@@ -171,12 +188,12 @@ limit 2
 
 	matches := []Client{}
 	for rows.Next() {
-		client := Client{}
-		if err := rows.Scan(&client.ID, &client.Name, &client.Email, &client.Phone); err != nil {
+		client, err := scanBookingClient(rows)
+		if err != nil {
 			rows.Close()
 			return nil, errors.Wrap(err, "failed to scan booking client")
 		}
-		matches = append(matches, client)
+		matches = append(matches, *client)
 	}
 	if err := rows.Err(); err != nil {
 		rows.Close()
@@ -189,13 +206,13 @@ limit 2
 	}
 
 	if len(matches) == 0 {
-		client := &Client{}
 		row := tx.QueryRow(ctx, `
 insert into clients(id, name, email, phone)
 values($1, $2, nullif($3, ''), nullif($4, ''))
 returning id, name, email, phone
 `, uuid.New(), name, email, phone)
-		if err := row.Scan(&client.ID, &client.Name, &client.Email, &client.Phone); err != nil {
+		client, err := scanBookingClient(row)
+		if err != nil {
 			return nil, errors.Wrap(err, "failed to create booking client")
 		}
 		if err := tx.Commit(ctx); err != nil {
@@ -204,7 +221,6 @@ returning id, name, email, phone
 		return client, nil
 	}
 
-	client := &Client{}
 	row := tx.QueryRow(ctx, `
 update clients
 set name = $2,
@@ -214,7 +230,8 @@ set name = $2,
 where id = $1
 returning id, name, email, phone
 `, matches[0].ID, name, email, phone)
-	if err := row.Scan(&client.ID, &client.Name, &client.Email, &client.Phone); err != nil {
+	client, err := scanBookingClient(row)
+	if err != nil {
 		return nil, errors.Wrap(err, "failed to update booking client")
 	}
 	if err := tx.Commit(ctx); err != nil {

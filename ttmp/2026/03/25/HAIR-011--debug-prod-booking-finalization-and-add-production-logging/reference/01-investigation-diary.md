@@ -20,7 +20,7 @@ RelatedFiles:
       Note: Current startup/shutdown logging only
 ExternalSources: []
 Summary: Diary for the production booking failure and the follow-on observability work.
-LastUpdated: 2026-03-25T17:30:00-04:00
+LastUpdated: 2026-03-25T17:52:00-04:00
 WhatFor: Use this to understand how the hosted bug was reported and why logging became part of the same ticket.
 WhenToUse: Use while implementing or reviewing HAIR-011.
 ---
@@ -116,3 +116,124 @@ single bugfix commit. The system now needs:
 
 - one bug investigation for the appointment create failure
 - one production logging baseline so the next production bug is diagnosable
+
+Before changing code, I also rechecked the schema and the booking path to narrow
+the likely failure classes.
+
+Important findings from the current schema in:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/db/migrations/0001_init.sql`
+
+are:
+
+- `appointments` has no uniqueness constraint on `(date, start_time)` or
+  `(client_id, date, start_time)`
+- `appointments.intake_id` is nullable and only a plain foreign key
+- `appointments.duration_min_snapshot` is required, but it is populated from the
+  chosen service record
+
+That matters because it lowers the probability of some obvious DB failures. The
+insert path is still a candidate, but not because of a duplicate-slot
+constraint; that constraint does not exist.
+
+I also re-read the appointment-create logic and confirmed:
+
+- the handler maps only invalid input, not-found, and slot-unavailable as
+  explicit non-500 cases
+- every other error class collapses to `appointment-create-failed`
+- there is still no structured error log at the handler, service, or repository
+  boundary
+
+The concrete working hypotheses are now:
+
+1. a repository/database error during insert or client creation
+2. a stale frontend time slot that should be returning `409`, but is currently
+   leaking into an internal error path
+3. a date-edge bug, because the reported request used `2026-03-10`, which is in
+   the past relative to the current date of this investigation
+4. an intake-linking edge after photo retry, where the intake state is valid
+   enough to keep the funnel moving but invalid enough to fail later
+
+Those hypotheses are specific enough that the next step should be:
+
+- reproduce the failure with instrumentation
+- then patch logging and classification together
+
+I then moved from hypothesis to direct reproduction. Using the exact request
+body from the production report, I re-ran the hosted booking request:
+
+```bash
+curl -sS -X POST https://hair-booking.app.scapegoat.dev/api/appointments \
+  -H 'content-type: application/json' \
+  --data '{"intake_id":"7428cb8d-0b7b-49ca-b590-84e363aa11a9","service_id":"fb964f96-5ac4-4e54-8561-59c6b0f5dd77","date":"2026-03-10","start_time":"11:00 AM","client_name":"man","client_email":"wesen@ruinwesen.com"}'
+```
+
+That reproduced the same `500 appointment-create-failed` immediately. This
+confirms the bug is deterministic for that payload and not merely a one-off UI
+state glitch.
+
+I then checked the hosted database directly:
+
+- the intake row exists
+- the consult service row exists and is active
+- there are zero appointments in the table
+- there was no `clients` row yet for `wesen@ruinwesen.com`
+
+That narrowed the failure dramatically. The request is not failing because the
+intake or service is missing, and it is not failing after a successful
+appointment insert.
+
+I also checked the scheduling angle. The reported booking date `2026-03-10` is
+in the past relative to this investigation date, but the current backend does
+not reject past public-booking dates explicitly. The seeded hosted schedule has
+Tuesday availability from `09:00` to `17:00`, and `2026-03-10` is a Tuesday, so
+`11:00 AM` is still a plausible slot under the current logic. That rules out
+the simple "past date was correctly rejected" explanation.
+
+The next important boundary is:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/postgres.go`
+- `FindOrCreateBookingClient`
+
+That function was scanning nullable `email` and `phone` columns directly into Go
+`string` fields. This is the critical bug. There are two ways it breaks:
+
+1. if no matching client exists, the insert uses `nullif($4, '')` for phone and
+   then returns `phone`; scanning `NULL phone` into `string` fails
+2. if a matching client exists with `phone IS NULL`, the initial select scan
+   also fails before the update path can run
+
+To validate that second branch, I manually inserted a hosted client row for
+`wesen@ruinwesen.com` with no phone number. The public booking request still
+failed, and the existing client row did not update. That behavior is exactly
+what we would expect from a nullable scan failure in the query branch.
+
+The first code fix slice therefore focused on null-safe client scanning. I added
+`scanBookingClient(...)` in:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/postgres.go`
+
+The helper uses `sql.NullString` for `email` and `phone`, then converts them
+safely into the app `Client` struct. I switched all three booking-client scan
+sites to use that helper:
+
+- matching-client query scan
+- new-client insert `returning`
+- existing-client update `returning`
+
+I also added focused regression coverage in:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/pkg/appointments/postgres_test.go`
+
+The tests prove:
+
+- null email/phone scans do not fail
+- concrete email/phone values still round-trip correctly
+
+This first slice does not finish the ticket, but it does establish the first
+real root cause and gives the booking flow a concrete bugfix candidate. The
+remaining major slice is still the observability slice:
+
+- request middleware
+- request IDs
+- explicit handler/service/repository error logs

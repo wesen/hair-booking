@@ -2,18 +2,20 @@
 
 ## Phase 1: Capture The Bug Precisely
 
-- [ ] Reproduce the hosted `POST /api/appointments` failure with a known intake and service
-- [ ] Capture the exact failing request body and response envelope
-- [ ] Confirm whether the failure is deterministic or only happens after photo-retry flows
+- [x] Reproduce the hosted `POST /api/appointments` failure with a known intake and service
+- [x] Capture the exact failing request body and response envelope
+- [x] Confirm whether the failure is deterministic or only happens after photo-retry flows
 - [ ] Check whether the same failure reproduces locally against the same code path
+- [x] Check whether the reported request date is in the past relative to current availability logic
 
 ## Phase 2: Narrow The Root Cause
 
 - [ ] Trace the hosted appointment-create path from HTTP handler to service to repository
-- [ ] Identify all code paths that can currently surface `appointment-create-failed`
-- [ ] Determine which of those paths currently collapse to `500` without logging
-- [ ] Check for schema, constraint, input-normalization, and availability-edge hypotheses
-- [ ] Confirm whether stale frontend state, invalid dates, or missing service records can trigger the observed request shape
+- [x] Identify all code paths that can currently surface `appointment-create-failed`
+- [x] Determine which of those paths currently collapse to `500` without logging
+- [x] Check for schema, constraint, input-normalization, and availability-edge hypotheses
+- [x] Confirm whether stale frontend state, invalid dates, or missing service records can trigger the observed request shape
+- [x] Confirm whether the frontend can submit a stale time slot that the backend should classify as `409 slot-unavailable` instead of `500`
 
 ## Phase 3: Add Production Logging Baseline
 
