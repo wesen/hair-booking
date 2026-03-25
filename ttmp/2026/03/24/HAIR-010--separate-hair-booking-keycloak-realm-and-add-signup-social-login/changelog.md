@@ -44,6 +44,7 @@
 - Re-ran hosted logout and repeat-login smoke successfully against the dedicated `hair-booking` realm
 - Confirmed hosted `/api/me` returns the authenticated client and notification preferences after verification
 - Confirmed repeat login updates the existing `clients` row instead of creating a duplicate record
+- Added a dedicated intern-facing postmortem covering the auth architecture, deployment boundaries, real rollout failures, and the resulting steady-state model
 
 ## 2026-03-24
 

@@ -18,7 +18,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Diary for the auth-separation work that moves hair-booking to its own Keycloak realm with local signup and social login.
-LastUpdated: 2026-03-25T16:55:00-04:00
+LastUpdated: 2026-03-25T17:12:00-04:00
 WhatFor: Use this to understand why the Keycloak plan moved into its own docmgr ticket and what conclusions were reached from the official docs.
 WhenToUse: Use while implementing or reviewing HAIR-010.
 ---
@@ -1108,3 +1108,25 @@ on a real inbox rather than the SES simulator:
 
 - following the verify-email link from the mailbox itself
 - following the password-reset link from the mailbox itself
+
+After closing the main validation loop, the user asked for a proper postmortem
+that would work as intern onboarding material instead of just a chronological
+diary. I added a dedicated document for that purpose:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/ttmp/2026/03/24/HAIR-010--separate-hair-booking-keycloak-realm-and-add-signup-social-login/design/03-hair-booking-keycloak-auth-postmortem.md`
+
+I intentionally separated that document from the implementation guide. The
+implementation guides explain what to build and how to operate it. The
+postmortem explains:
+
+- what the final architecture actually is
+- which boundaries failed during rollout
+- what concrete mistakes were made
+- how those mistakes were diagnosed
+- what safeguards an intern should use next time
+
+That split is important because operator history and system design are not the
+same artifact. A new contributor usually needs both:
+
+- the steady-state guide
+- the story of how the system failed and was repaired
