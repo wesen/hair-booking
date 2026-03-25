@@ -19,7 +19,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Recommended Keycloak target architecture for separating hair-booking from smailnail while supporting password signup plus Google and Meta-based login.
-LastUpdated: 2026-03-25T01:05:00-04:00
+LastUpdated: 2026-03-25T11:40:00-04:00
 WhatFor: Use this to scope the dedicated hosted realm, client configuration, self-registration path, and social login rollout order.
 WhenToUse: Use before changing the hosted issuer away from the shared smailnail realm.
 ---
@@ -84,13 +84,15 @@ This is not elegant, but it is operationally clear enough and avoids churn in lo
 
 Practical implication:
 
-- realm settings can be prepared now
-- the full signup flow should not be called done until SES-backed email is actually configured and tested
-- live hosted status after the first settings pass:
+- the hosted realm should use SES-backed SMTP for verification and password reset
+- realm policy can stay in Terraform
+- SMTP credentials should stay outside git and outside Terraform state
+- live hosted status after the SES slice:
   - `User Registration`: enabled
   - `Forgot Password`: enabled
   - `Remember Me`: enabled
-  - `Verify Email`: still pending until SES SMTP is configured
+  - `Verify Email`: enabled
+  - SMTP: configured against `email-smtp.us-east-1.amazonaws.com`
 
 ### Social provider scope
 
@@ -112,12 +114,14 @@ This decision matters for avoiding duplicate local `clients` rows when one perso
 
 ## Current State
 
-Today the hosted app still points at the shared `smailnail` realm:
+Today the hosted app points at the dedicated `hair-booking` realm:
 
-- issuer: `https://auth.scapegoat.dev/realms/smailnail`
+- issuer: `https://auth.scapegoat.dev/realms/hair-booking`
 - browser client: `hair-booking-web`
+- hosted SMTP: Amazon SES over `email-smtp.us-east-1.amazonaws.com:587`
 
-That was acceptable for bootstrap, but it is not the right long-term product boundary for a customer-facing salon app.
+That means the realm boundary is now correct for MVP. The remaining auth work is
+signup validation and social-provider rollout, not realm separation.
 
 ## Official Keycloak Capabilities
 
@@ -206,7 +210,40 @@ Recommended product policy:
 Operational note:
 
 - password signup without SMTP and email verification is weaker than it looks
-- if email verification is not ready, that should be called an MVP compromise, not “done”
+- in the hosted realm, SMTP and `Verify Email` are now live
+
+## Hosted SMTP Operator Model
+
+The final hosted operator split matters:
+
+- Terraform owns:
+  - realm existence
+  - client existence
+  - realm policy such as `verify_email`, `remember_me`, and registration settings
+- Operator workflow owns:
+  - SES SMTP IAM user
+  - SMTP access key and derived SMTP password
+  - Keycloak `smtpServer` secret-bearing fields
+
+This is intentional. The SMTP secrets should not be placed in Terraform state.
+
+Because of that split, the shared Terraform realm module now ignores manual
+`smtp_server` drift. Otherwise a normal `terraform apply` for `verify_email`
+would wipe the SMTP configuration back out of the realm.
+
+Current hosted SMTP shape, without secrets:
+
+- host: `email-smtp.us-east-1.amazonaws.com`
+- port: `587`
+- from: `no-reply@mail.scapegoat.dev`
+- reply-to: `no-reply@mail.scapegoat.dev`
+- auth: `true`
+- starttls: `true`
+
+Current operator replay artifacts:
+
+- `scripts/create_hair_booking_ses_smtp_credentials.sh`
+- `scripts/configure_hosted_keycloak_smtp_and_smoke.sh`
 
 ## Social Login Recommendations
 

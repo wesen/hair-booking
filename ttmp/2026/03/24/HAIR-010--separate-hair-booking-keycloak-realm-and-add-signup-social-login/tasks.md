@@ -60,7 +60,7 @@
 
 - [x] Confirm current realm `hair-booking` login settings in hosted Keycloak admin
 - [x] Enable `Remember Me`
-- [ ] Enable `Verify Email`
+- [x] Enable `Verify Email`
 - [x] Confirm `User Registration` is enabled
 - [x] Confirm `Forgot Password` is enabled
 - [x] Record the exact hosted realm settings in the ticket diary
@@ -68,13 +68,13 @@
 
 ## Phase 6: SMTP Preparation With SES
 
-- [ ] Choose the sender domain and default sender address
-- [ ] Verify the sender identity/domain in Amazon SES
-- [ ] Create SES SMTP credentials outside git
-- [ ] Store SES SMTP credentials in the operator secret system, not in the repo
-- [ ] Configure Keycloak realm `hair-booking` email settings with SES
-- [ ] Send a Keycloak test email successfully
-- [ ] Document the final SMTP settings shape in HAIR-010 without exposing secrets
+- [x] Choose the sender domain and default sender address
+- [x] Verify the sender identity/domain in Amazon SES
+- [x] Create SES SMTP credentials outside git
+- [x] Store SES SMTP credentials in the operator secret system, not in the repo
+- [x] Configure Keycloak realm `hair-booking` email settings with SES
+- [x] Send a Keycloak test email successfully
+- [x] Document the final SMTP settings shape in HAIR-010 without exposing secrets
 
 ## Phase 7: Local Signup Validation
 

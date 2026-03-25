@@ -22,6 +22,20 @@
 - Enabled `Remember Me` for hosted realm `hair-booking` through Terraform
 - Left `Verify Email` intentionally disabled until the SES SMTP slice is ready
 
+## 2026-03-25
+
+- Added rerunnable HAIR-010 scripts for SES SMTP credential creation and hosted Keycloak SMTP configuration
+- Revalidated the live SES identity `mail.scapegoat.dev` and the hosted Keycloak service layout before touching SMTP
+- Created the dedicated IAM SMTP user `hair-booking-ses-smtp-prod` and wrote its derived SMTP credentials to a non-git operator env file
+- Fixed the operator env file format after the first unquoted display-name value broke shell sourcing
+- Configured the hosted `hair-booking` realm `smtpServer` to use SES SMTP
+- Confirmed the realm now contains SMTP settings while `verifyEmail` remains intentionally off until the smoke-email path is fixed
+- Fixed the Keycloak action-email smoke script so it no longer uses an invalid redirect URI
+- Expanded the SES SMTP IAM policy to include the configuration-set ARN required by the hosted send path
+- Verified hosted `VERIFY_EMAIL` and `UPDATE_PASSWORD` action emails return `204`
+- Updated the shared Terraform realm module to ignore manual `smtp_server` drift
+- Enabled hosted `verify_email` through Terraform without removing the manual SMTP configuration
+
 ## 2026-03-24
 
 - Initial workspace created

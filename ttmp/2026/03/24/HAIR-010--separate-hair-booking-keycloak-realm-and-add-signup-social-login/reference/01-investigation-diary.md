@@ -18,12 +18,363 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Diary for the auth-separation work that moves hair-booking to its own Keycloak realm with local signup and social login.
-LastUpdated: 2026-03-25T01:05:00-04:00
+LastUpdated: 2026-03-25T11:48:00-04:00
 WhatFor: Use this to understand why the Keycloak plan moved into its own docmgr ticket and what conclusions were reached from the official docs.
 WhenToUse: Use while implementing or reviewing HAIR-010.
 ---
 
 # Investigation Diary
+
+## 2026-03-25
+
+The user confirmed that Amazon SES had already been set up on the side and asked
+me to continue HAIR-010 task by task. That shifted the next active slice from
+"prepare for SMTP someday" into "wire the already-verified SES identity into the
+hosted `hair-booking` realm and validate the Keycloak side."
+
+I started by re-reading the SES docs in the shared Terraform repo so the runtime
+integration matched the Terraform-owned SES control plane instead of inventing a
+parallel mail setup. The most relevant docs were:
+
+- `/home/manuel/code/wesen/terraform/ses/README.md`
+- `/home/manuel/code/wesen/terraform/ttmp/2026/03/24/TF-002-SES-TERRAFORM--set-up-ses-with-terraform/playbook/02-ses-smtp-integration-playbook.md`
+
+Those docs lock in the production SES shape that HAIR-010 should use:
+
+- SES identity: `mail.scapegoat.dev`
+- MAIL FROM domain: `bounce.mail.scapegoat.dev`
+- SMTP endpoint: `email-smtp.us-east-1.amazonaws.com`
+- configuration set: `mail-scapegoat-dev`
+- recommended sender address: `no-reply@mail.scapegoat.dev`
+
+Before changing Keycloak, I revalidated the live SES setup in AWS:
+
+```bash
+cd /home/manuel/code/wesen/terraform
+source .envrc
+AWS_PROFILE=manuel aws sesv2 get-email-identity --region us-east-1 --email-identity mail.scapegoat.dev
+AWS_PROFILE=manuel aws sesv2 get-account --region us-east-1
+```
+
+The live results were good:
+
+- `mail.scapegoat.dev` is verified for sending
+- DKIM status is `SUCCESS`
+- MAIL FROM status is `SUCCESS`
+- production access is enabled
+- the account has a real send quota
+
+I also re-read the hosted Keycloak runtime path so the SMTP secret would land in
+the real operator-owned system, not in repo files. The hosted service is a
+Coolify-managed Keycloak container on `89.167.52.236`:
+
+```bash
+ssh manuel@89.167.52.236 'sudo -n docker ps --format "table {{.Names}}\t{{.Image}}\t{{.Status}}" | grep -Ei "keycloak|coolify|auth"'
+ssh manuel@89.167.52.236 'sudo -n docker inspect keycloak-k12lm4blpo13louovn3pfsgs'
+ssh manuel@89.167.52.236 'sudo -n ls -la /data/coolify/services/k12lm4blpo13louovn3pfsgs'
+ssh manuel@89.167.52.236 'sudo -n sed -n "1,240p" /data/coolify/services/k12lm4blpo13louovn3pfsgs/docker-compose.yml'
+```
+
+That showed:
+
+- hosted Keycloak is the Coolify service `keycloak-k12lm4blpo13louovn3pfsgs`
+- its managed compose lives under `/data/coolify/services/k12lm4blpo13louovn3pfsgs`
+- there was no SMTP-related service env yet
+
+Then I rechecked the live hosted realm state through the Keycloak admin API:
+
+```bash
+cd /home/manuel/code/wesen/terraform
+source .envrc
+ACCESS_TOKEN=$(curl -fsS -X POST "$TF_VAR_keycloak_url/realms/master/protocol/openid-connect/token" \
+  -d grant_type=password \
+  -d client_id=$TF_VAR_keycloak_client_id \
+  --data-urlencode username=$TF_VAR_keycloak_username \
+  --data-urlencode password=$TF_VAR_keycloak_password | jq -r .access_token)
+curl -fsS -H "Authorization: Bearer $ACCESS_TOKEN" \
+  "$TF_VAR_keycloak_url/admin/realms/hair-booking" | jq '{realm, verifyEmail, smtpServer}'
+```
+
+At the start of this slice, the hosted realm had:
+
+- `verifyEmail: false`
+- `smtpServer: {}`
+
+Because this is an operator-heavy flow and I did not want it trapped in shell
+history, I added two rerunnable scripts to the HAIR-010 ticket:
+
+- `scripts/create_hair_booking_ses_smtp_credentials.sh`
+- `scripts/configure_hosted_keycloak_smtp_and_smoke.sh`
+
+The first script is responsible for:
+
+- validating the SES identity
+- creating the dedicated IAM user `hair-booking-ses-smtp-prod`
+- attaching the least-privilege `ses:SendRawEmail` policy
+- creating one IAM access key
+- deriving the SES SMTP password
+- writing the resulting Keycloak SMTP settings to a non-git operator env file
+
+The second script is responsible for:
+
+- reading the operator SMTP secret file
+- updating the hosted Keycloak realm `smtpServer`
+- creating or reusing a probe user
+- triggering Keycloak action emails for smoke validation
+
+The first actual issue in this slice was easy to misread. My initial script run
+failed with:
+
+```text
+An error occurred (NotFoundException) when calling the GetEmailIdentity operation: Email identity <mail.scapegoat.dev> does not exist.
+```
+
+That looked like the wrong AWS account at first, but the direct checks proved it
+was **not** an account mismatch:
+
+```bash
+AWS_PROFILE=manuel aws sts get-caller-identity
+AWS_PROFILE=manuel aws sesv2 get-email-identity --region us-east-1 --email-identity mail.scapegoat.dev
+```
+
+Both commands resolved the expected AWS account `745667007186`, and the direct
+identity lookup succeeded. The practical fix was to rerun the script with the
+known-good env pinned explicitly:
+
+```bash
+AWS_PROFILE=manuel AWS_REGION=us-east-1 SES_IDENTITY=mail.scapegoat.dev \
+  /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/ttmp/2026/03/24/HAIR-010--separate-hair-booking-keycloak-realm-and-add-signup-social-login/scripts/create_hair_booking_ses_smtp_credentials.sh
+```
+
+That succeeded and created:
+
+- IAM user: `hair-booking-ses-smtp-prod`
+- one active access key for that user
+- operator secret file: `/home/manuel/.config/hair-booking/hosted-keycloak-smtp.env`
+
+I verified the IAM user and key metadata without exposing secrets:
+
+```bash
+AWS_PROFILE=manuel aws iam get-user --user-name hair-booking-ses-smtp-prod
+AWS_PROFILE=manuel aws iam list-access-keys --user-name hair-booking-ses-smtp-prod
+```
+
+The second issue was more concrete and came from my own script output format. The
+first generated operator env file wrote:
+
+```text
+KEYCLOAK_SMTP_FROM_DISPLAY_NAME=Hair Booking
+```
+
+without shell quoting. That broke the second script when it sourced the file:
+
+```text
+/home/manuel/.config/hair-booking/hosted-keycloak-smtp.env: line 6: Booking: command not found
+```
+
+I fixed the generator script so it now writes shell-safe values with `%q`. Since
+the key had already been created, I repaired the current env file in place
+instead of rotating the SMTP secret immediately:
+
+```bash
+python3 - <<'PY'
+from pathlib import Path
+path = Path('/home/manuel/.config/hair-booking/hosted-keycloak-smtp.env')
+lines = path.read_text().splitlines()
+out = []
+for line in lines:
+    if not line or line.lstrip().startswith('#'):
+        out.append(line)
+        continue
+    key, value = line.split('=', 1)
+    out.append(f"{key}={value!r}")
+path.write_text('\n'.join(out) + '\n')
+path.chmod(0o600)
+PY
+bash -n /home/manuel/.config/hair-booking/hosted-keycloak-smtp.env
+```
+
+After that repair, the hosted Keycloak SMTP configuration script partially
+succeeded before hitting a later `400` response on the smoke-email path. The
+important fact is that the realm update itself already landed. I confirmed the
+current hosted state with the admin API:
+
+```bash
+cd /home/manuel/code/wesen/terraform
+source .envrc
+ACCESS_TOKEN=$(curl -fsS -X POST "$TF_VAR_keycloak_url/realms/master/protocol/openid-connect/token" \
+  -d grant_type=password \
+  -d client_id=$TF_VAR_keycloak_client_id \
+  --data-urlencode username=$TF_VAR_keycloak_username \
+  --data-urlencode password=$TF_VAR_keycloak_password | jq -r .access_token)
+curl -fsS -H "Authorization: Bearer $ACCESS_TOKEN" \
+  "$TF_VAR_keycloak_url/admin/realms/hair-booking" | jq '{realm, verifyEmail, smtpServer}'
+```
+
+The hosted realm now contains SMTP settings:
+
+- host: `email-smtp.us-east-1.amazonaws.com`
+- port: `587`
+- from: `no-reply@mail.scapegoat.dev`
+- reply-to: `no-reply@mail.scapegoat.dev`
+- starttls: `true`
+- auth: `true`
+- a real SES SMTP username
+
+and still has:
+
+- `verifyEmail: false`
+
+So the current HAIR-010 state at this point is:
+
+- Phase 6 is mostly implemented
+- SMTP credentials exist outside git in an operator file
+- the hosted realm is configured to use SES SMTP
+- the remaining bug is in the smoke-email validation path, not in the SMTP
+  credential creation or the realm SMTP update itself
+- `Verify Email` should stay off until the smoke path is fixed cleanly
+
+The next debugging step isolated the smoke-email failure instead of treating the
+whole SMTP path as broken. I checked the two Keycloak execute-actions-email calls
+individually for the probe user `hair-booking-ses-smtp-probe`.
+
+The first failure was:
+
+```text
+400 {"errorMessage":"Invalid redirect uri."}
+```
+
+That one was self-inflicted. I had used the application route
+`https://hair-booking.app.scapegoat.dev/portal` as the execute-actions-email
+redirect target, but the Keycloak browser client only allows the callback-style
+redirects defined in Terraform. The fix was to stop forcing a redirect URI in
+the smoke script and let Keycloak use its normal account-flow defaults.
+
+After removing the redirect override, the error changed from a `400` to a `500`,
+which meant Keycloak was now trying to send mail and failing lower in the stack.
+To avoid guessing, I pulled the hosted Keycloak logs from the Coolify host:
+
+```bash
+ssh manuel@89.167.52.236 'sudo -n docker logs --tail 80 keycloak-k12lm4blpo13louovn3pfsgs 2>&1 | tail -80'
+```
+
+That surfaced the real SES authorization error:
+
+```text
+554 Access denied: User `arn:aws:iam::745667007186:user/hair-booking-ses-smtp-prod' is not authorized to perform `ses:SendRawEmail' on resource `arn:aws:ses:us-east-1:745667007186:configuration-set/mail-scapegoat-dev'
+```
+
+This was a useful correction. My first IAM policy only allowed
+`ses:SendRawEmail` on the SES identity ARN. Because the SES identity is wired to
+the configuration set `mail-scapegoat-dev`, the SMTP send path also needed
+permission on the configuration-set ARN.
+
+I fixed that in the HAIR-010 credential script by expanding the policy resource
+list to include both:
+
+- `arn:aws:ses:us-east-1:745667007186:identity/mail.scapegoat.dev`
+- `arn:aws:ses:us-east-1:745667007186:configuration-set/mail-scapegoat-dev`
+
+I also made the credential script safely rerunnable. It now:
+
+- updates the IAM policy every run
+- reuses the existing operator secret file if an SMTP key already exists
+- avoids creating a second access key accidentally
+
+Then I replayed the credential script to push the corrected policy without
+rotating the secret:
+
+```bash
+AWS_PROFILE=manuel AWS_REGION=us-east-1 SES_IDENTITY=mail.scapegoat.dev SES_CONFIGURATION_SET=mail-scapegoat-dev \
+  /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/ttmp/2026/03/24/HAIR-010--separate-hair-booking-keycloak-realm-and-add-signup-social-login/scripts/create_hair_booking_ses_smtp_credentials.sh
+```
+
+After that fix, the direct Keycloak action-mail calls succeeded:
+
+```bash
+cd /home/manuel/code/wesen/terraform
+source .envrc
+admin_token=$(curl -fsS -X POST "$TF_VAR_keycloak_url/realms/master/protocol/openid-connect/token" \
+  -d grant_type=password \
+  -d client_id="$TF_VAR_keycloak_client_id" \
+  --data-urlencode "username=$TF_VAR_keycloak_username" \
+  --data-urlencode "password=$TF_VAR_keycloak_password" | jq -r .access_token)
+probe_user_id=bb3b8a1f-5351-4f72-bdc0-f3142f0c214f
+curl -sS -o /tmp/hair-booking-verify-email.out -w '%{http_code}' \
+  -X PUT -H "Authorization: Bearer $admin_token" -H 'Content-Type: application/json' \
+  "$TF_VAR_keycloak_url/admin/realms/hair-booking/users/$probe_user_id/execute-actions-email" \
+  --data '["VERIFY_EMAIL"]'
+curl -sS -o /tmp/hair-booking-password-email.out -w '%{http_code}' \
+  -X PUT -H "Authorization: Bearer $admin_token" -H 'Content-Type: application/json' \
+  "$TF_VAR_keycloak_url/admin/realms/hair-booking/users/$probe_user_id/execute-actions-email" \
+  --data '["UPDATE_PASSWORD"]'
+```
+
+Both returned `204`.
+
+At that point a more subtle infrastructure issue appeared in Terraform. I tried
+to plan `verify_email = true` in the hosted `hair-booking` env and saw that
+Terraform wanted to remove the manually configured `smtp_server` block from the
+realm. That would have recreated the exact "SMTP works until the next apply"
+failure we were trying to avoid.
+
+The underlying reason is straightforward:
+
+- Keycloak realm policy belongs in Terraform
+- SMTP secrets do not belong in Terraform state
+- but `keycloak_realm` still sees the remote `smtp_server` block during refresh
+
+The right fix was **not** to push SMTP secrets into Terraform. Instead I updated
+the shared realm module to ignore `smtp_server` drift:
+
+- `/home/manuel/code/wesen/terraform/keycloak/modules/realm-base/main.tf`
+
+I also changed the hosted `hair-booking` env default so `verify_email` is now
+treated as the normal hosted default:
+
+- `/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/variables.tf`
+
+After that, the hosted Terraform plan became clean again:
+
+```bash
+cd /home/manuel/code/wesen/terraform
+source .envrc
+export TF_VAR_realm_name=hair-booking
+export TF_VAR_realm_display_name=hair-booking
+terraform -chdir=keycloak/apps/hair-booking/envs/hosted validate
+terraform -chdir=keycloak/apps/hair-booking/envs/hosted plan
+```
+
+The plan now showed exactly one change:
+
+- `verify_email: false -> true`
+
+and no longer tried to delete the SMTP config.
+
+I applied that safely:
+
+```bash
+cd /home/manuel/code/wesen/terraform
+source .envrc
+export TF_VAR_realm_name=hair-booking
+export TF_VAR_realm_display_name=hair-booking
+terraform -chdir=keycloak/apps/hair-booking/envs/hosted apply -auto-approve
+```
+
+Then I re-read the live realm through the Keycloak admin API and confirmed the
+final state:
+
+- `registrationAllowed: true`
+- `resetPasswordAllowed: true`
+- `rememberMe: true`
+- `verifyEmail: true`
+- `smtpServer.host: email-smtp.us-east-1.amazonaws.com`
+- `smtpServer.port: 587`
+- `smtpServer.from: no-reply@mail.scapegoat.dev`
+
+This completed the main hosted SMTP/verify-email slice cleanly. The remaining
+auth work after this point is no longer SES wiring. It is signup-flow validation
+and then Google/Facebook rollout.
 
 ## 2026-03-24
 

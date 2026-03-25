@@ -28,7 +28,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Detailed design and rollout guide for moving hair-booking Keycloak ownership into the shared Terraform repo, using a hard pre-production cutover to a dedicated realm plus social-login follow-up recommendations.
-LastUpdated: 2026-03-25T00:10:00-04:00
+LastUpdated: 2026-03-25T11:40:00-04:00
 WhatFor: Use this to implement the Keycloak Terraform work safely and directly now that hosted auth is still pre-production.
 WhenToUse: Use before editing /home/manuel/code/wesen/terraform or changing hosted hair-booking OIDC env vars.
 ---
@@ -47,6 +47,8 @@ Applied status on 2026-03-25:
 - hosted `hair-booking-web` client was recreated in that realm
 - live app issuer was switched to `https://auth.scapegoat.dev/realms/hair-booking`
 - `https://hair-booking.app.scapegoat.dev/auth/login` now redirects into the dedicated realm
+- hosted realm SMTP was configured manually against SES
+- hosted realm `verify_email` is now managed in Terraform while `smtp_server` is intentionally ignored by Terraform
 
 ## What This System Actually Is
 
@@ -221,8 +223,17 @@ Manual Keycloak admin changes are acceptable only for:
 - temporary exploratory testing
 - secrets collected from Google or Meta while waiting to codify them
 - emergency rollback debugging
+- hosted SMTP configuration that must stay out of Terraform state
 
 They should not be the steady-state system of record.
+
+Important refinement after the SES slice:
+
+- realm policy still belongs in Terraform
+- secret-bearing SMTP credentials do not
+- the shared `realm-base` module therefore ignores `smtp_server` drift so
+  Terraform can safely manage `verify_email` without deleting manual SMTP
+  settings
 
 ## Hard Cutover Rule
 
