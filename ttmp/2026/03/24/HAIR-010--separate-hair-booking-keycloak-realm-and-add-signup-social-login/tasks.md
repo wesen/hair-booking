@@ -80,16 +80,11 @@
 
 - [x] Create a fresh hosted test account through Keycloak registration
 - [x] Confirm verify-email mail is sent
-- [ ] Confirm email verification completes successfully from the mailbox itself
+- [x] Confirm email verification completes successfully from the mailbox itself
 - [x] Confirm password reset mail is sent
-- [ ] Confirm password reset completes successfully from the mailbox itself
+- [x] Confirm password reset completes successfully from the mailbox itself
 - [x] Confirm the app login flow works after verification
 - [x] Confirm no duplicate local `clients` record is created for repeat login of the same Keycloak account
-
-Current hosted validation note:
-
-- the original hosted `backend-not-configured` blocker was fixed by adding `HAIR_BOOKING_DATABASE_URL` to the live Coolify app env and recreating the container
-- the remaining unchecked Phase 7 work requires a real mailbox, not the SES simulator address used for operator smoke tests
 
 ## Phase 8: Google Rollout
 

@@ -45,6 +45,9 @@
 - Confirmed hosted `/api/me` returns the authenticated client and notification preferences after verification
 - Confirmed repeat login updates the existing `clients` row instead of creating a duplicate record
 - Added a dedicated intern-facing postmortem covering the auth architecture, deployment boundaries, real rollout failures, and the resulting steady-state model
+- Confirmed real mailbox verification completes successfully for hosted signup
+- Confirmed real mailbox password reset completes successfully for hosted signup
+- Added a permanent SES verification runbook in the app repo docs
 
 ## 2026-03-24
 

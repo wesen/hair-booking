@@ -18,7 +18,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Diary for the auth-separation work that moves hair-booking to its own Keycloak realm with local signup and social login.
-LastUpdated: 2026-03-25T17:12:00-04:00
+LastUpdated: 2026-03-25T18:10:00-04:00
 WhatFor: Use this to understand why the Keycloak plan moved into its own docmgr ticket and what conclusions were reached from the official docs.
 WhenToUse: Use while implementing or reviewing HAIR-010.
 ---
@@ -1130,3 +1130,35 @@ same artifact. A new contributor usually needs both:
 
 - the steady-state guide
 - the story of how the system failed and was repaired
+
+Later, the user confirmed that the real mailbox path now works end to end, not
+just the simulator-triggered Keycloak actions. That closes the last meaningful
+SES uncertainty in HAIR-010.
+
+The confirmed real-mailbox outcomes are:
+
+- verify-email mail is delivered to a real inbox
+- clicking the verification link completes successfully
+- forgot-password mail is delivered to a real inbox
+- clicking the reset link and changing the password completes successfully
+
+Because this is now no longer just ticket-local investigation knowledge, I
+added a permanent operator runbook in the app repo:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/keycloak-ses-verification-playbook.md`
+
+That document is the standing runbook for:
+
+- verifying Keycloak SMTP connectivity
+- checking SES identity assumptions
+- testing real mailbox delivery
+- validating verify-email behavior
+- validating forgot-password behavior
+
+At this point, the remaining HAIR-010 work is no longer about SES or local
+password signup. The remaining meaningful scope is:
+
+- Google provider rollout
+- Facebook provider rollout
+- later cleanup decisions such as moving the SMTP secret to vault and deciding
+  whether provider config should eventually live in Terraform
