@@ -13,7 +13,7 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: Ticket workspace for separating hair-booking into its own Keycloak realm and planning the Terraform-backed rollout for signup and social login.
-LastUpdated: 2026-03-25T17:12:00-04:00
+LastUpdated: 2026-03-25T22:15:00-04:00
 WhatFor: Use this ticket to design and later execute the migration from the shared smailnail realm to a dedicated hair-booking realm with local signup and social login.
 WhenToUse: Use when planning or implementing hosted auth separation.
 ---
@@ -36,6 +36,7 @@ The app should move off the shared `smailnail` realm and into a dedicated `hair-
 - Main guide: [design/01-hair-booking-keycloak-realm-and-social-login-guide.md](./design/01-hair-booking-keycloak-realm-and-social-login-guide.md)
 - Terraform migration guide: [design/02-hair-booking-keycloak-terraform-migration-guide.md](./design/02-hair-booking-keycloak-terraform-migration-guide.md)
 - Postmortem: [design/03-hair-booking-keycloak-auth-postmortem.md](./design/03-hair-booking-keycloak-auth-postmortem.md)
+- SES + Vault postmortem: [design/04-hair-booking-ses-vault-cutover-postmortem.md](./design/04-hair-booking-ses-vault-cutover-postmortem.md)
 - Investigation diary: [reference/01-investigation-diary.md](./reference/01-investigation-diary.md)
 - Tasks: [tasks.md](./tasks.md)
 - Changelog: [changelog.md](./changelog.md)

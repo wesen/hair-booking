@@ -18,7 +18,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Diary for the auth-separation work that moves hair-booking to its own Keycloak realm with local signup and social login.
-LastUpdated: 2026-03-25T21:40:00-04:00
+LastUpdated: 2026-03-25T22:15:00-04:00
 WhatFor: Use this to understand why the Keycloak plan moved into its own docmgr ticket and what conclusions were reached from the official docs.
 WhenToUse: Use while implementing or reviewing HAIR-010.
 ---
@@ -1451,3 +1451,21 @@ That closes the real technical uncertainty around task 84. The hosted Keycloak
 realm can now be configured from Vault-backed SMTP secrets through the new
 AppRole, and the smoke flow works through the exact helper path that will be
 used by operators in the future.
+
+After finishing the live cutover, the user asked for a more explicit,
+intern-facing postmortem that focused on the SES plus Vault phase rather than
+the earlier realm cutover alone. I added a second postmortem for that purpose:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/ttmp/2026/03/24/HAIR-010--separate-hair-booking-keycloak-realm-and-add-signup-social-login/design/04-hair-booking-ses-vault-cutover-postmortem.md`
+
+That document intentionally complements the earlier postmortem instead of
+replacing it:
+
+- `03-...` explains the broader auth-cutover story
+- `04-...` explains the final SES and Vault AppRole cutover, the exact live
+  command flow, the bugs we hit in the helpers, the operator boundary, and the
+  resulting steady-state model
+
+This split is useful for new contributors because the Vault-specific failures
+were not just "more auth work." They were a separate operational layer with
+their own secret-management assumptions and their own debugging sequence.

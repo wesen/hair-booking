@@ -57,6 +57,7 @@
 - Fixed the app-side Vault reader so temporary output files under `/tmp` no longer fail on an invalid directory chmod
 - Fixed the Keycloak SMTP smoke helper so it reuses existing probe users by email before attempting user creation
 - Validated the hosted `SMTP_SOURCE=vault` replay successfully against the real `hair-booking-prod` AppRole and the SES simulator
+- Added a second detailed postmortem focused specifically on the SES plus Vault AppRole cutover, the live operator workflow, the real failures, and the resulting steady-state model
 
 ## 2026-03-24
 
