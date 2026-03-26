@@ -98,7 +98,7 @@ as the preferred steady-state workflow.
 
 ## Recommended Hosted Operator Workflow
 
-The intended hosted replay is:
+The current hosted replay is:
 
 ```bash
 cd /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking
@@ -107,8 +107,8 @@ source /home/manuel/code/wesen/terraform/.envrc
 
 export VAULT_ADDR='https://vault.app.scapegoat.dev'
 export VAULT_APPROLE_AUTH_PATH='approle'
-export VAULT_ROLE_ID='<delivered role id>'
-export VAULT_SECRET_ID='<delivered secret id>'
+export VAULT_ROLE_ID='<role id from ~/.local/share/wesen/secrets/vault/hair-booking-prod-approle-*.json>'
+export VAULT_SECRET_ID='<secret id from ~/.local/share/wesen/secrets/vault/hair-booking-prod-approle-*.json>'
 export VAULT_KV_MOUNT='kv'
 export VAULT_SECRET_PATH='apps/hair-booking/prod/ses'
 
@@ -144,12 +144,15 @@ What is done in the app repo:
 - the Vault secret reader helper exists
 - the Keycloak sync helper defaults to Vault-backed sync
 - the old local secret file path is now documented as a legacy fallback
+- the hosted Vault-backed replay has been validated against the real
+  `hair-booking-prod` AppRole
 
-What is still needed from infra before a real hosted Vault cutover:
+Current operator delivery path:
 
-- the final `hair-booking-prod` AppRole
-- the delivered `role_id`
-- one valid `secret_id`
-- confirmation that `kv/apps/hair-booking/prod/ses` is populated
+- local-only AppRole material JSON at
+  `~/.local/share/wesen/secrets/vault/hair-booking-prod-approle-<timestamp>.json`
+- canonical Vault secret at `kv/apps/hair-booking/prod/ses`
 
-Until those exist, the Vault path is designed but not fully validated.
+What is still deferred:
+
+- moving the AppRole delivery path into the final shared operator secret system

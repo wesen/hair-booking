@@ -74,8 +74,11 @@ for key in host port username password from_address from_name configuration_set 
   fi
 done
 
-mkdir -p "$(dirname "$OUTPUT_FILE")"
-chmod 700 "$(dirname "$OUTPUT_FILE")"
+output_dir="$(dirname "$OUTPUT_FILE")"
+if [[ ! -d "$output_dir" ]]; then
+  mkdir -p "$output_dir"
+  chmod 700 "$output_dir"
+fi
 
 smtp_host="$(jq -r '.data.data.host' "$secret_body")"
 smtp_port="$(jq -r '.data.data.port' "$secret_body")"

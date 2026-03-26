@@ -18,7 +18,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Diary for the auth-separation work that moves hair-booking to its own Keycloak realm with local signup and social login.
-LastUpdated: 2026-03-25T23:05:00-04:00
+LastUpdated: 2026-03-25T21:40:00-04:00
 WhatFor: Use this to understand why the Keycloak plan moved into its own docmgr ticket and what conclusions were reached from the official docs.
 WhenToUse: Use while implementing or reviewing HAIR-010.
 ---
@@ -1270,3 +1270,184 @@ That means the current state is:
 So task 83 is complete, but task 84 remains intentionally open. That is the
 right boundary: the design and tooling are in place, but I am not claiming a
 successful hosted Vault replay without the real AppRole bootstrap values.
+
+After that checkpoint, the user explicitly asked me to do the Vault side too as
+part of `HAIR-010` and `TF-010` instead of stopping at "prepared but blocked."
+That changed the scope from app-only helper work into a paired app-plus-infra
+execution slice.
+
+I first checked whether the local machine still had the encrypted Vault
+bootstrap material from the earlier infra ticket. The operator records were
+present:
+
+- `/home/manuel/.local/share/wesen/secrets/vault/vault.app.scapegoat.dev-init-20260325T180551.json.gpg`
+- `/home/manuel/.local/share/wesen/secrets/vault/vault.app.scapegoat.dev-oidc-client-20260325T194200.json.gpg`
+
+My first decryption attempt failed because the user had temporarily lost the
+required GPG password. The exact failure was:
+
+```text
+gpg: public key decryption failed: Operation cancelled
+gpg: decryption failed: Operation cancelled
+```
+
+Once the user recovered the password and told me to retry, the same decryption
+path worked and I was able to continue with the live Vault side.
+
+The Terraform repo work created three important pieces:
+
+- `coolify/services/vault/policies/app-hair-booking-prod.hcl`
+- `coolify/services/vault/scripts/seed_hair_booking_ses_secret.sh`
+- `coolify/services/vault/scripts/generate_hair_booking_approle_material.sh`
+
+The corresponding live infra work happened in this order:
+
+1. decrypt the local Vault bootstrap root token
+2. seed `kv/apps/hair-booking/prod/ses` from the current local SMTP env file
+3. write the dedicated policy `app-hair-booking-prod`
+4. create AppRole `hair-booking-prod`
+5. mint one local-only JSON file containing the AppRole material
+6. verify that the new AppRole can read its own secret and is denied from a
+   sibling app subtree
+
+The first live seed attempt failed with a real schema mismatch:
+
+```text
+missing required SMTP value in /home/manuel/.config/hair-booking/hosted-keycloak-smtp.env: KEYCLOAK_SMTP_CONFIGURATION_SET
+```
+
+That older local operator file had been created before the Vault-side contract
+was finalized, so it did not carry the configuration-set field yet. The fix was
+not to hand-edit the secret file. I patched the Terraform-side seed script to
+default:
+
+- `KEYCLOAK_SMTP_CONFIGURATION_SET=mail-scapegoat-dev`
+
+That made the live seed succeed without changing the older local file by hand.
+
+After the secret seed and AppRole generation succeeded, the local-only AppRole
+record landed here:
+
+- `/home/manuel/.local/share/wesen/secrets/vault/hair-booking-prod-approle-20260325T204940.json`
+
+The most important validation before touching hosted Keycloak was the policy
+boundary proof. Using the new `role_id` and `secret_id`, I authenticated
+directly to Vault and verified:
+
+- `200` for `kv/apps/hair-booking/prod/ses`
+- `403 permission denied` for `kv/apps/go-example/prod`
+
+That confirmed the Vault side was actually least privilege, not just nominally
+configured.
+
+Then I moved back into the app repo and tried the first real app-side replay.
+The first goal was to prove that the app helper could read the newly written
+Vault secret and materialize the expected `KEYCLOAK_SMTP_*` env file. My first
+validation command used `mktemp` for the output path and immediately exposed a
+bug in the app-side helper:
+
+```bash
+OUTPUT_FILE=$(mktemp)
+VAULT_ADDR=...
+VAULT_ROLE_ID=...
+VAULT_SECRET_ID=...
+...
+read_hair_booking_vault_ses_secret.sh
+```
+
+The failure was:
+
+```text
+chmod: changing permissions of '/tmp': Operation not permitted
+```
+
+The cause was in the helper itself. It tried to `chmod 700 "$(dirname
+"$OUTPUT_FILE")"` unconditionally. That is wrong when the output file lives in
+`/tmp`, because the helper should not attempt to change the shared temp
+directory. I fixed that by changing the helper to only create and chmod the
+directory if it does not already exist.
+
+After that fix, the app-side Vault read worked correctly and produced the full
+sanitized shape:
+
+- `KEYCLOAK_SMTP_HOST`
+- `KEYCLOAK_SMTP_PORT`
+- `KEYCLOAK_SMTP_USERNAME`
+- `KEYCLOAK_SMTP_PASSWORD`
+- `KEYCLOAK_SMTP_FROM`
+- `KEYCLOAK_SMTP_FROM_DISPLAY_NAME`
+- `KEYCLOAK_SMTP_REPLY_TO`
+- `KEYCLOAK_SMTP_REPLY_TO_DISPLAY_NAME`
+- `KEYCLOAK_SMTP_STARTTLS`
+- `KEYCLOAK_SMTP_SSL`
+- `KEYCLOAK_SMTP_CONFIGURATION_SET`
+- `VAULT_SECRET_SOURCE`
+
+The next step was the real hosted replay:
+
+```bash
+cd /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking
+json_path=$(ls -t /home/manuel/.local/share/wesen/secrets/vault/hair-booking-prod-approle-*.json | head -n1)
+source /home/manuel/code/wesen/terraform/.envrc
+
+VAULT_ADDR=$(jq -r '.vault_addr' "$json_path") \
+VAULT_ROLE_ID=$(jq -r '.role_id' "$json_path") \
+VAULT_SECRET_ID=$(jq -r '.secret_id' "$json_path") \
+VAULT_APPROLE_AUTH_PATH=$(jq -r '.auth_path' "$json_path") \
+VAULT_KV_MOUNT=$(jq -r '.kv_mount' "$json_path") \
+VAULT_SECRET_PATH=$(jq -r '.secret_path' "$json_path") \
+SMTP_SOURCE=vault \
+TEST_EMAIL=success@simulator.amazonses.com \
+TEST_USERNAME=hair-booking-ses-smtp-probe \
+./ttmp/2026/03/24/HAIR-010--separate-hair-booking-keycloak-realm-and-add-signup-social-login/scripts/configure_hosted_keycloak_smtp_and_smoke.sh
+```
+
+The first run failed with:
+
+```text
+curl: (22) The requested URL returned error: 409
+```
+
+That error was not a Vault problem. I traced it to the smoke helper's probe
+user logic. The script searched for an existing user by username only. But the
+simulator email `success@simulator.amazonses.com` already belonged to an older
+probe user with a different username.
+
+I confirmed that by querying Keycloak directly:
+
+```bash
+curl -fsS -H "Authorization: Bearer $admin_token" \
+  "$TF_VAR_keycloak_url/admin/realms/hair-booking/users?email=success@simulator.amazonses.com" |
+  jq '[.[] | {id,username,email}]'
+```
+
+The result showed:
+
+- username `hb-smoke-20260325a`
+- email `success@simulator.amazonses.com`
+
+and the requested username `hair-booking-ses-smtp-probe` did not exist.
+
+That meant the script was trying to create a new user with an email that was
+already in use, which explains the `409`. I fixed the smoke helper so it now:
+
+1. looks up by username first
+2. if not found, looks up by email
+3. only then attempts user creation
+
+After that fix, the hosted Vault-backed replay succeeded cleanly. The script
+returned:
+
+- hosted realm `hair-booking`
+- `verifyEmail: true`
+- SMTP host `email-smtp.us-east-1.amazonaws.com`
+- port `587`
+- sender `no-reply@mail.scapegoat.dev`
+- user field populated from the Vault-backed secret
+- confirmation that `VERIFY_EMAIL` and `UPDATE_PASSWORD` mails were triggered
+  to `success@simulator.amazonses.com`
+
+That closes the real technical uncertainty around task 84. The hosted Keycloak
+realm can now be configured from Vault-backed SMTP secrets through the new
+AppRole, and the smoke flow works through the exact helper path that will be
+used by operators in the future.

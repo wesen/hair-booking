@@ -53,6 +53,10 @@
 - Updated the hosted Keycloak SMTP sync helper so it can source secrets from Vault
 - Switched the canonical SMTP sync workflow to Vault and demoted the local secret file to legacy fallback status
 - Added a permanent Vault-backed Keycloak SMTP sync playbook in the app repo docs
+- Completed the live Vault side in TF-010 by seeding `kv/apps/hair-booking/prod/ses` and minting the dedicated `hair-booking-prod` AppRole
+- Fixed the app-side Vault reader so temporary output files under `/tmp` no longer fail on an invalid directory chmod
+- Fixed the Keycloak SMTP smoke helper so it reuses existing probe users by email before attempting user creation
+- Validated the hosted `SMTP_SOURCE=vault` replay successfully against the real `hair-booking-prod` AppRole and the SES simulator
 
 ## 2026-03-24
 

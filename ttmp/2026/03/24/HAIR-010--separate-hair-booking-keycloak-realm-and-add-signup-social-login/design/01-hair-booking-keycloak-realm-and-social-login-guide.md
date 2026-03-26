@@ -322,6 +322,9 @@ Vault-backed sync is now the intended default operator workflow:
 4. update realm `hair-booking`
 5. run the same hosted verify-email / forgot-password smoke as today
 
+That workflow has now been validated against the live hosted realm using the
+dedicated AppRole `hair-booking-prod`.
+
 ### What Changes And What Does Not
 
 This migration changes:
@@ -349,6 +352,10 @@ path should instead be:
 - a Vault-backed secret read
 - a Keycloak SMTP sync helper that never writes the SMTP password into git or
   ticket docs
+
+Current operator material is written locally under:
+
+- `~/.local/share/wesen/secrets/vault/hair-booking-prod-approle-<timestamp>.json`
 
 ## Social Login Recommendations
 

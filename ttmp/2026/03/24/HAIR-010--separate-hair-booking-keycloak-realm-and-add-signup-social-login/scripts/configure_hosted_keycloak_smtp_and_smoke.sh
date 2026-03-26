@@ -119,6 +119,15 @@ probe_user_id="$(
 )"
 
 if [[ -z "$probe_user_id" ]]; then
+  probe_user_id="$(
+    curl -fsS \
+      -H "Authorization: Bearer $admin_token" \
+      "$TF_VAR_keycloak_url/admin/realms/$REALM/users?email=$TEST_EMAIL" |
+      jq -r '.[0].id // empty'
+  )"
+fi
+
+if [[ -z "$probe_user_id" ]]; then
   curl -fsS -D "$tmpdir/create-headers.txt" -o /dev/null \
     -X POST \
     -H "Authorization: Bearer $admin_token" \
