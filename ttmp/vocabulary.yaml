@@ -39,6 +39,8 @@ topics:
       description: OpenID Connect authentication and logout flows
     - slug: ops
       description: Operational procedures, deployment, and runtime administration
+    - slug: postgres
+      description: PostgreSQL schema, persistence, and operational topics
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes
