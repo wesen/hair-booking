@@ -23,6 +23,7 @@ const (
 	defaultJWKSRefresh     = 5 * time.Minute
 	authStateCookieName    = "hair_booking_auth_state"
 	authNonceCookieName    = "hair_booking_auth_nonce"
+	logoutReturnCookieName = "hair_booking_logout_return_to"
 )
 
 type WebHandler interface {
@@ -251,21 +252,31 @@ func (a *OIDCAuthenticator) HandleCallback(w http.ResponseWriter, r *http.Reques
 }
 
 func (a *OIDCAuthenticator) HandleLogout(w http.ResponseWriter, r *http.Request) {
+	secureCookies := shouldUseSecureCookies(r, a.oauthConfig.RedirectURL)
 	a.sessions.ClearSession(w, r)
 	returnTo, err := a.resolveRequestedRedirect(r, r.URL.Query().Get("return_to"))
 	if err != nil {
 		http.Error(w, "invalid return_to parameter", http.StatusBadRequest)
 		return
 	}
-	http.Redirect(w, r, a.buildLogoutRedirectURL(returnTo), http.StatusSeeOther)
+	if strings.TrimSpace(returnTo) != "" {
+		setShortLivedCookie(w, logoutReturnCookieName, returnTo, secureCookies)
+	} else {
+		clearCookie(w, logoutReturnCookieName, secureCookies)
+	}
+	http.Redirect(w, r, a.buildLogoutRedirectURL(), http.StatusSeeOther)
 }
 
 func (a *OIDCAuthenticator) HandleLogoutCallback(w http.ResponseWriter, r *http.Request) {
-	returnTo, err := a.resolveRequestedRedirect(r, r.URL.Query().Get("return_to"))
-	if err != nil {
-		http.Error(w, "invalid return_to parameter", http.StatusBadRequest)
-		return
+	secureCookies := shouldUseSecureCookies(r, a.oauthConfig.RedirectURL)
+	returnTo := ""
+	if cookie, err := r.Cookie(logoutReturnCookieName); err == nil && strings.TrimSpace(cookie.Value) != "" {
+		resolved, resolveErr := a.resolveRequestedRedirect(r, cookie.Value)
+		if resolveErr == nil {
+			returnTo = resolved
+		}
 	}
+	clearCookie(w, logoutReturnCookieName, secureCookies)
 
 	redirectTarget := a.postLoginPath
 	if strings.TrimSpace(returnTo) != "" {
@@ -274,11 +285,8 @@ func (a *OIDCAuthenticator) HandleLogoutCallback(w http.ResponseWriter, r *http.
 	http.Redirect(w, r, redirectTarget, http.StatusSeeOther)
 }
 
-func (a *OIDCAuthenticator) buildLogoutRedirectURL(returnTo string) string {
+func (a *OIDCAuthenticator) buildLogoutRedirectURL() string {
 	fallback := a.postLoginPath
-	if strings.TrimSpace(returnTo) != "" {
-		fallback = returnTo
-	}
 
 	if strings.TrimSpace(a.discovery.EndSessionEndpoint) == "" {
 		return fallback
@@ -289,7 +297,7 @@ func (a *OIDCAuthenticator) buildLogoutRedirectURL(returnTo string) string {
 		return fallback
 	}
 
-	postLogoutURL, err := buildLogoutCallbackURL(a.oauthConfig.RedirectURL, returnTo)
+	postLogoutURL, err := buildLogoutCallbackURL(a.oauthConfig.RedirectURL)
 	if err != nil {
 		return fallback
 	}
@@ -303,7 +311,7 @@ func (a *OIDCAuthenticator) buildLogoutRedirectURL(returnTo string) string {
 	return endSessionURL.String()
 }
 
-func buildLogoutCallbackURL(redirectURL, returnTo string) (string, error) {
+func buildLogoutCallbackURL(redirectURL string) (string, error) {
 	parsed, err := url.Parse(strings.TrimSpace(redirectURL))
 	if err != nil {
 		return "", err
@@ -314,13 +322,7 @@ func buildLogoutCallbackURL(redirectURL, returnTo string) (string, error) {
 	parsed.Path = "/auth/logout/callback"
 	parsed.RawPath = ""
 	parsed.Fragment = ""
-	query := parsed.Query()
-	if strings.TrimSpace(returnTo) != "" {
-		query.Set("return_to", returnTo)
-	} else {
-		query.Del("return_to")
-	}
-	parsed.RawQuery = query.Encode()
+	parsed.RawQuery = ""
 	return parsed.String(), nil
 }
 

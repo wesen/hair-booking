@@ -3,8 +3,11 @@ package auth
 import (
 	"encoding/base64"
 	"encoding/json"
+	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	"golang.org/x/oauth2"
 )
 
 func TestResolveRequestedRedirectAllowsRelativePath(t *testing.T) {
@@ -44,13 +47,102 @@ func TestResolveRequestedRedirectRejectsDifferentHost(t *testing.T) {
 	}
 }
 
-func TestBuildLogoutCallbackURLUsesBackendHostAndReturnTo(t *testing.T) {
-	redirectURL, err := buildLogoutCallbackURL("http://127.0.0.1:8080/auth/callback", "http://127.0.0.1:5175/")
+func TestBuildLogoutCallbackURLUsesBackendHostWithoutQuery(t *testing.T) {
+	redirectURL, err := buildLogoutCallbackURL("http://127.0.0.1:8080/auth/callback")
 	if err != nil {
 		t.Fatalf("buildLogoutCallbackURL returned error: %v", err)
 	}
-	if redirectURL != "http://127.0.0.1:8080/auth/logout/callback?return_to=http%3A%2F%2F127.0.0.1%3A5175%2F" {
+	if redirectURL != "http://127.0.0.1:8080/auth/logout/callback" {
 		t.Fatalf("expected backend logout callback redirect, got %q", redirectURL)
+	}
+}
+
+func TestHandleLogoutSetsCookieAndUsesPlainCallbackRedirect(t *testing.T) {
+	authenticator := &OIDCAuthenticator{
+		oauthConfig: oauth2.Config{
+			RedirectURL: "https://hair-booking.app.scapegoat.dev/auth/callback",
+		},
+		discovery: oidcDiscoveryDocument{
+			EndSessionEndpoint: "https://auth.example.com/realms/hair-booking/protocol/openid-connect/logout",
+		},
+		settings: &Settings{
+			OIDCClientID: "hair-booking-web",
+		},
+		sessions: &SessionManager{
+			cookieName:  "hair_booking_session",
+			redirectURL: "https://hair-booking.app.scapegoat.dev/auth/callback",
+			secret:      []byte("test-secret"),
+		},
+		postLoginPath: "/",
+	}
+
+	request := httptest.NewRequest(http.MethodGet, "https://hair-booking.app.scapegoat.dev/auth/logout?return_to=%2Fportal", nil)
+	recorder := httptest.NewRecorder()
+
+	authenticator.HandleLogout(recorder, request)
+
+	response := recorder.Result()
+	if response.StatusCode != http.StatusSeeOther {
+		t.Fatalf("expected 303, got %d", response.StatusCode)
+	}
+
+	location := response.Header.Get("Location")
+	expected := "https://auth.example.com/realms/hair-booking/protocol/openid-connect/logout?client_id=hair-booking-web&post_logout_redirect_uri=https%3A%2F%2Fhair-booking.app.scapegoat.dev%2Fauth%2Flogout%2Fcallback"
+	if location != expected {
+		t.Fatalf("unexpected logout redirect location %q", location)
+	}
+
+	foundLogoutCookie := false
+	for _, cookie := range response.Cookies() {
+		if cookie.Name == logoutReturnCookieName {
+			foundLogoutCookie = true
+			if cookie.Value != "/portal" {
+				t.Fatalf("expected logout return cookie to preserve /portal, got %q", cookie.Value)
+			}
+		}
+	}
+	if !foundLogoutCookie {
+		t.Fatal("expected logout return cookie to be set")
+	}
+}
+
+func TestHandleLogoutCallbackUsesCookieReturnToAndClearsCookie(t *testing.T) {
+	authenticator := &OIDCAuthenticator{
+		oauthConfig: oauth2.Config{
+			RedirectURL: "https://hair-booking.app.scapegoat.dev/auth/callback",
+		},
+		postLoginPath: "/",
+	}
+
+	request := httptest.NewRequest(http.MethodGet, "https://hair-booking.app.scapegoat.dev/auth/logout/callback", nil)
+	request.AddCookie(&http.Cookie{
+		Name:  logoutReturnCookieName,
+		Value: "/portal",
+		Path:  "/",
+	})
+	recorder := httptest.NewRecorder()
+
+	authenticator.HandleLogoutCallback(recorder, request)
+
+	response := recorder.Result()
+	if response.StatusCode != http.StatusSeeOther {
+		t.Fatalf("expected 303, got %d", response.StatusCode)
+	}
+	if location := response.Header.Get("Location"); location != "/portal" {
+		t.Fatalf("expected redirect to /portal, got %q", location)
+	}
+
+	foundClearedCookie := false
+	for _, cookie := range response.Cookies() {
+		if cookie.Name == logoutReturnCookieName {
+			foundClearedCookie = true
+			if cookie.MaxAge != -1 {
+				t.Fatalf("expected cleared logout return cookie, got MaxAge=%d", cookie.MaxAge)
+			}
+		}
+	}
+	if !foundClearedCookie {
+		t.Fatal("expected logout return cookie to be cleared")
 	}
 }
 
