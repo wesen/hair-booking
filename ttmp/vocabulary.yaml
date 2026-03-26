@@ -35,6 +35,10 @@ topics:
       description: Operational visibility through logs, metrics, tracing, and diagnostics
     - slug: production
       description: Hosted deployment and production runtime behavior
+    - slug: oidc
+      description: OpenID Connect authentication and logout flows
+    - slug: ops
+      description: Operational procedures, deployment, and runtime administration
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes
