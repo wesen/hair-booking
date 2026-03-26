@@ -18,7 +18,7 @@ ExternalSources:
     - https://www.keycloak.org/docs/latest/server_admin/
     - https://www.keycloak.org/server/features
 Summary: Diary for the auth-separation work that moves hair-booking to its own Keycloak realm with local signup and social login.
-LastUpdated: 2026-03-25T18:10:00-04:00
+LastUpdated: 2026-03-25T23:05:00-04:00
 WhatFor: Use this to understand why the Keycloak plan moved into its own docmgr ticket and what conclusions were reached from the official docs.
 WhenToUse: Use while implementing or reviewing HAIR-010.
 ---
@@ -1162,3 +1162,111 @@ password signup. The remaining meaningful scope is:
 - Facebook provider rollout
 - later cleanup decisions such as moving the SMTP secret to vault and deciding
   whether provider config should eventually live in Terraform
+
+Later in the same day, the user pointed me at three Terraform-side handoff docs
+for the planned SES-plus-Vault evolution:
+
+- `/home/manuel/code/wesen/terraform/ttmp/2026/03/24/TF-002-SES-TERRAFORM--set-up-ses-with-terraform/playbook/02-ses-smtp-integration-playbook.md`
+- `/home/manuel/code/wesen/terraform/ttmp/2026/03/25/TF-008-VAULT-AUTH-HARDENING--implement-vault-auth-hardening-with-keycloak-and-a-go-end-to-end-example/playbooks/02-vault-approle-go-example-developer-guide.md`
+- `/home/manuel/code/wesen/terraform/ttmp/2026/03/25/TF-010-HAIR-BOOKING-VAULT-SES--integrate-hair-booking-with-vault-for-ses-smtp-credentials/playbooks/01-hair-booking-vault-ses-developer-handoff.md`
+
+I re-read those before touching the app repo because the details matter. The
+important platform contract from the Terraform side is now:
+
+- Vault address: `https://vault.app.scapegoat.dev`
+- auth path: `approle/`
+- KV mount: `kv/`
+- secret path: `kv/apps/hair-booking/prod/ses`
+- intended AppRole name: `hair-booking-prod`
+
+That clarified a subtle but important architecture point: the short-term goal is
+not "teach Keycloak to read Vault directly." The app-repo responsibility is
+smaller and more realistic:
+
+1. accept AppRole bootstrap env vars
+2. authenticate to Vault
+3. read the SES secret at `kv/apps/hair-booking/prod/ses`
+4. translate that secret into the Keycloak `smtpServer` payload
+5. update hosted realm `hair-booking`
+
+Based on that, I added six new HAIR-010 tasks with `docmgr --root` so the
+ticket explicitly covered the Vault handoff:
+
+- define the Vault-to-Keycloak SMTP flow and bootstrap inputs
+- add a Vault AppRole-backed secret reader helper
+- add a Keycloak SMTP sync helper path that consumes Vault
+- document the operator workflow
+- replace the local operator secret-file workflow as the canonical path
+- validate the real hosted Vault-backed flow
+
+The design/documentation portion came first. I updated the main HAIR-010 guide
+so the intended steady-state model is written down in one place, including the
+expected secret payload and required bootstrap env vars. I also added a
+permanent app-repo runbook:
+
+- `/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/keycloak-vault-smtp-sync-playbook.md`
+
+That runbook is deliberately separate from the SES verification playbook. The
+Vault sync playbook is about getting secrets into Keycloak safely. The SES
+verification playbook is about proving the email flows after that is done.
+
+For implementation, I added a new helper:
+
+- `scripts/read_hair_booking_vault_ses_secret.sh`
+
+It does one narrow job:
+
+- log into Vault with AppRole using `curl`
+- read KV v2 secret `kv/apps/hair-booking/prod/ses`
+- validate the expected fields
+- write a shell-safe env file in the same `KEYCLOAK_SMTP_*` shape that the
+  existing Keycloak sync script already understands
+
+I intentionally made it produce the same env-file shape as the older local
+operator secret file so I could evolve the source of truth without rewriting
+the Keycloak side from scratch.
+
+Then I updated the existing sync script:
+
+- `scripts/configure_hosted_keycloak_smtp_and_smoke.sh`
+
+It now supports three modes:
+
+- `SMTP_SOURCE=vault`
+- `SMTP_SOURCE=auto`
+- `SMTP_SOURCE=file`
+
+The important product decision in this slice is that the script now defaults to
+`vault`. `file` still exists, but only as a legacy fallback. I also added a
+warning when `file` mode is used so future operators do not accidentally keep
+treating the old local secret file as the preferred path.
+
+I checked the new helper and the updated sync script with:
+
+```bash
+bash -n /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/ttmp/2026/03/24/HAIR-010--separate-hair-booking-keycloak-realm-and-add-signup-social-login/scripts/read_hair_booking_vault_ses_secret.sh
+bash -n /home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/ttmp/2026/03/24/HAIR-010--separate-hair-booking-keycloak-realm-and-add-signup-social-login/scripts/configure_hosted_keycloak_smtp_and_smoke.sh
+docmgr doctor --ticket HAIR-010 --stale-after 30
+```
+
+All of those checks passed.
+
+I also checked for already-delivered `hair-booking-prod` AppRole material before
+claiming the Vault cutover was done. The result was clear:
+
+- the Terraform docs define the intended role name and secret path
+- local operator storage only contains the older `go-example-prod` AppRole
+  JSON, not a `hair-booking-prod` one
+- there is no active `VAULT_TOKEN` in the shell right now
+
+That means the current state is:
+
+- the app-repo side is ready for Vault-backed SMTP sync
+- the canonical workflow has been switched to Vault
+- the older local secret file path is now explicitly legacy
+- the final hosted validation still depends on delivered or minted
+  `hair-booking-prod` AppRole material
+
+So task 83 is complete, but task 84 remains intentionally open. That is the
+right boundary: the design and tooling are in place, but I am not claiming a
+successful hosted Vault replay without the real AppRole bootstrap values.

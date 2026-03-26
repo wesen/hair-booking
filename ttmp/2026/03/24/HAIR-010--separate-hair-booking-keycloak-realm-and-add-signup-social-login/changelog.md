@@ -48,6 +48,11 @@
 - Confirmed real mailbox verification completes successfully for hosted signup
 - Confirmed real mailbox password reset completes successfully for hosted signup
 - Added a permanent SES verification runbook in the app repo docs
+- Read the Terraform-side SES and Vault handoff docs and translated them into concrete HAIR-010 Vault tasks
+- Added a Vault AppRole reader helper for `kv/apps/hair-booking/prod/ses`
+- Updated the hosted Keycloak SMTP sync helper so it can source secrets from Vault
+- Switched the canonical SMTP sync workflow to Vault and demoted the local secret file to legacy fallback status
+- Added a permanent Vault-backed Keycloak SMTP sync playbook in the app repo docs
 
 ## 2026-03-24
 

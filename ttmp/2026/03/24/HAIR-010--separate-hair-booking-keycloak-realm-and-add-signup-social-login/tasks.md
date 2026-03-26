@@ -112,3 +112,9 @@
 - [ ] Decide whether Instagram ever needs to be reconsidered
 - [ ] Decide whether the local dual-realm naming should be collapsed in a cleanup ticket
 - [ ] Move hosted SES SMTP credentials from the local operator file into the shared vault/secret system
+- [x] Define the concrete hair-booking Vault-to-Keycloak SMTP secret flow and bootstrap inputs
+- [x] Add a Vault AppRole-backed helper that reads kv/apps/hair-booking/prod/ses safely
+- [x] Add a Keycloak SMTP sync helper that applies Vault SES values to realm hair-booking without storing secrets in git
+- [x] Document the required Vault bootstrap env vars and operator workflow for hosted hair-booking
+- [x] Replace the current local operator SMTP secret file workflow with the Vault-backed workflow
+- [ ] Validate the Vault-backed SMTP sync against hosted Keycloak and rerun verify-email / forgot-password smoke

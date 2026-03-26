@@ -245,6 +245,111 @@ Current operator replay artifacts:
 - `scripts/create_hair_booking_ses_smtp_credentials.sh`
 - `scripts/configure_hosted_keycloak_smtp_and_smoke.sh`
 
+## Next Secret-Store Evolution: Vault-Backed SMTP Sync
+
+The current hosted SMTP setup is intentionally transitional. It is good enough
+for pre-production operation, but it is not the final secret-management shape.
+
+The next intended model is:
+
+```text
+Vault AppRole bootstrap inputs
+  -> read kv/apps/hair-booking/prod/ses
+    -> build Keycloak smtpServer payload
+      -> update hosted realm hair-booking
+        -> Keycloak sends mail through SES
+```
+
+That means the application repo does **not** need to teach Keycloak how to talk
+to Vault directly. The practical first integration is simpler:
+
+- an operator or automation helper authenticates to Vault with AppRole
+- that helper reads the SES SMTP secret from Vault
+- that helper updates the hosted Keycloak realm `smtpServer`
+
+### Canonical Vault Assumptions
+
+These values now come from the Terraform-side handoff docs and should be
+treated as the intended steady-state contract:
+
+- Vault address: `https://vault.app.scapegoat.dev`
+- Vault auth path: `approle/`
+- KV mount: `kv/`
+- secret path: `kv/apps/hair-booking/prod/ses`
+
+Expected secret payload:
+
+```json
+{
+  "host": "email-smtp.us-east-1.amazonaws.com",
+  "port": "587",
+  "username": "<ses access key id>",
+  "password": "<derived smtp password>",
+  "from_address": "no-reply@mail.scapegoat.dev",
+  "from_name": "Hair Booking",
+  "configuration_set": "mail-scapegoat-dev",
+  "starttls": "true"
+}
+```
+
+### Bootstrap Inputs
+
+The helper should consume Vault bootstrap inputs, not the SMTP secret itself.
+
+Required env vars:
+
+- `VAULT_ADDR`
+- `VAULT_APPROLE_AUTH_PATH`
+- `VAULT_ROLE_ID`
+- `VAULT_SECRET_ID`
+- `VAULT_SECRET_PATH`
+
+The helper should also still consume Keycloak admin bootstrap through the shared
+Terraform operator environment:
+
+- `TF_VAR_keycloak_url`
+- `TF_VAR_keycloak_client_id`
+- `TF_VAR_keycloak_username`
+- `TF_VAR_keycloak_password`
+
+### Target Operator Workflow
+
+Vault-backed sync is now the intended default operator workflow:
+
+1. authenticate to Vault with AppRole
+2. read `kv/apps/hair-booking/prod/ses`
+3. translate the secret into the Keycloak `smtpServer` shape
+4. update realm `hair-booking`
+5. run the same hosted verify-email / forgot-password smoke as today
+
+### What Changes And What Does Not
+
+This migration changes:
+
+- where the SMTP username/password come from
+- how operators bootstrap the SMTP sync
+
+This migration does **not** change:
+
+- the SES sender identity
+- the Keycloak realm and client layout
+- the Terraform ownership split where `smtp_server` remains out of Terraform
+  state
+
+### Practical Consequence
+
+The existing local operator file:
+
+- `$HOME/.config/hair-booking/hosted-keycloak-smtp.env`
+
+is now a legacy fallback for emergency operator recovery only. The canonical
+path should instead be:
+
+- Vault AppRole bootstrap material
+- a Vault-backed secret read
+- a Keycloak SMTP sync helper that never writes the SMTP password into git or
+  ticket docs
+
 ## Social Login Recommendations
 
 ### Google

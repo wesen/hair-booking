@@ -20,6 +20,10 @@ This playbook assumes the current hosted setup:
 - sender domain: `mail.scapegoat.dev`
 - default sender: `no-reply@mail.scapegoat.dev`
 
+Before using this playbook after the Vault migration, first make sure the realm
+SMTP settings were applied through
+[keycloak-vault-smtp-sync-playbook.md](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/keycloak-vault-smtp-sync-playbook.md).
+
 ## What "done" means
 
 SES is not considered fully verified until all of these are true:

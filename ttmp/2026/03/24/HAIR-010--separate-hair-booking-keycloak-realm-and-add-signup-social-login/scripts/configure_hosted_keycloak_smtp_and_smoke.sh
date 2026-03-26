@@ -1,32 +1,71 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REALM="${REALM:-hair-booking}"
 CLIENT_ID="${CLIENT_ID:-hair-booking-web}"
 REDIRECT_URI="${REDIRECT_URI:-}"
+SMTP_SOURCE="${SMTP_SOURCE:-vault}"
 SECRET_FILE="${SECRET_FILE:-$HOME/.config/hair-booking/hosted-keycloak-smtp.env}"
 TEST_EMAIL="${TEST_EMAIL:-success@simulator.amazonses.com}"
 TEST_USERNAME="${TEST_USERNAME:-hair-booking-ses-smtp-probe}"
+VAULT_READER="${VAULT_READER:-$SCRIPT_DIR/read_hair_booking_vault_ses_secret.sh}"
 
 TERRAFORM_ROOT="/home/manuel/code/wesen/terraform"
+tmpdir="$(mktemp -d)"
+trap 'rm -rf "$tmpdir"' EXIT
 
-if [[ ! -f "$SECRET_FILE" ]]; then
-  echo "missing SMTP secret file: $SECRET_FILE" >&2
-  exit 1
-fi
+resolve_secret_file() {
+  case "$SMTP_SOURCE" in
+    auto)
+      if [[ -f "$SECRET_FILE" ]]; then
+        printf '%s\n' "$SECRET_FILE"
+        return 0
+      fi
+      if [[ -n "${VAULT_ADDR:-}" && -n "${VAULT_ROLE_ID:-}" && -n "${VAULT_SECRET_ID:-}" ]]; then
+        local generated_file="$tmpdir/keycloak-smtp-from-vault.env"
+        OUTPUT_FILE="$generated_file" "$VAULT_READER" >/dev/null 2>&1
+        printf '%s\n' "$generated_file"
+        return 0
+      fi
+      echo "auto SMTP source resolution failed: no secret file and no Vault AppRole bootstrap env vars" >&2
+      return 1
+      ;;
+    file)
+      echo "warning: SMTP_SOURCE=file is legacy fallback mode; prefer Vault-backed sync" >&2
+      if [[ ! -f "$SECRET_FILE" ]]; then
+        echo "missing SMTP secret file: $SECRET_FILE" >&2
+        return 1
+      fi
+      printf '%s\n' "$SECRET_FILE"
+      ;;
+    vault)
+      if [[ ! -x "$VAULT_READER" ]]; then
+        echo "missing Vault reader helper: $VAULT_READER" >&2
+        return 1
+      fi
+      local generated_file="$tmpdir/keycloak-smtp-from-vault.env"
+      OUTPUT_FILE="$generated_file" "$VAULT_READER" >/dev/null
+      printf '%s\n' "$generated_file"
+      ;;
+    *)
+      echo "unsupported SMTP_SOURCE: $SMTP_SOURCE" >&2
+      return 1
+      ;;
+  esac
+}
+
+resolved_secret_file="$(resolve_secret_file)"
 
 source "$TERRAFORM_ROOT/.envrc"
 set -a
-source "$SECRET_FILE"
+source "$resolved_secret_file"
 set +a
 
 if [[ -z "${TF_VAR_keycloak_url:-}" || -z "${TF_VAR_keycloak_username:-}" || -z "${TF_VAR_keycloak_password:-}" ]]; then
   echo "Keycloak admin credentials are not available through $TERRAFORM_ROOT/.envrc" >&2
   exit 1
 fi
-
-tmpdir="$(mktemp -d)"
-trap 'rm -rf "$tmpdir"' EXIT
 
 admin_token="$(curl -fsS -X POST \
   "$TF_VAR_keycloak_url/realms/master/protocol/openid-connect/token" \
