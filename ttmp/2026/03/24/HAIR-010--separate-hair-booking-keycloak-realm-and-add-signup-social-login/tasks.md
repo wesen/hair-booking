@@ -88,13 +88,13 @@
 
 ## Phase 8: Google Rollout
 
-- [ ] Create the Google OAuth app/client
-- [ ] Add the correct redirect URI and origin on the Google side
-- [ ] Configure the Google identity provider in realm `hair-booking`
-- [ ] Test first broker login with a brand new Google-backed user
-- [ ] Test repeat login with the same Google-backed user
-- [ ] Test login behavior when the Google email matches an existing local-password account
-- [ ] Record any first-broker-login/account-linking behavior that needs product review
+- [x] Create the Google OAuth app/client
+- [x] Add the correct redirect URI and origin on the Google side
+- [x] Configure the Google identity provider in realm `hair-booking`
+- [x] Test first broker login with a brand new Google-backed user
+- [x] Test repeat login with the same Google-backed user
+- [ ] Test login behavior when the Google email matches an existing local-password account in a deliberate end-to-end validation pass
+- [x] Record the current brokered-login/logout behavior and the hosted logout fix follow-up in the auth ticket trail
 
 ## Phase 9: Facebook Rollout
 
@@ -108,9 +108,11 @@
 
 ## Deferred Work
 
+- [ ] Decide whether stylist/admin access should remain app-env allowlisting or move into Keycloak roles/groups
 - [ ] Decide whether Google and Facebook provider setup should later be codified in Terraform
 - [ ] Decide whether Instagram ever needs to be reconsidered
 - [ ] Decide whether the local dual-realm naming should be collapsed in a cleanup ticket
+- [ ] Add an optional local Google broker setup for `hair-booking-dev` so broker/logout behavior can be tested without a hosted deploy
 - [x] Move hosted SES SMTP credentials from the local operator file into the shared vault/secret system
 - [x] Define the concrete hair-booking Vault-to-Keycloak SMTP secret flow and bootstrap inputs
 - [x] Add a Vault AppRole-backed helper that reads kv/apps/hair-booking/prod/ses safely
