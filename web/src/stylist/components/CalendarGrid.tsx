@@ -1,18 +1,17 @@
-import { useState } from "react";
-
 interface CalendarGridProps {
   availability: Record<string, string[]>;
   selectedDate: string | null;
   onSelectDate: (date: string) => void;
+  month: number;
+  year: number;
+  onMonthChange: (month: number) => void;
 }
 
-export function CalendarGrid({ availability, selectedDate, onSelectDate }: CalendarGridProps) {
-  const [calMonth, setCalMonth] = useState(2); // March
-  const year = 2026;
+export function CalendarGrid({ availability, selectedDate, onSelectDate, month, year, onMonthChange }: CalendarGridProps) {
   const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 
-  const firstDay = new Date(year, calMonth, 1).getDay();
-  const daysInMonth = new Date(year, calMonth + 1, 0).getDate();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
   const dayHeaders = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
 
   const cells: (number | null)[] = [];
@@ -24,14 +23,14 @@ export function CalendarGrid({ availability, selectedDate, onSelectDate }: Calen
       <div data-part="cal-header">
         <button
           data-part="cal-nav"
-          onClick={() => { if (calMonth > 2) setCalMonth(calMonth - 1); }}
+          onClick={() => { if (month > 2) onMonthChange(month - 1); }}
         >
           ←
         </button>
-        <span>{monthNames[calMonth]} {year}</span>
+        <span>{monthNames[month]} {year}</span>
         <button
           data-part="cal-nav"
-          onClick={() => { if (calMonth < 5) setCalMonth(calMonth + 1); }}
+          onClick={() => { if (month < 5) onMonthChange(month + 1); }}
         >
           →
         </button>
@@ -43,10 +42,10 @@ export function CalendarGrid({ availability, selectedDate, onSelectDate }: Calen
         ))}
         {cells.map((d, i) => {
           if (!d) return <div key={`e${i}`} />;
-          const dateStr = `${year}-${String(calMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+          const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
           const avail = !!availability[dateStr];
           const selected = selectedDate === dateStr;
-          const isToday = calMonth === 2 && d === 19;
+          const isToday = month === 2 && d === 19;
           return (
             <div
               key={dateStr}

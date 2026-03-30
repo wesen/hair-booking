@@ -3,6 +3,8 @@ import type { PortalTab } from "../types";
 interface PortalTabBarProps {
   activeTab: PortalTab;
   onTabChange: (tab: PortalTab) => void;
+  showPhotos?: boolean;
+  showRewards?: boolean;
 }
 
 const TABS: { id: PortalTab; icon: string; label: string }[] = [
@@ -12,10 +14,20 @@ const TABS: { id: PortalTab; icon: string; label: string }[] = [
   { id: "rewards", icon: "⭐", label: "Rewards" },
 ];
 
-export function PortalTabBar({ activeTab, onTabChange }: PortalTabBarProps) {
+export function PortalTabBar({ activeTab, onTabChange, showPhotos = true, showRewards = true }: PortalTabBarProps) {
+  const visibleTabs = TABS.filter((tab) => {
+    if (tab.id === "photos") {
+      return showPhotos;
+    }
+    if (tab.id === "rewards") {
+      return showRewards;
+    }
+    return true;
+  });
+
   return (
     <div data-part="portal-tab-bar">
-      {TABS.map(t => (
+      {visibleTabs.map(t => (
         <button
           key={t.id}
           data-part="portal-tab-item"

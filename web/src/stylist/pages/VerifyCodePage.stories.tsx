@@ -13,27 +13,10 @@ const meta: Meta<typeof VerifyCodePage> = {
 export default meta;
 type Story = StoryObj<typeof VerifyCodePage>;
 
-const baseAuth = {
-  loginIdentifier: "mia.k@email.com",
-  codeSentTo: "mia.k@email.com",
-  codeDigits: ["", "", "", "", "", ""],
-  isVerifying: true,
-  isAuthenticated: false,
-  error: null,
-  resendCooldown: 42,
-  showDepositSheet: false,
-  cardNumber: "",
-  cardExpiry: "",
-  cardCvc: "",
-  cardZip: "",
-  paymentError: null,
-  paymentProcessing: false,
-};
-
 export const Default: Story = {
   decorators: [
     (Story) => (
-      <Provider store={createTestStore({ auth: { ...baseAuth } })}>
+      <Provider store={createTestStore()}>
         <div data-widget="stylist" style={{ maxWidth: 430 }}>
           <Story />
         </div>
@@ -42,34 +25,11 @@ export const Default: Story = {
   ],
 };
 
-export const PartialCode: Story = {
+export const WithPortalShell: Story = {
+  args: {},
   decorators: [
     (Story) => (
-      <Provider store={createTestStore({ auth: { ...baseAuth, codeDigits: ["4", "8", "2", "", "", ""] } })}>
-        <div data-widget="stylist" style={{ maxWidth: 430 }}>
-          <Story />
-        </div>
-      </Provider>
-    ),
-  ],
-};
-
-export const WithError: Story = {
-  decorators: [
-    (Story) => (
-      <Provider store={createTestStore({ auth: { ...baseAuth, codeDigits: ["4", "8", "2", "9", "1", ""], error: "Invalid code. Please try again." } })}>
-        <div data-widget="stylist" style={{ maxWidth: 430 }}>
-          <Story />
-        </div>
-      </Provider>
-    ),
-  ],
-};
-
-export const CooldownExpired: Story = {
-  decorators: [
-    (Story) => (
-      <Provider store={createTestStore({ auth: { ...baseAuth, resendCooldown: 0 } })}>
+      <Provider store={createTestStore()}>
         <div data-widget="stylist" style={{ maxWidth: 430 }}>
           <Story />
         </div>

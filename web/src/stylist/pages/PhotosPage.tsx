@@ -1,5 +1,6 @@
 import { useAppSelector, useAppDispatch } from "../store";
-import { simulatePhoto, addInspoPhoto, goNext } from "../store/consultationSlice";
+import { goNext, updateData } from "../store/consultationSlice";
+import { addPendingInspirationPhoto, setPendingConsultationPhoto } from "../store/consultationUploads";
 import { PhotoBox } from "../components/PhotoBox";
 import { Icon } from "../components/Icon";
 
@@ -22,12 +23,18 @@ export function PhotosPage() {
         <PhotoBox
           label="Front"
           hasPhoto={!!data.photoFront}
-          onClick={() => dispatch(simulatePhoto("photoFront"))}
+          onFileSelect={(file) => {
+            setPendingConsultationPhoto("photoFront", file);
+            dispatch(updateData({ photoFront: file.name }));
+          }}
         />
         <PhotoBox
           label="Back"
           hasPhoto={!!data.photoBack}
-          onClick={() => dispatch(simulatePhoto("photoBack"))}
+          onFileSelect={(file) => {
+            setPendingConsultationPhoto("photoBack", file);
+            dispatch(updateData({ photoBack: file.name }));
+          }}
         />
       </div>
 
@@ -38,7 +45,10 @@ export function PhotosPage() {
             <PhotoBox
               label="Hairline"
               hasPhoto={!!data.photoHairline}
-              onClick={() => dispatch(simulatePhoto("photoHairline"))}
+              onFileSelect={(file) => {
+                setPendingConsultationPhoto("photoHairline", file);
+                dispatch(updateData({ photoHairline: file.name }));
+              }}
             />
             <div style={{ display: "flex", alignItems: "center", fontSize: 12, color: "var(--color-text-muted)", lineHeight: 1.5, padding: "0 4px" }}>
               Helps us check extension placement options near your hairline
@@ -54,11 +64,17 @@ export function PhotosPage() {
         <PhotoBox
           label={data.inspoPhotos.length > 0 ? `${data.inspoPhotos.length} added` : "Add inspo"}
           hasPhoto={data.inspoPhotos.length > 0}
-          onClick={() => dispatch(addInspoPhoto())}
+          onFileSelect={(file) => {
+            addPendingInspirationPhoto(file);
+            dispatch(updateData({ inspoPhotos: [...data.inspoPhotos, file.name] }));
+          }}
         />
         <PhotoBox
           label="Add more"
-          onClick={() => dispatch(addInspoPhoto())}
+          onFileSelect={(file) => {
+            addPendingInspirationPhoto(file);
+            dispatch(updateData({ inspoPhotos: [...data.inspoPhotos, file.name] }));
+          }}
         />
       </div>
 

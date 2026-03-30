@@ -1,0 +1,6 @@
+keycloak_url       = "http://127.0.0.1:18090"
+keycloak_username  = "admin"
+keycloak_password  = "admin"
+realm_name         = "hair-booking-dev-tf"
+realm_display_name = "hair-booking-dev-tf"
+web_client_secret  = "hair-booking-web-secret"

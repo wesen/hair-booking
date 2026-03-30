@@ -1,0 +1,10 @@
+.git
+.github
+dist
+ttmp
+tmp
+var
+*.log
+Dockerfile.*
+web/node_modules
+web/dist

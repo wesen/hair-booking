@@ -1,13 +1,19 @@
 import { useAppDispatch } from "../store";
-import { selectServiceType, goToScreen } from "../store/consultationSlice";
+import { goToScreen, resetConsultation, selectServiceType } from "../store/consultationSlice";
+import { clearPendingConsultationUploads } from "../store/consultationUploads";
+import { useSessionBootstrap } from "../store/api";
 import { ServiceCard } from "../components/ServiceCard";
 import { Icon } from "../components/Icon";
+import { buildRuntimeURL } from "../utils/authNavigation";
 import type { ConsultationServiceType, ConsultationScreen } from "../types";
 
 export function ConsultWelcomePage() {
   const dispatch = useAppDispatch();
+  const session = useSessionBootstrap();
 
   const handleSelect = (type: ConsultationServiceType, screen: ConsultationScreen) => {
+    clearPendingConsultationUploads();
+    dispatch(resetConsultation());
     dispatch(selectServiceType(type));
     dispatch(goToScreen(screen));
   };
@@ -52,10 +58,21 @@ export function ConsultWelcomePage() {
         onClick={() => handleSelect("both", "intake-ext")}
       />
 
-      <div data-part="signin-area">
-        <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>Already a client?</span>{" "}
-        <button data-part="signin-link" onClick={() => dispatch(goToScreen("sign-in"))}>Sign in</button>
-      </div>
+      {session.isAuthenticated ? (
+        <div data-part="signin-area">
+          <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>
+            Signed in as {session.client?.name || "client"}.
+          </span>{" "}
+          <button data-part="signin-link" onClick={() => window.location.assign(buildRuntimeURL("/portal"))}>
+            Open portal
+          </button>
+        </div>
+      ) : (
+        <div data-part="signin-area">
+          <span style={{ fontSize: 13, color: "var(--color-text-muted)" }}>Already a client?</span>{" "}
+          <button data-part="signin-link" onClick={() => dispatch(goToScreen("sign-in"))}>Sign in</button>
+        </div>
+      )}
     </div>
   );
 }

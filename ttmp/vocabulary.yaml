@@ -5,6 +5,42 @@ topics:
       description: Backend services
     - slug: websocket
       description: WebSocket lifecycle & events
+    - slug: frontend
+      description: Frontend application architecture and implementation work
+    - slug: react
+      description: React components, pages, hooks, and app structure
+    - slug: redux
+      description: Redux Toolkit and client state management
+    - slug: typescript
+      description: TypeScript types and frontend implementation details
+    - slug: code-review
+      description: Code review, architecture assessment, and implementation quality analysis
+    - slug: mvp
+      description: Minimum viable product scope and release planning
+    - slug: photos
+      description: Photo-related workflows and assets
+    - slug: cleanup
+      description: Post-implementation cleanup and consolidation work
+    - slug: deploy
+      description: Deployment and hosting concerns
+    - slug: auth
+      description: Authentication and login flows
+    - slug: keycloak
+      description: Keycloak realms, clients, and identity providers
+    - slug: booking
+      description: Booking flows, appointment creation, and scheduling behavior
+    - slug: logging
+      description: Application and request logging behavior
+    - slug: observability
+      description: Operational visibility through logs, metrics, tracing, and diagnostics
+    - slug: production
+      description: Hosted deployment and production runtime behavior
+    - slug: oidc
+      description: OpenID Connect authentication and logout flows
+    - slug: ops
+      description: Operational procedures, deployment, and runtime administration
+    - slug: postgres
+      description: PostgreSQL schema, persistence, and operational topics
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes

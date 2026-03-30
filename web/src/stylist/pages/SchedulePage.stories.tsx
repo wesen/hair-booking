@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Provider } from "react-redux";
 import { configureStore } from "@reduxjs/toolkit";
 import { SchedulePage } from "./SchedulePage";
-import { store } from "../store";
+import { legacyStore } from "../store";
 import clientsReducer from "../store/clientsSlice";
 import appointmentsReducer from "../store/appointmentsSlice";
 import bookingReducer from "../store/bookingSlice";
@@ -15,7 +15,7 @@ const meta: Meta<typeof SchedulePage> = {
   component: SchedulePage,
   decorators: [
     (Story) => (
-      <Provider store={store}>
+      <Provider store={legacyStore}>
         <div data-widget="stylist" style={{ maxWidth: 430 }}>
           <Story />
         </div>

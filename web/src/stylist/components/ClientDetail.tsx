@@ -13,8 +13,8 @@ interface ClientDetailProps {
   onBack: () => void;
   onBookAppointment: () => void;
   onLogVisit: () => void;
-  onAddReferral: () => void;
-  onMessage: () => void;
+  onAddReferral?: () => void;
+  onMessage?: () => void;
 }
 
 export function ClientDetail({
@@ -178,8 +178,8 @@ export function ClientDetail({
       <div data-part="quick-actions" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
         <QuickAction icon="calendar" label="Book Appt" onClick={onBookAppointment} />
         <QuickAction icon="check" label="Log Visit" onClick={onLogVisit} />
-        <QuickAction icon="gift" label="Add Referral" onClick={onAddReferral} />
-        <QuickAction icon="send" label="Message" onClick={onMessage} />
+        {onAddReferral ? <QuickAction icon="gift" label="Add Referral" onClick={onAddReferral} /> : null}
+        {onMessage ? <QuickAction icon="send" label="Message" onClick={onMessage} /> : null}
       </div>
     </div>
   );

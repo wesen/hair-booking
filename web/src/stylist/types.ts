@@ -131,10 +131,11 @@ export interface ConsultationData {
   selectedDate: string | null;
   selectedTime: string | null;
   depositPaid: boolean;
-  // Auth
-  loginIdentifier: string;
-  verifyCode: string;
-  isAuthenticated: boolean;
+  intakeId: string | null;
+  estimateLow: number | null;
+  estimateHigh: number | null;
+  appointmentId: string | null;
+  appointmentServiceId: string | null;
   // Payment
   cardNumber: string;
   cardExpiry: string;
@@ -158,6 +159,10 @@ export type AppointmentStatus = "confirmed" | "pending" | "complete" | "cancelle
 
 export interface AppointmentDetail {
   id: number;
+  remoteId?: string;
+  serviceId?: string;
+  scheduledDate?: string;
+  scheduledTime?: string;
   date: string;
   service: string;
   time: string;

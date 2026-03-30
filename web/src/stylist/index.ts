@@ -61,8 +61,10 @@ export { ConsultCalendarPage } from "./pages/ConsultCalendarPage";
 export { ConsultConfirmPage } from "./pages/ConsultConfirmPage";
 
 // Store
-export { store, useAppDispatch, useAppSelector } from "./store";
-export type { RootState, AppDispatch } from "./store";
+export { store, legacyStore, runtimeStore, useAppDispatch, useAppSelector } from "./store";
+export { createAppStore, createRuntimeStore, stylistApi } from "./store";
+export type { RootState, RuntimeRootState, AppDispatch, AppStore, RuntimeAppDispatch, RuntimeAppStore } from "./store";
+export * from "./store/api";
 
 // Types
 export type { Service, Client, Appointment, LoyaltyTier, BookingData, Tab, IconName } from "./types";
