@@ -1,6 +1,8 @@
 module github.com/go-go-golems/hair-booking
 
-go 1.25.7
+go 1.25.0
+
+toolchain go1.25.8
 
 require (
 	github.com/go-go-golems/glazed v1.0.6
