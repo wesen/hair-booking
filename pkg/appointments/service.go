@@ -423,6 +423,9 @@ func (s *Service) RescheduleClientAppointment(ctx context.Context, clientID, app
 	if err != nil {
 		return nil, err
 	}
+	if !appointmentStartAt(dateValue, startMinute).After(nowFunc()) {
+		return nil, errors.Wrap(ErrSlotUnavailable, "requested date/time is no longer available")
+	}
 
 	monthStart := time.Date(dateValue.Year(), dateValue.Month(), 1, 0, 0, 0, 0, time.UTC)
 	monthEnd := monthStart.AddDate(0, 1, 0)

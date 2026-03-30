@@ -333,6 +333,9 @@ func (a *OIDCAuthenticator) resolveRequestedRedirect(r *http.Request, rawValue s
 	}
 
 	if strings.HasPrefix(value, "/") {
+		if len(value) > 1 && (value[1] == '/' || value[1] == '\\') {
+			return "", errors.New("return_to must remain on this origin")
+		}
 		return value, nil
 	}
 

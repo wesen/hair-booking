@@ -353,6 +353,42 @@ func TestRescheduleClientAppointmentRejectsInside24Hours(t *testing.T) {
 	}
 }
 
+func TestRescheduleClientAppointmentRejectsPastDateTime(t *testing.T) {
+	nowFunc = func() time.Time { return time.Date(2026, 3, 2, 12, 0, 0, 0, time.UTC) }
+	defer func() { nowFunc = func() time.Time { return time.Now().UTC() } }()
+
+	appointmentID := uuid.New()
+	clientID := uuid.New()
+	repo := &fakeRepository{
+		blocks: []ScheduleBlock{
+			{DayOfWeek: 2, StartTime: "09:00", EndTime: "05:00 PM", IsAvailable: true},
+		},
+		portalDetail: &PortalAppointment{
+			Appointment: Appointment{
+				ID:                  appointmentID,
+				ClientID:            clientID,
+				ServiceID:           uuid.New(),
+				Date:                "2026-03-10",
+				StartTime:           "09:00 AM",
+				Status:              "confirmed",
+				DurationMinSnapshot: 30,
+			},
+		},
+	}
+
+	service := NewService(repo)
+	_, err := service.RescheduleClientAppointment(context.Background(), clientID, appointmentID, "2026-02-24", "10:00 AM")
+	if err == nil {
+		t.Fatal("expected reschedule to a past date/time to fail")
+	}
+	if !errors.Is(err, ErrSlotUnavailable) {
+		t.Fatalf("expected ErrSlotUnavailable, got %v", err)
+	}
+	if repo.rescheduled != nil {
+		t.Fatalf("expected no reschedule persistence for a past date/time, got %#v", repo.rescheduled)
+	}
+}
+
 func TestCancelClientAppointmentAppliesReason(t *testing.T) {
 	nowFunc = func() time.Time { return time.Date(2026, 3, 2, 12, 0, 0, 0, time.UTC) }
 	defer func() { nowFunc = func() time.Time { return time.Now().UTC() } }()

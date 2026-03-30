@@ -23,6 +23,17 @@ func TestResolveRequestedRedirectAllowsRelativePath(t *testing.T) {
 	}
 }
 
+func TestResolveRequestedRedirectRejectsSchemeRelativePath(t *testing.T) {
+	authenticator := &OIDCAuthenticator{}
+	request := httptest.NewRequest("GET", "http://127.0.0.1:8080/auth/login", nil)
+
+	for _, value := range []string{"//evil.example.com/portal", "/\\evil.example.com/portal"} {
+		if _, err := authenticator.resolveRequestedRedirect(request, value); err == nil {
+			t.Fatalf("expected resolveRequestedRedirect to reject %q", value)
+		}
+	}
+}
+
 func TestResolveRequestedRedirectAllowsSameHostDifferentPort(t *testing.T) {
 	authenticator := &OIDCAuthenticator{}
 	authenticator.oauthConfig.RedirectURL = "http://127.0.0.1:8080/auth/callback"

@@ -370,7 +370,7 @@ where a.id = $1
 	client := &hairclients.Client{}
 	intake := &hairintake.Submission{}
 	var intakeIDText sql.NullString
-	var intakeClientIDText string
+	var intakeClientIDText sql.NullString
 	var intakeDesiredLength sql.NullInt64
 	var cancelledAt sql.NullTime
 	var clientCreatedAt time.Time
@@ -437,13 +437,11 @@ where a.id = $1
 			return nil, errors.Wrap(err, "failed to parse linked intake id")
 		}
 		intake.ID = parsedIntakeID
-		if strings.TrimSpace(intakeClientIDText) != "" {
-			parsedClientID, err := uuid.Parse(intakeClientIDText)
-			if err != nil {
-				return nil, errors.Wrap(err, "failed to parse linked intake client id")
-			}
-			intake.ClientID = &parsedClientID
+		parsedClientID, err := parseOptionalUUID(intakeClientIDText)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to parse linked intake client id")
 		}
+		intake.ClientID = parsedClientID
 		if intakeDesiredLength.Valid {
 			intake.DesiredLength = int(intakeDesiredLength.Int64)
 		}
@@ -457,6 +455,19 @@ where a.id = $1
 	detail.Photos = photos
 
 	return detail, nil
+}
+
+func parseOptionalUUID(value sql.NullString) (*uuid.UUID, error) {
+	if !value.Valid || strings.TrimSpace(value.String) == "" {
+		return nil, nil
+	}
+
+	parsed, err := uuid.Parse(value.String)
+	if err != nil {
+		return nil, err
+	}
+
+	return &parsed, nil
 }
 
 func (r *PostgresRepository) UpdateAppointment(ctx context.Context, appointmentID uuid.UUID, update AppointmentUpdate, updatedAt time.Time) (*Appointment, error) {
