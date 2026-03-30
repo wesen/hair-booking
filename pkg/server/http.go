@@ -262,15 +262,6 @@ func (h *appHandler) handleInfo(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, apiEnvelope{Data: response})
 }
 
-func (h *appHandler) currentUser(r *http.Request) (*hairauth.UserInfo, bool) {
-	claims, ok := h.currentClaims(r)
-	if !ok {
-		return nil, false
-	}
-	user := claims.UserInfo(h.authSettings.Mode)
-	return &user, true
-}
-
 func timeNowUTC() time.Time {
 	return time.Now().UTC()
 }
