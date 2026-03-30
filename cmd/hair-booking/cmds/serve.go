@@ -141,13 +141,13 @@ func (c *ServeCommand) Run(ctx context.Context, parsedValues *values.Values) err
 	defer stop()
 
 	httpServer, err := server.NewHTTPServer(serverCtx, server.ServerOptions{
-		Host:            settings.ListenHost,
-		Port:            settings.ListenPort,
-		Version:         c.version,
-		AuthSettings:    authSettings,
-		Database:        applicationDB,
-		Storage:         blobStore,
-		LocalUploadsDir: backendSettings.StorageLocalDir,
+		Host:                settings.ListenHost,
+		Port:                settings.ListenPort,
+		Version:             c.version,
+		AuthSettings:        authSettings,
+		Database:            applicationDB,
+		Storage:             blobStore,
+		LocalUploadsDir:     backendSettings.StorageLocalDir,
 		FrontendDevProxyURL: backendSettings.FrontendDevProxyURL,
 	})
 	if err != nil {

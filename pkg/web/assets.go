@@ -6,6 +6,7 @@ import (
 )
 
 // Run `go generate ./pkg/web` to refresh the embedded production frontend assets.
+//
 //go:embed public/*
 var embeddedFS embed.FS
 
