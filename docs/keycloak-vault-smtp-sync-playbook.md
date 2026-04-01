@@ -17,15 +17,28 @@ The important contract did not change:
 - Keycloak stores the realm `smtpServer` block
 - a sync step moves data from Vault into the realm
 
-What is changing next is the execution model. The old off-cluster AppRole path
-is now legacy operator workflow. The intended K3s-native steady state is a
-Kubernetes-authenticated reconciler job in the `keycloak` namespace.
+The execution model has now changed on the K3s side. The old off-cluster
+AppRole path is legacy operator workflow. The K3s steady state is a
+Kubernetes-authenticated reconciler in the `keycloak` namespace:
 
-Use this when you need to:
+- Vault secret `kv/apps/hair-booking/prod/ses` remains the source of truth
+- Vault Secrets Operator mirrors that secret into `Secret/keycloak-hair-booking-smtp`
+- `CronJob/keycloak-hair-booking-smtp-sync` reads that secret plus
+  `Secret/keycloak-bootstrap-admin`
+- the reconciler updates realm `hair-booking` `smtpServer` only when drift
+  exists
+- the reconciler stores an idempotence hash in
+  `ConfigMap/keycloak-hair-booking-smtp-sync-state`
 
-- read SES SMTP credentials from Vault
-- materialize them into the `KEYCLOAK_SMTP_*` shape expected by the app repo
-- apply them to realm `hair-booking`
+The K3s platform-side implementation details now live in
+[keycloak-vault-smtp-reconciler-pattern.md](/home/manuel/code/wesen/2026-03-27--hetzner-k3s/docs/keycloak-vault-smtp-reconciler-pattern.md).
+
+Use this app-side document when you need to:
+
+- understand the secret contract the K3s reconciler consumes
+- run a legacy operator replay intentionally
+- materialize the SMTP values into the `KEYCLOAK_SMTP_*` env shape expected by
+  the helper scripts
 - rerun the Keycloak email smoke flow
 
 This is about the Keycloak SMTP sync path, not the mail-delivery smoke itself.
@@ -36,10 +49,11 @@ The delivery smoke remains documented in
 
 ```text
 Vault secret kv/apps/hair-booking/prod/ses
-  -> read SES SMTP material
-    -> build KEYCLOAK_SMTP_* values
-      -> update Keycloak realm hair-booking smtpServer
-        -> run verify-email and forgot-password smoke
+  -> VaultStaticSecret mirrors into keycloak namespace
+    -> Secret keycloak-hair-booking-smtp
+      -> CronJob keycloak-hair-booking-smtp-sync
+        -> update Keycloak realm hair-booking smtpServer
+          -> run verify-email and forgot-password smoke
 ```
 
 ## Current State
@@ -56,10 +70,21 @@ What is already true today:
   now respects explicit `TF_VAR_keycloak_*` overrides, so it can target either
   hosted Keycloak or K3s Keycloak intentionally
 
-What is not done yet:
+What is now true on the K3s side:
 
-- the K3s-native Kubernetes-authenticated reconciler job has not been added yet
-- `approle/` does not exist on `vault.yolo.scapegoat.dev`
+- the K3s Keycloak package defines the SMTP reconciler resources
+- the mirrored secret name is `keycloak-hair-booking-smtp`
+- the reconciler CronJob name is `keycloak-hair-booking-smtp-sync`
+- the reconciler state ConfigMap name is
+  `keycloak-hair-booking-smtp-sync-state`
+- `approle/` still does not exist on `vault.yolo.scapegoat.dev`
+
+What is still true operationally:
+
+- Vault Kubernetes auth policy and role bootstrap still happens through the
+  K3s repo helper script, not through Argo CD directly
+- the legacy helper remains useful for rollback comparison and one-off
+  operator-driven replay
 
 ## Canonical Vault Contract
 
@@ -133,6 +158,20 @@ Canonical operator mode for the legacy helper is still `vault`.
 `file` is a legacy fallback only. Keep it available for emergency recovery, not
 as the preferred steady-state workflow.
 
+## K3s Steady-State Boundary
+
+The current steady-state responsibility split is:
+
+- K3s GitOps repo owns the Kubernetes resources for the reconciler
+- Vault owns the SES secret values
+- the CronJob owns runtime reconciliation into Keycloak realm state
+- the app repo keeps the helper scripts and contract documentation
+
+That means the app repo is no longer the canonical place where SMTP is pushed
+into the live K3s realm. It documents the secret contract and keeps the legacy
+operator tools available, but the normal live control loop is now in the K3s
+repo.
+
 ## Recommended Legacy Operator Workflow
 
 The historical hosted replay is:
@@ -166,7 +205,7 @@ export TF_VAR_keycloak_password='<k3s bootstrap admin password>'
 ```
 
 For K3s, prefer Vault at `https://vault.yolo.scapegoat.dev`. AppRole remains a
-legacy operator-mode example here, not the long-term in-cluster design.
+legacy operator-mode example here, not the steady-state in-cluster design.
 
 ## What The Vault Reader Produces
 
@@ -197,6 +236,7 @@ What is done in the app repo:
 - the hosted Vault-backed replay has been validated against the real
   `hair-booking-prod` AppRole
 - the same secret shape has been seeded into `vault.yolo.scapegoat.dev`
+- the K3s repo now defines the namespace-local SMTP reconciler resources
 - the same SMTP block has been applied to the K3s Keycloak `hair-booking` realm
 
 Current operator delivery path:
@@ -207,6 +247,6 @@ Current operator delivery path:
 
 What is still deferred:
 
-- replacing the legacy helper with a K3s-native Kubernetes-authenticated
-  reconciler job in the `keycloak` namespace
+- making Vault auth role and policy management itself fully declarative instead
+  of bootstrapping it through the K3s helper script
 - moving the AppRole delivery path into the final shared operator secret system
