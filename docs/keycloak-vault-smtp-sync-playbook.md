@@ -18,22 +18,17 @@ The important contract did not change:
 - a sync step moves data from Vault into the realm
 
 The execution model has now changed on the K3s side. The old off-cluster
-AppRole path is legacy operator workflow. The K3s steady state is a
-Kubernetes-authenticated reconciler in the `keycloak` namespace:
-
-- Vault secret `kv/apps/hair-booking/prod/ses` remains the source of truth
-- Vault Secrets Operator mirrors that secret into `Secret/keycloak-hair-booking-smtp`
-- `CronJob/keycloak-hair-booking-smtp-sync` reads that secret plus
-  `Secret/keycloak-bootstrap-admin`
-- the reconciler updates realm `hair-booking` `smtpServer` only when drift
-  exists
-- the reconciler stores an idempotence hash in
-  `ConfigMap/keycloak-hair-booking-smtp-sync-state`
-
-The K3s platform-side implementation details now live in
+AppRole path is legacy operator workflow. The K3s steady-state reconciler and
+all of its Kubernetes resource details now live in
 [keycloak-vault-smtp-reconciler-pattern.md](/home/manuel/code/wesen/2026-03-27--hetzner-k3s/docs/keycloak-vault-smtp-reconciler-pattern.md).
-That K3s document is also the canonical reference for Argo CD verification of
-the reconciler resources after a sync.
+That K3s document is the canonical reference for:
+
+- the reconciler resource model
+- Argo CD ownership and verification
+- namespace-local secret mirroring and CronJob behavior
+
+This document stays intentionally thinner. It covers the `hair-booking` app
+contract, the legacy helper scripts, and the operator replay/rollback context.
 
 Use this app-side document when you need to:
 
@@ -51,11 +46,9 @@ The delivery smoke remains documented in
 
 ```text
 Vault secret kv/apps/hair-booking/prod/ses
-  -> VaultStaticSecret mirrors into keycloak namespace
-    -> Secret keycloak-hair-booking-smtp
-      -> CronJob keycloak-hair-booking-smtp-sync
-        -> update Keycloak realm hair-booking smtpServer
-          -> run verify-email and forgot-password smoke
+  -> K3s Keycloak SMTP reconciler
+    -> update Keycloak realm hair-booking smtpServer
+      -> run verify-email and forgot-password smoke
 ```
 
 ## Current State
@@ -74,12 +67,10 @@ What is already true today:
 
 What is now true on the K3s side:
 
-- the K3s Keycloak package defines the SMTP reconciler resources
-- the mirrored secret name is `keycloak-hair-booking-smtp`
-- the reconciler CronJob name is `keycloak-hair-booking-smtp-sync`
-- the reconciler state ConfigMap name is
-  `keycloak-hair-booking-smtp-sync-state`
+- the K3s Keycloak package defines the live SMTP reconciler
 - `approle/` still does not exist on `vault.yolo.scapegoat.dev`
+- the canonical K3s resource and Argo details are documented in the K3s repo,
+  not repeated here
 
 What is still true operationally:
 
@@ -160,19 +151,16 @@ Canonical operator mode for the legacy helper is still `vault`.
 `file` is a legacy fallback only. Keep it available for emergency recovery, not
 as the preferred steady-state workflow.
 
-## K3s Steady-State Boundary
+## Documentation Ownership
 
-The current steady-state responsibility split is:
+The ownership split is:
 
-- K3s GitOps repo owns the Kubernetes resources for the reconciler
-- Vault owns the SES secret values
-- the CronJob owns runtime reconciliation into Keycloak realm state
-- the app repo keeps the helper scripts and contract documentation
+- K3s repo: canonical reconciler pattern, resource model, and Argo verification
+- `hair-booking` repo: app-specific secret contract, helper scripts, and legacy
+  operator replay notes
 
-That means the app repo is no longer the canonical place where SMTP is pushed
-into the live K3s realm. It documents the secret contract and keeps the legacy
-operator tools available, but the normal live control loop is now in the K3s
-repo.
+That means this app repo is no longer the canonical place where the live K3s
+SMTP mechanism is explained. It is the companion doc for `hair-booking`.
 
 ## Recommended Legacy Operator Workflow
 
@@ -238,7 +226,6 @@ What is done in the app repo:
 - the hosted Vault-backed replay has been validated against the real
   `hair-booking-prod` AppRole
 - the same secret shape has been seeded into `vault.yolo.scapegoat.dev`
-- the K3s repo now defines the namespace-local SMTP reconciler resources
 - the same SMTP block has been applied to the K3s Keycloak `hair-booking` realm
 
 Current operator delivery path:
