@@ -1,6 +1,12 @@
 # hair-booking Coolify Deployment
 
-This document describes the hosted deployment shape for `hair-booking` on Coolify.
+This document describes the historical deployment shape for `hair-booking` on
+Coolify.
+
+As of 2026-03-31, this is no longer the canonical live deployment. The app is
+live on K3s at `https://hair-booking.yolo.scapegoat.dev` with Keycloak at
+`https://auth.yolo.scapegoat.dev`. Keep this document as rollback and migration
+reference only until the Coolify deployment is intentionally retired.
 
 It follows the same operational model as `smailnail`:
 
@@ -10,16 +16,27 @@ It follows the same operational model as `smailnail`:
 - use Keycloak for browser login
 - inject runtime configuration through environment variables
 
-## Current hosted instance
+## Current canonical deployment
 
-As of 2026-03-20, the live hosted app is configured at:
+As of 2026-03-31, the live deployment is:
+
+- Public app URL: `https://hair-booking.yolo.scapegoat.dev`
+- Keycloak issuer: `https://auth.yolo.scapegoat.dev/realms/hair-booking`
+- Keycloak client: `hair-booking-web`
+- Health check: `https://hair-booking.yolo.scapegoat.dev/healthz`
+- Platform: Hetzner K3s + Argo CD + Vault-backed secrets
+- Status of Coolify deployment: retained only as rollback boundary
+
+## Historical Coolify instance
+
+The old hosted app was configured at:
 
 - Public app URL: `https://hair-booking.app.scapegoat.dev`
 - Keycloak issuer: `https://auth.scapegoat.dev/realms/hair-booking`
 - Keycloak client: `hair-booking-web`
 - Hosted health check: `https://hair-booking.app.scapegoat.dev/healthz`
 
-## Target shape
+## Original target shape
 
 - Public app URL: `https://hair-booking.example.com`
 - Keycloak issuer: `https://auth.example.com/realms/hair-booking`

@@ -57,12 +57,15 @@ resolve_secret_file() {
 
 resolved_secret_file="$(resolve_secret_file)"
 
-source "$TERRAFORM_ROOT/.envrc"
+if [[ -z "${TF_VAR_keycloak_url:-}" || -z "${TF_VAR_keycloak_username:-}" || -z "${TF_VAR_keycloak_password:-}" || -z "${TF_VAR_keycloak_client_id:-}" ]]; then
+  source "$TERRAFORM_ROOT/.envrc"
+fi
+
 set -a
 source "$resolved_secret_file"
 set +a
 
-if [[ -z "${TF_VAR_keycloak_url:-}" || -z "${TF_VAR_keycloak_username:-}" || -z "${TF_VAR_keycloak_password:-}" ]]; then
+if [[ -z "${TF_VAR_keycloak_url:-}" || -z "${TF_VAR_keycloak_username:-}" || -z "${TF_VAR_keycloak_password:-}" || -z "${TF_VAR_keycloak_client_id:-}" ]]; then
   echo "Keycloak admin credentials are not available through $TERRAFORM_ROOT/.envrc" >&2
   exit 1
 fi
