@@ -32,6 +32,8 @@ Kubernetes-authenticated reconciler in the `keycloak` namespace:
 
 The K3s platform-side implementation details now live in
 [keycloak-vault-smtp-reconciler-pattern.md](/home/manuel/code/wesen/2026-03-27--hetzner-k3s/docs/keycloak-vault-smtp-reconciler-pattern.md).
+That K3s document is also the canonical reference for Argo CD verification of
+the reconciler resources after a sync.
 
 Use this app-side document when you need to:
 
