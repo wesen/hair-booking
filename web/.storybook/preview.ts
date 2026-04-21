@@ -1,6 +1,7 @@
 import type { Preview } from "@storybook/react";
 import "../src/stylist/styles/stylist.css";
 import "../src/stylist/styles/theme-default.css";
+import "../src/fringe-ui/tokens/index.css";
 
 const MOBILE_VIEWPORTS = {
   iPhoneSE: {

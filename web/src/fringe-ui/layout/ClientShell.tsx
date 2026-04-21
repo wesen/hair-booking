@@ -1,8 +1,4 @@
 import type { ReactNode, CSSProperties } from 'react';
-import { color } from '../../tokens';
-import { StatusBar }      from '../chrome/StatusBar';
-import { HomeIndicator }  from '../chrome/HomeIndicator';
-import { ClientTabBar }   from '../chrome/TabBar';
 
 interface ClientShellProps {
   children?: ReactNode;
@@ -11,40 +7,29 @@ interface ClientShellProps {
   style?: CSSProperties;
 }
 
-// Client portal shell — home / upcoming / history / account
-// Includes StatusBar at top, optional ClientTabBar at bottom
+// Content shell for the client portal.
+// No StatusBar / HomeIndicator — just the scrollable content with optional ClientTabBar.
 
 export function ClientShell({
   children,
-  activeTab = 'Home',
   onTabChange,
   style,
 }: ClientShellProps) {
   return (
     <div style={{
-      height: '100%',
-      background: color.paper,
-      position: 'relative',
-      overflow: 'hidden',
+      minHeight: '100vh',
+      background: 'var(--fringe-color-paper, #faf8f5)',
       display: 'flex',
       flexDirection: 'column',
       ...style,
     }}>
-      <StatusBar />
-
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        paddingBottom: 80, // space for tab bar
-      }}>
-        {children}
-      </div>
+      <div style={{ flex: 1 }}>{children}</div>
 
       {onTabChange && (
-        <ClientTabBar activeTab={activeTab} onTabChange={onTabChange} />
+        <div style={{
+          borderTop: '1px solid var(--fringe-color-rule, #e8e3da)',
+        }} />
       )}
-
-      <HomeIndicator />
     </div>
   );
 }

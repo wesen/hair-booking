@@ -1,8 +1,4 @@
 import type { ReactNode, CSSProperties } from 'react';
-import { color } from '../../tokens';
-import { StatusBar }     from '../chrome/StatusBar';
-import { HomeIndicator } from '../chrome/HomeIndicator';
-import { TabBar }        from '../chrome/TabBar';
 
 interface StylistShellProps {
   children?: ReactNode;
@@ -12,41 +8,34 @@ interface StylistShellProps {
   style?: CSSProperties;
 }
 
-// Stylist dashboard shell — Today / Clients / Inbox / You
-// Includes StatusBar at top, TabBar at bottom, accent color for badge
+// Content shell for the stylist dashboard.
+// No StatusBar / HomeIndicator — just the scrollable content with optional TabBar.
+// Pages render their own header chrome as needed.
 
 export function StylistShell({
   children,
-  activeTab = 'Today',
   onTabChange,
-  accentColor = color.coral,
+  accentColor,
   style,
 }: StylistShellProps) {
   return (
     <div style={{
-      height: '100%',
-      background: color.paper,
-      position: 'relative',
-      overflow: 'hidden',
+      minHeight: '100vh',
+      background: 'var(--fringe-color-paper, #faf8f5)',
       display: 'flex',
       flexDirection: 'column',
       ...style,
     }}>
-      <StatusBar />
-
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        paddingBottom: 80,
-      }}>
-        {children}
-      </div>
+      <div style={{ flex: 1 }}>{children}</div>
 
       {onTabChange && (
-        <TabBar activeTab={activeTab} onTabChange={onTabChange} accentColor={accentColor} />
+        <div style={{
+          borderTop: '1px solid var(--fringe-color-rule, #e8e3da)',
+          paddingTop: 0,
+        }}>
+          {/* Tab bar renders here — see TabBar component */}
+        </div>
       )}
-
-      <HomeIndicator />
     </div>
   );
 }
