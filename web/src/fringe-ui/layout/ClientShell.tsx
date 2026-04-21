@@ -1,4 +1,5 @@
 import type { ReactNode, CSSProperties } from 'react';
+import { ClientTabBar } from '../chrome/TabBar';
 
 interface ClientShellProps {
   children?: ReactNode;
@@ -8,17 +9,18 @@ interface ClientShellProps {
 }
 
 // Content shell for the client portal.
-// No StatusBar / HomeIndicator — just the scrollable content with optional ClientTabBar.
+// Renders ClientTabBar at the bottom if onTabChange is provided.
 
 export function ClientShell({
   children,
+  activeTab = 'Home',
   onTabChange,
   style,
 }: ClientShellProps) {
   return (
     <div style={{
       minHeight: '100vh',
-      background: 'var(--fringe-color-paper, #faf8f5)',
+      background: '#faf8f5',
       display: 'flex',
       flexDirection: 'column',
       ...style,
@@ -26,9 +28,10 @@ export function ClientShell({
       <div style={{ flex: 1 }}>{children}</div>
 
       {onTabChange && (
-        <div style={{
-          borderTop: '1px solid var(--fringe-color-rule, #e8e3da)',
-        }} />
+        <ClientTabBar
+          activeTab={activeTab}
+          onTabChange={onTabChange}
+        />
       )}
     </div>
   );

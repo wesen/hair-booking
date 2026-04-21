@@ -1,4 +1,4 @@
-import { color } from '../../tokens';
+import type { CSSProperties } from 'react';
 
 interface TabItem {
   key: string;
@@ -11,11 +11,12 @@ interface TabBarProps {
   activeTab: string;
   onTabChange: (key: string) => void;
   accentColor?: string;
+  style?: CSSProperties;
 }
 
 // iOS-style bottom tab bar. 4 tabs, icon + label, optional badge on one tab.
 
-export function TabBar({ activeTab, onTabChange, accentColor = color.coral }: TabBarProps) {
+export function TabBar({ activeTab, onTabChange, accentColor = "#e8573c", style }: TabBarProps) {
   const tabs: TabItem[] = [
     { key: 'Today',   label: 'TODAY',   icon: '▤' },
     { key: 'Clients', label: 'CLIENTS', icon: '◎' },
@@ -25,15 +26,12 @@ export function TabBar({ activeTab, onTabChange, accentColor = color.coral }: Ta
 
   return (
     <div style={{
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: 72,
-      background: color.paper,
-      borderTop: `1px solid ${color.rule}`,
       display: 'flex',
-      paddingBottom: 14,
+      padding: '16px 8px 24px',
+      borderTop: '1px solid #e8e3da',
+      background: '#faf8f5',
+      gap: 0,
+      ...style,
     }}>
       {tabs.map(tab => {
         const on = tab.key === activeTab;
@@ -54,8 +52,8 @@ export function TabBar({ activeTab, onTabChange, accentColor = color.coral }: Ta
           >
             <div style={{
               fontFamily: '"Anton", Impact, sans-serif',
-              fontSize: 16,
-              color: on ? color.ink : color.soft,
+              fontSize: 18,
+              color: on ? '#111111' : '#9a958e',
             }}>
               {tab.icon}
             </div>
@@ -63,20 +61,20 @@ export function TabBar({ activeTab, onTabChange, accentColor = color.coral }: Ta
               fontFamily: '"JetBrains Mono", monospace',
               fontSize: 9,
               letterSpacing: 1.2,
-              color: on ? color.ink : color.soft,
+              color: on ? '#111111' : '#9a958e',
             }}>
               {tab.label}
             </div>
             {tab.badge != null && (
               <div style={{
                 position: 'absolute',
-                top: 10,
-                right: 'calc(50% - 18px)',
+                top: -4,
+                right: 'calc(50% - 16px)',
                 width: 16,
                 height: 16,
                 borderRadius: 999,
                 background: accentColor,
-                color: color.paper,
+                color: '#faf8f5',
                 fontFamily: '"JetBrains Mono", monospace',
                 fontSize: 9,
                 fontWeight: 600,
@@ -94,7 +92,7 @@ export function TabBar({ activeTab, onTabChange, accentColor = color.coral }: Ta
   );
 }
 
-// Client portal tab bar variant (different tabs)
+// Client portal tab bar variant
 export function ClientTabBar({ activeTab, onTabChange }: Omit<TabBarProps, 'accentColor'>) {
   const tabs = [
     { key: 'Home',    label: 'HOME',    icon: '▤' },
@@ -105,15 +103,10 @@ export function ClientTabBar({ activeTab, onTabChange }: Omit<TabBarProps, 'acce
 
   return (
     <div style={{
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      right: 0,
-      height: 72,
-      background: color.paper,
-      borderTop: `1px solid ${color.rule}`,
       display: 'flex',
-      paddingBottom: 14,
+      padding: '16px 8px 24px',
+      borderTop: '1px solid #e8e3da',
+      background: '#faf8f5',
     }}>
       {tabs.map(tab => {
         const on = tab.key === activeTab;
@@ -133,8 +126,8 @@ export function ClientTabBar({ activeTab, onTabChange }: Omit<TabBarProps, 'acce
           >
             <div style={{
               fontFamily: '"Anton", Impact, sans-serif',
-              fontSize: 16,
-              color: on ? color.ink : color.soft,
+              fontSize: 18,
+              color: on ? '#111111' : '#9a958e',
             }}>
               {tab.icon}
             </div>
@@ -142,7 +135,7 @@ export function ClientTabBar({ activeTab, onTabChange }: Omit<TabBarProps, 'acce
               fontFamily: '"JetBrains Mono", monospace',
               fontSize: 9,
               letterSpacing: 1.2,
-              color: on ? color.ink : color.soft,
+              color: on ? '#111111' : '#9a958e',
             }}>
               {tab.label}
             </div>

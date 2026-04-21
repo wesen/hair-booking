@@ -1,3 +1,14 @@
+// src/main.tsx — Fringe hair booking app entry point
+import "./stylist/styles/stylist.css";
+import "./stylist/styles/theme-default.css";
+
+// Start MSW mock worker before React renders (dev + Storybook)
+async function startMocking() {
+  const { worker } = await import("./mock/browser");
+  await worker.start({ onUnhandledRequest: "bypass", quiet: true });
+}
+void startMocking();
+
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import { Provider } from "react-redux";
@@ -5,8 +16,6 @@ import { runtimeStore } from "./stylist/store";
 import { ClientBookingApp } from "./stylist/ClientBookingApp";
 import { ClientPortalApp } from "./stylist/ClientPortalApp";
 import { StylistRuntimeApp } from "./stylist/StylistRuntimeApp";
-import "./stylist/styles/stylist.css";
-import "./stylist/styles/theme-default.css";
 
 type RuntimeApp = "booking" | "portal" | "stylist";
 
@@ -24,50 +33,18 @@ function trimTrailingSlash(pathname: string): string {
 
 function resolveApp(): ResolvedRuntime {
   const pathname = trimTrailingSlash(window.location.pathname);
-  const params = new URLSearchParams(window.location.search);
-  const app = params.get("app");
+  const app = new URLSearchParams(window.location.search).get("app") as RuntimeApp | null;
 
-  if (app === "booking") {
-    return {
-      app: "booking",
-      canonicalPath: "/booking",
-    };
-  }
-
-  if (app === "portal") {
-    return {
-      app: "portal",
-      canonicalPath: "/portal",
-    };
-  }
-
-  if (pathname === "" || pathname === "/") {
-    return {
-      app: "booking",
-      canonicalPath: "/booking",
-    };
-  }
-
-  if (pathname === "/booking" || pathname.startsWith("/booking/")) {
-    return { app: "booking" };
-  }
-
-  if (pathname === "/portal" || pathname.startsWith("/portal/")) {
-    return { app: "portal" };
-  }
-
-  if (pathname === "/stylist" || pathname.startsWith("/stylist/")) {
-    return { app: "stylist" };
-  }
-
-  return {
-    app: "booking",
-    canonicalPath: "/booking",
-  };
+  if (app === "booking") return { app: "booking", canonicalPath: "/booking" };
+  if (app === "portal")  return { app: "portal",  canonicalPath: "/portal" };
+  if (pathname === "" || pathname === "/") return { app: "booking", canonicalPath: "/booking" };
+  if (pathname === "/booking" || pathname.startsWith("/booking/")) return { app: "booking" };
+  if (pathname === "/portal"  || pathname.startsWith("/portal/"))  return { app: "portal" };
+  if (pathname === "/stylist" || pathname.startsWith("/stylist/")) return { app: "stylist" };
+  return { app: "booking", canonicalPath: "/booking" };
 }
 
 const resolvedApp = resolveApp();
-
 if (resolvedApp.canonicalPath) {
   window.history.replaceState({}, "", resolvedApp.canonicalPath);
 }
@@ -75,8 +52,8 @@ if (resolvedApp.canonicalPath) {
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
     <Provider store={runtimeStore}>
-      {resolvedApp.app === "portal" ? <ClientPortalApp showNonMvpFeatures={false} /> : null}
-      {resolvedApp.app === "booking" ? <ClientBookingApp showDepositOption={false} /> : null}
+      {resolvedApp.app === "portal"  ? <ClientPortalApp showNonMvpFeatures={false} /> : null}
+      {resolvedApp.app === "booking" ? <ClientBookingApp showDepositOption={false} />  : null}
       {resolvedApp.app === "stylist" ? <StylistRuntimeApp /> : null}
     </Provider>
   </StrictMode>,

@@ -1,13 +1,19 @@
+// .storybook/preview.ts — MSW browser worker + global imports
 import type { Preview } from "@storybook/react";
 import "../src/stylist/styles/stylist.css";
 import "../src/stylist/styles/theme-default.css";
 import "../src/fringe-ui/tokens/index.css";
 
+// Start MSW mock worker before any stories render
+// This sets up interception for all API calls in stories
+async function prepareStorybook() {
+  const { worker } = await import("../src/mock/browser");
+  await worker.start({ onUnhandledRequest: "bypass", quiet: true });
+}
+
+prepareStorybook();
+
 const MOBILE_VIEWPORTS = {
-  iPhoneSE: {
-    name: "iPhone SE",
-    styles: { width: "375px", height: "667px" },
-  },
   iPhone14: {
     name: "iPhone 14",
     styles: { width: "390px", height: "844px" },
@@ -16,33 +22,24 @@ const MOBILE_VIEWPORTS = {
     name: "iPhone 14 Pro Max",
     styles: { width: "430px", height: "932px" },
   },
-  pixel7: {
-    name: "Pixel 7",
-    styles: { width: "412px", height: "915px" },
-  },
-  samsungGalaxyS23: {
-    name: "Samsung Galaxy S23",
-    styles: { width: "360px", height: "780px" },
-  },
   iPadMini: {
     name: "iPad Mini",
     styles: { width: "768px", height: "1024px" },
-  },
-  narrow: {
-    name: "Narrow (320px)",
-    styles: { width: "320px", height: "568px" },
   },
 };
 
 const preview: Preview = {
   parameters: {
-    layout: "centered",
+    layout: "fullscreen",
     backgrounds: {
       default: "salon",
       values: [
-        { name: "salon", value: "#faf7f5" },
-        { name: "dark", value: "#1a1412" },
-        { name: "white", value: "#ffffff" },
+        { name: "salon",  value: "#faf7f5" },
+        { name: "dark",   value: "#1a1412" },
+        { name: "paper",  value: "#faf8f5" },
+        { name: "white",  value: "#ffffff" },
+        { name: "peach",  value: "#f2b89a" },
+        { name: "butter", value: "#f7efd0" },
       ],
     },
     viewport: {
