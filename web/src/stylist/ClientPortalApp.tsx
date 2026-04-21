@@ -3,13 +3,10 @@
 
 import { useAppSelector, useAppDispatch } from "./store";
 import { setPortalTab, goToProfile } from "./store/portalSlice";
-import { PortalTopBar } from "./components/PortalTopBar";
-import { PortalTabBar } from "./components/PortalTabBar";
 import { SignInPage } from "./pages/SignInPage";
 import { useSessionBootstrap } from "./store/api";
 import { getInitials } from "./utils/avatar";
 import { LandingPage, HistoryPage } from "../fringe/pages/client-portal";
-import type { PortalTab } from "./types";
 import { color } from "../fringe-ui/tokens";
 
 interface ClientPortalAppProps {
@@ -92,8 +89,31 @@ export function ClientPortalApp({ showNonMvpFeatures = true }: ClientPortalAppPr
 
   return (
     <div data-widget="stylist" data-part="root" style={{ background: color.paper, minHeight: "100vh" }}>
+      {/* Profile header for non-profile screens */}
       {screen !== "profile" && (
-        <PortalTopBar initials={initials} onAvatarClick={() => dispatch(goToProfile())} />
+        <div style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          padding: "14px 22px",
+          borderBottom: `1px solid ${color.rule}`,
+        }}>
+          <div style={{ fontFamily: "var(--font-block)", fontSize: 15, letterSpacing: 4, textTransform: "uppercase" }}>
+            Fringe
+          </div>
+          <div
+            onClick={() => dispatch(goToProfile())}
+            style={{
+              width: 32, height: 32, borderRadius: 999,
+              background: color.peach, display: "flex",
+              alignItems: "center", justifyContent: "center",
+              fontFamily: "var(--font-block)", fontSize: 13, color: color.plum,
+              cursor: "pointer",
+            }}
+          >
+            {initials}
+          </div>
+        </div>
       )}
 
       {screen === "home" && (
@@ -107,7 +127,7 @@ export function ClientPortalApp({ showNonMvpFeatures = true }: ClientPortalAppPr
             date: "3 months ago",
           }}
           activeTab={activeTab}
-          onTabChange={(tab) => dispatch(setPortalTab(tab as PortalTab))}
+          onTabChange={(tab) => dispatch(setPortalTab(tab as "home" | "appointments" | "photos" | "rewards"))}
           onViewUpcoming={() => dispatch(setPortalTab("appointments"))}
           onReschedule={() => {}}
           onBookAgain={() => dispatch(setPortalTab("appointments"))}
@@ -119,19 +139,13 @@ export function ClientPortalApp({ showNonMvpFeatures = true }: ClientPortalAppPr
         <HistoryPage
           appointments={[]}
           activeTab={activeTab}
-          onTabChange={(tab) => dispatch(setPortalTab(tab as PortalTab))}
+          onTabChange={(tab) => dispatch(setPortalTab(tab as "home" | "appointments" | "photos" | "rewards"))}
           onRebook={(id: string) => console.log("Rebook:", id)}
         />
       )}
 
-      {screen !== "profile" && (
-        <PortalTabBar
-          activeTab={activeTab}
-          showPhotos={showNonMvpFeatures}
-          showRewards={showNonMvpFeatures}
-          onTabChange={(tab) => dispatch(setPortalTab(tab as PortalTab))}
-        />
-      )}
+      {/* Note: Fringe pages (LandingPage, HistoryPage) render their own ClientShell
+          + ClientTabBar. No duplicate tab bar needed here. */}
     </div>
   );
 }

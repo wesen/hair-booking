@@ -14,8 +14,7 @@ interface TabBarProps {
   style?: CSSProperties;
 }
 
-// iOS-style bottom tab bar. 4 tabs, icon + label, optional badge on one tab.
-
+// Stylist bottom tab bar. 4 tabs, icon + label, optional badge.
 export function TabBar({ activeTab, onTabChange, accentColor = "#e8573c", style }: TabBarProps) {
   const tabs: TabItem[] = [
     { key: 'Today',   label: 'TODAY',   icon: '▤' },
@@ -30,7 +29,6 @@ export function TabBar({ activeTab, onTabChange, accentColor = "#e8573c", style 
       padding: '16px 8px 24px',
       borderTop: '1px solid #e8e3da',
       background: '#faf8f5',
-      gap: 0,
       ...style,
     }}>
       {tabs.map(tab => {
@@ -92,13 +90,14 @@ export function TabBar({ activeTab, onTabChange, accentColor = "#e8573c", style 
   );
 }
 
-// Client portal tab bar variant
-export function ClientTabBar({ activeTab, onTabChange }: Omit<TabBarProps, 'accentColor'>) {
-  const tabs = [
-    { key: 'Home',    label: 'HOME',    icon: '▤' },
-    { key: 'Book',    label: 'BOOK',    icon: '＋' },
-    { key: 'History', label: 'HISTORY', icon: '◷' },
-    { key: 'Account', label: 'ACCOUNT', icon: '◉' },
+// Client portal tab bar — keys match portalSlice PortalTab type:
+// "home" | "appointments" | "photos" | "rewards"
+export function ClientTabBar({ activeTab, onTabChange, style }: Omit<TabBarProps, 'accentColor'>) {
+  const tabs: TabItem[] = [
+    { key: 'home',        label: 'HOME',   icon: '▤' },
+    { key: 'appointments', label: 'BOOK',   icon: '＋' },
+    { key: 'photos',      label: 'PHOTOS', icon: '◷' },
+    { key: 'rewards',     label: 'POINTS', icon: '◉' },
   ];
 
   return (
@@ -107,6 +106,7 @@ export function ClientTabBar({ activeTab, onTabChange }: Omit<TabBarProps, 'acce
       padding: '16px 8px 24px',
       borderTop: '1px solid #e8e3da',
       background: '#faf8f5',
+      ...style,
     }}>
       {tabs.map(tab => {
         const on = tab.key === activeTab;
