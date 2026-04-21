@@ -3,8 +3,8 @@
 // API: servicesApi.createIntake() — update with { budget }
 
 import { useState } from "react";
-import { color, font } from "../../fringe-ui/tokens";
-import { IntakeShell } from "../../fringe-ui/layout/IntakeShell";
+import { color, font } from "../../../fringe-ui/tokens";
+import { IntakeShell } from "../../../fringe-ui/layout/IntakeShell";
 
 const TIERS = [
   { key: "under150", label: "Under $150",    description: "Cut or single-service touch-up" },

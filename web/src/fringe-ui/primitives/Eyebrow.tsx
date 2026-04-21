@@ -1,8 +1,8 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { color, font } from '../../tokens';
 
 interface EyebrowProps {
-  children?: string;
+  children?: ReactNode;
   color?: string;
   style?: CSSProperties;
 }

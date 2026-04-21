@@ -1,9 +1,9 @@
-import type { CSSProperties } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { color } from '../../tokens';
 
 interface NoteProps {
   tone?: 'info' | 'success' | 'warn' | 'danger';
-  children?: string;
+  children?: ReactNode;
   style?: CSSProperties;
 }
 

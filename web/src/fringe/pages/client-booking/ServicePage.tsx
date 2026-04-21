@@ -4,10 +4,10 @@
 // API: no write yet — first API call happens on the color/extensions step
 
 import { useState } from "react";
-import { color, font } from "../../fringe-ui/tokens";
-import { IntakeShell } from "../../fringe-ui/layout/IntakeShell";
-import { Eyebrow } from "../../fringe-ui/primitives/Eyebrow";
-import type { ConsultationServiceType, ConsultationScreen } from "../../stylist/types";
+import { color, font } from "../../../fringe-ui/tokens";
+import { IntakeShell } from "../../../fringe-ui/layout/IntakeShell";
+import { Eyebrow } from "../../../fringe-ui/primitives/Eyebrow";
+import type { ConsultationServiceType, ConsultationScreen } from "../../../stylist/types";
 
 const SERVICES = [
   { key: "Cut" as const,        description: "Trim · restyle · bangs",                   rate: "$80+"  },

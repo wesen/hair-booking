@@ -2,12 +2,12 @@
 // Replaces: ConsultConfirmPage
 // API: bookingApi.getAppointment() — read confirmation details
 
-import { color, font } from "../../fringe-ui/tokens";
-import { IntakeShell } from "../../fringe-ui/layout/IntakeShell";
-import { Masthead } from "../../fringe-ui/salon-widgets/Masthead";
-import { SummaryRow } from "../../fringe-ui/salon-widgets/SummaryRow";
-import { Note } from "../../fringe-ui/primitives/Note";
-import { Button } from "../../fringe-ui/primitives/Button";
+import { color, font } from "../../../fringe-ui/tokens";
+import { IntakeShell } from "../../../fringe-ui/layout/IntakeShell";
+import { Masthead } from "../../../fringe-ui/salon-widgets/Masthead";
+import { SummaryRow } from "../../../fringe-ui/salon-widgets/SummaryRow";
+import { Note } from "../../../fringe-ui/primitives/Note";
+import { Button } from "../../../fringe-ui/primitives/Button";
 
 interface ConfirmPageProps {
   confirmationNumber: string;

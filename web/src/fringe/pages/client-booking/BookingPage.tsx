@@ -1,17 +1,17 @@
 // Fringe intake — Booking page (step 8 of 9)
 // Replaces: ConsultCalendarPage
-// API: servicesApi.getAvailability() → { availability: { "YYYY-MM-DD": ["10:30", "12:00", ...] } }
+// API: bookingApi.getAvailability() → { "YYYY-MM": ["10:30", "12:00", ...] }
 //      bookingApi.createAppointment() → POST /api/appointments
 
 import { useState } from "react";
-import { color, font } from "../../fringe-ui/tokens";
-import { IntakeShell } from "../../fringe-ui/layout/IntakeShell";
-import { StylistCard } from "../../fringe-ui/salon-widgets/StylistCard";
-import { DayCell } from "../../fringe-ui/salon-widgets/DayCell";
-import { Eyebrow } from "../../fringe-ui/primitives/Eyebrow";
-import { useGetAvailabilityQuery } from "../../stylist/store/api/servicesApi";
-import { useCreateAppointmentMutation } from "../../stylist/store/api/bookingApi";
-import type { CreateAppointmentRequestDto } from "../../stylist/store/api/types";
+import { color, font } from "../../../fringe-ui/tokens";
+import { IntakeShell } from "../../../fringe-ui/layout/IntakeShell";
+import { StylistCard } from "../../../fringe-ui/salon-widgets/StylistCard";
+import { DayCell } from "../../../fringe-ui/salon-widgets/DayCell";
+import { Eyebrow } from "../../../fringe-ui/primitives/Eyebrow";
+import { useGetAvailabilityQuery } from "../../../stylist/store/api/bookingApi";
+import { useCreateAppointmentMutation } from "../../../stylist/store/api/bookingApi";
+import type { CreateAppointmentRequestDto } from "../../../stylist/store/api/types";
 
 const MONTH_DAYS = Array.from({ length: 35 }, (_, i) => i + 1);
 const DOT_DAYS = [14, 17, 19, 23, 24, 26, 30];
@@ -25,24 +25,27 @@ interface BookingPageProps {
   onBack: () => void;
 }
 
-export function BookingPage({ serviceId, stylist, onNext, onBack }: BookingPageProps) {
-  const [selectedDay, setSelectedDay] = useState<number | null>(18);
+export function BookingPage({ intakeId, serviceId, stylist, onNext, onBack }: BookingPageProps) {
+  const [selectedDay, setSelectedDay] = useState<string | null>("18");
   const [selectedTime, setSelectedTime] = useState<string | null>("2:00p");
-  const { data: availability } = useGetAvailabilityQuery("2026-06-01");
+  const { data: availability } = useGetAvailabilityQuery(
+    { month: "2026-06", serviceId },
+    { skip: !serviceId }
+  );
   const [createAppointment, { isLoading }] = useCreateAppointmentMutation();
 
   const handleSubmit = async () => {
     if (!selectedDay || !selectedTime) return;
     const payload: CreateAppointmentRequestDto = {
       service_id: serviceId,
-      date: `2026-06-${String(selectedDay).padStart(2, "0")}`,
+      date: `2026-06-${selectedDay.padStart(2, "0")}`,
       start_time: selectedTime.replace("a", ":00").replace("p", ":00"),
       client_name: "Client",
     };
     try {
       await createAppointment(payload).unwrap();
     } catch {
-      // non-blocking — still advance
+      // non-blocking - still advance
     }
     onNext();
   };
@@ -89,11 +92,11 @@ export function BookingPage({ serviceId, stylist, onNext, onBack }: BookingPageP
         {MONTH_DAYS.map((d) => (
           <DayCell
             key={d}
-            day={d}
-            selected={d === selectedDay}
+            day={String(d)}
+            selected={String(d) === selectedDay}
             disabled={d < 12}
             dot={DOT_DAYS.includes(d)}
-            onClick={() => setSelectedDay(d)}
+            onClick={() => setSelectedDay(String(d))}
           />
         ))}
       </div>

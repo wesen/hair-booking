@@ -10,12 +10,12 @@ const meta: Meta<typeof DayCell> = {
 export default meta;
 type Story = StoryObj<typeof DayCell>;
 
-export const Default: Story  = { args: { day: 18 } };
-export const Selected: Story = { args: { day: 18, selected: true } };
-export const Disabled: Story = { args: { day: 8,  disabled: true } };
-export const WithDot: Story  = { args: { day: 14, dot: true } };
-export const SelectedWithDot: Story = { args: { day: 18, selected: true, dot: true } };
-export const DisabledSelected: Story = { args: { day: 18, selected: true, disabled: true } };
+export const Default: Story  = { args: { day: '18' } };
+export const Selected: Story = { args: { day: '18', selected: true } };
+export const Disabled: Story = { args: { day: '8', disabled: true } };
+export const WithDot: Story  = { args: { day: '14', dot: true } };
+export const SelectedWithDot: Story = { args: { day: '18', selected: true, dot: true } };
+export const DisabledSelected: Story = { args: { day: '18', selected: true, disabled: true } };
 
 export const CalendarGrid: Story = {
   name: "Calendar grid (7-column)",
@@ -30,7 +30,7 @@ export const CalendarGrid: Story = {
           <div key={`gap-${i}`} />
         ))}
         {days.slice(0, 28).map((d) => (
-          <DayCell key={d} day={d} selected={d === 18} disabled={d < 12} dot={[14, 17, 18, 19, 23].includes(d)} />
+          <DayCell key={d} day={String(d)} selected={d === 18} disabled={d < 12} dot={[14, 17, 18, 19, 23].includes(d)} />
         ))}
       </div>
     );
@@ -74,7 +74,7 @@ export const DesktopCalendar: Story = {
 };
 
 export const Unstyled: Story = {
-  args: { day: 18 },
+  args: { day: '18' },
   decorators: [
     () => (
       <div style={{ fontFamily: "monospace", fontSize: 12, color: "#888" }}>

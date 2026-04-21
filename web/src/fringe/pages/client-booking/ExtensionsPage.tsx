@@ -3,12 +3,12 @@
 // API: servicesApi.createIntake() — POST with { service_type, hair_length, ext_type, desired_length }
 
 import { useState } from "react";
-import { color, font } from "../../fringe-ui/tokens";
-import { IntakeShell } from "../../fringe-ui/layout/IntakeShell";
-import { Segmented } from "../../fringe-ui/primitives/Segmented";
-import { Eyebrow } from "../../fringe-ui/primitives/Eyebrow";
-import { useCreateIntakeMutation } from "../../stylist/store/api/servicesApi";
-import type { IntakeCreateRequestDto } from "../../stylist/store/api/types";
+import { color, font } from "../../../fringe-ui/tokens";
+import { IntakeShell } from "../../../fringe-ui/layout/IntakeShell";
+import { Segmented } from "../../../fringe-ui/primitives/Segmented";
+import { Eyebrow } from "../../../fringe-ui/primitives/Eyebrow";
+import { useCreateIntakeMutation } from "../../../stylist/store/api/bookingApi";
+import type { IntakeCreateRequestDto } from "../../../stylist/store/api/types";
 
 const LENGTHS = [
   { label: "Pixie",     h: 30 },

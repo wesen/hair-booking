@@ -1,0 +1,286 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Fringe — Design System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Anton&family=Oswald:wght@400;600&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  html, body { margin: 0; padding: 0; font-family: 'Inter', system-ui, sans-serif; background: #f6efe4; color: #111; }
+  * { box-sizing: border-box; }
+  .ds-grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); }
+  .ds-card { background: #fff; padding: 20px; border: 1px solid #ebe7df; }
+  .ds-section { padding: 48px 0; border-top: 1px solid #ebe7df; }
+  .ds-container { max-width: 1280px; margin: 0 auto; padding: 0 48px; }
+  .ds-label { font-family: 'JetBrains Mono', monospace; font-size: 10px; letter-spacing: 1.8px; text-transform: uppercase; color: #6b3a4a; font-weight: 600; }
+  .ds-token { display: flex; justify-content: space-between; font-family: 'JetBrains Mono', monospace; font-size: 11px; color: #5b5852; padding: 4px 0; border-bottom: 1px dashed #ebe7df; }
+</style>
+</head>
+<body>
+
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="design-system.jsx"></script>
+
+<script type="text/babel">
+  const { color, font, type, space, radius, shadow } = FS;
+
+  const Section = ({ title, id, sub, children }) => (
+    <section className="ds-section" id={id}>
+      <div className="ds-container">
+        <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 32, gap: 16, flexWrap: 'wrap' }}>
+          <div>
+            <div className="ds-label">{id}</div>
+            <div style={{ ...type.display3, fontSize: 48, marginTop: 6 }}>{title}</div>
+          </div>
+          {sub && <div style={{ ...type.editorial, color: color.softInk, maxWidth: 440 }}>{sub}</div>}
+        </div>
+        {children}
+      </div>
+    </section>
+  );
+
+  const Swatch = ({ name, val, dark }) => (
+    <div style={{ background: val, padding: '32px 14px 14px', color: dark ? color.paper : color.ink, minHeight: 120, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', border: `1px solid ${color.rule}` }}>
+      <div style={{ ...type.h3, fontSize: 14 }}>{name}</div>
+      <div style={{ ...type.meta, fontSize: 10, opacity: 0.75 }}>{val}</div>
+    </div>
+  );
+
+  const TypeRow = ({ name, style }) => (
+    <div style={{ padding: '20px 0', borderTop: `1px solid ${color.rule}` }}>
+      <div className="ds-label" style={{ marginBottom: 10 }}>{name}</div>
+      <div style={style}>Fringe salon — one part cut, two parts care.</div>
+    </div>
+  );
+
+  function App() {
+    const [chips, setChips] = React.useState(['Healthy', 'Frizzy']);
+    const toggle = c => setChips(chips.includes(c) ? chips.filter(x => x !== c) : [...chips, c]);
+    const [seg, setSeg] = React.useState('color');
+
+    return (
+      <div>
+        {/* Hero */}
+        <header style={{ background: color.peach, padding: '80px 48px 64px' }}>
+          <div className="ds-container" style={{ padding: 0 }}>
+            <div className="ds-label" style={{ color: color.plum, marginBottom: 20 }}>Fringe · Design System · v1.0</div>
+            <div style={{ ...type.display1, fontSize: 'clamp(72px, 12vw, 160px)', color: color.plum }}>
+              The<br/><span style={{ color: color.ink }}>handbook.</span>
+            </div>
+            <div style={{ ...type.editorial, fontSize: 20, color: color.plum, marginTop: 24, maxWidth: 560 }}>
+              Tokens, type, color and components for the Fringe salon experience. Plum + peach at its core, with an editorial-zine accent.
+            </div>
+          </div>
+        </header>
+
+        {/* Type */}
+        <Section id="01" title="Typography" sub="Anton for display, Instrument Serif for italic editorial pull-quotes, Inter for body, JetBrains Mono for eyebrows and meta.">
+          <TypeRow name="display1 · Anton 120" style={{ ...type.display1, fontSize: 88 }}/>
+          <TypeRow name="display2 · Anton 72" style={type.display2}/>
+          <TypeRow name="display3 · Anton 54" style={type.display3}/>
+          <TypeRow name="h1 · Anton 36" style={type.h1}/>
+          <TypeRow name="h2 · Anton 26" style={type.h2}/>
+          <TypeRow name="editorialLg · Instrument italic 28" style={type.editorialLg}/>
+          <TypeRow name="editorial · Instrument italic 19" style={type.editorial}/>
+          <TypeRow name="body · Inter 14" style={type.body}/>
+          <TypeRow name="bodyLg · Inter 16" style={type.bodyLg}/>
+          <TypeRow name="eyebrow · Mono 10" style={type.eyebrow}/>
+        </Section>
+
+        {/* Color */}
+        <Section id="02" title="Color" sub="Plum and peach are the brand core. Ink and paper set the stage. Warm accents — coral, butter, ochre, sage, blush — add editorial range without breaking the mood.">
+          <div className="ds-label" style={{ marginBottom: 12 }}>Core</div>
+          <div className="ds-grid" style={{ marginBottom: 32 }}>
+            <Swatch name="ink" val={color.ink} dark/>
+            <Swatch name="paper" val={color.paper}/>
+            <Swatch name="cream" val={color.cream}/>
+            <Swatch name="creamDeep" val={color.creamDeep}/>
+            <Swatch name="rule" val={color.rule}/>
+          </div>
+          <div className="ds-label" style={{ marginBottom: 12 }}>Brand</div>
+          <div className="ds-grid" style={{ marginBottom: 32 }}>
+            <Swatch name="plum" val={color.plum} dark/>
+            <Swatch name="plumDeep" val={color.plumDeep} dark/>
+            <Swatch name="peach" val={color.peach}/>
+            <Swatch name="peachSoft" val={color.peachSoft}/>
+          </div>
+          <div className="ds-label" style={{ marginBottom: 12 }}>Accents</div>
+          <div className="ds-grid">
+            <Swatch name="coral" val={color.coral} dark/>
+            <Swatch name="butter" val={color.butter}/>
+            <Swatch name="ochre" val={color.ochre} dark/>
+            <Swatch name="sage" val={color.sage} dark/>
+            <Swatch name="blush" val={color.blush}/>
+          </div>
+        </Section>
+
+        {/* Spacing & radius */}
+        <Section id="03" title="Spacing · Radius · Shadow">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 32 }}>
+            <div>
+              <div className="ds-label" style={{ marginBottom: 12 }}>Spacing scale</div>
+              {Object.entries(space).map(([k, v]) => (
+                <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '4px 0' }}>
+                  <div style={{ width: 40, fontFamily: font.mono, fontSize: 11, color: color.soft }}>{k} · {v}</div>
+                  <div style={{ height: 8, width: v || 1, background: color.plum }}/>
+                </div>
+              ))}
+            </div>
+            <div>
+              <div className="ds-label" style={{ marginBottom: 12 }}>Radius</div>
+              {Object.entries(radius).map(([k, v]) => (
+                <div key={k} style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '8px 0' }}>
+                  <div style={{ width: 44, height: 44, background: color.peach, borderRadius: v }}/>
+                  <div style={{ fontFamily: font.mono, fontSize: 11 }}>{k} · {v}</div>
+                </div>
+              ))}
+            </div>
+            <div>
+              <div className="ds-label" style={{ marginBottom: 12 }}>Shadow</div>
+              {Object.entries(shadow).map(([k, v]) => (
+                <div key={k} style={{ padding: 14, background: color.paper, boxShadow: v, marginBottom: 20, fontFamily: font.mono, fontSize: 11 }}>shadow.{k}</div>
+              ))}
+            </div>
+          </div>
+        </Section>
+
+        {/* Buttons */}
+        <Section id="04" title="Buttons">
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
+            <FS.Button variant="primary" size="lg">Book now →</FS.Button>
+            <FS.Button variant="primary">Keep going</FS.Button>
+            <FS.Button variant="primary" size="sm">Save</FS.Button>
+          </div>
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 20 }}>
+            <FS.Button variant="secondary">Skip</FS.Button>
+            <FS.Button variant="secondary" size="sm">Edit</FS.Button>
+            <FS.Button variant="ghost">Cancel</FS.Button>
+            <FS.Button variant="danger">Delete</FS.Button>
+          </div>
+        </Section>
+
+        {/* Chips */}
+        <Section id="05" title="Chips · Filters">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 20 }}>
+            {['Healthy','Dry','Damaged','Brittle','Oily','Frizzy','Fine','Thick','Color-treated'].map(c => (
+              <FS.Chip key={c} selected={chips.includes(c)} onClick={() => toggle(c)}>{c}</FS.Chip>
+            ))}
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {['Short','Medium','Long','Extra long'].map(c => (
+              <FS.Chip key={c} shape="square">{c}</FS.Chip>
+            ))}
+          </div>
+        </Section>
+
+        {/* Inputs */}
+        <Section id="06" title="Inputs">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24, maxWidth: 720 }}>
+            <FS.TextField label="First name" placeholder="Enter your name"/>
+            <FS.TextField label="Email" value="you@fringe.salon"/>
+            <div style={{ gridColumn: '1 / -1' }}>
+              <FS.TextField label="Anything else" multiline value="Usually wash twice a week. Ends feel crunchy in winter."/>
+            </div>
+          </div>
+          <div style={{ marginTop: 32, maxWidth: 520 }}>
+            <div className="ds-label" style={{ marginBottom: 10 }}>Segmented</div>
+            <FS.Segmented value={seg} onChange={setSeg} options={[{value:'service',label:'Service'},{value:'color',label:'Color'},{value:'extensions',label:'Extensions'}]}/>
+          </div>
+          <div style={{ marginTop: 32, maxWidth: 520 }}>
+            <div className="ds-label" style={{ marginBottom: 10 }}>Progress</div>
+            <FS.Progress value={83}/>
+          </div>
+        </Section>
+
+        {/* Rating + cards */}
+        <Section id="07" title="Rating bars">
+          <div style={{ maxWidth: 520 }}>
+            <FS.RatingBar label="Breakage" value={2}/>
+            <FS.RatingBar label="Split ends" value={3}/>
+            <FS.RatingBar label="Dryness" value={1}/>
+            <FS.RatingBar label="Frizz" value={4}/>
+            <FS.RatingBar label="Shine" value={5}/>
+          </div>
+        </Section>
+
+        {/* Complex components */}
+        <Section id="08" title="Salon widgets" sub="Intake-specific patterns built from the primitives above.">
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 32 }}>
+            <div>
+              <div className="ds-label" style={{ marginBottom: 12 }}>Stylist card</div>
+              <FS.StylistCard name="Nadia Rivera" role="Senior colorist · Lived-in blonde" rate="$180+" available="Tomorrow 2p"/>
+              <div style={{ height: 10 }}/>
+              <FS.StylistCard name="Theo Park" role="Cutter · Shag specialist" rate="$120+" available="Next Tue"/>
+            </div>
+            <div>
+              <div className="ds-label" style={{ marginBottom: 12 }}>Photo tiles</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                <FS.PhotoTile label="Front" filled/>
+                <FS.PhotoTile label="Side" filled/>
+                <FS.PhotoTile label="Back"/>
+              </div>
+            </div>
+            <div>
+              <div className="ds-label" style={{ marginBottom: 12 }}>Summary rows</div>
+              <FS.SummaryRow label="Service" value="Partial highlights + cut" onEdit={() => {}}/>
+              <FS.SummaryRow label="Color level" value="Level 7 — dark blonde" onEdit={() => {}}/>
+              <FS.SummaryRow label="Budget" value="$220 – $280" onEdit={() => {}}/>
+            </div>
+            <div>
+              <div className="ds-label" style={{ marginBottom: 12 }}>Calendar cells</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4, maxWidth: 300 }}>
+                {Array.from({ length: 21 }).map((_, i) => (
+                  <FS.DayCell key={i} day={i + 8} selected={i === 5} disabled={i < 2} dot={[3,5,9,12].includes(i)}/>
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="ds-label" style={{ marginBottom: 12 }}>Notes / toasts</div>
+              <FS.Note tone="info">We'll confirm your appointment by text within one hour.</FS.Note>
+              <div style={{ height: 8 }}/>
+              <FS.Note tone="success">Deposit received — see you Tuesday.</FS.Note>
+              <div style={{ height: 8 }}/>
+              <FS.Note tone="warn">A color service this dramatic usually needs a consultation first.</FS.Note>
+              <div style={{ height: 8 }}/>
+              <FS.Note tone="danger">Cancellations within 24h forfeit the deposit.</FS.Note>
+            </div>
+            <div>
+              <div className="ds-label" style={{ marginBottom: 12 }}>Masthead</div>
+              <FS.Masthead eyebrow="Chapter V · The Record" title="Your hair," accent="on file." right="05/06" compact/>
+            </div>
+          </div>
+        </Section>
+
+        {/* Footer */}
+        <footer style={{ background: color.ink, color: color.paper, padding: '64px 48px', marginTop: 0 }}>
+          <div className="ds-container" style={{ padding: 0, display: 'flex', justifyContent: 'space-between', gap: 32, flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ ...type.display3, fontSize: 64, color: color.paper }}>Fringe.</div>
+              <div style={{ ...type.meta, color: color.peach, marginTop: 8 }}>DESIGN SYSTEM · v1.0 · 2025</div>
+            </div>
+            <div style={{ display: 'flex', gap: 48 }}>
+              <div>
+                <div className="ds-label" style={{ color: color.peach, marginBottom: 8 }}>Converted</div>
+                <div style={{ ...type.body, color: color.paper, opacity: 0.8, lineHeight: 1.8 }}>
+                  <a href="Hair Intake Wireframes.html" style={{ color: color.peach, textDecoration: 'none' }}>Intake flow</a><br/>
+                  <a href="Hair History - Modern Zine Responsive.html" style={{ color: color.peach, textDecoration: 'none' }}>Hair history — responsive</a>
+                </div>
+              </div>
+            </div>
+          </div>
+        </footer>
+      </div>
+    );
+  }
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+
+</body>
+</html>

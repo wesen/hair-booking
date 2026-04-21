@@ -3,12 +3,12 @@
 // API: servicesApi.createIntake() — PATCH or update via servicesApi.updateIntake()
 
 import { useState } from "react";
-import { color, font } from "../../fringe-ui/tokens";
-import { IntakeShell } from "../../fringe-ui/layout/IntakeShell";
-import { Card } from "../../fringe-ui/primitives/Card";
-import { Chip } from "../../fringe-ui/primitives/Chip";
-import { RatingBar } from "../../fringe-ui/primitives/RatingBar";
-import { Eyebrow } from "../../fringe-ui/primitives/Eyebrow";
+import { color, font } from "../../../fringe-ui/tokens";
+import { IntakeShell } from "../../../fringe-ui/layout/IntakeShell";
+import { Card } from "../../../fringe-ui/primitives/Card";
+import { Chip } from "../../../fringe-ui/primitives/Chip";
+import { RatingBar } from "../../../fringe-ui/primitives/RatingBar";
+import { Eyebrow } from "../../../fringe-ui/primitives/Eyebrow";
 
 const CONDITIONS = [
   "Healthy", "Dry", "Damaged", "Brittle", "Oily", "Frizzy", "Fine", "Thick", "Color-treated",

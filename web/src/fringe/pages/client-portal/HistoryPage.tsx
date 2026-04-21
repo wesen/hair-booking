@@ -84,7 +84,6 @@ export function HistoryPage({ appointments, activeTab, onTabChange, onRebook }: 
             <Eyebrow style={{ padding: "14px 0 8px" }}>{year}</Eyebrow>
             {groups[year].map((appt, i) => {
               const { month, day } = formatDate(appt.date);
-              const showYear = i === 0 || formatDate(groups[years[years.indexOf(year) - 1]?.[0]?.date ?? "").month === undefined;
               return (
                 <div
                   key={appt.id}

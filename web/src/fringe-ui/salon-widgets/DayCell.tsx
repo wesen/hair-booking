@@ -2,7 +2,7 @@ import type { CSSProperties } from 'react';
 import { color } from '../../tokens';
 
 interface DayCellProps {
-  day: number;
+  day: string;
   selected?: boolean;
   disabled?: boolean;
   onClick?: () => void;

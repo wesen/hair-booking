@@ -3,11 +3,11 @@
 // Route: / → entry point of the client booking flow
 // API: no write — just dispatches Redux state + navigates to first step
 
-import { color, type, font } from "../../fringe-ui/tokens";
-import { Button } from "../../fringe-ui/primitives/Button";
-import { Wordmark } from "../../fringe-ui/primitives/Wordmark";
-import { Eyebrow } from "../../fringe-ui/primitives/Eyebrow";
-import { Rule } from "../../fringe-ui/primitives/Rule";
+import { color, type, font } from "../../../fringe-ui/tokens";
+import { Button } from "../../../fringe-ui/primitives/Button";
+import { Wordmark } from "../../../fringe-ui/primitives/Wordmark";
+import { Eyebrow } from "../../../fringe-ui/primitives/Eyebrow";
+import { Rule } from "../../../fringe-ui/primitives/Rule";
 
 interface WelcomePageProps {
   onSelectColor: () => void;

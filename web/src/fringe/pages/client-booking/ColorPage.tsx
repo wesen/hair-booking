@@ -1,25 +1,26 @@
 // Fringe intake — Color page (step 2 of 9)
 // Replaces: IntakeColorPage
-// API: servicesApi.createIntake() — POST with { service_type, color_service, natural_level, current_color }
+// API: bookingApi.createIntake() — POST with { service_type, color_service, natural_level, current_color }
 
 import { useState } from "react";
-import { color, font } from "../../fringe-ui/tokens";
-import { IntakeShell } from "../../fringe-ui/layout/IntakeShell";
-import { Chip } from "../../fringe-ui/primitives/Chip";
-import { Note } from "../../fringe-ui/primitives/Note";
-import { Segmented } from "../../fringe-ui/primitives/Segmented";
-import { useCreateIntakeMutation } from "../../stylist/store/api/servicesApi";
-import type { IntakeCreateRequestDto } from "../../stylist/store/api/types";
+import { color, font } from "../../../fringe-ui/tokens";
+import { IntakeShell } from "../../../fringe-ui/layout/IntakeShell";
+import { Chip } from "../../../fringe-ui/primitives/Chip";
+import { Note } from "../../../fringe-ui/primitives/Note";
+import { Segmented } from "../../../fringe-ui/primitives/Segmented";
+import { Eyebrow } from "../../../fringe-ui/primitives/Eyebrow";
+import { useCreateIntakeMutation } from "../../../stylist/store/api/bookingApi";
+import type { IntakeCreateRequestDto } from "../../../stylist/store/api/types";
 
 const LEVELS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
 const LEVEL_COLORS = ["#1a120c","#2a1c10","#3d2a1e","#5a3e2a","#7a5638","#9b7547","#b89461","#d1b283","#e2ce9e","#ead9af"];
 
 const TARGET_OPTIONS = [
-  { value: "same",     label: "Stay the same" },
-  { value: "lighter1",  label: "Go 1 shade lighter" },
-  { value: "lighter2",  label: "Go 2 shades lighter" },
-  { value: "darker",    label: "Darker" },
-  { value: "dimensional", label: "Dimensional" },
+  { value: "same",         label: "Stay the same" },
+  { value: "lighter1",     label: "Go 1 shade lighter" },
+  { value: "lighter2",     label: "Go 2 shades lighter" },
+  { value: "darker",       label: "Darker" },
+  { value: "dimensional",   label: "Dimensional" },
 ];
 
 const COLOR_TYPES = [
@@ -35,30 +36,30 @@ interface ColorPageProps {
   onBack: () => void;
 }
 
+function levelLabel(l: number): string {
+  if (l <= 3) return "dark";
+  if (l <= 6) return "medium";
+  if (l <= 8) return "light";
+  return "blonde";
+}
+
 export function ColorPage({ onNext, onBack }: ColorPageProps) {
   const [level, setLevel] = useState(7);
   const [target, setTarget] = useState("lighter1");
   const [colorType, setColorType] = useState("highlights");
   const [createIntake, { isLoading }] = useCreateIntakeMutation();
 
-  const levelLabel = (l: number) => {
-    if (l <= 3) return `Level ${l} · dark`;
-    if (l <= 6) return `Level ${l} · medium`;
-    if (l <= 8) return `Level ${l} · light`;
-    return `Level ${l} · blonde`;
-  };
-
   const handleSubmit = async () => {
     const payload: IntakeCreateRequestDto = {
       service_type: "color",
       color_service: colorType,
       natural_level: String(level),
-      current_color: levelLabel(level),
+      current_color: `Level ${level} · ${levelLabel(level)}`,
     };
     try {
       await createIntake(payload).unwrap();
     } catch {
-      // non-blocking — still advance
+      // non-blocking
     }
     onNext();
   };
@@ -128,7 +129,7 @@ export function ColorPage({ onNext, onBack }: ColorPageProps) {
       </div>
 
       <Note tone="info">
-        You're at <strong>Level {level}</strong> — {levelLabel(level).split("·")[1].trim()}.
+        You're at <strong>Level {level}</strong> — {levelLabel(level)}.
       </Note>
 
       {/* Color service type */}

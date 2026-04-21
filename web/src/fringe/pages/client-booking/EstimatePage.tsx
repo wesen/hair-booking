@@ -2,11 +2,11 @@
 // Replaces: ConsultEstimatePage
 // API: reads from servicesApi.getIntake() response → { estimate_low, estimate_high }
 
-import { color, font } from "../../fringe-ui/tokens";
-import { IntakeShell } from "../../fringe-ui/layout/IntakeShell";
-import { Masthead } from "../../fringe-ui/salon-widgets/Masthead";
-import { SummaryRow } from "../../fringe-ui/salon-widgets/SummaryRow";
-import { Note } from "../../fringe-ui/primitives/Note";
+import { color, font } from "../../../fringe-ui/tokens";
+import { IntakeShell } from "../../../fringe-ui/layout/IntakeShell";
+import { Masthead } from "../../../fringe-ui/salon-widgets/Masthead";
+import { SummaryRow } from "../../../fringe-ui/salon-widgets/SummaryRow";
+import { Note } from "../../../fringe-ui/primitives/Note";
 
 interface EstimatePageProps {
   estimateLow: number;

@@ -3,10 +3,10 @@
 // API: servicesApi.uploadIntakePhoto() — POST /api/intakes/{id}/photos (FormData)
 
 import { useState } from "react";
-import { color, font } from "../../fringe-ui/tokens";
-import { IntakeShell } from "../../fringe-ui/layout/IntakeShell";
-import { PhotoTile } from "../../fringe-ui/salon-widgets/PhotoTile";
-import { Eyebrow } from "../../fringe-ui/primitives/Eyebrow";
+import { color, font } from "../../../fringe-ui/tokens";
+import { IntakeShell } from "../../../fringe-ui/layout/IntakeShell";
+import { PhotoTile } from "../../../fringe-ui/salon-widgets/PhotoTile";
+import { Eyebrow } from "../../../fringe-ui/primitives/Eyebrow";
 
 const CURRENT_ANGLES = ["Front", "Side", "Back"] as const;
 const INSPIRATION_MAX = 4;

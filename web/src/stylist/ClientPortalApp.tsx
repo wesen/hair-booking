@@ -1,14 +1,16 @@
+// ClientPortalApp — Fringe client portal (Phase 3)
+// Swaps old Portal* pages for fringe/pages/client-portal/ pages
+
 import { useAppSelector, useAppDispatch } from "./store";
 import { setPortalTab, goToProfile } from "./store/portalSlice";
 import { PortalTopBar } from "./components/PortalTopBar";
 import { PortalTabBar } from "./components/PortalTabBar";
-import { PortalHomePage } from "./pages/PortalHomePage";
-import { PortalAppointmentsPage } from "./pages/PortalAppointmentsPage";
-import { PortalProfilePage } from "./pages/PortalProfilePage";
-import type { PortalTab } from "./types";
 import { SignInPage } from "./pages/SignInPage";
 import { useSessionBootstrap } from "./store/api";
 import { getInitials } from "./utils/avatar";
+import { LandingPage, HistoryPage } from "../fringe/pages/client-portal";
+import type { PortalTab } from "./types";
+import { color } from "../fringe-ui/tokens";
 
 interface ClientPortalAppProps {
   unstyled?: boolean;
@@ -16,80 +18,122 @@ interface ClientPortalAppProps {
   showNonMvpFeatures?: boolean;
 }
 
-export function ClientPortalApp({ unstyled, themeVars, showNonMvpFeatures = true }: ClientPortalAppProps) {
+function LoadingState() {
+  return (
+    <div style={{
+      background: color.paper, minHeight: "100vh",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      flexDirection: "column", gap: 12,
+    }}>
+      <div style={{ fontFamily: "var(--font-block)", fontSize: 22, letterSpacing: 4, textTransform: "uppercase" }}>
+        Fringe
+      </div>
+      <div style={{ fontFamily: "var(--font-serif-italic)", color: color.softInk, fontSize: 15 }}>
+        Loading your salon…
+      </div>
+    </div>
+  );
+}
+
+function ErrorState({ message }: { message: string }) {
+  return (
+    <div style={{ background: color.paper, minHeight: "100vh", padding: "40px 24px" }}>
+      <div style={{ fontFamily: "var(--font-block)", fontSize: 20, color: color.coral, marginBottom: 12 }}>
+        Something went wrong
+      </div>
+      <div style={{ fontFamily: "var(--font-serif-italic)", color: color.softInk, fontSize: 15, marginBottom: 20 }}>
+        {message}
+      </div>
+      <button
+        onClick={() => window.location.reload()}
+        style={{
+          padding: "10px 20px", border: `1px solid ${color.coral}`, background: "transparent",
+          color: color.coral, cursor: "pointer",
+          fontFamily: "var(--font-block)", textTransform: "uppercase" as const, fontSize: 13,
+        }}
+      >
+        Retry
+      </button>
+    </div>
+  );
+}
+
+export function ClientPortalApp({ showNonMvpFeatures = true }: ClientPortalAppProps) {
   const dispatch = useAppDispatch();
   const screen = useAppSelector(s => s.portal.screen);
   const activeTab = useAppSelector(s => s.portal.activeTab);
   const session = useSessionBootstrap();
 
-  const rootStyle: React.CSSProperties = themeVars
-    ? Object.fromEntries(Object.entries(themeVars))
-    : {};
+  if (session.isLoading) return <LoadingState />;
+  if (session.hasError) return <ErrorState message={session.errorMessage ?? "Unknown error"} />;
+  if (!session.isAuthenticated) return <SignInPage context="portal" />;
 
-  if (session.isLoading) {
-    return (
-      <div data-widget={unstyled ? undefined : "stylist"} data-part="root" style={rootStyle}>
-        <div data-part="page-content">
-          <div data-part="section-heading" style={{ marginBottom: 8 }}>Client Portal</div>
-          <div style={{ fontSize: 14, color: "var(--color-text-muted)", lineHeight: 1.7 }}>
-            Checking your browser session...
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const clientName = session.client?.name ?? "Client";
+  const initials   = getInitials(clientName);
 
-  if (session.hasError) {
-    return (
-      <div data-widget={unstyled ? undefined : "stylist"} data-part="root" style={rootStyle}>
-        <div data-part="page-content">
-          <div data-part="section-heading" style={{ marginBottom: 8 }}>Client Portal</div>
-          <div style={{ fontSize: 14, color: "var(--color-danger)", lineHeight: 1.7, marginBottom: 16 }}>
-            {session.errorMessage}
-          </div>
-          <button data-part="btn-primary" onClick={() => window.location.reload()}>
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  if (!session.isAuthenticated) {
-    return (
-      <div data-widget={unstyled ? undefined : "stylist"} data-part="root" style={rootStyle}>
-        <SignInPage context="portal" />
-      </div>
-    );
-  }
-
-  const initials = session.client?.name ? getInitials(session.client.name) : "CL";
+  const upcoming = {
+    id: "upcoming_001",
+    client_id: "client_001",
+    service_id: "svc_001",
+    date: "2026-06-19",
+    start_time: "10:30",
+    duration_min_snapshot: 195,
+    status: "confirmed",
+    service_name: "Full highlights + cut",
+    service_category: "Color",
+    price_low: 280,
+    price_high: 380,
+    date_label: "Thursday, Jun 19",
+    duration_label: "3h 15m",
+    stylist_name: "Nadia Rivera",
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString(),
+  };
 
   return (
-    <div
-      data-widget={unstyled ? undefined : "stylist"}
-      data-part="root"
-      style={rootStyle}
-    >
+    <div data-widget="stylist" data-part="root" style={{ background: color.paper, minHeight: "100vh" }}>
       {screen !== "profile" && (
-        <PortalTopBar
-          initials={initials}
-          onAvatarClick={() => dispatch(goToProfile())}
+        <PortalTopBar initials={initials} onAvatarClick={() => dispatch(goToProfile())} />
+      )}
+
+      {screen === "home" && (
+        <LandingPage
+          clientName={clientName}
+          upcoming={upcoming}
+          lastService={{
+            service: "Partial highlights + cut",
+            stylist: "Nadia Rivera",
+            price: 260,
+            date: "3 months ago",
+          }}
+          activeTab={activeTab}
+          onTabChange={(tab) => dispatch(setPortalTab(tab as PortalTab))}
+          onViewUpcoming={() => dispatch(setPortalTab("appointments"))}
+          onReschedule={() => {}}
+          onBookAgain={() => dispatch(setPortalTab("appointments"))}
+          onTryNew={() => {}}
         />
       )}
 
-      {screen === "home" && <PortalHomePage showLoyaltyBadge={showNonMvpFeatures} />}
-      {screen === "appointments" && <PortalAppointmentsPage />}
-      {screen === "profile" && <PortalProfilePage showPaymentMethodsAction={showNonMvpFeatures} />}
+      {screen === "appointments" && (
+        <HistoryPage
+          appointments={[]}
+          activeTab={activeTab}
+          onTabChange={(tab) => dispatch(setPortalTab(tab as PortalTab))}
+          onRebook={(id: string) => console.log("Rebook:", id)}
+        />
+      )}
 
       {screen !== "profile" && (
         <PortalTabBar
           activeTab={activeTab}
           showPhotos={showNonMvpFeatures}
           showRewards={showNonMvpFeatures}
-          onTabChange={(tab: PortalTab) => dispatch(setPortalTab(tab))}
+          onTabChange={(tab) => dispatch(setPortalTab(tab as PortalTab))}
         />
       )}
     </div>
   );
 }
+
+export default ClientPortalApp;
