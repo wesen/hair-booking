@@ -14,20 +14,29 @@ DocType: reference
 Intent: diary
 Owners: []
 RelatedFiles:
+    - Path: ../../../../../../../css-visual-diff/cmd/css-visual-diff/main_test.go
+      Note: Basic command-surface regression test for llm-review profile flags
     - Path: ../../../../../../../css-visual-diff/internal/cssvisualdiff/ai/client.go
       Note: Inspected to confirm the current implementation is still stubbed
+    - Path: ../../../../../../../css-visual-diff/internal/cssvisualdiff/llm/bootstrap_test.go
+      Note: Focused profile-loading regression coverage added during Phase 1
+    - Path: ../../../../../../../css-visual-diff/internal/cssvisualdiff/llm/review_test.go
+      Note: Focused prompt/image/extraction coverage added during Phase 2
     - Path: ../../../../../../../css-visual-diff/internal/cssvisualdiff/modes/ai_review.go
       Note: Inspected to confirm the intended Go seam for AI review already exists
     - Path: ../../../../../../../geppetto/pkg/doc/topics/10-runner.md
       Note: Inspected while evaluating the app-owned runner boundary
     - Path: ../../../../../../../pinocchio/cmd/pinocchio/cmds/js.go
       Note: Inspected as the closest existing proof of Geppetto runtime plus Pinocchio bootstrap composition
+    - Path: ttmp/2026/04/21/HAIR-020--integrate-geppetto-llm-review-with-pinocchio-geppetto-profile-registry-bootstrap-in-css-visual-diff/various/01-profile-bootstrap-and-llm-review-help-smoke/output.log
+      Note: Captured output from deterministic llm-review help smoke run
 ExternalSources: []
 Summary: Chronological investigation notes for the Geppetto/Pinocchio profile-backed LLM integration analysis.
 LastUpdated: 2026-04-21T23:18:00-04:00
 WhatFor: Record what was inspected, why the recommendation changed, and how the implementation guide was derived.
 WhenToUse: Read before continuing HAIR-020 implementation work.
 ---
+
 
 
 # HAIR-020 investigation diary
@@ -163,3 +172,207 @@ Uploaded bundle name:
 - `HAIR-020 Geppetto profile-backed LLM review integration`
 
 This leaves the ticket in a handoff-ready analysis state before any code changes start.
+
+## Step 8: Expand the ticket into a granular execution checklist and start Phase 1
+
+The user asked for a much more granular task list and explicitly said we should reuse/load the Pinocchio profiles for simplicity. I updated `tasks.md` from a high-level sequence into a phased execution plan covering:
+
+- bootstrap/profile-loading work first
+- reusable compare-result LLM service second
+- first user-facing command third
+- legacy seam replacement and JS verb integration after that
+
+I also made the local-reuse decision explicit in the tasks: the first implementation slice should wire `css-visual-diff` to the sibling Pinocchio/Geppetto code paths rather than inventing another profile-resolution lifecycle.
+
+That means Phase 1 now starts with:
+
+1. module wiring for sibling Pinocchio/Geppetto repos
+2. a bootstrap helper that resolves final inference settings
+3. tests proving profile selection changes the resolved model
+
+This is the right order because it de-risks the most subtle integration point before any live provider calls are involved.
+
+## Step 9: Land the Phase 1 bootstrap/profile-loading slice in css-visual-diff
+
+I started Phase 1 by wiring `css-visual-diff` directly to the sibling Pinocchio/Geppetto repos so the tool can reuse the same bootstrap/profile-resolution path locally instead of re-implementing it.
+
+### What I changed
+
+In `/home/manuel/workspaces/2026-04-21/hair-v2/css-visual-diff` I:
+
+- updated `go.mod` to:
+  - require `github.com/go-go-golems/pinocchio`
+  - add local replace directives for:
+    - `github.com/go-go-golems/pinocchio => ../pinocchio`
+    - `github.com/go-go-golems/geppetto => ../geppetto`
+- added a new helper package file:
+  - `internal/cssvisualdiff/llm/bootstrap.go`
+- added a focused test:
+  - `internal/cssvisualdiff/llm/bootstrap_test.go`
+
+### Why this was the first implementation slice
+
+This is the highest-leverage and lowest-risk first slice because it proves the configuration lifecycle before any live model call is attempted.
+
+The helper now uses:
+
+- `pinocchio/pkg/cmds/profilebootstrap.NewCLISelectionValues(...)`
+- `pinocchio/pkg/cmds/profilebootstrap.ResolveCLIEngineSettings(...)`
+- `pinocchio/pkg/cmds/profilebootstrap.NewEngineFromResolvedCLIEngineSettings(...)`
+
+So `css-visual-diff` can now ask for:
+
+- `config-file`
+- `profile`
+- `profile-registries`
+
+and get back a resolved final inference-settings object using the same baseline-plus-profile-overlay lifecycle as Pinocchio.
+
+### Validation commands run
+
+```bash
+cd /home/manuel/workspaces/2026-04-21/hair-v2/css-visual-diff
+GOWORK=off go mod tidy
+GOWORK=off go test ./internal/cssvisualdiff/llm -count=1
+GOWORK=off go build ./cmd/css-visual-diff
+GOWORK=off go test ./...
+```
+
+### Results
+
+- `go mod tidy` succeeded.
+- The new bootstrap test passed.
+- `go build ./cmd/css-visual-diff` passed.
+- Full `go test ./...` passed.
+
+### What was tricky
+
+The main thing worth noting is that Pinocchio's bootstrap path naturally wants to consult config/env/defaults and can look at normal config locations. For the unit test I explicitly isolated `HOME` and `XDG_CONFIG_HOME` into a temporary directory so the test would not accidentally depend on any existing developer-machine Pinocchio config.
+
+### What this unlocked
+
+This slice gives the repo a stable place to build the next two implementation steps:
+
+1. a Geppetto-backed compare-review service
+2. a user-facing `llm-review` command that resolves models through Pinocchio profiles
+
+## Step 10: Add the reusable compare-result review service and the first user-facing `llm-review` command
+
+After the bootstrap slice was stable, I continued directly into the next two phases because the bootstrap helper was already the hard dependency for both of them.
+
+### Code added in css-visual-diff
+
+I added and updated the following code in `/home/manuel/workspaces/2026-04-21/hair-v2/css-visual-diff`:
+
+- new reusable review service code:
+  - `internal/cssvisualdiff/llm/review.go`
+  - `internal/cssvisualdiff/llm/review_test.go`
+- first command-surface test:
+  - `cmd/css-visual-diff/main_test.go`
+- updated root command wiring and a new user-facing command:
+  - `cmd/css-visual-diff/main.go`
+
+### What the new review service does
+
+The new `llm` package now provides a Geppetto-backed compare-review path that:
+
+1. takes a `modes.CompareResult`
+2. builds a compact text summary of the structured evidence
+3. packages the left/right/diff screenshots into Geppetto's multimodal user-block shape
+4. builds an engine from the resolved final inference settings
+5. runs inference through `engine.RunInferenceWithResult(...)`
+6. extracts assistant text into a typed `ReviewResult`
+7. can write JSON and markdown outputs
+
+This is intentionally built as a reusable service, not only as command glue, so it can later be reused by:
+
+- `ai-review` mode
+- JS runtime host modules
+- future batch/report commands
+
+### What the new command does
+
+I added:
+
+- `css-visual-diff llm-review`
+
+It reuses the existing compare-style inputs and adds:
+
+- `--question`
+- `--profile`
+- `--profile-registries`
+- `--config-file`
+- `--write-review-json`
+- `--write-review-markdown`
+
+Execution flow:
+
+```text
+llm-review
+  -> generate compare result
+  -> write compare artifacts if requested
+  -> resolve final inference settings via Pinocchio bootstrap
+  -> run Geppetto multimodal inference
+  -> print answer to stdout
+  -> write llm-review.json / llm-review.md
+```
+
+### Deterministic validation done
+
+I ran:
+
+```bash
+cd /home/manuel/workspaces/2026-04-21/hair-v2/css-visual-diff
+GOWORK=off go test ./...
+GOWORK=off go build ./cmd/css-visual-diff
+GOWORK=off go run ./cmd/css-visual-diff llm-review --help
+```
+
+I also added a ticket-local smoke script:
+
+- `scripts/01_profile_bootstrap_and_llm_review_help_smoke.sh`
+
+and ran it, capturing the output to:
+
+- `various/01-profile-bootstrap-and-llm-review-help-smoke/output.log`
+
+### What worked
+
+- The new `llm-review` command is now visible and wired.
+- The command surface shows the expected profile/bootstrap flags.
+- All tests still pass after the new command and service were added.
+- The review path compiles cleanly against the sibling Pinocchio/Geppetto bootstrap.
+
+### What was tricky
+
+The main subtle design point here was choosing the right boundary for the first service API. I intentionally made the reusable review function accept a resolved bootstrap object plus a `CompareResult`, rather than forcing it to own command parsing itself. That keeps the service reusable by other surfaces later.
+
+The second subtle point was image packaging. Geppetto/OpenAI can use URL-style image payloads, but Claude support in the Geppetto helpers is base64-content-based. So the first implementation uses `content` plus `media_type`, which works as a better cross-provider baseline.
+
+## Step 11: Commit the first two code slices and refresh ticket hygiene
+
+After the code stabilized, I committed the two `css-visual-diff` milestones separately:
+
+- `b667bcddcfaa4f42894f8ebbc5a96b7dde5a7916` — `Add Pinocchio profile bootstrap for LLM settings`
+- `c4d170c61ae2c2f6a9fb45c8832fbabdf0f7e256` — `Add Geppetto-backed llm-review command`
+
+I then refreshed the ticket hygiene by:
+
+- updating `tasks.md`
+- updating `changelog.md`
+- relating the new implementation files and smoke artifacts with `docmgr doc relate`
+- rerunning `docmgr doctor --ticket HAIR-020 --stale-after 30`
+
+The ticket remains clean after these updates.
+
+## Step 12: Re-upload the refreshed HAIR-020 bundle
+
+Because the ticket had moved from pure analysis into real implementation progress, I uploaded a refreshed HAIR-020 bundle to reMarkable under a new name rather than overwriting the original analysis-only bundle.
+
+Uploaded file:
+
+- `HAIR-020 Geppetto LLM integration implementation slice 01`
+
+Verified folder:
+
+- `/ai/2026/04/21/HAIR-020`

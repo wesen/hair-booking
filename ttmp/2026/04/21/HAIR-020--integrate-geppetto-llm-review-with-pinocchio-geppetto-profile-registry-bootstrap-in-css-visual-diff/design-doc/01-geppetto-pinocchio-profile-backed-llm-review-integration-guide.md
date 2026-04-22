@@ -14,8 +14,14 @@ DocType: design-doc
 Intent: implementation-guide
 Owners: []
 RelatedFiles:
+    - Path: ../../../../../../../css-visual-diff/cmd/css-visual-diff/main.go
+      Note: Now exposes the first product-facing llm-review command
     - Path: ../../../../../../../css-visual-diff/internal/cssvisualdiff/ai/client.go
       Note: Current AI abstraction only exposes a NoopClient and is the primary seam to replace
+    - Path: ../../../../../../../css-visual-diff/internal/cssvisualdiff/llm/bootstrap.go
+      Note: New bootstrap helper that reuses Pinocchio profile/config resolution
+    - Path: ../../../../../../../css-visual-diff/internal/cssvisualdiff/llm/review.go
+      Note: New reusable Geppetto-backed multimodal compare-review service
     - Path: ../../../../../../../css-visual-diff/internal/cssvisualdiff/modes/ai_review.go
       Note: Current batch ai-review mode that should be revived with a Geppetto-backed client
     - Path: ../../../../../../../css-visual-diff/legacy/python-prototype/src/llm_analysis.py
@@ -26,12 +32,15 @@ RelatedFiles:
       Note: Concrete helper path for resolving merged final inference settings from base plus profile
     - Path: ../../../../../../../pinocchio/pkg/cmds/profilebootstrap/profile_selection.go
       Note: Concrete helper path for profile selection and registry-chain loading
+    - Path: ttmp/2026/04/21/HAIR-020--integrate-geppetto-llm-review-with-pinocchio-geppetto-profile-registry-bootstrap-in-css-visual-diff/scripts/01_profile_bootstrap_and_llm_review_help_smoke.sh
+      Note: Deterministic smoke script for bootstrap package and llm-review help path
 ExternalSources: []
 Summary: Implementation analysis and recommended architecture for replacing css-visual-diff's current stubbed AI review path with a Geppetto-backed LLM client that resolves model settings through Pinocchio/Geppetto profile registries.
 LastUpdated: 2026-04-21T23:15:00-04:00
 WhatFor: Plan the first real LLM integration for css-visual-diff with profile-backed inference settings and multimodal screenshot review.
 WhenToUse: Use when implementing or reviewing provider-backed LLM analysis in css-visual-diff.
 ---
+
 
 
 # Geppetto + Pinocchio profile-backed LLM review integration guide for css-visual-diff
