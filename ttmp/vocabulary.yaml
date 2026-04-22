@@ -41,6 +41,22 @@ topics:
       description: Operational procedures, deployment, and runtime administration
     - slug: postgres
       description: PostgreSQL schema, persistence, and operational topics
+    - slug: tooling
+      description: Developer tooling and local engineering workflows
+    - slug: browser-automation
+      description: Browser automation, screenshot capture, and DOM inspection tools
+    - slug: visual-regression
+      description: Screenshot, pixel diff, and design fidelity comparison workflows
+    - slug: chromedp
+      description: Chrome DevTools Protocol automation via chromedp
+    - slug: geppetto
+      description: Geppetto inference/runtime integration work
+    - slug: pinocchio
+      description: Pinocchio bootstrap/config/profile-resolution integration work
+    - slug: inference
+      description: LLM inference engines, prompts, and model execution flows
+    - slug: llm
+      description: Large language model integration and runtime behavior
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes
