@@ -14,10 +14,14 @@ DocType: reference
 Intent: diary
 Owners: []
 RelatedFiles:
+    - Path: ../../../../../../../css-visual-diff/cmd/css-visual-diff/main.go
+      Note: llm-review now supports --print-inference-settings and early exit parity with Pinocchio
     - Path: ../../../../../../../css-visual-diff/cmd/css-visual-diff/main_test.go
       Note: Basic command-surface regression test for llm-review profile flags
     - Path: ../../../../../../../css-visual-diff/internal/cssvisualdiff/ai/client.go
       Note: Inspected to confirm the current implementation is still stubbed
+    - Path: ../../../../../../../css-visual-diff/internal/cssvisualdiff/llm/bootstrap.go
+      Note: Now exposes inference-settings debug output using the shared Geppetto bootstrap helper
     - Path: ../../../../../../../css-visual-diff/internal/cssvisualdiff/llm/bootstrap_test.go
       Note: Focused profile-loading regression coverage added during Phase 1
     - Path: ../../../../../../../css-visual-diff/internal/cssvisualdiff/llm/review_test.go
@@ -28,14 +32,25 @@ RelatedFiles:
       Note: Inspected while evaluating the app-owned runner boundary
     - Path: ../../../../../../../pinocchio/cmd/pinocchio/cmds/js.go
       Note: Inspected as the closest existing proof of Geppetto runtime plus Pinocchio bootstrap composition
+    - Path: ttmp/2026/04/21/HAIR-020--integrate-geppetto-llm-review-with-pinocchio-geppetto-profile-registry-bootstrap-in-css-visual-diff/scripts/02_compare_pinocchio_and_cssvd_inference_settings.sh
+      Note: Script comparing Pinocchio and css-visual-diff resolved settings
+    - Path: ttmp/2026/04/21/HAIR-020--integrate-geppetto-llm-review-with-pinocchio-geppetto-profile-registry-bootstrap-in-css-visual-diff/scripts/03_live_gpt5_nano_low_llm_review_smoke.sh
+      Note: Live gpt-5-nano-low smoke using saved ticket HTML fixtures
+    - Path: ttmp/2026/04/21/HAIR-020--integrate-geppetto-llm-review-with-pinocchio-geppetto-profile-registry-bootstrap-in-css-visual-diff/sources/01-llm-review-live-smoke/00-README.md
+      Note: Managed fixture-note doc describing reusable left/right HTML test objects
     - Path: ttmp/2026/04/21/HAIR-020--integrate-geppetto-llm-review-with-pinocchio-geppetto-profile-registry-bootstrap-in-css-visual-diff/various/01-profile-bootstrap-and-llm-review-help-smoke/output.log
       Note: Captured output from deterministic llm-review help smoke run
+    - Path: ttmp/2026/04/21/HAIR-020--integrate-geppetto-llm-review-with-pinocchio-geppetto-profile-registry-bootstrap-in-css-visual-diff/various/02-compare-pinocchio-and-cssvd-inference-settings/summary.txt
+      Note: Summary comparison of resolved Pinocchio vs css-visual-diff settings
+    - Path: ttmp/2026/04/21/HAIR-020--integrate-geppetto-llm-review-with-pinocchio-geppetto-profile-registry-bootstrap-in-css-visual-diff/various/03-live-gpt5-nano-low-llm-review-smoke/output.log
+      Note: Captured live llm-review output using gpt-5-nano-low and ticket fixtures
 ExternalSources: []
 Summary: Chronological investigation notes for the Geppetto/Pinocchio profile-backed LLM integration analysis.
 LastUpdated: 2026-04-21T23:18:00-04:00
 WhatFor: Record what was inspected, why the recommendation changed, and how the implementation guide was derived.
 WhenToUse: Read before continuing HAIR-020 implementation work.
 ---
+
 
 
 
@@ -376,3 +391,141 @@ Uploaded file:
 Verified folder:
 
 - `/ai/2026/04/21/HAIR-020`
+
+## Step 13: Save the live smoke HTML fixtures into the ticket sources folder
+
+The user asked to keep the HTML test objects in the ticket so they can be reused easily. I copied the simple left/right `llm-review` smoke fixtures into:
+
+- `sources/01-llm-review-live-smoke/left.html`
+- `sources/01-llm-review-live-smoke/right.html`
+- `sources/01-llm-review-live-smoke/README.md`
+
+That gives the ticket a stable, self-contained fixture pair for future manual or scripted live LLM review checks.
+
+## Step 14: Add `--print-inference-settings` parity to `css-visual-diff llm-review`
+
+The user explicitly asked for parity with the Pinocchio workflow so that we can compare resolved settings without requiring a live call. I implemented that by adding `--print-inference-settings` to `css-visual-diff llm-review` and wiring it through the same Geppetto bootstrap debug helper Pinocchio uses.
+
+### Code changes
+
+In `css-visual-diff` I updated:
+
+- `internal/cssvisualdiff/llm/bootstrap.go`
+  - added `WriteInferenceSettingsDebug(...)`
+- `cmd/css-visual-diff/main.go`
+  - added `--print-inference-settings`
+  - made `llm-review` resolve bootstrap first, then print settings and exit when requested
+- `cmd/css-visual-diff/main_test.go`
+  - asserted the new flag exists on the command surface
+
+### Validation
+
+I ran:
+
+```bash
+cd /home/manuel/workspaces/2026-04-21/hair-v2/css-visual-diff
+GOWORK=off go test ./...
+GOWORK=off go build ./cmd/css-visual-diff
+GOWORK=off go run ./cmd/css-visual-diff llm-review --print-inference-settings --profile gpt-5-nano-low
+GOWORK=off go run ./cmd/css-visual-diff llm-review --print-inference-settings
+```
+
+All passed.
+
+## Step 15: Compare `css-visual-diff` against real Pinocchio profile resolution and run a live `gpt-5-nano-low` smoke
+
+After adding the debug flag, I compared real outputs from Pinocchio and `css-visual-diff`.
+
+### Comparison commands run
+
+Pinocchio explicit profile:
+
+```bash
+cd /home/manuel/workspaces/2026-04-21/hair-v2/pinocchio
+GOWORK=off go run ./cmd/pinocchio --profile gpt-5-nano-low code professional --print-inference-settings --non-interactive hello
+```
+
+Pinocchio default profile:
+
+```bash
+GOWORK=off go run ./cmd/pinocchio code professional --print-inference-settings --non-interactive hello
+```
+
+css-visual-diff explicit profile:
+
+```bash
+cd /home/manuel/workspaces/2026-04-21/hair-v2/css-visual-diff
+GOWORK=off go run ./cmd/css-visual-diff llm-review --print-inference-settings --profile gpt-5-nano-low
+```
+
+css-visual-diff default profile:
+
+```bash
+GOWORK=off go run ./cmd/css-visual-diff llm-review --print-inference-settings
+```
+
+### What matched
+
+For explicit `gpt-5-nano-low`, both resolved to:
+
+- `chat.api_type: openai-responses`
+- `chat.engine: gpt-5-nano`
+- `chat.max_response_tokens: 128000`
+- `inference.reasoning_effort: low`
+- `inference.reasoning_summary: concise`
+
+For the default profile, both resolved to:
+
+- `chat.api_type: openai-responses`
+- `chat.engine: gpt-5-nano`
+- `chat.max_response_tokens: 20000`
+
+That confirms `css-visual-diff` is now following the same profile/bootstrap path as Pinocchio for the tested fields.
+
+### Live smoke with the saved fixtures
+
+I also ran a real `llm-review` call using the new saved ticket fixtures under:
+
+- `sources/01-llm-review-live-smoke/left.html`
+- `sources/01-llm-review-live-smoke/right.html`
+
+using the explicit profile:
+
+- `gpt-5-nano-low`
+
+The live command succeeded and produced a useful review answer. The ticket now includes reusable scripts and captured outputs for:
+
+- profile/bootstrap comparison
+- live `gpt-5-nano-low` review smoke
+
+### Important caveat discovered while reviewing code
+
+While `gpt-5-nano-low` clearly works for the current review command, Geppetto's current `openai-responses` helper still contains a code comment indicating image/audio support is not implemented in that path yet.
+
+That means the current success is real, but the answer may be relying primarily on the structured textual evidence rather than true image transport for that engine path. This is important enough to keep as a follow-up task: verify whether we want to keep `gpt-5-nano-low` as the default review profile or whether we should either:
+
+- extend the `openai-responses` image path, or
+- choose a profile/engine path with known multimodal image transport for image-heavy review work.
+
+## Step 16: Fix ticket hygiene around fixture docs and generated markdown, then commit the debug-output slice
+
+After adding the new smoke artifacts, `docmgr doctor` failed for two reasons:
+
+1. the fixture README in `sources/01-llm-review-live-smoke/` had no frontmatter and no numeric prefix
+2. the live smoke had written generated `compare.md` and `llm-review.md` files under `various/.../out/`, which docmgr tried to treat as managed docs
+
+I fixed that by:
+
+- replacing `sources/.../README.md` with `sources/.../00-README.md` and adding proper frontmatter
+- updating the live smoke script to disable markdown output generation:
+  - `--write-markdown=false`
+  - `--write-review-markdown=false`
+- deleting the previously generated markdown artifacts
+- rerunning the live smoke
+- rerunning `docmgr doctor`
+
+After that, the ticket returned to a clean state.
+
+I also ran `gofmt` on the `css-visual-diff` files touched by the new `--print-inference-settings` path and committed that code slice as:
+
+- `9c0f08bc3b20edae430481dd0bc926b79b0a2ca7` — `Add llm-review inference settings debug output`

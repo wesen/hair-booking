@@ -34,7 +34,8 @@
 
 - [x] Add a hand-written `llm-review` command to `cmd/css-visual-diff/main.go` that reuses the existing compare inputs plus `--question`, `--profile`, `--profile-registries`, and `--config-file`.
 - [x] Make the command generate compare evidence, call the Geppetto-backed review service, and write `llm-review.json` / `llm-review.md` alongside compare artifacts.
-- [x] Add tests and/or a deterministic smoke path showing that profile selection is wired and the command surface is stable even when live credentials are absent.
+- [x] Add `--print-inference-settings` parity so `css-visual-diff llm-review` can be checked against `pinocchio ... --print-inference-settings` without requiring a live model call.
+- [x] Add tests and/or deterministic smoke paths showing that profile selection is wired and the command surface is stable even when live credentials are absent.
 - [x] Re-run validation and commit the first user-facing LLM command slice.
 
 ### Phase 4: legacy seam replacement and JS runtime integration
@@ -42,7 +43,8 @@
 - [ ] Replace `ai.NoopClient{}` in `internal/cssvisualdiff/modes/ai_review.go` with the real Geppetto-backed implementation or adapt that mode onto the new review service.
 - [ ] Add a dedicated `llm` host module to the JS runtime in `internal/cssvisualdiff/dsl/registrar.go`.
 - [ ] Add the first script-backed LLM verb such as `script compare llm-brief` or `script compare llm-review`.
-- [ ] Add ticket-local smoke scripts for profile resolution and live-provider-gated LLM review under `ttmp/.../HAIR-020.../scripts/`.
+- [x] Add ticket-local smoke scripts for profile resolution and live-provider-gated LLM review under `ttmp/.../HAIR-020.../scripts/`.
+- [ ] Decide whether `gpt-5-nano-low` is acceptable as the default review profile long-term given that the current Geppetto `openai-responses` helper still documents image support as incomplete; if not, either extend that path or choose a profile/engine with true multimodal image transport.
 - [ ] Update the HAIR-020 diary/changelog/index with implementation outcomes, validation commands, and follow-up tasks.
 - [ ] Upload the refreshed HAIR-020 bundle to reMarkable after each meaningful milestone.
 
