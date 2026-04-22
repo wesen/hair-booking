@@ -1,0 +1,80 @@
+# css-visual-diff script verb smoke
+
+## root help
+Compare rendered HTML/CSS across browser targets
+
+Usage:
+  css-visual-diff [command]
+
+Available Commands:
+  chromedp-probe Run a minimal chromedp probe against a URL
+  compare        Compare a single element between two URLs (screenshots + CSS + pixel diff)
+  completion     Generate the autocompletion script for the specified shell
+  help           Help about any command
+  run            Run css-visual-diff capture and analysis modes
+  script         All commands for script
+
+Flags:
+  -h, --help                          help for css-visual-diff
+      --log-file string               Log file (default: stderr)
+      --log-format string             Log format (json, text) (default "text")
+      --log-level string              Log level (trace, debug, info, warn, error, fatal) (default "error")
+      --log-to-stdout                 Log to stdout even when log-file is set
+      --logstash-app-name string      Application name for Logstash logs (default "css-visual-diff")
+      --logstash-enabled              Enable logging to Logstash
+      --logstash-environment string   Environment name for Logstash logs (development, staging, production) (default "development")
+      --logstash-host string          Logstash host (default "logstash")
+      --logstash-port int             Logstash port (default 5044)
+      --logstash-protocol string      Logstash protocol (tcp, udp) (default "tcp")
+      --with-caller                   Log caller information
+
+Use "css-visual-diff [command] --help" for more information about a command.
+
+## script compare brief help
+Render a concise text brief for one compared region
+
+Usage:
+  css-visual-diff script compare brief <question> [flags]
+
+Flags:
+      --config-file string     Explicit config file path to load via middlewares - <string>
+      --height int             Viewport height - <int> (default 720)
+  -h, --help                   help for brief
+      --leftSelector string    Selector on the left target - <string>
+      --leftUrl string         Left target URL - <string>
+      --leftWaitMs int         Wait after left navigation in milliseconds - <int>
+      --outDir string          Output directory for artifacts (default: generated timestamped directory) - <string>
+      --print-parsed-fields    Print the parsed fields - <bool>
+      --print-schema           Print the command's schema - <bool>
+      --print-yaml             Print the command's YAML - <bool>
+      --rightSelector string   Selector on the right target (defaults to leftSelector) - <string>
+      --rightUrl string        Right target URL - <string>
+      --rightWaitMs int        Wait after right navigation in milliseconds - <int>
+      --threshold int          Pixel diff threshold (0-255) - <int> (default 30)
+      --width int              Viewport width - <int> (default 1280)
+      --writeJson              Write compare.json when supported by the host verb - <bool>
+      --writeMarkdown          Write compare.md when supported by the host verb - <bool>
+      --writePngs              Write screenshots and diff PNGs - <bool> (default true)
+
+Global Flags:
+      --log-file string               Log file (default: stderr)
+      --log-format string             Log format (json, text) (default "text")
+      --log-level string              Log level (trace, debug, info, warn, error, fatal) (default "error")
+      --log-to-stdout                 Log to stdout even when log-file is set
+      --logstash-app-name string      Application name for Logstash logs (default "css-visual-diff")
+      --logstash-enabled              Enable logging to Logstash
+      --logstash-environment string   Environment name for Logstash logs (development, staging, production) (default "development")
+      --logstash-host string          Logstash host (default "logstash")
+      --logstash-port int             Logstash port (default 5044)
+      --logstash-protocol string      Logstash protocol (tcp, udp) (default "tcp")
+      --with-caller                   Log caller information
+
+## script compare brief execution
+What should change?
+- Visual drift is 33.05% of pixels at threshold 30.
+- Change `padding-top` from `12px` to `10px`.
+- Change `padding-right` from `20px` to `16px`.
+- Change `padding-bottom` from `12px` to `10px`.
+- Change `padding-left` from `20px` to `16px`.
+- Change `border-radius` from `8px` to `0px`.
+- Change `background-color` from `rgb(96, 45, 72)` to `rgb(112, 61, 89)`.
