@@ -3,7 +3,6 @@
 
 import { useAppSelector, useAppDispatch } from "./store";
 import { goBack } from "./store/consultationSlice";
-import { ConsultNavBar } from "./components/ConsultNavBar";
 import {
   WelcomePage,
   ColorPage,
@@ -13,11 +12,13 @@ import {
   BudgetPage,
   BookingPage,
   ConfirmPage,
+  CareGuidePage,
 } from "../fringe/pages/client-booking";
-import { SignInPage } from "./pages/SignInPage";
-import { VerifyCodePage } from "./pages/VerifyCodePage";
-import { CareGuidePage } from "./pages/CareGuidePage";
+import { AuthGatePage } from "../fringe/pages/shared";
+import { AppHeader } from "../fringe-ui/chrome/AppHeader";
+import { Eyebrow } from "../fringe-ui/primitives/Eyebrow";
 import { useGetAvailabilityQuery } from "./store/api/bookingApi";
+import { CARE_GUIDE_SECTIONS } from "./data/consultation-constants";
 
 const SCREEN_TITLES: Record<string, string> = {
   "intake-ext":    "Extensions Consult",
@@ -79,19 +80,27 @@ export function ClientBookingApp({ showDepositOption = true }: ClientBookingAppP
   const serviceLabel = serviceType === "extensions" ? "Extensions"
     : serviceType === "color" ? "Color" : "Color + Extensions";
 
-  if (screen === "sign-in")    return <SignInPage />;
-  if (screen === "verify-code") return <VerifyCodePage />;
-  if (screen === "care-guide") return <CareGuidePage />;
+  if (screen === "sign-in") {
+    return <AuthGatePage context="booking" onBack={back} />;
+  }
+  if (screen === "verify-code") {
+    return <AuthGatePage context="booking" onBack={() => go("sign-in")} />;
+  }
+  if (screen === "care-guide") {
+    return <CareGuidePage sections={CARE_GUIDE_SECTIONS} onBack={() => go("confirm")} onDone={() => go("confirm")} />;
+  }
 
   return (
     <div data-widget="stylist" data-part="root">
       {showNav && (
-        <ConsultNavBar
-          title={title}
-          stepNum={stepNum}
-          totalSteps={totalSteps}
-          onBack={back}
-        />
+        <div style={{ paddingTop: 8, background: "var(--fringe-color-paper, #faf8f5)" }}>
+          <AppHeader step={stepNum} total={totalSteps} onBack={back} />
+          {title ? (
+            <div style={{ padding: "6px 22px 12px" }}>
+              <Eyebrow>{title}</Eyebrow>
+            </div>
+          ) : null}
+        </div>
       )}
 
       {screen === "welcome" && (

@@ -1,0 +1,4 @@
+      --modes string                  Comma-delimited list of modes (capture,cssdiff,matched-styles,ai-review,full) - <string>
+      --profile string                Pinocchio/Geppetto engine profile used by ai-review - <string>
+      --profile-config-file string    Optional Pinocchio config file used for ai-review profile/bootstrap resolution - <string>
+      --profile-registries strings    Comma-separated or repeated Pinocchio/Geppetto profile registry sources used by ai-review - <stringList>

@@ -2,12 +2,17 @@
 import "./stylist/styles/stylist.css";
 import "./stylist/styles/theme-default.css";
 
-// Start MSW mock worker before React renders (dev + Storybook)
+// Start MSW mock worker before React renders when enabled via Vite env.
+// Storybook manages its own MSW startup in .storybook/preview.ts.
+const enableMsw = import.meta.env.VITE_ENABLE_MSW === "true";
+
 async function startMocking() {
+  if (!enableMsw) {
+    return;
+  }
   const { worker } = await import("./mock/browser");
   await worker.start({ onUnhandledRequest: "bypass", quiet: true });
 }
-void startMocking();
 
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
@@ -49,12 +54,18 @@ if (resolvedApp.canonicalPath) {
   window.history.replaceState({}, "", resolvedApp.canonicalPath);
 }
 
-createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <Provider store={runtimeStore}>
-      {resolvedApp.app === "portal"  ? <ClientPortalApp showNonMvpFeatures={false} /> : null}
-      {resolvedApp.app === "booking" ? <ClientBookingApp showDepositOption={false} />  : null}
-      {resolvedApp.app === "stylist" ? <StylistRuntimeApp /> : null}
-    </Provider>
-  </StrictMode>,
-);
+async function bootstrap() {
+  await startMocking();
+
+  createRoot(document.getElementById("root")!).render(
+    <StrictMode>
+      <Provider store={runtimeStore}>
+        {resolvedApp.app === "portal"  ? <ClientPortalApp showNonMvpFeatures={false} /> : null}
+        {resolvedApp.app === "booking" ? <ClientBookingApp showDepositOption={false} />  : null}
+        {resolvedApp.app === "stylist" ? <StylistRuntimeApp /> : null}
+      </Provider>
+    </StrictMode>,
+  );
+}
+
+void bootstrap();

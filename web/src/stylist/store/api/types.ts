@@ -31,6 +31,19 @@ export interface InfoDto {
   databaseConfigured: boolean;
 }
 
+export interface AuthSessionDto {
+  authenticated: boolean;
+  authMode: string;
+  subject: string;
+  issuer?: string;
+  email?: string;
+  emailVerified?: boolean;
+  preferredUsername?: string;
+  displayName?: string;
+  scopes?: string[];
+  sessionExpiresAt?: string;
+}
+
 export type ServiceCategory = "extensions" | "color" | "treatment" | "consult";
 
 export interface ServiceCatalogItemDto {

@@ -4,7 +4,6 @@
 
 import { useState } from "react";
 import { color, font } from "../../../fringe-ui/tokens";
-import { StylistShell } from "../../../fringe-ui/layout/StylistShell";
 import { Eyebrow } from "../../../fringe-ui/primitives/Eyebrow";
 import { Chip } from "../../../fringe-ui/primitives/Chip";
 import { TextField } from "../../../fringe-ui/primitives/TextField";
@@ -12,9 +11,6 @@ import type { StylistClientListItemDto } from "../../../stylist/store/api/types"
 
 interface ClientsPageProps {
   clients: StylistClientListItemDto[];
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-  accentColor?: string;
   onSelectClient: (clientId: string) => void;
 }
 
@@ -41,7 +37,7 @@ function Avatar({ name, size = 40 }: { name: string; size?: number }) {
   );
 }
 
-export function ClientsPage({ clients, activeTab, onTabChange, accentColor = "#e8573c", onSelectClient }: ClientsPageProps) {
+export function ClientsPage({ clients, onSelectClient }: ClientsPageProps) {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
 
@@ -54,7 +50,7 @@ export function ClientsPage({ clients, activeTab, onTabChange, accentColor = "#e
   const dueSoon = filtered.slice(5);
 
   return (
-    <StylistShell activeTab={activeTab} onTabChange={onTabChange} accentColor={accentColor}>
+    <div style={{ minHeight: "100vh", background: "#faf8f5" }}>
       {/* Header */}
       <div style={{ padding: "14px 22px 18px" }}>
         <div style={{
@@ -63,7 +59,7 @@ export function ClientsPage({ clients, activeTab, onTabChange, accentColor = "#e
           alignItems: "center",
           marginBottom: 14,
         }}>
-          <Eyebrow color={accentColor}>ROSTER · {clients.length} ACTIVE</Eyebrow>
+          <Eyebrow color="#e8573c">ROSTER · {clients.length} ACTIVE</Eyebrow>
           <div style={{
             width: 34,
             height: 34,
@@ -129,33 +125,31 @@ export function ClientsPage({ clients, activeTab, onTabChange, accentColor = "#e
 
       {/* Today group */}
       <div style={{ padding: "0 22px" }}>
-        <Eyebrow color={accentColor} style={{ padding: "8px 0 6px" }}>
+        <Eyebrow color="#e8573c" style={{ padding: "8px 0 6px" }}>
           TODAY · {today.length}
         </Eyebrow>
         {today.map((c) => (
-          <ClientRow key={c.id} client={c} accentColor={accentColor} onSelect={onSelectClient} />
+          <ClientRow key={c.id} client={c}  onSelect={onSelectClient} />
         ))}
 
         {dueSoon.length > 0 && (
           <>
             <Eyebrow style={{ padding: "18px 0 6px" }}>DUE SOON · {dueSoon.length}</Eyebrow>
             {dueSoon.map((c) => (
-              <ClientRow key={c.id} client={c} accentColor={accentColor} onSelect={onSelectClient} />
+              <ClientRow key={c.id} client={c}  onSelect={onSelectClient} />
             ))}
           </>
         )}
       </div>
-    </StylistShell>
+    </div>
   );
 }
 
 function ClientRow({
   client,
-  accentColor,
   onSelect,
 }: {
   client: StylistClientListItemDto;
-  accentColor: string;
   onSelect: (id: string) => void;
 }) {
   const isNew = client.appointment_count <= 1;
@@ -192,7 +186,7 @@ function ClientRow({
           {client.last_appointment_date?.toUpperCase() ?? "—"} · {client.appointment_count} VISITS
         </div>
       </div>
-      <div style={{ fontFamily: font.block, fontSize: 16, color: accentColor }}>›</div>
+      <div style={{ fontFamily: font.block, fontSize: 16, color: "#e8573c" }}>›</div>
     </div>
   );
 }

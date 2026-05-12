@@ -5,6 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:mock": "VITE_ENABLE_MSW=true vite",
+    "dev:backend": "VITE_ENABLE_MSW=false vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
     "test": "vitest run",

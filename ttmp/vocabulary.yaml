@@ -57,6 +57,10 @@ topics:
       description: LLM inference engines, prompts, and model execution flows
     - slug: llm
       description: Large language model integration and runtime behavior
+    - slug: go-minitrace
+      description: go-minitrace transcript analysis tooling
+    - slug: transcript-analysis
+      description: AI agent transcript analysis and session mining
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes

@@ -8,9 +8,6 @@ const apiMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("./store/api", () => apiMocks);
-vi.mock("./pages/SignInPage", () => ({
-  SignInPage: ({ context }: { context: string }) => <div>sign-in:{context}</div>,
-}));
 vi.mock("./StylistWorkspace", () => ({
   StylistWorkspace: () => <div>live-stylist-workspace</div>,
 }));

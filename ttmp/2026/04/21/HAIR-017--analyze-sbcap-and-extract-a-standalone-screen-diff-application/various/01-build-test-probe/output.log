@@ -1,0 +1,52 @@
+== go test ./cmd/sbcap ./internal/sbcap/... ==
+?   	github.com/go-go-golems/sbcap/cmd/sbcap	[no test files]
+?   	github.com/go-go-golems/sbcap/internal/sbcap/ai	[no test files]
+ok  	github.com/go-go-golems/sbcap/internal/sbcap/config	(cached)
+?   	github.com/go-go-golems/sbcap/internal/sbcap/driver	[no test files]
+ok  	github.com/go-go-golems/sbcap/internal/sbcap/modes	(cached)
+?   	github.com/go-go-golems/sbcap/internal/sbcap/runner	[no test files]
+
+== go build ./cmd/sbcap ==
+
+== go run ./cmd/sbcap --help ==
+Usage:
+  sbcap [command]
+
+Available Commands:
+  chromedp-probe Run a minimal chromedp probe against a URL
+  compare        Compare a single element between two URLs (screenshots + CSS + pixel diff)
+  completion     Generate the autocompletion script for the specified shell
+  help           Help about any command
+  run            Run sbcap capture and analysis modes
+
+Flags:
+  -h, --help   help for sbcap
+
+Use "sbcap [command] --help" for more information about a command.
+
+== go run ./cmd/sbcap compare --help ==
+Compare a single element between two URLs (screenshots + CSS + pixel diff)
+
+Usage:
+  sbcap compare [flags]
+
+Flags:
+      --attrs string       Comma-delimited attributes to capture (default: id,class) (default "id,class")
+  -h, --help               help for compare
+      --out string         Output directory (default: ./sbcap-compare-YYYYMMDD_HHMMSS)
+      --props string       Comma-delimited CSS properties to compare (default: a curated list)
+      --selector1 string   CSS selector for URL1 element
+      --selector2 string   CSS selector for URL2 element (defaults to selector1)
+      --threshold int      Pixel diff threshold (0-255) (default 30)
+      --url1 string        First URL to compare
+      --url2 string        Second URL to compare
+      --viewport-h int     Viewport height (default 720)
+      --viewport-w int     Viewport width (default 1280)
+      --wait-ms1 int       Wait after navigation for URL1 (ms)
+      --wait-ms2 int       Wait after navigation for URL2 (ms)
+      --write-json         Write compare.json (default true)
+      --write-markdown     Write compare.md (default true)
+      --write-pngs         Write screenshots and diff images (default true)
+
+== go run ./cmd/sbcap chromedp-probe --url https://example.com --selector h1 --wait-ms 500 --timeout-ms 15000 ==
+chromedp ok url=https://example.com title="Example Domain" selector=h1 matches=1

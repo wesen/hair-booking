@@ -3,7 +3,6 @@
 // API: stylistApi.getDashboard() → StylistDashboardDto
 
 import { color, font } from "../../../fringe-ui/tokens";
-import { StylistShell } from "../../../fringe-ui/layout/StylistShell";
 import { Eyebrow } from "../../../fringe-ui/primitives/Eyebrow";
 import { Chip } from "../../../fringe-ui/primitives/Chip";
 import { Card } from "../../../fringe-ui/primitives/Card";
@@ -12,9 +11,6 @@ import type { StylistDashboardDto } from "../../../stylist/store/api/types";
 
 interface TodayPageProps {
   dashboard?: StylistDashboardDto | null;
-  activeTab: string;
-  onTabChange: (tab: string) => void;
-  accentColor?: string;
 }
 
 const TAG_STYLES: Record<string, { bg: string; fg: string }> = {
@@ -42,17 +38,17 @@ function TagChip({ label }: { label: string }) {
   );
 }
 
-export function TodayPage({ dashboard, activeTab, onTabChange, accentColor = "#e8573c" }: TodayPageProps) {
+export function TodayPage({ dashboard }: TodayPageProps) {
   const schedule = dashboard?.today_schedule ?? [];
   const stats = dashboard?.intakes;
 
   const upNext = schedule[1]; // Mia Chen at 10:30
 
   return (
-    <StylistShell activeTab={activeTab} onTabChange={onTabChange} accentColor={accentColor}>
+    <div style={{ minHeight: "100vh", background: "#faf8f5" }}>
       {/* Top bar */}
       <div style={{ padding: "14px 22px 8px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <Wordmark size={16} />
+        <div style={{ fontFamily: "var(--fringe-font-block,\"Anton\")", fontSize: 16, letterSpacing: 4, textTransform: "uppercase" as const, color: "var(--fringe-color-plum,#6b3a4a)" }}>✦ Fringe ✦</div>
         <div style={{
           width: 32,
           height: 32,
@@ -100,7 +96,7 @@ export function TodayPage({ dashboard, activeTab, onTabChange, accentColor = "#e
             { k: "EST · $", v: "$1,290" },
           ].map((s) => (
             <div key={s.k} style={{ padding: "12px 14px", background: color.cream }}>
-              <Eyebrow color={accentColor} style={{ fontSize: 9 }}>{s.k}</Eyebrow>
+              <Eyebrow color="#e8573c" style={{ fontSize: 9 }}>{s.k}</Eyebrow>
               <div style={{ fontFamily: font.block, fontSize: 22, marginTop: 4 }}>{s.v}</div>
             </div>
           ))}
@@ -112,7 +108,7 @@ export function TodayPage({ dashboard, activeTab, onTabChange, accentColor = "#e
         <div style={{
           margin: "0 22px 22px",
           padding: "16px 18px",
-          background: accentColor,
+          background: "#e8573c",
           color: color.paper,
         }}>
           <Eyebrow color="rgba(255,255,255,0.8)" style={{ fontSize: 9 }}>UP NEXT · IN 12 MIN</Eyebrow>
@@ -181,7 +177,7 @@ export function TodayPage({ dashboard, activeTab, onTabChange, accentColor = "#e
                 {appt.service_name}
               </div>
             </div>
-            <div style={{ fontFamily: font.block, fontSize: 16, color: accentColor }}>›</div>
+            <div style={{ fontFamily: font.block, fontSize: 16, color: "#e8573c" }}>›</div>
           </div>
         ))}
       </div>
@@ -193,7 +189,7 @@ export function TodayPage({ dashboard, activeTab, onTabChange, accentColor = "#e
           </div>
         </Card>
       </div>
-    </StylistShell>
+    </div>
   );
 }
 

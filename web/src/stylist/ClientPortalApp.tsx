@@ -3,10 +3,10 @@
 
 import { useAppSelector, useAppDispatch } from "./store";
 import { setPortalTab, goToProfile } from "./store/portalSlice";
-import { SignInPage } from "./pages/SignInPage";
-import { useSessionBootstrap } from "./store/api";
+import { useGetMyAppointmentsQuery, useSessionBootstrap } from "./store/api";
 import { getInitials } from "./utils/avatar";
 import { LandingPage, HistoryPage } from "../fringe/pages/client-portal";
+import { AuthGatePage } from "../fringe/pages/shared";
 import { color } from "../fringe-ui/tokens";
 
 interface ClientPortalAppProps {
@@ -61,31 +61,32 @@ export function ClientPortalApp({ showNonMvpFeatures = true }: ClientPortalAppPr
   const activeTab = useAppSelector(s => s.portal.activeTab);
   const session = useSessionBootstrap();
 
+  const { data: upcomingData } = useGetMyAppointmentsQuery(
+    { status: "upcoming", limit: 1 },
+    { skip: !session.isAuthenticated },
+  );
+  const { data: historyData } = useGetMyAppointmentsQuery(
+    { status: "past", limit: 20 },
+    { skip: !session.isAuthenticated },
+  );
+
   if (session.isLoading) return <LoadingState />;
   if (session.hasError) return <ErrorState message={session.errorMessage ?? "Unknown error"} />;
-  if (!session.isAuthenticated) return <SignInPage context="portal" />;
+  if (!session.isAuthenticated) return <AuthGatePage context="portal" />;
 
   const clientName = session.client?.name ?? "Client";
   const initials   = getInitials(clientName);
-
-  const upcoming = {
-    id: "upcoming_001",
-    client_id: "client_001",
-    service_id: "svc_001",
-    date: "2026-06-19",
-    start_time: "10:30",
-    duration_min_snapshot: 195,
-    status: "confirmed",
-    service_name: "Full highlights + cut",
-    service_category: "Color",
-    price_low: 280,
-    price_high: 380,
-    date_label: "Thursday, Jun 19",
-    duration_label: "3h 15m",
-    stylist_name: "Nadia Rivera",
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  };
+  const upcoming = upcomingData?.appointments[0] ?? null;
+  const historyAppointments = historyData?.appointments ?? [];
+  const lastAppointment = historyAppointments[0];
+  const lastService = lastAppointment
+    ? {
+        service: lastAppointment.service_name,
+        stylist: "Fringe team",
+        price: lastAppointment.price_low,
+        date: lastAppointment.date_label,
+      }
+    : undefined;
 
   return (
     <div data-widget="stylist" data-part="root" style={{ background: color.paper, minHeight: "100vh" }}>
@@ -120,12 +121,7 @@ export function ClientPortalApp({ showNonMvpFeatures = true }: ClientPortalAppPr
         <LandingPage
           clientName={clientName}
           upcoming={upcoming}
-          lastService={{
-            service: "Partial highlights + cut",
-            stylist: "Nadia Rivera",
-            price: 260,
-            date: "3 months ago",
-          }}
+          lastService={lastService}
           activeTab={activeTab}
           onTabChange={(tab) => dispatch(setPortalTab(tab as "home" | "appointments" | "photos" | "rewards"))}
           onViewUpcoming={() => dispatch(setPortalTab("appointments"))}
@@ -137,7 +133,7 @@ export function ClientPortalApp({ showNonMvpFeatures = true }: ClientPortalAppPr
 
       {screen === "appointments" && (
         <HistoryPage
-          appointments={[]}
+          appointments={historyAppointments}
           activeTab={activeTab}
           onTabChange={(tab) => dispatch(setPortalTab(tab as "home" | "appointments" | "photos" | "rewards"))}
           onRebook={(id: string) => console.log("Rebook:", id)}

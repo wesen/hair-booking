@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { SignInPage } from "./pages/SignInPage";
+import { AuthGatePage } from "../fringe/pages/shared";
 import { useGetStylistMeQuery, useSessionBootstrap } from "./store/api";
 import { buildAuthPath, buildRuntimeURL } from "./utils/authNavigation";
 import { StylistWorkspace } from "./StylistWorkspace";
@@ -63,11 +63,7 @@ export function StylistRuntimeApp({ unstyled, themeVars }: StylistRuntimeAppProp
   }
 
   if (!session.isAuthenticated) {
-    return (
-      <div data-widget={unstyled ? undefined : "stylist"} data-part="root" style={rootStyle}>
-        <SignInPage context="stylist" />
-      </div>
-    );
+    return <AuthGatePage context="stylist" style={rootStyle} />;
   }
 
   if (stylistAccess.isLoading) {

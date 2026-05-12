@@ -1,14 +1,15 @@
-// StylistApp — Fringe stylist dashboard (Phase 3 cutover)
-// Uses uiSlice.tab state → renders Today/Clients/You Fringe pages via RTK Query
+// StylistApp — Fringe stylist dashboard (Phase 3)
+// uiSlice.tab → Today / Clients sections
+// Owns StylistShell + Fringe TabBar. Individual pages are plain content.
 
 import { useEffect } from "react";
 import { useAppSelector, useAppDispatch } from "./store";
 import { setTab, clearToast } from "./store/uiSlice";
 import { setStep } from "./store/bookingSlice";
 import { selectClient } from "./store/clientsSlice";
-import { TabBar } from "./components/TabBar";
-import { Toast } from "./components/Toast";
-import { TodayPage, ClientsPage, YouPage } from "../fringe/pages/stylist";
+import { StylistShell } from "../fringe-ui/layout/StylistShell";
+import { TodayPage, ClientsPage } from "../fringe/pages/stylist";
+import { color, font } from "../fringe-ui/tokens";
 import {
   useGetStylistDashboardQuery,
   useGetStylistClientsQuery,
@@ -30,8 +31,8 @@ export function StylistApp({ showNonMvpFeatures = true }: StylistAppProps) {
   const toast = useAppSelector(s => s.ui.toast);
 
   const { data: dashboard } = useGetStylistDashboardQuery();
-  const { data: clients }   = useGetStylistClientsQuery();
-  const { data: me }        = useGetStylistMeQuery();
+  const { data: clients     } = useGetStylistClientsQuery();
+  const { data: me          } = useGetStylistMeQuery();
 
   useEffect(() => {
     if (toast) {
@@ -40,60 +41,66 @@ export function StylistApp({ showNonMvpFeatures = true }: StylistAppProps) {
     }
   }, [toast, dispatch]);
 
-  const handleTabChange = (newTab: Tab) => {
-    dispatch(setTab(newTab));
+  const handleTabChange = (newTab: string) => {
+    dispatch(setTab(newTab as Tab));
     dispatch(selectClient(null));
     dispatch(setStep(0));
   };
 
   return (
     <div data-widget="stylist" data-part="root">
-      {toast && <Toast message={toast} />}
-
-      {tab === "home" && (
-        <TodayPage
-          dashboard={dashboard}
-          activeTab={tab}
-          onTabChange={handleTabChange as (tab: string) => void}
-          accentColor={ACCENT_COLOR}
-        />
-      )}
-
-      {tab === "clients" && (
-        <ClientsPage
-          clients={(clients ?? { clients: [] }).clients}
-          activeTab={tab}
-          onTabChange={handleTabChange as (tab: string) => void}
-          accentColor={ACCENT_COLOR}
-          onSelectClient={(id: string) => {
-            // selectClient expects number; skip since TodayPage fetches via RTK;
-            dispatch(setTab("home"));
+      {toast && (
+        <div
+          style={{
+            position: "fixed",
+            top: 18,
+            left: "50%",
+            transform: "translateX(-50%)",
+            zIndex: 1000,
+            background: color.plum,
+            color: color.paper,
+            padding: "12px 16px",
+            fontFamily: font.block,
+            fontSize: 14,
+            letterSpacing: 1.1,
+            textTransform: "uppercase",
+            boxShadow: "0 12px 30px rgba(17,17,17,0.18)",
           }}
-        />
-      )}
-
-      {/* Pending: "you" tab not yet in uiSlice.tab */}
-      {tab === "schedule" && (
-        <div style={{ padding: 40, color: "var(--color-text-muted)", fontFamily: "var(--font-sans)" }}>
-          Schedule — Fringe port pending
-        </div>
-      )}
-      {tab === "loyalty" && showNonMvpFeatures && (
-        <div style={{ padding: 40, color: "var(--color-text-muted)", fontFamily: "var(--font-sans)" }}>
-          Loyalty — Fringe port pending
-        </div>
-      )}
-      {tab === "book" && (
-        <div style={{ padding: 40, color: "var(--color-text-muted)", fontFamily: "var(--font-sans)" }}>
-          Book — Fringe port pending
+        >
+          {toast}
         </div>
       )}
 
-      <TabBar
-        activeTab={tab}
-        onTabChange={handleTabChange as (tab: string) => void}
-        showLoyalty={showNonMvpFeatures}
-      />
+      <StylistShell activeTab={tab} onTabChange={handleTabChange} accentColor={ACCENT_COLOR}>
+        {tab === "home" && (
+          <TodayPage dashboard={dashboard} />
+        )}
+        {tab === "clients" && (
+          <ClientsPage
+            clients={(clients ?? { clients: [] }).clients}
+            onSelectClient={(id) => {
+              // selectClient removed — TodayPage fetches via RTK Query
+              dispatch(setTab("home"));
+            }}
+          />
+        )}
+        {/* "you" tab not yet in uiSlice.tab */}
+        {tab === "schedule" && (
+          <div style={{ padding: 40, color: "var(--color-text-muted)", fontFamily: "var(--font-sans)" }}>
+            Schedule — Fringe port pending
+          </div>
+        )}
+        {tab === "loyalty" && showNonMvpFeatures && (
+          <div style={{ padding: 40, color: "var(--color-text-muted)", fontFamily: "var(--font-sans)" }}>
+            Loyalty — Fringe port pending
+          </div>
+        )}
+        {tab === "book" && (
+          <div style={{ padding: 40, color: "var(--color-text-muted)", fontFamily: "var(--font-sans)" }}>
+            Book — Fringe port pending
+          </div>
+        )}
+      </StylistShell>
     </div>
   );
 }
