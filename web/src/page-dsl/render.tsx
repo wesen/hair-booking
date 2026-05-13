@@ -1,5 +1,5 @@
 import type { CSSProperties, Key, ReactNode } from "react";
-import type { DslNode, DslPage, DslRenderContext, JsonObject } from "./schema";
+import type { DslActionRef, DslNode, DslPage, DslRenderContext, JsonObject, JsonValue } from "./schema";
 import { IntakeShell } from "../organisms/IntakeShell/IntakeShell";
 import { Eyebrow } from "../atoms/Eyebrow/Eyebrow";
 import { Button } from "../atoms/Button/Button";
@@ -58,6 +58,45 @@ function action(ctx: DslRenderContext | undefined, props: JsonObject | undefined
   };
 }
 
+function actionRef(props: JsonObject | undefined, eventName: string): DslActionRef | undefined {
+  const actions = props?.actions;
+  if (!actions || typeof actions !== "object" || Array.isArray(actions)) return undefined;
+  const ref = (actions as Record<string, unknown>)[eventName];
+  if (!ref || typeof ref !== "object" || Array.isArray(ref)) return undefined;
+  const id = (ref as Record<string, unknown>).id;
+  const event = (ref as Record<string, unknown>).event;
+  if (typeof id !== "string") return undefined;
+  return { id, event: typeof event === "string" ? event : eventName };
+}
+
+function dispatchAction(
+  ctx: DslRenderContext | undefined,
+  node: DslNode,
+  props: JsonObject | undefined,
+  eventName: string,
+  localKey: string,
+  value?: unknown,
+  meta?: unknown,
+) {
+  const ref = actionRef(props, eventName);
+  if (ref && ctx?.backendDispatch) {
+    void ctx.backendDispatch({
+      nodeId: node.meta?.id || "",
+      nodeKind: node.kind,
+      actionId: ref.id,
+      event: ref.event,
+      value: value as JsonValue,
+      meta,
+    });
+    return;
+  }
+  if (ref && !ctx?.backendDispatch) {
+    console.log(`DSL backend action: ${ref.id}`, { node, eventName, value, meta });
+    return;
+  }
+  action(ctx, props, localKey, node)?.(value, meta);
+}
+
 function jsonArray<T = unknown>(props: JsonObject | undefined, key: string): T[] {
   const value = props?.[key];
   return Array.isArray(value) ? value as T[] : [];
@@ -66,6 +105,29 @@ function jsonArray<T = unknown>(props: JsonObject | undefined, key: string): T[]
 function nullableStr(props: JsonObject | undefined, key: string): string | null {
   const value = props?.[key];
   return typeof value === "string" ? value : null;
+}
+
+function dispatchShellAction(
+  ctx: DslRenderContext | undefined,
+  props: JsonObject | undefined,
+  eventName: string,
+  localKey: string,
+) {
+  const ref = actionRef(props, eventName);
+  if (ref && ctx?.backendDispatch) {
+    void ctx.backendDispatch({
+      nodeId: `shell.${eventName}`,
+      nodeKind: "intakeShell",
+      actionId: ref.id,
+      event: ref.event,
+    });
+    return;
+  }
+  if (ref && !ctx?.backendDispatch) {
+    console.log(`DSL backend shell action: ${ref.id}`, { eventName });
+    return;
+  }
+  action(ctx, props, localKey)?.();
 }
 
 function dataAttrs(node: DslNode) {
@@ -108,11 +170,11 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
     case "eyebrow":
       return <Eyebrow key={key} {...common} color={str(props, "color", undefined as unknown as string)} style={style(props)}>{str(props, "children")}</Eyebrow>;
     case "button":
-      return <Button key={key} {...common} variant={str(props, "variant", "primary") as any} size={str(props, "size", "md") as any} onClick={() => action(ctx, props, "action", node)?.()} style={style(props)}>{str(props, "children")}</Button>;
+      return <Button key={key} {...common} variant={str(props, "variant", "primary") as any} size={str(props, "size", "md") as any} onClick={() => dispatchAction(ctx, node, props, "click", "action")} style={style(props)}>{str(props, "children")}</Button>;
     case "chip":
-      return <Chip key={key} {...common} value={str(props, "value", str(props, "children"))} selected={bool(props, "selected")} onSelectedChange={(selected, meta) => action(ctx, props, "action", node)?.(selected, meta)} shape={str(props, "shape", "pill") as any} style={style(props)}>{str(props, "children")}</Chip>;
+      return <Chip key={key} {...common} value={str(props, "value", str(props, "children"))} selected={bool(props, "selected")} onSelectedChange={(selected, meta) => dispatchAction(ctx, node, props, "change", "action", selected, meta)} shape={str(props, "shape", "pill") as any} style={style(props)}>{str(props, "children")}</Chip>;
     case "chipGroup":
-      return <ChipGroup key={key} {...common} options={jsonArray(props, "options") as any} value={jsonArray(props, "value") as string[]} selectionMode={str(props, "selectionMode", "multiple") as any} label={str(props, "label", undefined as unknown as string)} helperText={str(props, "helperText", undefined as unknown as string)} onChange={(value, meta) => action(ctx, props, "action", node)?.(value, meta)} style={style(props)} />;
+      return <ChipGroup key={key} {...common} options={jsonArray(props, "options") as any} value={jsonArray(props, "value") as string[]} selectionMode={str(props, "selectionMode", "multiple") as any} label={str(props, "label", undefined as unknown as string)} helperText={str(props, "helperText", undefined as unknown as string)} onChange={(value, meta) => dispatchAction(ctx, node, props, "change", "action", value, meta)} style={style(props)} />;
     case "note":
       return <Note key={key} {...common} tone={str(props, "tone", "info") as any} style={style(props)}>{str(props, "children")}</Note>;
     case "card":
@@ -122,37 +184,37 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
     case "progress":
       return <Progress key={key} {...common} value={num(props, "value")} max={num(props, "max", 100)} color={str(props, "color", undefined as unknown as string)} style={style(props)} />;
     case "ratingBar":
-      return <RatingBar key={key} {...common} value={num(props, "value")} max={num(props, "max", 5)} label={str(props, "label", undefined as unknown as string)} color={str(props, "color", undefined as unknown as string)} interactive={bool(props, "interactive")} onChange={(value, meta) => action(ctx, props, "action", node)?.(value, meta)} style={style(props)} />;
+      return <RatingBar key={key} {...common} value={num(props, "value")} max={num(props, "max", 5)} label={str(props, "label", undefined as unknown as string)} color={str(props, "color", undefined as unknown as string)} interactive={bool(props, "interactive")} onChange={(value, meta) => dispatchAction(ctx, node, props, "change", "action", value, meta)} style={style(props)} />;
     case "segmented":
-      return <Segmented key={key} {...common} options={jsonArray(props, "options") as any} value={str(props, "value")} onChange={(value, meta) => action(ctx, props, "action", node)?.(value, meta)} style={style(props)} />;
+      return <Segmented key={key} {...common} options={jsonArray(props, "options") as any} value={str(props, "value")} onChange={(value, meta) => dispatchAction(ctx, node, props, "change", "action", value, meta)} style={style(props)} />;
     case "serviceOption":
-      return <ServiceOption key={key} {...common} value={str(props, "value", str(props, "name"))} name={str(props, "name")} description={str(props, "description")} rate={str(props, "rate", undefined as unknown as string)} selected={bool(props, "selected")} disabled={bool(props, "disabled")} onSelect={(value, meta) => action(ctx, props, "action", node)?.(value, meta)} style={style(props)} />;
+      return <ServiceOption key={key} {...common} value={str(props, "value", str(props, "name"))} name={str(props, "name")} description={str(props, "description")} rate={str(props, "rate", undefined as unknown as string)} selected={bool(props, "selected")} disabled={bool(props, "disabled")} onSelect={(value, meta) => dispatchAction(ctx, node, props, "change", "action", value, meta)} style={style(props)} />;
     case "serviceOptionGroup":
-      return <ServiceOptionGroup key={key} {...common} options={jsonArray(props, "options") as any} value={nullableStr(props, "value")} onChange={(value, meta) => action(ctx, props, "action", node)?.(value, meta)} style={style(props)} />;
+      return <ServiceOptionGroup key={key} {...common} options={jsonArray(props, "options") as any} value={nullableStr(props, "value")} onChange={(value, meta) => dispatchAction(ctx, node, props, "change", "action", value, meta)} style={style(props)} />;
     case "budgetOption":
-      return <BudgetOption key={key} {...common} value={str(props, "value", str(props, "label"))} label={str(props, "label")} description={str(props, "description")} selected={bool(props, "selected")} disabled={bool(props, "disabled")} onSelect={(value, meta) => action(ctx, props, "action", node)?.(value, meta)} style={style(props)} />;
+      return <BudgetOption key={key} {...common} value={str(props, "value", str(props, "label"))} label={str(props, "label")} description={str(props, "description")} selected={bool(props, "selected")} disabled={bool(props, "disabled")} onSelect={(value, meta) => dispatchAction(ctx, node, props, "change", "action", value, meta)} style={style(props)} />;
     case "budgetOptionGroup":
-      return <BudgetOptionGroup key={key} {...common} options={jsonArray(props, "options") as any} value={nullableStr(props, "value")} columns={num(props, "columns", 1)} onChange={(value, meta) => action(ctx, props, "action", node)?.(value, meta)} style={style(props)} />;
+      return <BudgetOptionGroup key={key} {...common} options={jsonArray(props, "options") as any} value={nullableStr(props, "value")} columns={num(props, "columns", 1)} onChange={(value, meta) => dispatchAction(ctx, node, props, "change", "action", value, meta)} style={style(props)} />;
     case "timeSlot":
-      return <TimeSlot key={key} {...common} value={str(props, "value", str(props, "label"))} label={str(props, "label")} selected={bool(props, "selected")} disabled={bool(props, "disabled")} onSelect={(value, meta) => action(ctx, props, "action", node)?.(value, meta)} style={style(props)} />;
+      return <TimeSlot key={key} {...common} value={str(props, "value", str(props, "label"))} label={str(props, "label")} selected={bool(props, "selected")} disabled={bool(props, "disabled")} onSelect={(value, meta) => dispatchAction(ctx, node, props, "change", "action", value, meta)} style={style(props)} />;
     case "timeSlotGroup":
-      return <TimeSlotGroup key={key} {...common} options={jsonArray(props, "options") as any} value={nullableStr(props, "value")} columns={num(props, "columns", 4)} onChange={(value, meta) => action(ctx, props, "action", node)?.(value, meta)} style={style(props)} />;
+      return <TimeSlotGroup key={key} {...common} options={jsonArray(props, "options") as any} value={nullableStr(props, "value")} columns={num(props, "columns", 4)} onChange={(value, meta) => dispatchAction(ctx, node, props, "change", "action", value, meta)} style={style(props)} />;
     case "colorLevelBar":
       return <ColorLevelBar key={key} {...common} current={num(props, "current", 7)} target={num(props, "target", undefined as unknown as number)} style={style(props)} />;
     case "lengthSilhouette":
-      return <LengthSilhouette key={key} {...common} value={str(props, "value", str(props, "label"))} label={str(props, "label")} selected={bool(props, "selected")} disabled={bool(props, "disabled")} onSelect={(value, meta) => action(ctx, props, "action", node)?.(value, meta)} style={style(props)} />;
+      return <LengthSilhouette key={key} {...common} value={str(props, "value", str(props, "label"))} label={str(props, "label")} selected={bool(props, "selected")} disabled={bool(props, "disabled")} onSelect={(value, meta) => dispatchAction(ctx, node, props, "change", "action", value, meta)} style={style(props)} />;
     case "photoTile":
-      return <PhotoTile key={key} {...common} value={str(props, "value", str(props, "label"))} label={str(props, "label")} filled={bool(props, "filled")} disabled={bool(props, "disabled")} onUpload={(value, meta) => action(ctx, props, "onUpload", node)?.(value, meta)} onRemove={(value, meta) => action(ctx, props, "onRemove", node)?.(value, meta)} style={style(props)} />;
+      return <PhotoTile key={key} {...common} value={str(props, "value", str(props, "label"))} label={str(props, "label")} filled={bool(props, "filled")} disabled={bool(props, "disabled")} onUpload={(value, meta) => dispatchAction(ctx, node, props, "upload", "onUpload", value, meta)} onRemove={(value, meta) => dispatchAction(ctx, node, props, "remove", "onRemove", value, meta)} style={style(props)} />;
     case "summaryRow":
-      return <SummaryRow key={key} {...common} label={str(props, "label")} value={str(props, "value")} onEdit={() => action(ctx, props, "onEdit", node)?.()} />;
+      return <SummaryRow key={key} {...common} label={str(props, "label")} value={str(props, "value")} onEdit={() => dispatchAction(ctx, node, props, "edit", "onEdit")} />;
     case "stylistCard":
       return <StylistCard key={key} {...common} name={str(props, "name")} role={str(props, "role")} rate={str(props, "rate", undefined as unknown as string)} available={str(props, "available", undefined as unknown as string)} style={style(props)} />;
     case "masthead":
       return <Masthead key={key} {...common} title={str(props, "title")} eyebrow={str(props, "eyebrow", undefined as unknown as string)} accent={str(props, "accent", undefined as unknown as string)} right={str(props, "right", undefined as unknown as string)} compact={bool(props, "compact")} />;
     case "dayCell":
-      return <DayCell key={key} {...common} value={str(props, "value", str(props, "day"))} day={str(props, "day")} selected={bool(props, "selected")} disabled={bool(props, "disabled")} dot={bool(props, "dot")} onSelect={(value, meta) => action(ctx, props, "action", node)?.(value, meta)} />;
+      return <DayCell key={key} {...common} value={str(props, "value", str(props, "day"))} day={str(props, "day")} selected={bool(props, "selected")} disabled={bool(props, "disabled")} dot={bool(props, "dot")} onSelect={(value, meta) => dispatchAction(ctx, node, props, "change", "action", value, meta)} />;
     case "dayPickerGrid":
-      return <DayPickerGrid key={key} {...common} days={jsonArray(props, "days") as any} value={nullableStr(props, "value")} columns={num(props, "columns", 7)} onChange={(value, meta) => action(ctx, props, "action", node)?.(value, meta)} style={style(props)} />;
+      return <DayPickerGrid key={key} {...common} days={jsonArray(props, "days") as any} value={nullableStr(props, "value")} columns={num(props, "columns", 7)} onChange={(value, meta) => dispatchAction(ctx, node, props, "change", "action", value, meta)} style={style(props)} />;
     default:
       return <pre key={key} {...common}>Unsupported DSL node: {(node as DslNode).kind}</pre>;
   }
@@ -170,9 +232,9 @@ export function DslPageRenderer({ page, context }: { page: DslPage; context?: Ds
         title={str(props, "title", page.title)}
         titleSize={num(props, "titleSize", 40)}
         nextLabel={str(props, "nextLabel", "Keep going →")}
-        onNext={() => action(context, props, "onNext")?.()}
-        onBack={() => action(context, props, "onBack")?.()}
-        onSkip={() => action(context, props, "onSkip")?.()}
+        onNext={() => dispatchShellAction(context, props, "next", "onNext")}
+        onBack={() => dispatchShellAction(context, props, "back", "onBack")}
+        onSkip={() => dispatchShellAction(context, props, "skip", "onSkip")}
       >
         {content}
       </IntakeShell>

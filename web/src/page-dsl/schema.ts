@@ -66,6 +66,11 @@ export interface DslPage {
   };
 }
 
+export interface DslActionRef {
+  id: string;
+  event: string;
+}
+
 export interface DslActionPayload {
   node: DslNode;
   action: string;
@@ -73,11 +78,22 @@ export interface DslActionPayload {
   meta?: unknown;
 }
 
+export interface DslBackendEvent {
+  nodeId: string;
+  nodeKind: DslNodeKind | string;
+  actionId: string;
+  event: string;
+  value?: JsonValue;
+  meta?: unknown;
+}
+
 export type DslAction = (payload?: DslActionPayload) => void;
 export type DslActionMap = Record<string, DslAction>;
+export type DslBackendDispatch = (event: DslBackendEvent) => void | Promise<void>;
 
 export interface DslRenderContext {
   actions?: DslActionMap;
+  backendDispatch?: DslBackendDispatch;
   overrides?: Record<string, ReactNode>;
 }
 
