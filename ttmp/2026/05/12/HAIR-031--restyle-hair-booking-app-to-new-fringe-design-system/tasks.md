@@ -43,8 +43,8 @@
 - [x] Add desktop Storybook stories
 
 ### Phase 6: Visual tuning with css-visual-diff
-- [ ] Run prototype baseline catalog
-- [ ] Compare each screen bottom-up (atoms → molecules → organisms)
+- [x] Run prototype baseline catalog
+- [x] Compare each screen bottom-up (atoms → molecules → organisms)
 - [ ] Tune CSS/tokens until screens match within policy bands
 - [ ] Document accepted differences
 

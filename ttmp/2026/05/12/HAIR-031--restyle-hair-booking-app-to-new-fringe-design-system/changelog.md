@@ -73,3 +73,15 @@ Step 19: Built css-visual-diff comparison pipeline (spec + verb + review site). 
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/design-galley/visual-diff/userland/verbs/fringe-review.js — Review verb with from-spec + rebuildSummary
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/organisms/IntakeShell/IntakeShell.tsx — Full mobile chrome (StatusBar
 
+
+## 2026-05-12
+
+Step 20: Aligned comparison target to Storybook phone frame (StoryPhoneFrame), removed notch, fixed fixed-frame height clipping, and rebuilt ConfirmPage hero/footer. Latest sweep: all 9 pages tune-required; no major-mismatch remains. Confirm reduced 39.25% → 10.09%. Review site updated at :18098. (commit 933a6cb)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/design-galley/visual-diff/userland/specs/fringe-intake.yaml — Spec now compares prototype frame to StoryPhoneFrame
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/.storybook/preview.tsx — StoryPhoneFrame decorator used as right-side visual diff selector
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/organisms/ConfirmPage/ConfirmPage.tsx — Confirm page tuned against prototype hero/footer layout
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/organisms/IntakeShell/IntakeShell.tsx — IntakeShell fixed-height phone behavior + prototype CTA labels
+

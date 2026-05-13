@@ -1418,3 +1418,84 @@ PINOCCHIO_PROFILE=gpt-5-low pinocchio code professional --non-interactive \
   --images /tmp/fringe-review-smoke/service/artifacts/screen/left_region.png,/tmp/fringe-review-smoke/service/artifacts/screen/right_region.png \
   "Compare left (prototype) vs right (React). What needs fixing?"
 ```
+
+---
+
+## Step 20: Align phone-frame comparisons and tune ConfirmPage
+
+Aligned the visual diff comparison to compare the full prototype phone frame against the full Storybook phone frame instead of comparing the prototype frame to the inner `IntakeShell`. This fixed a systematic bounds delta (`x +8`, `y +16`, `width -16`) that made every page look worse than it was. Then tuned the confirm page, which was the only remaining `major-mismatch`.
+
+### Prompt Context
+
+**User prompt (verbatim):** (see Step 19)
+
+**Assistant interpretation:** Continue the visual diff loop: inspect the worst mismatches, use VLM feedback, make targeted layout fixes, re-run the sweep, and keep the review site updated.
+
+**Inferred user intent:** Convert the visual comparison tooling into a useful iterative review workflow where each sweep produces actionable, browsable review data.
+
+**Commit (code):** 933a6cb — "HAIR-031 Step 20: Align phone-frame comparisons and tune confirm page"
+
+### What I did
+
+1. Added `data-component="StoryPhoneFrame"` to the Storybook phone-frame decorator and changed the visual diff spec to compare against `[data-component="StoryPhoneFrame"]` instead of `[data-component="IntakeShell"]`.
+2. Removed the Dynamic Island notch from the Storybook frame because the current prototype screenshots do not include one.
+3. Increased the comparison viewport to 500×920 so both phone frames are fully capturable.
+4. Changed `IntakeShell` and `ConfirmPage` roots from `minHeight: 100vh` to `height: 100%`; otherwise the fixed phone frame clipped footers below the visible area.
+5. Tuned `IntakeShell` CTA to match the prototype: always render `Skip` + `Keep going`, square buttons, black outline secondary, plum primary, and 30px footer side padding.
+6. Rebuilt `ConfirmPage` as a custom page layout matching the prototype: peach hero card, confirmation pill, summary rows, green alert, and two-button footer (`Add to calendar` + `Done`).
+7. Re-ran the full sweep and restarted the review site at http://127.0.0.1:18098.
+
+### Why
+
+The previous sweep still had a systematic comparison artifact: the right selector targeted the inner implementation, not the same visual region as the prototype. Once the selector targeted the Storybook phone frame, bounds deltas became zero and the scores became meaningful.
+
+### What worked
+
+- Bounds deltas are now zero for every page.
+- The sweep improved from `1 major-mismatch + 8 tune-required` to `9 tune-required`.
+- ConfirmPage improved from 39.25% changed to 10.09% changed.
+- The review site now compares like-for-like: phone frame vs phone frame.
+
+### What didn't work
+
+- The first VLM follow-up said the confirm footer was missing. It was implemented, but clipped below the fixed phone frame due to `minHeight: 100vh`; changing roots to `height: 100%` fixed it.
+
+### What I learned
+
+- When a Storybook decorator creates a frame around the story, the visual diff selector should often target the decorator wrapper, not the component inside it.
+- `100vh` inside fixed-size Storybook frames is dangerous: it uses the iframe viewport height, not the phone frame height, and can push footers out of the clipped frame.
+
+### What was tricky to build
+
+- The phone frame uses border-box sizing and a fixed 390×844 size. Comparing the inner page to the prototype phone frame introduced a persistent 8px border offset on both sides. Adding an explicit `StoryPhoneFrame` selector made the comparison target unambiguous.
+
+### What warrants a second pair of eyes
+
+- Browse the review site and verify the phone-frame comparisons feel like the right evidence.
+- ConfirmPage is now 10.09%, barely above the review band; a small footer/alert spacing pass should likely get it under 10%.
+
+### What should be done in the future
+
+- Tune the remaining 9 `tune-required` pages toward the `review` band (≤10%).
+- Add narrower per-section comparisons (hero, cards, CTA) so fixes can be scoped more precisely.
+
+### Code review instructions
+
+```bash
+css-visual-diff serve --data-dir /tmp/fringe-review-smoke --port 18098
+open http://127.0.0.1:18098
+```
+
+Latest sweep:
+
+```text
+color       22.16% tune-required
+photos      20.52% tune-required
+service     19.40% tune-required
+length      18.92% tune-required
+estimate    17.96% tune-required
+budget      14.96% tune-required
+booking     13.17% tune-required
+history     12.63% tune-required
+confirm     10.09% tune-required
+```
