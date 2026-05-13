@@ -67,6 +67,30 @@ message InteractionEvent {
   google.protobuf.Struct meta = 9;
 }
 
+message StartFlowRequest {
+  string flow_id = 1;
+  google.protobuf.Struct input = 2;
+}
+
+message GetFlowRequest {
+  string session_id = 1;
+}
+
+message DispatchEventRequest {
+  string session_id = 1;
+  InteractionEvent event = 2;
+}
+
+// FlowState is the canonical successful response envelope for the DSL flow API.
+message FlowState {
+  string session_id = 1;
+  uint32 page_version = 2;
+  Page page = 3;
+  repeated Effect effects = 4;
+}
+
+// InteractionResult is retained as a same-shaped semantic alias for lower-level
+// runtime tests and future RPC methods that want an explicit dispatch result.
 message InteractionResult {
   string session_id = 1;
   uint32 page_version = 2;

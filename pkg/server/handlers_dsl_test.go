@@ -18,11 +18,10 @@ func TestDSLFlowEndpointsStartGetAndDispatch(t *testing.T) {
 		t.Fatalf("start status = %d body=%s", startRec.Code, startRec.Body.String())
 	}
 
-	var start map[string]any
-	if err := json.Unmarshal(startRec.Body.Bytes(), &start); err != nil {
+	var data map[string]any
+	if err := json.Unmarshal(startRec.Body.Bytes(), &data); err != nil {
 		t.Fatalf("decode start: %v", err)
 	}
-	data := start["data"].(map[string]any)
 	sessionID := data["sessionId"].(string)
 	pageVersion := int64(data["pageVersion"].(float64))
 	page := data["page"].(map[string]any)
@@ -56,11 +55,10 @@ func TestDSLFlowEndpointsStartGetAndDispatch(t *testing.T) {
 		t.Fatalf("event status = %d body=%s", eventRec.Code, eventRec.Body.String())
 	}
 
-	var eventResp map[string]any
-	if err := json.Unmarshal(eventRec.Body.Bytes(), &eventResp); err != nil {
+	var eventData map[string]any
+	if err := json.Unmarshal(eventRec.Body.Bytes(), &eventData); err != nil {
 		t.Fatalf("decode event: %v", err)
 	}
-	eventData := eventResp["data"].(map[string]any)
 	if int64(eventData["pageVersion"].(float64)) != pageVersion+1 {
 		t.Fatalf("event page version = %#v", eventData["pageVersion"])
 	}

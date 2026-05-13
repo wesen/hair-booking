@@ -552,6 +552,225 @@ func (x *InteractionEvent) GetMeta() *structpb.Struct {
 	return nil
 }
 
+type StartFlowRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FlowId        string                 `protobuf:"bytes,1,opt,name=flow_id,json=flowId,proto3" json:"flow_id,omitempty"`
+	Input         *structpb.Struct       `protobuf:"bytes,2,opt,name=input,proto3" json:"input,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartFlowRequest) Reset() {
+	*x = StartFlowRequest{}
+	mi := &file_proto_fringe_dsl_v1_dsl_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartFlowRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartFlowRequest) ProtoMessage() {}
+
+func (x *StartFlowRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_fringe_dsl_v1_dsl_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartFlowRequest.ProtoReflect.Descriptor instead.
+func (*StartFlowRequest) Descriptor() ([]byte, []int) {
+	return file_proto_fringe_dsl_v1_dsl_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *StartFlowRequest) GetFlowId() string {
+	if x != nil {
+		return x.FlowId
+	}
+	return ""
+}
+
+func (x *StartFlowRequest) GetInput() *structpb.Struct {
+	if x != nil {
+		return x.Input
+	}
+	return nil
+}
+
+type GetFlowRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetFlowRequest) Reset() {
+	*x = GetFlowRequest{}
+	mi := &file_proto_fringe_dsl_v1_dsl_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetFlowRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetFlowRequest) ProtoMessage() {}
+
+func (x *GetFlowRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_fringe_dsl_v1_dsl_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetFlowRequest.ProtoReflect.Descriptor instead.
+func (*GetFlowRequest) Descriptor() ([]byte, []int) {
+	return file_proto_fringe_dsl_v1_dsl_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *GetFlowRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+type DispatchEventRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	Event         *InteractionEvent      `protobuf:"bytes,2,opt,name=event,proto3" json:"event,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *DispatchEventRequest) Reset() {
+	*x = DispatchEventRequest{}
+	mi := &file_proto_fringe_dsl_v1_dsl_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *DispatchEventRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*DispatchEventRequest) ProtoMessage() {}
+
+func (x *DispatchEventRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_fringe_dsl_v1_dsl_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use DispatchEventRequest.ProtoReflect.Descriptor instead.
+func (*DispatchEventRequest) Descriptor() ([]byte, []int) {
+	return file_proto_fringe_dsl_v1_dsl_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *DispatchEventRequest) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *DispatchEventRequest) GetEvent() *InteractionEvent {
+	if x != nil {
+		return x.Event
+	}
+	return nil
+}
+
+// FlowState is the canonical successful response envelope for the DSL flow API.
+type FlowState struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	PageVersion   uint32                 `protobuf:"varint,2,opt,name=page_version,json=pageVersion,proto3" json:"page_version,omitempty"`
+	Page          *Page                  `protobuf:"bytes,3,opt,name=page,proto3" json:"page,omitempty"`
+	Effects       []*Effect              `protobuf:"bytes,4,rep,name=effects,proto3" json:"effects,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *FlowState) Reset() {
+	*x = FlowState{}
+	mi := &file_proto_fringe_dsl_v1_dsl_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *FlowState) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*FlowState) ProtoMessage() {}
+
+func (x *FlowState) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_fringe_dsl_v1_dsl_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use FlowState.ProtoReflect.Descriptor instead.
+func (*FlowState) Descriptor() ([]byte, []int) {
+	return file_proto_fringe_dsl_v1_dsl_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *FlowState) GetSessionId() string {
+	if x != nil {
+		return x.SessionId
+	}
+	return ""
+}
+
+func (x *FlowState) GetPageVersion() uint32 {
+	if x != nil {
+		return x.PageVersion
+	}
+	return 0
+}
+
+func (x *FlowState) GetPage() *Page {
+	if x != nil {
+		return x.Page
+	}
+	return nil
+}
+
+func (x *FlowState) GetEffects() []*Effect {
+	if x != nil {
+		return x.Effects
+	}
+	return nil
+}
+
+// InteractionResult is retained as a same-shaped semantic alias for lower-level
+// runtime tests and future RPC methods that want an explicit dispatch result.
 type InteractionResult struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
@@ -564,7 +783,7 @@ type InteractionResult struct {
 
 func (x *InteractionResult) Reset() {
 	*x = InteractionResult{}
-	mi := &file_proto_fringe_dsl_v1_dsl_proto_msgTypes[7]
+	mi := &file_proto_fringe_dsl_v1_dsl_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -576,7 +795,7 @@ func (x *InteractionResult) String() string {
 func (*InteractionResult) ProtoMessage() {}
 
 func (x *InteractionResult) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_fringe_dsl_v1_dsl_proto_msgTypes[7]
+	mi := &file_proto_fringe_dsl_v1_dsl_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -589,7 +808,7 @@ func (x *InteractionResult) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InteractionResult.ProtoReflect.Descriptor instead.
 func (*InteractionResult) Descriptor() ([]byte, []int) {
-	return file_proto_fringe_dsl_v1_dsl_proto_rawDescGZIP(), []int{7}
+	return file_proto_fringe_dsl_v1_dsl_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *InteractionResult) GetSessionId() string {
@@ -666,7 +885,23 @@ const file_proto_fringe_dsl_v1_dsl_proto_rawDesc = "" +
 	"\taction_id\x18\x06 \x01(\tR\bactionId\x12\x14\n" +
 	"\x05event\x18\a \x01(\tR\x05event\x12,\n" +
 	"\x05value\x18\b \x01(\v2\x16.google.protobuf.ValueR\x05value\x12+\n" +
-	"\x04meta\x18\t \x01(\v2\x17.google.protobuf.StructR\x04meta\"\xaf\x01\n" +
+	"\x04meta\x18\t \x01(\v2\x17.google.protobuf.StructR\x04meta\"Z\n" +
+	"\x10StartFlowRequest\x12\x17\n" +
+	"\aflow_id\x18\x01 \x01(\tR\x06flowId\x12-\n" +
+	"\x05input\x18\x02 \x01(\v2\x17.google.protobuf.StructR\x05input\"/\n" +
+	"\x0eGetFlowRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\"l\n" +
+	"\x14DispatchEventRequest\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x125\n" +
+	"\x05event\x18\x02 \x01(\v2\x1f.fringe.dsl.v1.InteractionEventR\x05event\"\xa7\x01\n" +
+	"\tFlowState\x12\x1d\n" +
+	"\n" +
+	"session_id\x18\x01 \x01(\tR\tsessionId\x12!\n" +
+	"\fpage_version\x18\x02 \x01(\rR\vpageVersion\x12'\n" +
+	"\x04page\x18\x03 \x01(\v2\x13.fringe.dsl.v1.PageR\x04page\x12/\n" +
+	"\aeffects\x18\x04 \x03(\v2\x15.fringe.dsl.v1.EffectR\aeffects\"\xaf\x01\n" +
 	"\x11InteractionResult\x12\x1d\n" +
 	"\n" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12!\n" +
@@ -686,37 +921,45 @@ func file_proto_fringe_dsl_v1_dsl_proto_rawDescGZIP() []byte {
 	return file_proto_fringe_dsl_v1_dsl_proto_rawDescData
 }
 
-var file_proto_fringe_dsl_v1_dsl_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_fringe_dsl_v1_dsl_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_proto_fringe_dsl_v1_dsl_proto_goTypes = []any{
-	(*Page)(nil),              // 0: fringe.dsl.v1.Page
-	(*Shell)(nil),             // 1: fringe.dsl.v1.Shell
-	(*Node)(nil),              // 2: fringe.dsl.v1.Node
-	(*NodeMeta)(nil),          // 3: fringe.dsl.v1.NodeMeta
-	(*ActionRef)(nil),         // 4: fringe.dsl.v1.ActionRef
-	(*Effect)(nil),            // 5: fringe.dsl.v1.Effect
-	(*InteractionEvent)(nil),  // 6: fringe.dsl.v1.InteractionEvent
-	(*InteractionResult)(nil), // 7: fringe.dsl.v1.InteractionResult
-	(*structpb.Struct)(nil),   // 8: google.protobuf.Struct
-	(*structpb.Value)(nil),    // 9: google.protobuf.Value
+	(*Page)(nil),                 // 0: fringe.dsl.v1.Page
+	(*Shell)(nil),                // 1: fringe.dsl.v1.Shell
+	(*Node)(nil),                 // 2: fringe.dsl.v1.Node
+	(*NodeMeta)(nil),             // 3: fringe.dsl.v1.NodeMeta
+	(*ActionRef)(nil),            // 4: fringe.dsl.v1.ActionRef
+	(*Effect)(nil),               // 5: fringe.dsl.v1.Effect
+	(*InteractionEvent)(nil),     // 6: fringe.dsl.v1.InteractionEvent
+	(*StartFlowRequest)(nil),     // 7: fringe.dsl.v1.StartFlowRequest
+	(*GetFlowRequest)(nil),       // 8: fringe.dsl.v1.GetFlowRequest
+	(*DispatchEventRequest)(nil), // 9: fringe.dsl.v1.DispatchEventRequest
+	(*FlowState)(nil),            // 10: fringe.dsl.v1.FlowState
+	(*InteractionResult)(nil),    // 11: fringe.dsl.v1.InteractionResult
+	(*structpb.Struct)(nil),      // 12: google.protobuf.Struct
+	(*structpb.Value)(nil),       // 13: google.protobuf.Value
 }
 var file_proto_fringe_dsl_v1_dsl_proto_depIdxs = []int32{
 	1,  // 0: fringe.dsl.v1.Page.shell:type_name -> fringe.dsl.v1.Shell
 	2,  // 1: fringe.dsl.v1.Page.nodes:type_name -> fringe.dsl.v1.Node
-	8,  // 2: fringe.dsl.v1.Page.meta:type_name -> google.protobuf.Struct
-	8,  // 3: fringe.dsl.v1.Shell.props:type_name -> google.protobuf.Struct
-	8,  // 4: fringe.dsl.v1.Node.props:type_name -> google.protobuf.Struct
+	12, // 2: fringe.dsl.v1.Page.meta:type_name -> google.protobuf.Struct
+	12, // 3: fringe.dsl.v1.Shell.props:type_name -> google.protobuf.Struct
+	12, // 4: fringe.dsl.v1.Node.props:type_name -> google.protobuf.Struct
 	2,  // 5: fringe.dsl.v1.Node.children:type_name -> fringe.dsl.v1.Node
 	3,  // 6: fringe.dsl.v1.Node.meta:type_name -> fringe.dsl.v1.NodeMeta
-	8,  // 7: fringe.dsl.v1.Effect.payload:type_name -> google.protobuf.Struct
-	9,  // 8: fringe.dsl.v1.InteractionEvent.value:type_name -> google.protobuf.Value
-	8,  // 9: fringe.dsl.v1.InteractionEvent.meta:type_name -> google.protobuf.Struct
-	0,  // 10: fringe.dsl.v1.InteractionResult.page:type_name -> fringe.dsl.v1.Page
-	5,  // 11: fringe.dsl.v1.InteractionResult.effects:type_name -> fringe.dsl.v1.Effect
-	12, // [12:12] is the sub-list for method output_type
-	12, // [12:12] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	12, // 7: fringe.dsl.v1.Effect.payload:type_name -> google.protobuf.Struct
+	13, // 8: fringe.dsl.v1.InteractionEvent.value:type_name -> google.protobuf.Value
+	12, // 9: fringe.dsl.v1.InteractionEvent.meta:type_name -> google.protobuf.Struct
+	12, // 10: fringe.dsl.v1.StartFlowRequest.input:type_name -> google.protobuf.Struct
+	6,  // 11: fringe.dsl.v1.DispatchEventRequest.event:type_name -> fringe.dsl.v1.InteractionEvent
+	0,  // 12: fringe.dsl.v1.FlowState.page:type_name -> fringe.dsl.v1.Page
+	5,  // 13: fringe.dsl.v1.FlowState.effects:type_name -> fringe.dsl.v1.Effect
+	0,  // 14: fringe.dsl.v1.InteractionResult.page:type_name -> fringe.dsl.v1.Page
+	5,  // 15: fringe.dsl.v1.InteractionResult.effects:type_name -> fringe.dsl.v1.Effect
+	16, // [16:16] is the sub-list for method output_type
+	16, // [16:16] is the sub-list for method input_type
+	16, // [16:16] is the sub-list for extension type_name
+	16, // [16:16] is the sub-list for extension extendee
+	0,  // [0:16] is the sub-list for field type_name
 }
 
 func init() { file_proto_fringe_dsl_v1_dsl_proto_init() }
@@ -730,7 +973,7 @@ func file_proto_fringe_dsl_v1_dsl_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_fringe_dsl_v1_dsl_proto_rawDesc), len(file_proto_fringe_dsl_v1_dsl_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

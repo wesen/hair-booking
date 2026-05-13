@@ -1,11 +1,14 @@
 package server
 
 import (
-	"encoding/json"
+	"io"
 	"net/http"
 	"sync"
 
+	dslv1 "github.com/go-go-golems/hair-booking/gen/proto/fringe/dsl/v1"
 	"github.com/go-go-golems/hair-booking/pkg/dslgoja"
+	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 type dslFlowStore struct {
@@ -34,20 +37,15 @@ func (s *dslFlowStore) get(id string) (*dslgoja.FlowSession, bool) {
 	return session, ok
 }
 
-type dslFlowResponse struct {
-	SessionID   string           `json:"sessionId"`
-	PageVersion int64            `json:"pageVersion"`
-	Page        dslgoja.Page     `json:"page"`
-	Effects     []dslgoja.Effect `json:"effects,omitempty"`
-}
-
-func newDSLFlowResponse(result *dslgoja.InteractionResult) dslFlowResponse {
-	return dslFlowResponse{
-		SessionID:   result.SessionID,
-		PageVersion: result.PageVersion,
-		Page:        result.Page,
-		Effects:     result.Effects,
+func writeProtoJSON(w http.ResponseWriter, status int, msg proto.Message) {
+	payload, err := protojson.MarshalOptions{EmitUnpopulated: false}.Marshal(msg)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "proto_encode_failed", err.Error())
+		return
 	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_, _ = w.Write(payload)
 }
 
 func (h *appHandler) handleDSLStartFlow(w http.ResponseWriter, r *http.Request) {
@@ -63,7 +61,12 @@ func (h *appHandler) handleDSLStartFlow(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 	h.dslFlows.put(session)
-	writeJSON(w, http.StatusOK, apiEnvelope{Data: newDSLFlowResponse(result)})
+	state, err := dslgoja.FlowStateFromResult(result)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "dsl_proto_conversion_failed", err.Error())
+		return
+	}
+	writeProtoJSON(w, http.StatusOK, state)
 }
 
 func (h *appHandler) handleDSLGetFlow(w http.ResponseWriter, r *http.Request) {
@@ -74,11 +77,12 @@ func (h *appHandler) handleDSLGetFlow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	version, page := session.Snapshot()
-	writeJSON(w, http.StatusOK, apiEnvelope{Data: dslFlowResponse{
-		SessionID:   session.ID,
-		PageVersion: version,
-		Page:        page,
-	}})
+	state, err := dslgoja.FlowStateFromSnapshot(session.ID, version, page)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "dsl_proto_conversion_failed", err.Error())
+		return
+	}
+	writeProtoJSON(w, http.StatusOK, state)
 }
 
 func (h *appHandler) handleDSLEvent(w http.ResponseWriter, r *http.Request) {
@@ -89,17 +93,27 @@ func (h *appHandler) handleDSLEvent(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var event dslgoja.InteractionEvent
-	if err := json.NewDecoder(r.Body).Decode(&event); err != nil {
-		writeAPIError(w, http.StatusBadRequest, "invalid_dsl_event", "Invalid DSL event JSON")
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid_dsl_event", "Could not read DSL event body")
 		return
 	}
-	event.SessionID = sessionID
+	var protoEvent dslv1.InteractionEvent
+	if err := protojson.Unmarshal(body, &protoEvent); err != nil {
+		writeAPIError(w, http.StatusBadRequest, "invalid_dsl_event", "Invalid DSL event protobuf JSON")
+		return
+	}
+	protoEvent.SessionId = sessionID
 
-	result, err := session.Dispatch(r.Context(), event)
+	result, err := session.Dispatch(r.Context(), dslgoja.InteractionEventFromProto(&protoEvent))
 	if err != nil {
 		writeAPIError(w, http.StatusBadRequest, "dsl_dispatch_failed", err.Error())
 		return
 	}
-	writeJSON(w, http.StatusOK, apiEnvelope{Data: newDSLFlowResponse(result)})
+	state, err := dslgoja.FlowStateFromResult(result)
+	if err != nil {
+		writeAPIError(w, http.StatusInternalServerError, "dsl_proto_conversion_failed", err.Error())
+		return
+	}
+	writeProtoJSON(w, http.StatusOK, state)
 }

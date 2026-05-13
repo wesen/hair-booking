@@ -1,3 +1,5 @@
+import { fromJson, toJson, type JsonValue as ProtoJsonValue } from "@bufbuild/protobuf";
+import { FlowStateSchema, InteractionEventSchema, type FlowState as ProtoFlowState } from "../pb/proto/fringe/dsl/v1/dsl_pb";
 import type { DslBackendEvent, DslPage } from "./schema";
 
 export interface DslFlowState {
@@ -19,8 +21,7 @@ export interface DslInteractionEvent extends DslBackendEvent {
   pageVersion: number;
 }
 
-interface ApiEnvelope<T> {
-  data?: T;
+interface ApiErrorEnvelope {
   error?: { code: string; message: string };
 }
 
@@ -36,24 +37,45 @@ export class DslApiError extends Error {
   }
 }
 
-async function readEnvelope<T>(response: Response): Promise<T> {
-  let envelope: ApiEnvelope<T>;
+async function readProtoJSON(response: Response): Promise<unknown> {
+  let payload: unknown;
   try {
-    envelope = await response.json() as ApiEnvelope<T>;
+    payload = await response.json();
   } catch (err) {
-    throw new DslApiError(`DSL response was not valid JSON: ${err instanceof Error ? err.message : String(err)}`, {
+    throw new DslApiError(`DSL response was not valid protobuf JSON: ${err instanceof Error ? err.message : String(err)}`, {
       status: response.status,
     });
   }
 
-  if (!response.ok || envelope.error) {
+  if (!response.ok) {
+    const envelope = payload as ApiErrorEnvelope;
     const message = envelope.error?.message || `DSL request failed with status ${response.status}`;
     throw new DslApiError(message, { code: envelope.error?.code, status: response.status });
   }
-  if (!envelope.data) {
-    throw new DslApiError("DSL response did not include data", { status: response.status });
+  return payload;
+}
+
+function flowStateFromProto(state: ProtoFlowState): DslFlowState {
+  if (!state.page) {
+    throw new DslApiError("DSL flow state did not include a page", { status: 200 });
   }
-  return envelope.data;
+  return {
+    sessionId: state.sessionId,
+    pageVersion: state.pageVersion,
+    page: state.page as unknown as DslPage,
+    effects: state.effects.map((effect) => ({
+      kind: effect.kind,
+      tone: effect.tone || undefined,
+      message: effect.message || undefined,
+      payload: effect.payload as Record<string, unknown> | undefined,
+    })),
+  };
+}
+
+async function readFlowState(response: Response): Promise<DslFlowState> {
+  const json = await readProtoJSON(response);
+  const state = fromJson(FlowStateSchema, json as ProtoJsonValue);
+  return flowStateFromProto(state);
 }
 
 export async function startDslFlow(flowId = "fringe.intake.v1"): Promise<DslFlowState> {
@@ -61,19 +83,20 @@ export async function startDslFlow(flowId = "fringe.intake.v1"): Promise<DslFlow
     method: "POST",
     headers: { "Content-Type": "application/json" },
   });
-  return readEnvelope<DslFlowState>(response);
+  return readFlowState(response);
 }
 
 export async function getDslFlow(sessionId: string): Promise<DslFlowState> {
   const response = await fetch(`/api/dsl/flows/${encodeURIComponent(sessionId)}`);
-  return readEnvelope<DslFlowState>(response);
+  return readFlowState(response);
 }
 
 export async function postDslEvent(sessionId: string, event: DslInteractionEvent): Promise<DslFlowState> {
+  const protoEvent = fromJson(InteractionEventSchema, { ...event, sessionId } as ProtoJsonValue);
   const response = await fetch(`/api/dsl/flows/${encodeURIComponent(sessionId)}/events`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(event),
+    body: JSON.stringify(toJson(InteractionEventSchema, protoEvent)),
   });
-  return readEnvelope<DslFlowState>(response);
+  return readFlowState(response);
 }

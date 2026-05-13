@@ -1,8 +1,40 @@
 import { describe, expect, it } from "vitest";
 import { fromJson, toJson } from "@bufbuild/protobuf";
-import { PageSchema, InteractionEventSchema } from "../pb/proto/fringe/dsl/v1/dsl_pb";
+import { FlowStateSchema, InteractionEventSchema, PageSchema } from "../pb/proto/fringe/dsl/v1/dsl_pb";
 
 describe("DSL protobuf JSON contract", () => {
+  it("decodes the central FlowState transport envelope", () => {
+    const state = fromJson(FlowStateSchema, {
+      sessionId: "flow_1",
+      pageVersion: 3,
+      page: {
+        schemaVersion: 1,
+        id: "intake-service",
+        title: "Service",
+        shell: { kind: "intake", props: { step: 1, total: 7 } },
+        nodes: [{
+          kind: "summaryRow",
+          meta: { id: "estimate-service" },
+          props: {
+            label: "Service",
+            value: "Color",
+            actions: { edit: { id: "act_edit", event: "edit" } },
+          },
+        }],
+      },
+      effects: [{ kind: "toast", tone: "info", message: "Saved" }],
+    });
+
+    expect(state.sessionId).toBe("flow_1");
+    expect(state.pageVersion).toBe(3);
+    expect(state.page?.nodes[0]?.props?.actions).toMatchObject({ edit: { id: "act_edit" } });
+    expect(toJson(FlowStateSchema, state)).toMatchObject({
+      sessionId: "flow_1",
+      page: { id: "intake-service" },
+      effects: [{ kind: "toast", tone: "info", message: "Saved" }],
+    });
+  });
+
   it("decodes page JSON with dynamic node props", () => {
     const page = fromJson(PageSchema, {
       schemaVersion: 1,

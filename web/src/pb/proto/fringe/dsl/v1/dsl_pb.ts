@@ -12,7 +12,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file proto/fringe/dsl/v1/dsl.proto.
  */
 export const file_proto_fringe_dsl_v1_dsl: GenFile = /*@__PURE__*/
-  fileDesc("Ch1wcm90by9mcmluZ2UvZHNsL3YxL2RzbC5wcm90bxINZnJpbmdlLmRzbC52MSK+AQoEUGFnZRIWCg5zY2hlbWFfdmVyc2lvbhgBIAEoDRIKCgJpZBgCIAEoCRINCgV0aXRsZRgDIAEoCRITCgtkZXNjcmlwdGlvbhgEIAEoCRIjCgVzaGVsbBgFIAEoCzIULmZyaW5nZS5kc2wudjEuU2hlbGwSIgoFbm9kZXMYBiADKAsyEy5mcmluZ2UuZHNsLnYxLk5vZGUSJQoEbWV0YRgHIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiPQoFU2hlbGwSDAoEa2luZBgBIAEoCRImCgVwcm9wcxgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiigEKBE5vZGUSDAoEa2luZBgBIAEoCRImCgVwcm9wcxgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSJQoIY2hpbGRyZW4YAyADKAsyEy5mcmluZ2UuZHNsLnYxLk5vZGUSJQoEbWV0YRgEIAEoCzIXLmZyaW5nZS5kc2wudjEuTm9kZU1ldGEicwoITm9kZU1ldGESCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIWCg5kYXRhX2NvbXBvbmVudBgDIAEoCRIUCgxkYXRhX3NlY3Rpb24YBCABKAkSEQoJZGF0YV9wYXJ0GAUgASgJEgwKBG5vdGUYBiABKAkiJgoJQWN0aW9uUmVmEgoKAmlkGAEgASgJEg0KBWV2ZW50GAIgASgJIl8KBkVmZmVjdBIMCgRraW5kGAEgASgJEgwKBHRvbmUYAiABKAkSDwoHbWVzc2FnZRgDIAEoCRIoCgdwYXlsb2FkGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCLiAQoQSW50ZXJhY3Rpb25FdmVudBIQCghldmVudF9pZBgBIAEoCRISCgpzZXNzaW9uX2lkGAIgASgJEhQKDHBhZ2VfdmVyc2lvbhgDIAEoDRIPCgdub2RlX2lkGAQgASgJEhEKCW5vZGVfa2luZBgFIAEoCRIRCglhY3Rpb25faWQYBiABKAkSDQoFZXZlbnQYByABKAkSJQoFdmFsdWUYCCABKAsyFi5nb29nbGUucHJvdG9idWYuVmFsdWUSJQoEbWV0YRgJIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiiAEKEUludGVyYWN0aW9uUmVzdWx0EhIKCnNlc3Npb25faWQYASABKAkSFAoMcGFnZV92ZXJzaW9uGAIgASgNEiEKBHBhZ2UYAyABKAsyEy5mcmluZ2UuZHNsLnYxLlBhZ2USJgoHZWZmZWN0cxgEIAMoCzIVLmZyaW5nZS5kc2wudjEuRWZmZWN0QkRaQmdpdGh1Yi5jb20vZ28tZ28tZ29sZW1zL2hhaXItYm9va2luZy9nZW4vcHJvdG8vZnJpbmdlL2RzbC92MTtkc2x2MWIGcHJvdG8z", [file_google_protobuf_struct]);
+  fileDesc("Ch1wcm90by9mcmluZ2UvZHNsL3YxL2RzbC5wcm90bxINZnJpbmdlLmRzbC52MSK+AQoEUGFnZRIWCg5zY2hlbWFfdmVyc2lvbhgBIAEoDRIKCgJpZBgCIAEoCRINCgV0aXRsZRgDIAEoCRITCgtkZXNjcmlwdGlvbhgEIAEoCRIjCgVzaGVsbBgFIAEoCzIULmZyaW5nZS5kc2wudjEuU2hlbGwSIgoFbm9kZXMYBiADKAsyEy5mcmluZ2UuZHNsLnYxLk5vZGUSJQoEbWV0YRgHIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiPQoFU2hlbGwSDAoEa2luZBgBIAEoCRImCgVwcm9wcxgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiigEKBE5vZGUSDAoEa2luZBgBIAEoCRImCgVwcm9wcxgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSJQoIY2hpbGRyZW4YAyADKAsyEy5mcmluZ2UuZHNsLnYxLk5vZGUSJQoEbWV0YRgEIAEoCzIXLmZyaW5nZS5kc2wudjEuTm9kZU1ldGEicwoITm9kZU1ldGESCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIWCg5kYXRhX2NvbXBvbmVudBgDIAEoCRIUCgxkYXRhX3NlY3Rpb24YBCABKAkSEQoJZGF0YV9wYXJ0GAUgASgJEgwKBG5vdGUYBiABKAkiJgoJQWN0aW9uUmVmEgoKAmlkGAEgASgJEg0KBWV2ZW50GAIgASgJIl8KBkVmZmVjdBIMCgRraW5kGAEgASgJEgwKBHRvbmUYAiABKAkSDwoHbWVzc2FnZRgDIAEoCRIoCgdwYXlsb2FkGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCLiAQoQSW50ZXJhY3Rpb25FdmVudBIQCghldmVudF9pZBgBIAEoCRISCgpzZXNzaW9uX2lkGAIgASgJEhQKDHBhZ2VfdmVyc2lvbhgDIAEoDRIPCgdub2RlX2lkGAQgASgJEhEKCW5vZGVfa2luZBgFIAEoCRIRCglhY3Rpb25faWQYBiABKAkSDQoFZXZlbnQYByABKAkSJQoFdmFsdWUYCCABKAsyFi5nb29nbGUucHJvdG9idWYuVmFsdWUSJQoEbWV0YRgJIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiSwoQU3RhcnRGbG93UmVxdWVzdBIPCgdmbG93X2lkGAEgASgJEiYKBWlucHV0GAIgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCIkCg5HZXRGbG93UmVxdWVzdBISCgpzZXNzaW9uX2lkGAEgASgJIloKFERpc3BhdGNoRXZlbnRSZXF1ZXN0EhIKCnNlc3Npb25faWQYASABKAkSLgoFZXZlbnQYAiABKAsyHy5mcmluZ2UuZHNsLnYxLkludGVyYWN0aW9uRXZlbnQigAEKCUZsb3dTdGF0ZRISCgpzZXNzaW9uX2lkGAEgASgJEhQKDHBhZ2VfdmVyc2lvbhgCIAEoDRIhCgRwYWdlGAMgASgLMhMuZnJpbmdlLmRzbC52MS5QYWdlEiYKB2VmZmVjdHMYBCADKAsyFS5mcmluZ2UuZHNsLnYxLkVmZmVjdCKIAQoRSW50ZXJhY3Rpb25SZXN1bHQSEgoKc2Vzc2lvbl9pZBgBIAEoCRIUCgxwYWdlX3ZlcnNpb24YAiABKA0SIQoEcGFnZRgDIAEoCzITLmZyaW5nZS5kc2wudjEuUGFnZRImCgdlZmZlY3RzGAQgAygLMhUuZnJpbmdlLmRzbC52MS5FZmZlY3RCRFpCZ2l0aHViLmNvbS9nby1nby1nb2xlbXMvaGFpci1ib29raW5nL2dlbi9wcm90by9mcmluZ2UvZHNsL3YxO2RzbHYxYgZwcm90bzM", [file_google_protobuf_struct]);
 
 /**
  * Page is the stable transport envelope for a backend-authored DSL page.
@@ -277,6 +277,104 @@ export const InteractionEventSchema: GenMessage<InteractionEvent> = /*@__PURE__*
   messageDesc(file_proto_fringe_dsl_v1_dsl, 6);
 
 /**
+ * @generated from message fringe.dsl.v1.StartFlowRequest
+ */
+export type StartFlowRequest = Message<"fringe.dsl.v1.StartFlowRequest"> & {
+  /**
+   * @generated from field: string flow_id = 1;
+   */
+  flowId: string;
+
+  /**
+   * @generated from field: google.protobuf.Struct input = 2;
+   */
+  input?: JsonObject | undefined;
+};
+
+/**
+ * Describes the message fringe.dsl.v1.StartFlowRequest.
+ * Use `create(StartFlowRequestSchema)` to create a new message.
+ */
+export const StartFlowRequestSchema: GenMessage<StartFlowRequest> = /*@__PURE__*/
+  messageDesc(file_proto_fringe_dsl_v1_dsl, 7);
+
+/**
+ * @generated from message fringe.dsl.v1.GetFlowRequest
+ */
+export type GetFlowRequest = Message<"fringe.dsl.v1.GetFlowRequest"> & {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId: string;
+};
+
+/**
+ * Describes the message fringe.dsl.v1.GetFlowRequest.
+ * Use `create(GetFlowRequestSchema)` to create a new message.
+ */
+export const GetFlowRequestSchema: GenMessage<GetFlowRequest> = /*@__PURE__*/
+  messageDesc(file_proto_fringe_dsl_v1_dsl, 8);
+
+/**
+ * @generated from message fringe.dsl.v1.DispatchEventRequest
+ */
+export type DispatchEventRequest = Message<"fringe.dsl.v1.DispatchEventRequest"> & {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId: string;
+
+  /**
+   * @generated from field: fringe.dsl.v1.InteractionEvent event = 2;
+   */
+  event?: InteractionEvent | undefined;
+};
+
+/**
+ * Describes the message fringe.dsl.v1.DispatchEventRequest.
+ * Use `create(DispatchEventRequestSchema)` to create a new message.
+ */
+export const DispatchEventRequestSchema: GenMessage<DispatchEventRequest> = /*@__PURE__*/
+  messageDesc(file_proto_fringe_dsl_v1_dsl, 9);
+
+/**
+ * FlowState is the canonical successful response envelope for the DSL flow API.
+ *
+ * @generated from message fringe.dsl.v1.FlowState
+ */
+export type FlowState = Message<"fringe.dsl.v1.FlowState"> & {
+  /**
+   * @generated from field: string session_id = 1;
+   */
+  sessionId: string;
+
+  /**
+   * @generated from field: uint32 page_version = 2;
+   */
+  pageVersion: number;
+
+  /**
+   * @generated from field: fringe.dsl.v1.Page page = 3;
+   */
+  page?: Page | undefined;
+
+  /**
+   * @generated from field: repeated fringe.dsl.v1.Effect effects = 4;
+   */
+  effects: Effect[];
+};
+
+/**
+ * Describes the message fringe.dsl.v1.FlowState.
+ * Use `create(FlowStateSchema)` to create a new message.
+ */
+export const FlowStateSchema: GenMessage<FlowState> = /*@__PURE__*/
+  messageDesc(file_proto_fringe_dsl_v1_dsl, 10);
+
+/**
+ * InteractionResult is retained as a same-shaped semantic alias for lower-level
+ * runtime tests and future RPC methods that want an explicit dispatch result.
+ *
  * @generated from message fringe.dsl.v1.InteractionResult
  */
 export type InteractionResult = Message<"fringe.dsl.v1.InteractionResult"> & {
@@ -306,5 +404,5 @@ export type InteractionResult = Message<"fringe.dsl.v1.InteractionResult"> & {
  * Use `create(InteractionResultSchema)` to create a new message.
  */
 export const InteractionResultSchema: GenMessage<InteractionResult> = /*@__PURE__*/
-  messageDesc(file_proto_fringe_dsl_v1_dsl, 7);
+  messageDesc(file_proto_fringe_dsl_v1_dsl, 11);
 
