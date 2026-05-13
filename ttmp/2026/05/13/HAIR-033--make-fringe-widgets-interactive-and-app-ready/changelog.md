@@ -299,7 +299,7 @@ Uploaded the Phase B routing/session/protobuf design note and diary bundle to re
 
 ## 2026-05-13
 
-Step 24: Added devctl setup (commit 1100ffe) for the hair-booking live DSL stack, including .devctl.yaml profiles, a protocol-v2 plugin, README, ignored runtime logs/state, and validated devctl up/status plus HTTP smoke checks.
+Step 24: Added devctl setup (commit 3b3fd4b) for the hair-booking live DSL stack, including .devctl.yaml profiles, a protocol-v2 plugin, README, ignored runtime logs/state, and validated devctl up/status plus HTTP smoke checks.
 
 ### Related Files
 

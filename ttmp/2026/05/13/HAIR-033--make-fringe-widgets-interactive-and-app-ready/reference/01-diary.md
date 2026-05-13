@@ -2309,7 +2309,7 @@ This makes the live Goja DSL route easier to run after the Phase A/Phase B work.
 
 **Inferred user intent:** Make the live app reproducible and manageable with standard devctl commands rather than ad hoc shell/tmux commands.
 
-**Commit (code):** 1100ffe — "HAIR-033 Step 24: Add devctl live DSL stack"
+**Commit (code):** 3b3fd4b — "HAIR-033 Step 24: Add devctl live DSL stack"
 
 ### What I did
 
