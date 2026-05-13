@@ -322,3 +322,5 @@ Step 25: Expanded embedded Goja intake flow (commit 48cc750) to service/color/ph
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/reference/01-diary.md — Diary Step 25
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/tasks.md — Phase C tasks marked complete
 
+
+Full validation after Step 25 passed: go test ./... -count=1, web pnpm test, typecheck, Vite build, Storybook build, devctl backend/web restart, and DSL start smoke check returned intake-service.

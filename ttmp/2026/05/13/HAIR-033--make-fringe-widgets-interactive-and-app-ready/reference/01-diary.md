@@ -2481,6 +2481,15 @@ The two-step prototype proved the architecture, but it did not let us evaluate t
 ```bash
 go test ./pkg/dslgoja -count=1
 go test ./pkg/server -count=1
+go test ./... -count=1
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+pnpm build
+npx storybook build --test
+devctl restart hair-booking-backend
+devctl restart hair-booking-web
+curl -X POST http://127.0.0.1:19080/api/dsl/flows/fringe.intake.v1/start
 ```
 
 ### What didn't work
@@ -2540,3 +2549,7 @@ service -> color -> photos -> budget -> estimate -> booking -> confirm
 ### Technical details
 
 The new state remains JSON-safe. There are no host objects, callbacks, Go pointers, or non-serializable values inside `ctx.state`.
+
+### Validation addendum
+
+After committing Step 25, ran the full validation suite and restarted the devctl-managed backend/web services so the live route picks up the expanded embedded flow. The backend DSL start smoke check returned HTTP 200 with page id `intake-service`.
