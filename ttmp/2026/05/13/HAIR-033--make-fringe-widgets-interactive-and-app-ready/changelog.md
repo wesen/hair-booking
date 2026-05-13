@@ -364,7 +364,7 @@ Step 28: Removed the normal dispatching toast from the phone footer path so in-f
 
 ## 2026-05-13
 
-Step 29: Wired estimate and confirm summary edit rows (commit 169d98b) to backend Goja edit actions, added runtime tests for edit navigation, and kept the dispatch toast overlap fix. Validated Go/web tests, typecheck, and Vite build.
+Step 29: Wired estimate and confirm summary edit rows (commit a999f7e) to backend Goja edit actions, added runtime tests for edit navigation, and kept the dispatch toast overlap fix. Validated Go/web tests, typecheck, and Vite build.
 
 ### Related Files
 

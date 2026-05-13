@@ -2781,7 +2781,7 @@ The status overlay now remains available for errors and backend effects, but nor
 
 **Inferred user intent:** Remove or adjust the overlapping dispatch toast so normal interactions no longer look like the bottom button is flashing.
 
-**Commit (code):** 169d98b — "HAIR-033 Step 29: Wire summary edit actions"
+**Commit (code):** a999f7e — "HAIR-033 Step 29: Wire summary edit actions"
 
 ### What I did
 
@@ -2864,7 +2864,7 @@ The flow now registers `edit` callbacks on editable summary rows. Estimate rows 
 
 **Inferred user intent:** Make the summary edit controls functional in the backend-driven DSL flow.
 
-**Commit (code):** 169d98b — "HAIR-033 Step 29: Wire summary edit actions"
+**Commit (code):** a999f7e — "HAIR-033 Step 29: Wire summary edit actions"
 
 ### What I did
 
