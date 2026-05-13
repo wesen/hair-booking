@@ -53,7 +53,7 @@ Step 4: Fixed value-less edit events (commit ba7a895) under protobuf JSON by omi
 
 ## 2026-05-13
 
-Step 5: Finished protobuf cleanup (commit 851c25c) by adding DslError, returning protobuf JSON errors from DSL endpoints, decoding protobuf errors on the frontend, and removing the duplicate generated InteractionResult proto message. Validated Go/web tests, typecheck, and Vite build.
+Step 5: Finished protobuf cleanup (commit b89ef37) by adding DslError, returning protobuf JSON errors from DSL endpoints, decoding protobuf errors on the frontend, and removing the duplicate generated InteractionResult proto message. Validated Go/web tests, typecheck, and Vite build.
 
 ### Related Files
 

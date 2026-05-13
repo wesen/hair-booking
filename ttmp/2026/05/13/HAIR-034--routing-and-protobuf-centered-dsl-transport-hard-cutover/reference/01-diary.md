@@ -410,7 +410,7 @@ The Goja runtime still keeps its internal `InteractionResult` struct because tha
 
 **Inferred user intent:** Make the DSL API consistently protobuf-defined across success and error transport shapes and remove leftover schema duplication from the hard cutover.
 
-**Commit (code):** 851c25c — "HAIR-034 Step 5: Finish protobuf DSL envelopes"
+**Commit (code):** b89ef37 — "HAIR-034 Step 5: Finish protobuf DSL envelopes"
 
 ### What I did
 
