@@ -203,3 +203,16 @@ Step 17: Added HTTP endpoints for Goja DSL flows (start, get current page, dispa
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_test.go — Endpoint start/get/dispatch tests
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/http.go — DSL route registration
 
+
+## 2026-05-13
+
+Step 18: Connected frontend DSL renderer to backend action refs with backendClient, BackendDslPage, renderer backendDispatch support, tests, and a Storybook demo. Verified go test ./... -count=1, web tests, typecheck, and Storybook build. (commit 3942190)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/BackendDslPage.stories.tsx — Storybook demo for backend-shaped Goja flow
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/BackendDslPage.test.tsx — Backend action and BackendDslPage tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/BackendDslPage.tsx — Frontend container for backend-produced DSL pages
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/backendClient.ts — Client for Goja DSL flow endpoints
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — Renderer backend action-ref dispatch support
+

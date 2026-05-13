@@ -1515,3 +1515,120 @@ Validate with:
 ```bash
 go test ./pkg/dslgoja ./pkg/server -count=1
 ```
+
+---
+
+## Step 18: Connect the frontend DSL renderer to backend action references
+
+Completed the frontend bridge for the Goja-backed DSL runtime. The browser-side DSL renderer can now distinguish local Storybook action names from backend action references embedded under `props.actions`, and the new `BackendDslPage` container can start/fetch backend flow state and post interaction events back to the backend API.
+
+This closes the main architectural loop built in the previous steps: Goja JavaScript emits page JSON with opaque action ids; React renders that JSON; widget interactions call `backendDispatch`; `BackendDslPage` posts the event to `/api/dsl/flows/{sessionId}/events`; and the returned page replaces the current one.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue."
+
+**Assistant interpretation:** Continue the HAIR-033 task list after the backend endpoint work, starting with the frontend client and renderer integration tasks.
+
+**Inferred user intent:** Complete the end-to-end Goja DSL loop by wiring the browser renderer to the backend action-ref API.
+
+**Commit (code):** 3942190 — "HAIR-033 Step 18: Connect frontend DSL renderer to backend actions"
+
+### What I did
+
+- Added `web/src/page-dsl/backendClient.ts`:
+  - `startDslFlow(flowId)`
+  - `getDslFlow(sessionId)`
+  - `postDslEvent(sessionId, event)`
+  - `DslFlowState`, `DslEffect`, and `DslInteractionEvent` types.
+- Added `web/src/page-dsl/BackendDslPage.tsx`:
+  - starts a backend flow or fetches an existing session,
+  - stores `{ sessionId, pageVersion, page, effects }`,
+  - provides `backendDispatch` to `DslPageRenderer`,
+  - posts interaction events with `eventId` and current `pageVersion`,
+  - replaces page state with backend responses,
+  - displays loading/error/dispatch status.
+- Updated `web/src/page-dsl/schema.ts`:
+  - added `DslActionRef`, `DslBackendEvent`, and `DslBackendDispatch`.
+  - extended `DslRenderContext` with `backendDispatch`.
+- Updated `web/src/page-dsl/render.tsx`:
+  - added `actionRef(...)`, `dispatchAction(...)`, and `dispatchShellAction(...)` helpers.
+  - interactive nodes now prefer backend action refs in `props.actions[eventName]`.
+  - local Storybook action names remain supported as fallback.
+  - intake shell next/back/skip now support backend refs in `shell.props.actions`.
+- Added `web/src/page-dsl/BackendDslPage.test.tsx`:
+  - verifies backend action dispatch from segmented nodes,
+  - verifies backend action dispatch from shell next,
+  - verifies `BackendDslPage` starts a flow and posts events through its client,
+  - verifies existing-session fetch behavior.
+- Added `web/src/page-dsl/BackendDslPage.stories.tsx`:
+  - `Page DSL / Backend Goja Flow / Mocked Backend Flow`, using a mocked backend client with the same contract as the Go endpoints.
+- Updated `web/src/page-dsl/index.ts` exports.
+- Verified:
+
+```bash
+go test ./... -count=1
+cd web && pnpm test -- --runInBand
+cd web && npx tsc --noEmit
+cd web && npx storybook build --test
+```
+
+### Why
+
+The backend runtime and HTTP endpoints were not useful to the browser until the renderer knew how to send backend events. This step gives the renderer a dual-mode action model: local named callbacks for Storybook/prototypes and backend opaque action refs for production Goja flows.
+
+### What worked
+
+- The renderer change was localized. Most widget cases only needed to replace direct local action calls with `dispatchAction(...)`.
+- The same `DslPageRenderer` can still render local DSL stories and now also backend-authored pages.
+- The mocked Storybook client gives reviewers a visible backend-flow demo without requiring the Go server to be running inside Storybook.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- The frontend renderer should not know about sessions or page versions. It only knows about node-level events. `BackendDslPage` is the right place to attach `sessionId`, `pageVersion`, and `eventId`.
+
+### What was tricky to build
+
+- Shell actions are not normal nodes. The renderer needed `dispatchShellAction(...)` to send events such as `shell.next` with node kind `intakeShell`.
+- The renderer must preserve local Storybook behavior while adding backend behavior. The order is: backend action ref if present, otherwise local action name fallback.
+
+### What warrants a second pair of eyes
+
+- Whether backend refs should support event names beyond `change`, `click`, `next`, `back`, `skip`, `upload`, `remove`, and `edit` in the first production pass.
+- Whether `BackendDslPage` should expose effects through a dedicated toast system rather than inline status overlay.
+
+### What should be done in the future
+
+- Task 22: update final docs and upload the implementation bundle to reMarkable.
+- Consider adding an actual dev route once the web app has a central route shell.
+
+### Code review instructions
+
+Start with:
+
+- `web/src/page-dsl/schema.ts`
+- `web/src/page-dsl/render.tsx`
+- `web/src/page-dsl/backendClient.ts`
+- `web/src/page-dsl/BackendDslPage.tsx`
+- `web/src/page-dsl/BackendDslPage.test.tsx`
+- `web/src/page-dsl/BackendDslPage.stories.tsx`
+
+Validate with:
+
+```bash
+go test ./... -count=1
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+npx storybook build --test
+```
+
+Open Storybook:
+
+```text
+Page DSL / Backend Goja Flow / Mocked Backend Flow
+```

@@ -20,8 +20,8 @@
 - [x] Implement event dispatch into registered Goja callbacks with per-session locking, timeout/interrupt, idempotency, stale-page recovery, and node/action validation
 - [x] Add Go tests covering start flow, action registration, segmented change, next navigation, stale action rejection/recovery, and duplicate event idempotency
 - [x] Add HTTP endpoints for starting a DSL flow, fetching the current page, and posting interaction events
-- [ ] Add frontend backendClient and BackendDslPage container that renders backend-produced JSON and posts action refs back to Go
-- [ ] Update DslPageRenderer to support backend action refs in props.actions while preserving local Storybook action names
-- [ ] Add Storybook or dev-route demo for the Goja-backed multi-step intake flow
-- [ ] Run go test ./... -count=1, web pnpm test, typecheck, and Storybook build; fix regressions
+- [x] Add frontend backendClient and BackendDslPage container that renders backend-produced JSON and posts action refs back to Go
+- [x] Update DslPageRenderer to support backend action refs in props.actions while preserving local Storybook action names
+- [x] Add Storybook or dev-route demo for the Goja-backed multi-step intake flow
+- [x] Run go test ./... -count=1, web pnpm test, typecheck, and Storybook build; fix regressions
 - [ ] Update HAIR-033 docs/diary/changelog and upload final implementation guide bundle to reMarkable
