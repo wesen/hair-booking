@@ -1,0 +1,75 @@
+syntax = "proto3";
+
+package fringe.dsl.v1;
+
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/go-go-golems/hair-booking/gen/proto/fringe/dsl/v1;dslv1";
+
+// Page is the stable transport envelope for a backend-authored DSL page.
+// Widget-specific props remain dynamic in this first protobuf spike so the
+// React DSL can keep evolving without regenerating every node prop message.
+message Page {
+  uint32 schema_version = 1;
+  string id = 2;
+  string title = 3;
+  string description = 4;
+  Shell shell = 5;
+  repeated Node nodes = 6;
+  google.protobuf.Struct meta = 7;
+}
+
+message Shell {
+  string kind = 1;
+  google.protobuf.Struct props = 2;
+}
+
+message Node {
+  string kind = 1;
+  google.protobuf.Struct props = 2;
+  repeated Node children = 3;
+  NodeMeta meta = 4;
+}
+
+message NodeMeta {
+  string id = 1;
+  string name = 2;
+  string data_component = 3;
+  string data_section = 4;
+  string data_part = 5;
+  string note = 6;
+}
+
+// ActionRef is the opaque browser-visible reference to a backend callback.
+// It is normally embedded inside Node.props.actions or Shell.props.actions in
+// the current JSON contract; this typed message documents the shape.
+message ActionRef {
+  string id = 1;
+  string event = 2;
+}
+
+message Effect {
+  string kind = 1;
+  string tone = 2;
+  string message = 3;
+  google.protobuf.Struct payload = 4;
+}
+
+message InteractionEvent {
+  string event_id = 1;
+  string session_id = 2;
+  uint32 page_version = 3;
+  string node_id = 4;
+  string node_kind = 5;
+  string action_id = 6;
+  string event = 7;
+  google.protobuf.Value value = 8;
+  google.protobuf.Struct meta = 9;
+}
+
+message InteractionResult {
+  string session_id = 1;
+  uint32 page_version = 2;
+  Page page = 3;
+  repeated Effect effects = 4;
+}

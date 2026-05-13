@@ -2156,3 +2156,131 @@ The new browser storage key is:
 ```text
 fringe.dsl.fringe.intake.v1.sessionId
 ```
+
+---
+
+## Step 23: Add protobuf transport-contract spike for the DSL page/event schema
+
+Implemented the protobuf spike from Phase B. The goal was not to replace the current runtime schema immediately, but to prove that the stable DSL transport contract can be represented once in protobuf and generated into both Go and TypeScript while keeping dynamic widget props flexible.
+
+The spike uses `google.protobuf.Struct` for dynamic node and shell props, and `google.protobuf.Value` for event values. This gives us a schema-first path without forcing every experimental widget prop into a typed proto message before the DSL surface settles.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 22)
+
+**Assistant interpretation:** Continue implementing all Phase B tasks, including the protobuf contract spike.
+
+**Inferred user intent:** Test whether protobuf can become the shared source of truth for backend/frontend DSL transport definitions.
+
+**Commit (code):** 3d94fce — "HAIR-033 Step 23: Add DSL protobuf contract spike"
+
+### What I did
+
+- Added `proto/fringe/dsl/v1/dsl.proto` with:
+  - `Page`,
+  - `Shell`,
+  - `Node`,
+  - `NodeMeta`,
+  - `ActionRef`,
+  - `Effect`,
+  - `InteractionEvent`,
+  - `InteractionResult`.
+- Added Buf configuration:
+  - `buf.yaml`,
+  - `buf.gen.yaml`.
+- Generated Go bindings:
+  - `gen/proto/fringe/dsl/v1/dsl.pb.go`.
+- Generated TypeScript bindings:
+  - `web/src/pb/proto/fringe/dsl/v1/dsl_pb.ts`.
+- Added Go protobuf JSON validation:
+  - `pkg/dslgoja/protobuf_contract_test.go`.
+- Added TypeScript protobuf JSON validation:
+  - `web/src/page-dsl/ProtobufContract.test.ts`.
+- Added dependencies:
+  - Go: `google.golang.org/protobuf`,
+  - Web: `@bufbuild/protobuf`.
+- Marked the protobuf Phase B task complete.
+
+### Why
+
+The backend and frontend currently mirror the DSL contract by hand. That is acceptable for a prototype but risky as the transport grows. Protobuf gives us a single source of truth for the stable envelope fields while still allowing dynamic props during the DSL's early evolution.
+
+### What worked
+
+- `buf generate` successfully generated Go and TypeScript bindings.
+- Go `protojson` produced lowerCamelCase JSON such as `schemaVersion`.
+- TypeScript `fromJson` successfully decoded page JSON and interaction event JSON.
+- Full validation passed:
+
+```bash
+go test ./... -count=1
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+pnpm build
+npx storybook build --test
+```
+
+### What didn't work
+
+- The first TypeScript test expected `google.protobuf.Value` to decode directly into a raw JavaScript array. It actually decodes into a generated protobuf `Value` message object. Fixed the test by converting the message back through `toJson(...)` before asserting the JSON value.
+
+### What I learned
+
+- `google.protobuf.Struct` maps conveniently to JSON-object-like TypeScript shapes with `@bufbuild/protobuf`.
+- `google.protobuf.Value` remains a typed protobuf message after `fromJson`; use `toJson` when comparing it to plain JSON in tests.
+- With `paths=source_relative`, the Go generator output should be rooted at `gen`, not `gen/proto`, because the source path already includes `proto/...`.
+
+### What was tricky to build
+
+- The generated Go output path initially came out as `gen/proto/proto/fringe/...` because `out: gen/proto` was combined with source-relative paths. Fixed by changing the Go output root to `gen`.
+- The protobuf schema had to balance precision and flexibility. The chosen compromise is typed top-level envelopes with dynamic `Struct` props.
+
+### What warrants a second pair of eyes
+
+- Whether `page_version` should remain `uint32`, or whether we want `uint64` despite TypeScript int64/BigInt handling complexity.
+- Whether `actions` should stay embedded in dynamic `props.actions` for now or become a typed map on `Node`/`Shell` in the next proto revision.
+- Whether generated code should live in `gen/` and `web/src/pb/` long-term or move into a shared package.
+
+### What should be done in the future
+
+- Decide whether to migrate `pkg/dslgoja/schema.go` and `web/src/page-dsl/schema.ts` to generated protobuf types or keep the spike separate for one more iteration.
+- If migrating, start with HTTP envelope encode/decode and leave widget props dynamic.
+- Add CI checks for `buf generate` cleanliness once the repo standardizes generated code handling.
+
+### Code review instructions
+
+Start with:
+
+- `proto/fringe/dsl/v1/dsl.proto`
+- `buf.yaml`
+- `buf.gen.yaml`
+- `pkg/dslgoja/protobuf_contract_test.go`
+- `web/src/page-dsl/ProtobufContract.test.ts`
+
+Then inspect generated files only for output location and package/import sanity:
+
+- `gen/proto/fringe/dsl/v1/dsl.pb.go`
+- `web/src/pb/proto/fringe/dsl/v1/dsl_pb.ts`
+
+Validate with:
+
+```bash
+buf generate
+go test ./... -count=1
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+```
+
+### Technical details
+
+The protobuf schema intentionally keeps dynamic areas dynamic:
+
+```proto
+google.protobuf.Struct props = 2;
+google.protobuf.Value value = 8;
+```
+
+This is the main reason the spike can coexist with the current hand-written DSL renderer.

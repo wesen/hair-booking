@@ -15,18 +15,28 @@ DocType: design-doc
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: buf.gen.yaml
+      Note: Generation config for Go and TypeScript DSL protobuf bindings
+    - Path: buf.yaml
+      Note: Buf module config for DSL protobuf spike
     - Path: pkg/dslgoja/flows/intake.flow.js
       Note: Current source of stable node ids and backend action refs
+    - Path: pkg/dslgoja/protobuf_contract_test.go
+      Note: Go protojson validation for DSL protobuf contract
     - Path: pkg/dslgoja/runtime.go
       Note: FlowSession eventId/pageVersion/action lifecycle semantics
     - Path: pkg/dslgoja/schema.go
       Note: Go page/event/action/effect contract discussed in protobuf section
     - Path: pkg/server/handlers_dsl.go
       Note: Current HTTP endpoint and in-memory DSL flow store behavior
+    - Path: proto/fringe/dsl/v1/dsl.proto
+      Note: Implemented protobuf transport-contract spike recommended by the document
     - Path: web/src/LiveDslDemoApp.tsx
       Note: Current live route shell and recommended place for URL/page sync and sessionStorage coordination
     - Path: web/src/page-dsl/BackendDslPage.tsx
       Note: Current frontend owner of in-memory DSL session state
+    - Path: web/src/page-dsl/ProtobufContract.test.ts
+      Note: TypeScript fromJson/toJson validation for DSL protobuf contract
     - Path: web/src/page-dsl/backendClient.ts
       Note: Fetch contract for start/get/event endpoints
     - Path: web/src/page-dsl/render.tsx
@@ -39,6 +49,7 @@ LastUpdated: 2026-05-13T11:20:00-04:00
 WhatFor: Use this document to understand the next design decisions around making the Goja DSL runtime feel like a real app instead of only a JSON-rendered demo.
 WhenToUse: Read before changing routing, session storage, BackendDslPage, DslPageRenderer keys, protobuf/schema strategy, or event dispatch semantics.
 ---
+
 
 
 # Routing, Sessions, Events, Schema, and Rerendering Questions for the Goja DSL
@@ -1213,3 +1224,76 @@ Related docs:
 - `design-doc/02-backend-driven-dsl-callback-architecture-guide.md`
 - `design-doc/03-goja-sandbox-multi-step-intake-dsl-guide.md`
 - `design-doc/04-real-ui-app-integration-guide-for-goja-backend-dsl.md`
+
+---
+
+## Implementation Update: Protobuf Transport-Contract Spike Completed
+
+The protobuf spike recommended by this document has been implemented as a first contract experiment. It does not replace the runtime's hand-written Go/TypeScript schema yet. Instead, it proves that the stable transport shape can be expressed once in `.proto`, generated for Go and TypeScript, and validated through JSON-oriented tests.
+
+New schema and generation files:
+
+| File | Role |
+|---|---|
+| `proto/fringe/dsl/v1/dsl.proto` | Source-of-truth protobuf schema for the first DSL transport-contract spike. |
+| `buf.yaml` | Buf module configuration. |
+| `buf.gen.yaml` | Buf generation configuration for Go and TypeScript. |
+| `gen/proto/fringe/dsl/v1/dsl.pb.go` | Generated Go protobuf bindings. |
+| `web/src/pb/proto/fringe/dsl/v1/dsl_pb.ts` | Generated TypeScript protobuf bindings. |
+
+Validation files:
+
+| File | Role |
+|---|---|
+| `pkg/dslgoja/protobuf_contract_test.go` | Verifies Go `protojson` emits camelCase JSON and preserves dynamic node props. |
+| `web/src/page-dsl/ProtobufContract.test.ts` | Verifies TypeScript can decode page/event JSON using generated protobuf schemas. |
+
+The proto deliberately uses `google.protobuf.Struct` and `google.protobuf.Value` for the dynamic parts of the DSL:
+
+```proto
+message Node {
+  string kind = 1;
+  google.protobuf.Struct props = 2;
+  repeated Node children = 3;
+  NodeMeta meta = 4;
+}
+
+message InteractionEvent {
+  string event_id = 1;
+  string session_id = 2;
+  uint32 page_version = 3;
+  string node_id = 4;
+  string node_kind = 5;
+  string action_id = 6;
+  string event = 7;
+  google.protobuf.Value value = 8;
+  google.protobuf.Struct meta = 9;
+}
+```
+
+That choice keeps the current renderer flexible while giving the stable transport envelope a single schema. A later phase can introduce typed `oneof` node props for stable widgets if the DSL surface stops changing rapidly.
+
+The TypeScript runtime dependency was added:
+
+```text
+@bufbuild/protobuf
+```
+
+The Go protobuf runtime dependency was added:
+
+```text
+google.golang.org/protobuf
+```
+
+The validation command set passed after generation:
+
+```bash
+go test ./... -count=1
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+pnpm build
+npx storybook build --test
+```
+
+The next protobuf decision is whether to keep this as a contract spike for one more iteration or migrate the actual HTTP handlers/client to generated types immediately. The safer recommendation is to keep the spike separate until the route/session/stable-key behavior has been exercised for another round, then migrate the envelope types while leaving widget props dynamic.

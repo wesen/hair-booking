@@ -19,7 +19,7 @@
 - [x] Add tab-scoped `sessionStorage` resume for the live DSL demo and clear it if the backend returns `dsl_session_not_found`.
 - [x] Add URL/page sync that maps backend `page.id` to route slugs such as `/dsl-goja-demo/service` and `/dsl-goja-demo/color`.
 - [x] Decide whether page-id transitions should use `history.pushState` or `history.replaceState` during the demo phase.
-- [ ] Add a small protobuf transport-contract spike using `google.protobuf.Struct` for dynamic node props.
+- [x] Add a small protobuf transport-contract spike using `google.protobuf.Struct` for dynamic node props.
 
 ## Phase C — Expand the Goja Intake Flow
 

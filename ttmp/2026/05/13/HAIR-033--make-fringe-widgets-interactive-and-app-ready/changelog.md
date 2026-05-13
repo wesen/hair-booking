@@ -269,3 +269,20 @@ Step 22: Stabilized the live DSL route with node.meta.id React keys (commit 258f
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/backendClient.ts — Preserves DSL API error codes for session recovery
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — Uses stable node.meta.id keys for backend-rendered nodes
 
+
+## 2026-05-13
+
+Step 23: Added protobuf transport-contract spike (commit 3d94fce) for DSL Page/Node/Event/Result using Buf, generated Go and TypeScript bindings, added Go protojson and TypeScript fromJson tests, and validated Go/web builds.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/buf.gen.yaml — Buf Go/TypeScript generation configuration
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/buf.yaml — Buf module configuration
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/gen/proto/fringe/dsl/v1/dsl.pb.go — Generated Go protobuf bindings
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/go.mod — Added google.golang.org/protobuf dependency
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/protobuf_contract_test.go — Go protojson contract test
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/proto/fringe/dsl/v1/dsl.proto — Source protobuf schema for DSL transport-contract spike
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/package.json — Added @bufbuild/protobuf dependency
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/ProtobufContract.test.ts — TypeScript protobuf JSON contract test
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/pb/proto/fringe/dsl/v1/dsl_pb.ts — Generated TypeScript protobuf bindings
+
