@@ -31,7 +31,7 @@
 
 ## Phase 6 — Live Routing and Smoke
 
-- [ ] Restart devctl backend/web.
+- [x] Restart devctl backend/web.
 - [ ] Verify seven-step routing URL projection.
 - [ ] Verify estimate/confirm edit links.
 - [ ] Verify dispatch toast no longer overlaps footer.

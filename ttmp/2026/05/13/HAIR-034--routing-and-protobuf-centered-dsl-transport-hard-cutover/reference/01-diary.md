@@ -202,3 +202,83 @@ pnpm test -- --runInBand
 npx tsc --noEmit
 pnpm build
 ```
+
+
+---
+
+## Step 3: Restart live stack and smoke protobuf JSON responses
+
+Restarted the devctl-managed backend and web services after the protobuf transport cutover. The backend start endpoint now returns a direct protobuf JSON `FlowState` object rather than the previous `{ data: ... }` envelope, and the Vite live route responds successfully.
+
+This was a transport-level smoke, not a full browser click-through. The remaining live checks are to manually verify seven-step routing projection, estimate/confirm edit links, and the removed dispatch toast behavior in the browser.
+
+### Prompt Context
+
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** After the hard cutover, restart the live services and confirm the new protobuf JSON transport shape is active.
+
+**Inferred user intent:** Ensure the implementation is not only test-passing but also loaded in the devctl-managed live demo.
+
+**Commit (code):** N/A — live smoke/documentation step only.
+
+### What I did
+
+- Ran `devctl restart hair-booking-backend`.
+- Ran `devctl restart hair-booking-web`.
+- Posted to `/api/dsl/flows/fringe.intake.v1/start`.
+- Confirmed the response shape is direct protobuf JSON:
+  - `sessionId`,
+  - `pageVersion`,
+  - `page.id`,
+  - no top-level `data` envelope.
+- Confirmed `/dsl-goja-demo` returns HTTP 200.
+- Posted a protobuf JSON interaction event to the session events endpoint and received a direct `FlowState` response.
+
+### Why
+
+The server and frontend tests prove the contract in-process. The devctl restart and curl smoke prove that the live backend process is serving the new direct protobuf JSON response shape.
+
+### What worked
+
+Observed start smoke output:
+
+```text
+flow_289f9937-91bc-484f-a322-f09cf9af5dd3 1 intake-service hasData False
+web:200
+```
+
+Observed event smoke output:
+
+```text
+flow_289f9937-91bc-484f-a322-f09cf9af5dd3 2 intake-service hasData False
+```
+
+### What didn't work
+
+- N/A for transport smoke.
+
+### What I learned
+
+- The direct protobuf JSON hard cutover is active in the devctl backend: successful responses are no longer wrapped in `apiEnvelope.data`.
+
+### What was tricky to build
+
+- The event smoke needs a live backend action id from the current page, because action ids are page-version scoped and cannot be invented by the client.
+
+### What warrants a second pair of eyes
+
+- Browser-level behavior still needs manual verification for routing, edit links, and footer flashing.
+
+### What should be done in the future
+
+- Open `/dsl-goja-demo`, click through all seven pages, test estimate/confirm edit links, and observe that the dispatch toast no longer overlaps the CTA.
+
+### Code review instructions
+
+No code changed in this step. Confirm live state with:
+
+```bash
+curl -sS -X POST http://127.0.0.1:19080/api/dsl/flows/fringe.intake.v1/start | jq '{sessionId,pageVersion,pageId:.page.id,hasData:has("data")}'
+curl -sS -o /tmp/hair034-web.html -w 'web:%{http_code}\n' http://127.0.0.1:5175/dsl-goja-demo
+```

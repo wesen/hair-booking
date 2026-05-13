@@ -29,3 +29,13 @@ Step 2: Hard-cut DSL success transport (commit c6c2be0) to protobuf JSON FlowSta
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/ProtobufContract.test.ts — TypeScript FlowState and event protobuf contract tests
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/backendClient.ts — Frontend client uses generated protobuf schemas at the HTTP boundary
 
+
+## 2026-05-13
+
+Step 3: Restarted devctl backend/web and smoke-tested direct protobuf JSON FlowState responses from start/event endpoints plus the live Vite route.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-034--routing-and-protobuf-centered-dsl-transport-hard-cutover/reference/01-diary.md — Live smoke record
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-034--routing-and-protobuf-centered-dsl-transport-hard-cutover/tasks.md — Marked devctl restart complete
+
