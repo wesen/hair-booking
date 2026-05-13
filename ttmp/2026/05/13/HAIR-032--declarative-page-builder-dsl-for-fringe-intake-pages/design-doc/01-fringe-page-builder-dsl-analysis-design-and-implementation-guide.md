@@ -11,17 +11,32 @@ DocType: design-doc
 Intent: long-term
 Owners: []
 RelatedFiles:
-    - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/schema.ts:JSON contract for pages and nodes
-    - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/builder.ts:Fluent builder API that emits JSON
-    - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx:Runtime interpreter from JSON to React widgets
-    - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/examples.ts:Example scripted pages
-    - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/PageDsl.stories.tsx:Storybook examples for rendered DSL pages
+    - Path: web/src/page-dsl/ExperimentalPageDsl.stories.tsx
+      Note: Experimental DSL Storybook stories
+    - Path: web/src/page-dsl/PageDsl.stories.tsx
+      Note: Canonical DSL Storybook stories
+    - Path: web/src/page-dsl/PageDsl.stories.tsx:Storybook examples for rendered DSL pages
+    - Path: web/src/page-dsl/builder.ts
+      Note: Fluent builder API
+    - Path: web/src/page-dsl/builder.ts:Fluent builder API that emits JSON
+    - Path: web/src/page-dsl/examples.ts
+      Note: Canonical DSL examples
+    - Path: web/src/page-dsl/examples.ts:Example scripted pages
+    - Path: web/src/page-dsl/experimental.ts
+      Note: Experimental DSL examples
+    - Path: web/src/page-dsl/render.tsx
+      Note: JSON interpreter and renderer
+    - Path: web/src/page-dsl/render.tsx:Runtime interpreter from JSON to React widgets
+    - Path: web/src/page-dsl/schema.ts
+      Note: JSON page/node schema
+    - Path: web/src/page-dsl/schema.ts:JSON contract for pages and nodes
 ExternalSources: []
-Summary: "Intern-facing guide for the HAIR-032 declarative page-builder DSL: why it exists, how the JSON schema works, how the fluent builder emits JSON, how the interpreter renders pages, and how to extend/test it."
+Summary: 'Intern-facing guide for the HAIR-032 declarative page-builder DSL: why it exists, how the JSON schema works, how the fluent builder emits JSON, how the interpreter renders pages, and how to extend/test it.'
 LastUpdated: 2026-05-13T05:25:00-04:00
-WhatFor: "Teach new contributors how to understand, use, extend, and safely review the Fringe declarative page builder DSL."
-WhenToUse: "Use when adding page templates, generating Storybook variants, extending widget support, or deciding whether a page belongs in handwritten React versus DSL JSON."
+WhatFor: Teach new contributors how to understand, use, extend, and safely review the Fringe declarative page builder DSL.
+WhenToUse: Use when adding page templates, generating Storybook variants, extending widget support, or deciding whether a page belongs in handwritten React versus DSL JSON.
 ---
+
 
 # Fringe Page Builder DSL Analysis Design and Implementation Guide
 

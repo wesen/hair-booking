@@ -27,3 +27,13 @@ Step 2: Added experimental DSL composition examples and Storybook stories (consu
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/ExperimentalPageDsl.stories.tsx — Storybook stories for experimental DSL compositions
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/experimental.ts — Experimental DSL page definitions
 
+
+## 2026-05-13
+
+Completed intern-facing DSL guide, related implementation files, and uploaded guide+diary bundle to reMarkable at /ai/2026/05/13/HAIR-032. (upload: HAIR_032_Fringe_Page_Builder_DSL_Guide.pdf)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-032--declarative-page-builder-dsl-for-fringe-intake-pages/design-doc/01-fringe-page-builder-dsl-analysis-design-and-implementation-guide.md — Intern-facing guide
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-032--declarative-page-builder-dsl-for-fringe-intake-pages/reference/01-diary.md — Implementation diary
+
