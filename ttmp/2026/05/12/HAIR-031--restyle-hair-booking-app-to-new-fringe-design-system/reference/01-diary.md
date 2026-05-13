@@ -1566,3 +1566,72 @@ booking     12.86% tune-required
 history     12.33% tune-required
 confirm      9.85% review
 ```
+
+---
+
+## Step 22: Tune ColorPage against prototype
+
+Used pinocchio on the ColorPage prototype/React screenshots. The biggest mismatch was not a subtle style issue: the React page had an entire extra `Service Type` segmented control that is not present in the target prototype. Removing it immediately dropped the page diff by ~10 percentage points.
+
+### Prompt Context
+
+**User prompt (verbatim):** (see Step 19)
+
+**Assistant interpretation:** Continue visual tuning from the review-site artifacts, using VLM guidance but verifying against screenshots.
+
+**Inferred user intent:** Reduce the remaining tune-required pages toward the review band by fixing the largest visible differences first.
+
+**Commit (code):** cb5ea79 — "HAIR-031 Step 22: Tune ColorPage against prototype"
+
+### What I did
+
+- Removed the extra `Service Type` segmented control from `ColorPage`.
+- Kept the API payload's `color_service` as a fixed `"highlights"` for now, since the target prototype does not expose this choice on the color level screen.
+- Updated the Level 7 note copy to `dark blonde with warm undertones`.
+- Increased the editorial intro text size to 19px so it wraps like the prototype.
+- Re-ran the full sweep and restarted the review site.
+
+### Why
+
+The extra segmented control pushed the target chips and footer down, creating a large pixel mismatch. Removing unmatched content is more impactful than micro-tuning CSS.
+
+### What worked
+
+- ColorPage improved from 21.86% to 11.81%.
+- The page moved close to the 10% review threshold.
+
+### What didn't work
+
+- VLM suggested several fine-grained slider/chip tweaks, but the structural extra section was clearly the highest-value fix.
+
+### What I learned
+
+- Always check for extra/missing content before tuning spacing and colors. A single unmatched section can dominate the diff.
+
+### What was tricky to build
+
+- Removing the `colorType` UI while preserving API compatibility required hard-coding `color_service: "highlights"` for now. This is acceptable for the visual parity pass but may need a product decision later.
+
+### What warrants a second pair of eyes
+
+- Confirm that the color-service choice truly belongs on another page or is intentionally omitted from the new prototype.
+
+### What should be done in the future
+
+- Further tune ColorPage slider label spacing and note/chip styles if we need to push it below 10%.
+
+### Code review instructions
+
+Latest sweep after this step:
+
+```text
+photos      20.22% tune-required
+service     19.10% tune-required
+length      18.62% tune-required
+estimate    17.65% tune-required
+budget      14.65% tune-required
+booking     12.86% tune-required
+history     12.33% tune-required
+color       11.81% tune-required
+confirm      9.85% review
+```
