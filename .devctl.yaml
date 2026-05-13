@@ -1,0 +1,44 @@
+profile:
+  active: live-dsl
+
+profiles:
+  live-dsl:
+    display_name: Hair Booking Live DSL
+    description: Launch the hair-booking Go backend and Vite frontend for the live Goja DSL route.
+    plugins:
+      - hair-booking
+    env:
+      HAIR_BOOKING_DEVCTL_SERVICES: backend,web
+      HAIR_BOOKING_DEVCTL_BACKEND_HOST: "127.0.0.1"
+      HAIR_BOOKING_DEVCTL_BACKEND_PORT: "19080"
+      HAIR_BOOKING_DEVCTL_WEB_HOST: "127.0.0.1"
+      HAIR_BOOKING_DEVCTL_WEB_PORT: "5175"
+
+  backend-only:
+    display_name: Hair Booking Backend Only
+    description: Launch only the Go backend in dev auth mode.
+    plugins:
+      - hair-booking
+    env:
+      HAIR_BOOKING_DEVCTL_SERVICES: backend
+      HAIR_BOOKING_DEVCTL_BACKEND_HOST: "127.0.0.1"
+      HAIR_BOOKING_DEVCTL_BACKEND_PORT: "19080"
+
+  web-only:
+    display_name: Hair Booking Web Only
+    description: Launch only the Vite frontend, proxying to HAIR_BOOKING_BACKEND_URL or the default dev backend URL.
+    plugins:
+      - hair-booking
+    env:
+      HAIR_BOOKING_DEVCTL_SERVICES: web
+      HAIR_BOOKING_DEVCTL_BACKEND_HOST: "127.0.0.1"
+      HAIR_BOOKING_DEVCTL_BACKEND_PORT: "19080"
+      HAIR_BOOKING_DEVCTL_WEB_HOST: "127.0.0.1"
+      HAIR_BOOKING_DEVCTL_WEB_PORT: "5175"
+
+plugins:
+  - id: hair-booking
+    path: python3
+    args:
+      - ./plugins/devctl/hair_booking.py
+    priority: 10

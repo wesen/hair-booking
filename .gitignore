@@ -20,6 +20,9 @@ dist/
 .envrc
 .direnv/
 .history
+.devctl/logs/
+.devctl/state.json
+.devctl/tmp/
 var/
 
 # Terraform local state/cache

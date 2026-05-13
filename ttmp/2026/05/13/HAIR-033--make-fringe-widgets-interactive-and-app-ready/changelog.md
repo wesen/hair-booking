@@ -296,3 +296,16 @@ Uploaded the Phase B routing/session/protobuf design note and diary bundle to re
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/05-routing-sessions-events-schema-and-rerendering-questions-for-goja-dsl.md — Updated Phase B design note
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/reference/01-diary.md — Upload note
 
+
+## 2026-05-13
+
+Step 24: Added devctl setup (commit 1100ffe) for the hair-booking live DSL stack, including .devctl.yaml profiles, a protocol-v2 plugin, README, ignored runtime logs/state, and validated devctl up/status plus HTTP smoke checks.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/.devctl.yaml — Profiles and plugin wiring for devctl-managed hair-booking services
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/.gitignore — Ignores devctl runtime logs/state/tmp files
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/plugins/devctl/README.md — Usage notes for devctl profiles
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/plugins/devctl/hair_booking.py — devctl protocol-v2 plugin producing validation and launch plans
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/reference/01-diary.md — Diary Step 24
+

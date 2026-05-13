@@ -2292,3 +2292,123 @@ After completing the Phase B protobuf slice, uploaded the updated routing/sessio
 ```text
 /ai/2026/05/13/HAIR-033/HAIR_033_Goja_DSL_Phase_B_Routing_Sessions_Protobuf_Update.pdf
 ```
+
+---
+
+## Step 24: Add devctl setup for the hair-booking live DSL stack
+
+Added a repo-local devctl plugin and configuration so the hair-booking backend and Vite frontend can be started, supervised, inspected, and stopped consistently. The default `live-dsl` profile starts the Go backend on `127.0.0.1:19080` and the Vite frontend on `127.0.0.1:5175`, with the frontend proxying `/api` to the backend.
+
+This makes the live Goja DSL route easier to run after the Phase A/Phase B work. Instead of manually starting tmux sessions and keeping backend/frontend port settings in sync, a developer can run `devctl up --force`, inspect `devctl status`, follow logs, and open `/dsl-goja-demo`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Add devctl setup to start and manage hair-booking"
+
+**Assistant interpretation:** Add a devctl configuration and plugin that can launch and supervise the local hair-booking backend and web frontend.
+
+**Inferred user intent:** Make the live app reproducible and manageable with standard devctl commands rather than ad hoc shell/tmux commands.
+
+**Commit (code):** 1100ffe — "HAIR-033 Step 24: Add devctl live DSL stack"
+
+### What I did
+
+- Read devctl plugin-authoring guidance and local `.devctl.yaml` example patterns.
+- Added `.devctl.yaml` with profiles:
+  - `live-dsl`,
+  - `backend-only`,
+  - `web-only`.
+- Added `plugins/devctl/hair_booking.py` implementing devctl protocol v2 ops:
+  - `config.mutate`,
+  - `validate.run`,
+  - `launch.plan`.
+- Added `plugins/devctl/README.md` with common commands, profiles, and port overrides.
+- Updated `.gitignore` to ignore devctl runtime state/logs:
+  - `.devctl/logs/`,
+  - `.devctl/state.json`,
+  - `.devctl/tmp/`.
+- Validated:
+
+```bash
+devctl plugins list
+devctl plan
+devctl up --force
+devctl status --tail-lines 8
+curl http://127.0.0.1:19080/healthz
+curl http://127.0.0.1:5175/dsl-goja-demo
+curl -X POST http://127.0.0.1:19080/api/dsl/flows/fringe.intake.v1/start
+```
+
+### Why
+
+The live DSL app now needs two cooperating processes: the Go backend and the Vite frontend. Devctl gives the repo a repeatable launch plan, supervised logs, health checks, profiles, and a clean stop/restart workflow.
+
+### What worked
+
+- `devctl plugins list` recognized the repo plugin and protocol handshake.
+- `devctl plan` produced two services:
+  - `hair-booking-backend`,
+  - `hair-booking-web`.
+- `devctl up --force` started both services successfully.
+- Health checks passed quickly.
+- Manual curl smoke checks returned:
+  - backend `/healthz` => HTTP 200,
+  - web `/dsl-goja-demo` => HTTP 200,
+  - DSL flow start => HTTP 200 and page id `intake-service`.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- Devctl profiles can pass environment into the plugin process, so the same plugin can produce backend-only, web-only, or full-stack launch plans.
+- Keeping default devctl ports at `19080` and `5175` avoids the machine's already-occupied `8080`, `18080`, `5173`, and `5174` ports from earlier work.
+
+### What was tricky to build
+
+- The plugin must keep stdout reserved for NDJSON protocol frames. All diagnostics are routed to stderr through a `log(...)` helper, although the current plugin mostly avoids noisy logging.
+- The Vite health check needs an exact port, so the devctl-managed web command uses `--port ... --strictPort` instead of relying on Vite's automatic port fallback.
+
+### What warrants a second pair of eyes
+
+- Whether the default ports should remain `19080`/`5175` or move to a team-wide standard.
+- Whether to add `command.run` helpers later for smoke tests, protobuf regeneration, or log-tail shortcuts.
+- Whether `validate.run` should fail if `web/node_modules` is missing, instead of warning.
+
+### What should be done in the future
+
+- Add a devctl `command.run` smoke-test command if we want `devctl smoke`-style behavior.
+- Add prepare/build steps if devctl should run `pnpm install`, `buf generate`, or database setup.
+- Document devctl usage in a top-level README if this becomes the standard workflow.
+
+### Code review instructions
+
+Review:
+
+- `.devctl.yaml`
+- `plugins/devctl/hair_booking.py`
+- `plugins/devctl/README.md`
+- `.gitignore`
+
+Validate with:
+
+```bash
+devctl plugins list
+devctl plan
+devctl up --force
+devctl status
+curl -s http://127.0.0.1:19080/healthz | jq .
+curl -s -X POST http://127.0.0.1:19080/api/dsl/flows/fringe.intake.v1/start | jq .data.page.id
+devctl down
+```
+
+### Technical details
+
+Default URLs:
+
+```text
+Backend: http://127.0.0.1:19080
+Web:     http://127.0.0.1:5175
+Demo:    http://127.0.0.1:5175/dsl-goja-demo
+```
