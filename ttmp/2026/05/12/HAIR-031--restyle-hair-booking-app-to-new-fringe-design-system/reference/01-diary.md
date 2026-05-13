@@ -1711,3 +1711,86 @@ service / first-card
 service / selected-card
 service / cta
 ```
+
+---
+
+## Step 24: Add review verb page/section filters
+
+Added page and section filters to the `fringe review` verb so we can regenerate only the artifacts currently being tuned instead of re-rendering the entire spec each time. This supports faster review loops and separate focused comparison sites.
+
+### Prompt Context
+
+**User prompt (verbatim):** "you only need to render the images you are working on, maybe that's something we can add to the css-vsual-diff verb to filter out the spec?"
+
+**Assistant interpretation:** Add optional filters to the css-visual-diff verb so a developer can run only a page or a subset of sections from the YAML spec.
+
+**Inferred user intent:** Speed up iteration and avoid cluttering the review site with unrelated pages while tuning one screen.
+
+**Commit (code):** 774fecd — "HAIR-031 Step 24: Add review verb page/section filters"
+
+### What I did
+
+- Added `--page` and `--section` options to `fringe review from-spec` and `fringe review rebuildSummary`.
+- Filters accept comma-separated values, e.g. `--page service,color` or `--section heading,cta`.
+- Added helper functions `parseFilter()` and `matchesFilter()` in `fringe-review.js`.
+- Tested filtered service run:
+
+```bash
+css-visual-diff verbs --repository design-galley/visual-diff/userland/verbs \
+  fringe review from-spec \
+  --specFile design-galley/visual-diff/userland/specs/fringe-intake.yaml \
+  --outDir /tmp/fringe-review-service \
+  --page service
+```
+
+- Served the focused service review site on http://127.0.0.1:18099.
+- Kept CTA button sizing improvements from the previous tuning attempt, but reverted the 44px heading because it wrapped `WHAT BRINGS YOU IN?` onto two lines and worsened the whole-screen service diff.
+
+### Why
+
+Whole-suite sweeps are useful checkpoints, but while tuning one page, a focused run is faster and produces a smaller review site with only relevant cards.
+
+### What worked
+
+- `--page service` generated only six service sections: `screen`, `heading`, `content`, `first-card`, `selected-card`, and `cta`.
+- The focused review server at port 18099 makes it easy to inspect only service artifacts.
+- CTA section is now in the `review` band at 8.84%.
+
+### What didn't work
+
+- The VLM-suggested 44px heading was too large for the actual phone-frame width and wrapped the service title. Pixel diff and screenshot inspection showed this was a regression, so I reverted the heading scale.
+
+### What I learned
+
+- VLM suggestions need to be validated against the actual responsive container. Larger type can be visually closer in isolation but worse if it wraps.
+- Filtered visual-diff runs make this kind of experiment cheap enough to try and revert quickly.
+
+### What was tricky to build
+
+- The filter needed to work for both artifact generation and summary rebuilding. Both loops now check page and section filters before reading/comparing artifacts.
+
+### What warrants a second pair of eyes
+
+- Review http://127.0.0.1:18099 and confirm whether the focused service review site is the right workflow for comment-driven tuning.
+
+### What should be done in the future
+
+- Add an option to merge filtered results back into a full run directory if we want one canonical long-lived review site while tuning sections independently.
+
+### Code review instructions
+
+```bash
+# Focused page run
+css-visual-diff verbs --repository design-galley/visual-diff/userland/verbs \
+  fringe review from-spec \
+  --specFile design-galley/visual-diff/userland/specs/fringe-intake.yaml \
+  --outDir /tmp/fringe-review-service \
+  --page service
+
+# Focused section run
+css-visual-diff verbs --repository design-galley/visual-diff/userland/verbs \
+  fringe review from-spec \
+  --specFile design-galley/visual-diff/userland/specs/fringe-intake.yaml \
+  --outDir /tmp/fringe-review-service-cta \
+  --page service --section cta
+```
