@@ -254,6 +254,14 @@ function budgetStep(ctx) {
     .toJSON();
 }
 
+function editAction(ctx, name, step) {
+  return {
+    actions: {
+      edit: ctx.action(name, function () { return goto(ctx, step); }, "edit"),
+    },
+  };
+}
+
 function estimateStep(ctx) {
   return page("intake-estimate", "Estimate")
     .intake(shell(ctx, {
@@ -266,10 +274,10 @@ function estimateStep(ctx) {
     }))
     .add(
       n.card({ accent: "#6b3a4a", style: { marginBottom: 14 } },
-        n.summaryRow("Service", selectedServiceName(ctx)).id("estimate-service"),
-        n.summaryRow("Tone", (ctx.state.tones || []).join(", ") || "Not sure yet").id("estimate-tones"),
-        n.summaryRow("Photos", String(photoCount(ctx))).id("estimate-photos"),
-        n.summaryRow("Budget", ctx.state.budget).id("estimate-budget"),
+        n.summaryRow("Service", selectedServiceName(ctx), editAction(ctx, "editEstimateService", "service")).id("estimate-service"),
+        n.summaryRow("Tone", (ctx.state.tones || []).join(", ") || "Not sure yet", editAction(ctx, "editEstimateColor", "color")).id("estimate-tones"),
+        n.summaryRow("Photos", String(photoCount(ctx)), editAction(ctx, "editEstimatePhotos", "photos")).id("estimate-photos"),
+        n.summaryRow("Budget", ctx.state.budget, editAction(ctx, "editEstimateBudget", "budget")).id("estimate-budget"),
         n.summaryRow("Range", estimateRange(ctx)).id("estimate-range")
       ).id("estimate-card"),
       n.note("Final pricing is confirmed after stylist review.", { tone: "info" }).id("estimate-note"),
@@ -328,10 +336,10 @@ function confirmStep(ctx) {
         style: { marginBottom: 16 },
       }).id("confirm-success"),
       n.card({ accent: "#7a8f6b" },
-        n.summaryRow("Service", selectedServiceName(ctx)).id("confirm-service"),
-        n.summaryRow("Estimate", estimateRange(ctx)).id("confirm-estimate"),
-        n.summaryRow("Date", day ? day.label : "TBD").id("confirm-day"),
-        n.summaryRow("Time", time ? time.label : "TBD").id("confirm-time")
+        n.summaryRow("Service", selectedServiceName(ctx), editAction(ctx, "editConfirmService", "service")).id("confirm-service"),
+        n.summaryRow("Estimate", estimateRange(ctx), editAction(ctx, "editConfirmEstimate", "estimate")).id("confirm-estimate"),
+        n.summaryRow("Date", day ? day.label : "TBD", editAction(ctx, "editConfirmBookingDay", "booking")).id("confirm-day"),
+        n.summaryRow("Time", time ? time.label : "TBD", editAction(ctx, "editConfirmBookingTime", "booking")).id("confirm-time")
       ).id("confirm-card"),
     )
     .toJSON();

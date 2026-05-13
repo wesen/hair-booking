@@ -115,9 +115,9 @@ export function BackendDslPage({
   }
 
   return (
-    <div data-component="BackendDslPage" style={{ height: "100%", position: "relative" }}>
+    <div data-component="BackendDslPage" data-dispatching={dispatching || undefined} style={{ height: "100%", position: "relative" }}>
       <DslPageRenderer page={state.page} context={context} />
-      {(dispatching || error || state.effects?.length) ? (
+      {(error || state.effects?.length) ? (
         <div
           data-component="BackendDslPageStatus"
           style={{
@@ -136,7 +136,7 @@ export function BackendDslPage({
             pointerEvents: "none",
           }}
         >
-          {dispatching ? "Dispatching backend event…" : error || state.effects?.map((effect) => effect.message || effect.kind).join(" · ")}
+          {error || state.effects?.map((effect) => effect.message || effect.kind).join(" · ")}
         </div>
       ) : null}
     </div>

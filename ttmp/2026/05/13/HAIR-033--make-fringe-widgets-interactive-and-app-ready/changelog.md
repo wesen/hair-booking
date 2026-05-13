@@ -351,3 +351,25 @@ Step 27: Added gated rendering debug instrumentation (commit 6e3e0b8), stable In
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/debug.ts — New gated DSL debug helper
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — Page render debug logs with node keys
 
+
+## 2026-05-13
+
+Step 28: Removed the normal dispatching toast from the phone footer path so in-flight backend events no longer paint over the CTA; kept error/effect status and data-dispatching observability. Validated Go/web tests, typecheck, and Vite build.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/reference/01-diary.md — Diary Step 28
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/BackendDslPage.tsx — Stops rendering the dispatching toast over the footer while preserving error/effect status
+
+
+## 2026-05-13
+
+Step 29: Wired estimate and confirm summary edit rows (commit 169d98b) to backend Goja edit actions, added runtime tests for edit navigation, and kept the dispatch toast overlap fix. Validated Go/web tests, typecheck, and Vite build.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/flows/intake.flow.js — Registers edit actions on estimate and confirm summary rows
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/intake_flow_phase_c_test.go — Tests summary edit navigation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/reference/01-diary.md — Diary Step 29
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/BackendDslPage.tsx — Dispatch toast overlap fix retained
+

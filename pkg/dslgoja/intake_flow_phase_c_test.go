@@ -76,6 +76,35 @@ func TestDemoIntakeFlowPhaseCNavigationAndStableIDs(t *testing.T) {
 	}
 }
 
+func TestDemoIntakeFlowSummaryEditActionsNavigateToSourceSteps(t *testing.T) {
+	rt := NewRuntime()
+	session, _, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
+	if err != nil {
+		t.Fatalf("StartFlow: %v", err)
+	}
+
+	for _, eventID := range []string{"evt_edit_to_color", "evt_edit_to_photos", "evt_edit_to_budget", "evt_edit_to_estimate"} {
+		dispatchActionByName(t, session, eventID, "next", "shell.next", "next", nil)
+	}
+	if session.CurrentPage.ID != "intake-estimate" {
+		t.Fatalf("current page = %q, want intake-estimate", session.CurrentPage.ID)
+	}
+
+	color := dispatchActionByName(t, session, "evt_edit_tones", "editEstimateColor", "estimate-tones", "edit", nil)
+	assertPage(t, color, "intake-color")
+
+	// Navigate back to confirm and verify confirm edit actions also route.
+	for _, eventID := range []string{"evt_confirm_to_photos", "evt_confirm_to_budget", "evt_confirm_to_estimate", "evt_confirm_to_booking", "evt_confirm_to_confirm"} {
+		dispatchActionByName(t, session, eventID, "next", "shell.next", "next", nil)
+	}
+	if session.CurrentPage.ID != "intake-confirm" {
+		t.Fatalf("current page = %q, want intake-confirm", session.CurrentPage.ID)
+	}
+
+	booking := dispatchActionByName(t, session, "evt_edit_confirm_time", "editConfirmBookingTime", "confirm-time", "edit", nil)
+	assertPage(t, booking, "intake-booking")
+}
+
 func TestDemoIntakeFlowPhaseCRepresentativeUpdates(t *testing.T) {
 	rt := NewRuntime()
 	session, _, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)

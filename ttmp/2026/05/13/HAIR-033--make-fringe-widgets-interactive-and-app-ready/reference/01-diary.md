@@ -2764,3 +2764,185 @@ Disable logs:
 localStorage.removeItem("fringe.dsl.debug")
 localStorage.removeItem("fringe.dsl.traceDom")
 ```
+
+---
+
+## Step 28: Remove the dispatching toast from the phone footer path
+
+Removed the transient `Dispatching backend event…` overlay from the live DSL phone frame. The debug logs showed that `IntakeShell` and the next button DOM node were stable across backend page transitions, which means the perceived footer flash was not caused by React remounting or unstable ids. The likely cause was the absolutely positioned dispatch status toast overlapping the bottom CTA area.
+
+The status overlay now remains available for errors and backend effects, but normal in-flight dispatch no longer paints a toast over the footer. The root `BackendDslPage` still exposes `data-dispatching` for inspection and styling if needed.
+
+### Prompt Context
+
+**User prompt (verbatim):** "I think it's a toast that says "Dispatching backend event" that looks like a flash and is overlapping the button."
+
+**Assistant interpretation:** The user identified the likely cause of the visual flash: the in-flight dispatch status overlay, not unstable footer DOM identity.
+
+**Inferred user intent:** Remove or adjust the overlapping dispatch toast so normal interactions no longer look like the bottom button is flashing.
+
+**Commit (code):** 169d98b — "HAIR-033 Step 29: Wire summary edit actions"
+
+### What I did
+
+- Updated `web/src/page-dsl/BackendDslPage.tsx`.
+- Removed `dispatching` from the condition that renders `BackendDslPageStatus`.
+- Removed the `Dispatching backend event…` text path.
+- Kept the status overlay for errors and backend effects.
+- Added `data-dispatching={dispatching || undefined}` to the `BackendDslPage` root so dispatch state remains inspectable without painting the toast.
+
+### Why
+
+The instrumentation showed `sameAsPreviousRender: true` for the next button across page transitions. That means the footer button is not being replaced. The dispatch overlay was visually located near the CTA, so it could easily look like footer flicker. Removing the normal dispatch toast tests and likely fixes that visual artifact.
+
+### What worked
+
+Validation passed:
+
+```bash
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+pnpm build
+cd ..
+go test ./... -count=1
+```
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- The debug instrumentation did its job: it ruled out shell remounting and button DOM replacement, which made the overlapping toast the most plausible remaining cause.
+
+### What was tricky to build
+
+- The fix needed to preserve error/effect visibility while removing only the normal in-flight dispatch overlay. Keeping `data-dispatching` preserves observability without visual interference.
+
+### What warrants a second pair of eyes
+
+- Whether backend effects should also move to the side debug panel or top of the phone frame instead of the footer-adjacent overlay.
+
+### What should be done in the future
+
+- Restart the web service and retest the live flow visually.
+- If any flash remains, use the Performance panel to inspect paint/layout/focus rather than remounting.
+
+### Code review instructions
+
+Review:
+
+- `web/src/page-dsl/BackendDslPage.tsx`
+
+Validate with:
+
+```bash
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+pnpm build
+cd ..
+go test ./... -count=1
+```
+
+---
+
+## Step 29: Wire estimate and confirm summary edit actions
+
+Fixed the non-working `edit` affordances on the `Your working estimate` and `Request received` pages. The frontend renderer already knew how to dispatch `summaryRow` edit events, but the Goja flow did not register backend `edit` action refs for those rows. As a result, the UI showed an edit affordance that had no backend callback behind it.
+
+The flow now registers `edit` callbacks on editable summary rows. Estimate rows route back to their source steps, and confirm rows route back to estimate or booking as appropriate.
+
+### Prompt Context
+
+**User prompt (verbatim):** "the "edit" buttons on the "Your working estimate" don't seem to be working."
+
+**User prompt (verbatim):** "in request received neither."
+
+**Assistant interpretation:** Summary row edit controls render on estimate and confirm pages, but clicking them does not trigger useful backend navigation.
+
+**Inferred user intent:** Make the summary edit controls functional in the backend-driven DSL flow.
+
+**Commit (code):** 169d98b — "HAIR-033 Step 29: Wire summary edit actions"
+
+### What I did
+
+- Updated `pkg/dslgoja/flows/intake.flow.js`:
+  - added `editAction(ctx, name, step)` helper,
+  - wired estimate summary row edit actions:
+    - service -> `service`,
+    - tone -> `color`,
+    - photos -> `photos`,
+    - budget -> `budget`,
+  - wired confirm summary row edit actions:
+    - service -> `service`,
+    - estimate -> `estimate`,
+    - date -> `booking`,
+    - time -> `booking`.
+- Updated `pkg/dslgoja/intake_flow_phase_c_test.go`:
+  - added coverage for estimate edit action navigation,
+  - added coverage for confirm edit action navigation.
+- Also included the prior toast-overlap fix in this validation/commit path:
+  - normal `Dispatching backend event…` toast no longer renders over the footer,
+  - errors/effects still render through `BackendDslPageStatus`,
+  - `data-dispatching` remains on the root for observability.
+
+### Why
+
+`SummaryRow` always receives an `onEdit` from the renderer, but backend-driven rows need `props.actions.edit` to make that click meaningful. Without a backend action ref, the renderer has nothing to send to Goja.
+
+### What worked
+
+Validation passed:
+
+```bash
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+pnpm build
+cd ..
+go test ./pkg/dslgoja -count=1
+go test ./... -count=1
+```
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- We should avoid rendering visible edit affordances unless a row has a backend action or local action. Right now the renderer always passes `onEdit` for `summaryRow`; a future polish pass should only pass `onEdit` when `props.actions.edit` or local `onEdit` exists.
+
+### What was tricky to build
+
+- The test needed to navigate to estimate, dispatch an edit action back to color, then navigate forward to confirm and dispatch a confirm edit action back to booking. This verifies both pages without relying on browser automation.
+
+### What warrants a second pair of eyes
+
+- Whether estimate `Range` should also be editable or intentionally read-only.
+- Whether confirm `Estimate` should route to `estimate` or `budget` for editing.
+- Whether the renderer should hide edit affordances when no action is present.
+
+### What should be done in the future
+
+- Consider making `summaryRow` edit affordances conditional on actual registered actions.
+- Restart the devctl-managed backend so the embedded flow update is visible in the live route.
+
+### Code review instructions
+
+Review:
+
+- `pkg/dslgoja/flows/intake.flow.js`
+- `pkg/dslgoja/intake_flow_phase_c_test.go`
+- `web/src/page-dsl/BackendDslPage.tsx`
+
+Validate with:
+
+```bash
+go test ./... -count=1
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+pnpm build
+```
