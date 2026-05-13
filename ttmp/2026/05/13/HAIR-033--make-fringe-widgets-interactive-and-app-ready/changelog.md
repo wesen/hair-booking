@@ -118,3 +118,13 @@ Uploaded third Goja sandbox multi-step intake DSL guide to reMarkable at /ai/202
 
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/03-goja-sandbox-multi-step-intake-dsl-guide.md — Uploaded third Goja guide
 
+
+## 2026-05-13
+
+Step 10: Added Go-side DSL JSON schema types and DTOs in pkg/dslgoja, with JSON contract tests. Verified go test ./pkg/dslgoja -count=1. (commit 6d4e7e9)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/schema.go — Go structs for frontend-compatible DSL page/event JSON
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/schema_test.go — JSON contract tests for DSL schema DTOs
+

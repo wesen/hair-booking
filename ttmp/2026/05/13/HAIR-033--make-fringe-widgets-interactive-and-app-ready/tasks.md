@@ -12,3 +12,16 @@
 - [x] Add or update tests for selection callbacks and state transitions
 - [x] Update intern-facing implementation notes and reMarkable handoff if requested
 - [x] Design backend-driven DSL callback architecture and upload intern guide to reMarkable
+- [x] Define Go JSON DSL schema types in pkg/dslgoja and keep field names aligned with web/src/page-dsl/schema.ts
+- [ ] Implement a minimal Goja flow runtime that can start a flow, load a JS script, create JSON state, render the first page, and expose ctx.action
+- [ ] Implement page-version-scoped action registry with CurrentActions, RetiredActions, ProcessedEvents, and render transactions
+- [ ] Expose a fringe/dsl-style JavaScript builder module inside Goja for page(), intake(), and core node helpers
+- [ ] Create a two-step intake.flow.js prototype with service and color steps using segmented, serviceOptionGroup, chipGroup, ratingBar, and footer navigation
+- [ ] Implement event dispatch into registered Goja callbacks with per-session locking, timeout/interrupt, idempotency, stale-page recovery, and node/action validation
+- [ ] Add Go tests covering start flow, action registration, segmented change, next navigation, stale action rejection/recovery, and duplicate event idempotency
+- [ ] Add HTTP endpoints for starting a DSL flow, fetching the current page, and posting interaction events
+- [ ] Add frontend backendClient and BackendDslPage container that renders backend-produced JSON and posts action refs back to Go
+- [ ] Update DslPageRenderer to support backend action refs in props.actions while preserving local Storybook action names
+- [ ] Add Storybook or dev-route demo for the Goja-backed multi-step intake flow
+- [ ] Run go test ./... -count=1, web pnpm test, typecheck, and Storybook build; fix regressions
+- [ ] Update HAIR-033 docs/diary/changelog and upload final implementation guide bundle to reMarkable

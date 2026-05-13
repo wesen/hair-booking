@@ -824,3 +824,88 @@ Review these updated sections in the design doc:
 - `Page Rendering Cycle and Old Action Lifecycle`
 - `Persistence and VM Lifetime Choices`
 - `Final Recommendation`
+
+---
+
+## Step 10: Add the Go DSL JSON schema foundation
+
+Started the implementation phase for the Goja-backed backend DSL by adding the Go-side JSON schema types. This is the lowest layer: before Goja can build pages or dispatch actions, the backend needs structs that serialize to the same JSON shape the frontend renderer already understands.
+
+The new `pkg/dslgoja` package currently contains only schema and DTO types. It does not yet load Goja or execute JavaScript. Keeping this first step small gives us a stable contract for later runtime, builder, action registry, and HTTP endpoint work.
+
+### Prompt Context
+
+**User prompt (verbatim):** "add detailed list of tasks to the ticket, and then work on them one by one, keeping a detailed diary as you work."
+
+**Assistant interpretation:** Add a detailed implementation checklist to HAIR-033, then begin completing tasks sequentially while recording each completed step in the diary.
+
+**Inferred user intent:** Move from design documents into implementation with disciplined ticket bookkeeping and a clear continuation trail.
+
+**Commit (code):** 6d4e7e9 — "HAIR-033 Step 10: Add Go DSL JSON schema types"
+
+### What I did
+
+- Added detailed implementation tasks 10–22 to HAIR-033.
+- Created `pkg/dslgoja/schema.go` with:
+  - `Page`
+  - `Shell`
+  - `Node`
+  - `NodeMeta`
+  - `ActionRef`
+  - `NodeActions`
+  - `Effect`
+  - `InteractionEvent`
+  - `InteractionResult`
+  - `NewPage(...)`
+- Created `pkg/dslgoja/schema_test.go` with JSON contract tests:
+  - page JSON uses frontend field names such as `schemaVersion`, `shell`, `props`, `nodes`, `meta`, and `kind`.
+  - interaction event JSON uses expected browser/backend field names such as `eventId`, `sessionId`, `pageVersion`, `nodeId`, `actionId`, `event`, and `value`.
+- Ran:
+
+```bash
+go test ./pkg/dslgoja -count=1
+```
+
+### Why
+
+The frontend renderer already understands a specific JSON page contract. A Goja-hosted backend DSL must emit that same contract, so the first implementation task is to define Go structs that marshal correctly.
+
+### What worked
+
+- The schema package is independent of Goja, so it compiles and tests quickly.
+- The JSON round-trip tests give us a small guardrail against accidental field-name drift.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- Starting with schema avoids mixing Goja runtime concerns with JSON contract concerns.
+- `map[string]any` is the pragmatic choice for node props because frontend DSL props are intentionally JSON-object shaped and vary by node kind.
+
+### What was tricky to build
+
+- The schema needs to be strict enough to document the contract but flexible enough for arbitrary node props and future widget kinds. The compromise is typed top-level structs plus `map[string]any` for props/meta payload details.
+
+### What warrants a second pair of eyes
+
+- Whether `Effect` should remain generic or be split into typed effect variants once backend dispatch is implemented.
+- Whether `NodeMeta` should be pointer or value. It is currently `*NodeMeta` so `omitempty` removes empty metadata cleanly.
+
+### What should be done in the future
+
+- Task 11: implement a minimal Goja flow runtime that can start a flow, expose `ctx.action`, render the first page, and hold session state.
+
+### Code review instructions
+
+Start with:
+
+- `pkg/dslgoja/schema.go`
+- `pkg/dslgoja/schema_test.go`
+
+Validate with:
+
+```bash
+go test ./pkg/dslgoja -count=1
+```
