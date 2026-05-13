@@ -2667,7 +2667,7 @@ The instrumentation is intentionally gated so normal use stays quiet. Enable it 
 
 **Inferred user intent:** Move from the debugging guide to practical instrumentation that can identify whether footer flashing is remounting, DOM replacement, overlay/layout repaint, or expected refresh loading.
 
-**Commit (code):** 0d66781 — "HAIR-033 Step 27: Add DSL rendering debug instrumentation"
+**Commit (code):** 6e3e0b8 — "HAIR-033 Step 27: Add DSL rendering debug instrumentation"
 
 ### What I did
 

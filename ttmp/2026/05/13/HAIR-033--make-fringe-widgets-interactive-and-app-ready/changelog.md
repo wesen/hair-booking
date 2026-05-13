@@ -340,7 +340,7 @@ Step 26: Added a textbook-style debugging guide for refresh blanking, footer fla
 
 ## 2026-05-13
 
-Step 27: Added gated rendering debug instrumentation (commit 0d66781), stable IntakeShell selectors, BackendDslPage/renderer/shell debug logs, and optional footer DOM identity tracing. Validated Go/web tests, typecheck, and Vite build.
+Step 27: Added gated rendering debug instrumentation (commit 6e3e0b8), stable IntakeShell selectors, BackendDslPage/renderer/shell debug logs, and optional footer DOM identity tracing. Validated Go/web tests, typecheck, and Vite build.
 
 ### Related Files
 
