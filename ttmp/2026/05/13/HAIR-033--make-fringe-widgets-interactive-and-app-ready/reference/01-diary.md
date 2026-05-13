@@ -1262,3 +1262,91 @@ Validate with:
 ```bash
 go test ./pkg/dslgoja -count=1
 ```
+
+---
+
+## Step 15: Dispatch browser interaction events into Goja callbacks
+
+Implemented the core backend callback loop: a `FlowSession` can now receive an `InteractionEvent`, validate it against the current page version/action registry, invoke the registered Goja callback, export the callback-returned page, commit the new page/actions, and cache the result for idempotent duplicate event ids.
+
+This is the first step where the earlier design becomes real: the browser can send an opaque action id and value, and the backend can route it to the Goja callback that was registered during page construction.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 10)
+
+**Assistant interpretation:** Continue the HAIR-033 implementation task list with event dispatch into registered Goja callbacks.
+
+**Inferred user intent:** Turn the Goja DSL prototype from a static page renderer into an interactive backend-driven runtime.
+
+**Commit (code):** d6298c4 — "HAIR-033 Step 15: Dispatch events into Goja callbacks"
+
+### What I did
+
+- Added `FlowSession.Dispatch(ctx, event)` in `pkg/dslgoja/runtime.go`.
+- Dispatch now:
+  - locks the session,
+  - returns cached results for duplicate `eventId`,
+  - returns a stale current-page result for mismatched `pageVersion`,
+  - looks up only `CurrentActions`,
+  - returns stale current-page results for retired action ids,
+  - validates node/action match when `NodeID` is known,
+  - calls the Goja callback with a lowerCamelCase JS event object,
+  - exports the returned page,
+  - commits the page through the render transaction lifecycle,
+  - stores processed event results for idempotency.
+- Added `pkg/dslgoja/dispatch_test.go`:
+  - category segmented change updates page JSON,
+  - shell next action moves to color step,
+  - stale old action returns current page with info effect,
+  - duplicate event id returns cached result without incrementing session version.
+- Ran:
+
+```bash
+go test ./pkg/dslgoja -count=1
+```
+
+### Why
+
+The user's central requirement is that a frontend interaction triggers the backend, and the backend looks up the registered handler for that page. Dispatch is the runtime method that makes that possible.
+
+### What worked
+
+- The Goja callback closures registered via `ctx.action` can mutate `ctx.state` and return `render(ctx)`.
+- The active render transaction pattern lets callback-triggered renders register fresh actions for the returned page.
+- Idempotency is simple and effective when checked before version/action validation.
+
+### What didn't work
+
+- First attempt passed the Go `InteractionEvent` struct directly to Goja with `vm.ToValue(event)`. JavaScript callbacks expected `event.value`, but Goja exposed Go field names instead, so `event.value` was undefined.
+- Fix: convert the event to a lowerCamelCase `map[string]any` before passing it into JS.
+
+### What I learned
+
+- Every Go-to-JavaScript boundary should be treated like a JSON API boundary. Use the same lowerCamelCase names the JS author expects, not Go struct field names.
+
+### What was tricky to build
+
+- Callback-returned pages need to be committed the same way normal renders are committed. The runtime cannot simply call the callback and return the page; it must retire old actions, install new actions, increment the version, and cache the result.
+
+### What warrants a second pair of eyes
+
+- Whether stale page-version events should always return `200` with current page/effect or use an HTTP-level conflict once endpoints exist.
+- How to assign `NodeID` into `ActionRegistration`; this likely belongs in the builder/node context layer.
+
+### What should be done in the future
+
+- Task 16: expand and consolidate Go tests for the runtime, including the required coverage from the ticket task.
+
+### Code review instructions
+
+Start with:
+
+- `pkg/dslgoja/runtime.go` (`Dispatch`, `interactionEventObject`, stale/error result helpers)
+- `pkg/dslgoja/dispatch_test.go`
+
+Validate with:
+
+```bash
+go test ./pkg/dslgoja -count=1
+```

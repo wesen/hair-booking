@@ -172,3 +172,13 @@ Step 14: Added embedded two-step Goja intake.flow.js prototype using require('fr
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/intake_flow_test.go — Demo flow rendering tests
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/runtime.go — Active render transaction lookup for ctx.action
 
+
+## 2026-05-13
+
+Step 15: Implemented FlowSession.Dispatch to route browser interaction events into registered Goja callbacks with locking, idempotency, version checks, stale recovery, and callback-returned page commits. Verified go test ./pkg/dslgoja -count=1. (commit d6298c4)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/dispatch_test.go — Dispatch behavior tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/runtime.go — Goja interaction dispatch implementation
+
