@@ -1499,3 +1499,70 @@ booking     13.17% tune-required
 history     12.63% tune-required
 confirm     10.09% tune-required
 ```
+
+---
+
+## Step 21: Tune footer gutters; ConfirmPage enters review band
+
+Used the full-frame review artifacts to inspect the service and confirm screenshots directly. The phone-frame selector made it clear that footer buttons were inset too far: we had set 30px padding inside the Storybook frame, but the prototype's visible 30px gutter includes the 8px phone border. Therefore the actual inner padding should be 22px.
+
+### Prompt Context
+
+**User prompt (verbatim):** (see Step 19)
+
+**Assistant interpretation:** Continue the visual tuning loop and reduce remaining mismatches based on review artifacts and VLM feedback.
+
+**Inferred user intent:** Keep iterating until the comparison website shows useful, increasingly close matches.
+
+**Commit (code):** b2276be — "HAIR-031 Step 21: Tune footer gutters; confirm enters review band"
+
+### What I did
+
+- Changed footer horizontal padding from 30px to 22px in `IntakeShell` and `ConfirmPage`.
+- Re-ran the full 9-page comparison sweep.
+- Restarted the css-visual-diff review site at http://127.0.0.1:18098.
+
+### Why
+
+The review screenshots showed footer buttons beginning at x=38 on the React side while the target begins at x=30. Since the phone frame border is 8px wide, a 22px inner padding gives the target's 30px visual gutter.
+
+### What worked
+
+- ConfirmPage improved from 10.09% to 9.85%, entering the `review` band.
+- All pages remain below `major-mismatch`; current distribution is 1 `review`, 8 `tune-required`.
+
+### What didn't work
+
+- VLM feedback suggested reducing page gutters generally, but direct screenshot inspection showed card gutters already matched; the actual mismatch was footer-only. This is a reminder to use VLM as guidance, not ground truth.
+
+### What I learned
+
+- When comparing full phone frames, every inner gutter must account for the 8px frame border. A visible 30px prototype gutter corresponds to 22px CSS padding inside the framed content.
+
+### What was tricky to build
+
+- The same visual x-coordinate can mean different CSS padding depending on whether the comparison crop includes the phone border. After switching to full-frame comparison, previously reasonable 30px padding became too large.
+
+### What warrants a second pair of eyes
+
+- ConfirmPage is barely under 10%; visually confirm whether it is acceptable or still warrants micro-tuning.
+
+### What should be done in the future
+
+- Continue reducing the remaining tune-required pages, starting with ColorPage (21.86%), PhotosPage (20.22%), and ServicePage (19.10%).
+
+### Code review instructions
+
+Latest sweep:
+
+```text
+color       21.86% tune-required
+photos      20.22% tune-required
+service     19.10% tune-required
+length      18.62% tune-required
+estimate    17.65% tune-required
+budget      14.65% tune-required
+booking     12.86% tune-required
+history     12.33% tune-required
+confirm      9.85% review
+```
