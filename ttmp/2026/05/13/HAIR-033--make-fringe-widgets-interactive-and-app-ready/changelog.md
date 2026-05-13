@@ -128,3 +128,14 @@ Step 10: Added Go-side DSL JSON schema types and DTOs in pkg/dslgoja, with JSON 
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/schema.go — Go structs for frontend-compatible DSL page/event JSON
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/schema_test.go — JSON contract tests for DSL schema DTOs
 
+
+## 2026-05-13
+
+Step 11: Added minimal Goja flow runtime that loads JS flow source, calls initialState/render, exposes ctx.action, exports page JSON, and tests initial action refs. Verified go test ./pkg/dslgoja -count=1. (commit 7dac9ed)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/go.mod — Added Goja dependency
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/runtime.go — Minimal Goja flow runtime and ctx.action support
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/runtime_test.go — Runtime start/render/action registration tests
+

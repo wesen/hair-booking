@@ -909,3 +909,94 @@ Validate with:
 ```bash
 go test ./pkg/dslgoja -count=1
 ```
+
+---
+
+## Step 11: Add the minimal Goja flow runtime
+
+Implemented the first executable Goja-backed DSL slice. The backend can now start a flow from JavaScript source, create a Goja runtime, call `initialState()`, expose a `ctx` object with `ctx.state` and `ctx.action(...)`, call `render(ctx)`, export the returned JavaScript object into the Go `Page` JSON contract, and return an initial `InteractionResult`.
+
+This is intentionally still a minimal runtime. It proves that JavaScript inside Go can register server-side callbacks and emit browser-renderable JSON, but it does not yet dispatch browser events back into callbacks or implement render transactions/stale-action handling.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 10)
+
+**Assistant interpretation:** Continue the task list one item at a time and record each implementation step in the diary.
+
+**Inferred user intent:** Build the Goja backend DSL incrementally with verifiable commits and clear continuation notes.
+
+**Commit (code):** 7dac9ed — "HAIR-033 Step 11: Add minimal Goja flow runtime"
+
+### What I did
+
+- Added dependency `github.com/dop251/goja`.
+- Created `pkg/dslgoja/runtime.go` with:
+  - `Runtime`
+  - `FlowSession`
+  - `ActionRegistration`
+  - `StartFlow(...)`
+  - `Render(...)`
+  - `ctx.action(...)`
+  - timeout-aware Goja function invocation
+  - JSON export from Goja values to the Go `Page` struct
+- Created tests in `pkg/dslgoja/runtime_test.go`:
+  - start flow with `initialState()` and `render(ctx)`,
+  - verify session id and page version,
+  - verify initial page id,
+  - verify actions were registered,
+  - verify action refs are embedded in page JSON,
+  - verify flows without `initialState()` receive an empty state object.
+- Ran:
+
+```bash
+go test ./pkg/dslgoja -count=1
+```
+
+### Why
+
+The design documents are now concrete enough to start prototyping. This step proves the core embedding concept before adding more complex action lifecycle behavior: JavaScript runs inside Go, can access `ctx.state`, can call `ctx.action`, and can return JSON that matches the frontend contract.
+
+### What worked
+
+- `ctx.action(name, callback, event)` successfully stores a Goja callback in the session and returns a JSON-safe `{ id, event }` action reference.
+- Goja JavaScript objects can be exported to the Go JSON contract by marshaling `value.Export()` to JSON and unmarshaling into `Page`.
+
+### What didn't work
+
+- First attempt used `vm.ExportTo(value, &page)` directly. That produced empty fields because Goja export does not use JSON tags like `schemaVersion` -> `SchemaVersion` in the way we need.
+- Fix: export to generic Go values, JSON-marshal, then JSON-unmarshal into the tagged DTO.
+- First wrapper assumed `initialState` always existed, causing `ReferenceError: initialState is not defined` for scripts without it.
+- Fix: wrapper now returns `initialState: (typeof initialState === 'function' ? initialState : undefined)`.
+
+### What I learned
+
+- JSON tags are the safest boundary for Goja-to-DTO conversion because the browser contract is JSON, not Go field names.
+- A minimal Goja runtime can be implemented without adding a module system yet; the script wrapper can return `{ initialState, render }` for the first prototype.
+
+### What was tricky to build
+
+- Exporting JavaScript objects into Go structs required respecting JSON tags. Direct Goja export was not enough because the frontend contract uses lower/camel-case keys.
+- The runtime must be careful with timeouts and `vm.Interrupt`, even in early prototypes, because flow scripts are arbitrary JavaScript.
+
+### What warrants a second pair of eyes
+
+- Whether `ctx.action` should infer event names or always require an explicit event argument.
+- Whether the script wrapper should be replaced by a CommonJS-like `module.exports` API before more examples are written.
+
+### What should be done in the future
+
+- Task 12: replace the current simple action reset with page-version-scoped current/retired action maps, processed event idempotency, and render transactions.
+
+### Code review instructions
+
+Start with:
+
+- `pkg/dslgoja/runtime.go`
+- `pkg/dslgoja/runtime_test.go`
+
+Validate with:
+
+```bash
+go test ./pkg/dslgoja -count=1
+```
