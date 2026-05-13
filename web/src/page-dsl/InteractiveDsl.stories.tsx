@@ -37,6 +37,7 @@ const dayOptions = Array.from({ length: 21 }).map((_, i) => {
 });
 
 function buildInteractiveIntakeDsl(state: {
+  category: string;
   service: string;
   budget: string;
   tones: string[];
@@ -50,7 +51,7 @@ function buildInteractiveIntakeDsl(state: {
         { value: "cut", label: "Cut" },
         { value: "color", label: "Color" },
         { value: "extensions", label: "Extensions" },
-      ], "color", { action: "segmentChanged", style: { marginBottom: 16 } }),
+      ], state.category, { action: "categoryChanged", style: { marginBottom: 16 } }),
       n.serviceOptionGroup(serviceOptions, state.service, { action: "serviceChanged" }),
       n.budgetOptionGroup(budgetOptions, state.budget, { action: "budgetChanged", columns: 2, style: { marginTop: 12 } }),
       n.chipGroup(toneOptions, state.tones, {
@@ -102,6 +103,7 @@ type Story = StoryObj;
 export const InteractiveIntake: Story = {
   render: () => {
     const [state, setState] = useState({
+      category: "color",
       service: "highlights",
       budget: "250-400",
       tones: ["dimensional"],
@@ -114,11 +116,11 @@ export const InteractiveIntake: Story = {
         page={dsl}
         context={{
           actions: {
+            categoryChanged: (payload?: DslActionPayload) => setState((current) => ({ ...current, category: String(payload?.value ?? current.category) })),
             serviceChanged: (payload?: DslActionPayload) => setState((current) => ({ ...current, service: String(payload?.value ?? current.service) })),
             budgetChanged: (payload?: DslActionPayload) => setState((current) => ({ ...current, budget: String(payload?.value ?? current.budget) })),
             tonesChanged: (payload?: DslActionPayload) => setState((current) => ({ ...current, tones: Array.isArray(payload?.value) ? payload.value.map(String) : current.tones })),
             damageChanged: (payload?: DslActionPayload) => setState((current) => ({ ...current, damage: Number(payload?.value ?? current.damage) })),
-            segmentChanged: (payload?: DslActionPayload) => console.log("segmentChanged", payload),
             next: () => console.log("next", state),
             back: () => console.log("back"),
             skip: () => console.log("skip"),
@@ -155,5 +157,5 @@ export const InteractiveBooking: Story = {
 
 export const InteractiveJsonContract: Story = {
   parameters: { phone: false, layout: "padded" },
-  render: () => <StateDump value={buildInteractiveIntakeDsl({ service: "highlights", budget: "250-400", tones: ["dimensional"], damage: 2 })} />,
+  render: () => <StateDump value={buildInteractiveIntakeDsl({ category: "color", service: "highlights", budget: "250-400", tones: ["dimensional"], damage: 2 })} />,
 };

@@ -48,20 +48,25 @@ const dayOptions = Array.from({ length: 21 }).map((_, i) => ({
 
 export const IntakeSelections: Story = {
   render: () => {
+    const [category, setCategory] = useState("color");
     const [service, setService] = useState("highlights");
     const [budget, setBudget] = useState("250-400");
     const [length, setLength] = useState("Shoulder");
     const [damage, setDamage] = useState(2);
 
-    const state = { service, budget, length, damage };
+    const state = { category, service, budget, length, damage };
 
     return (
       <div style={{ maxWidth: 420 }}>
         <h2 style={{ ...typeToken.h2, margin: "0 0 14px" }}>Controlled intake selectors</h2>
         <Segmented
-          options={["cut", "color", "extensions"]}
-          value="color"
-          onChange={(next) => console.log("segmented", next)}
+          options={[
+            { value: "cut", label: "Cut" },
+            { value: "color", label: "Color" },
+            { value: "extensions", label: "Extensions" },
+          ]}
+          value={category}
+          onChange={setCategory}
           style={{ marginBottom: 16 }}
         />
         <ServiceOptionGroup options={serviceOptions} value={service} onChange={setService} />
