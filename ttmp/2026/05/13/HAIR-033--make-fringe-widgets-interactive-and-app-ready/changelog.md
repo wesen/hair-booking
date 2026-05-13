@@ -309,3 +309,16 @@ Step 24: Added devctl setup (commit 3b3fd4b) for the hair-booking live DSL stack
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/plugins/devctl/hair_booking.py — devctl protocol-v2 plugin producing validation and launch plans
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/reference/01-diary.md — Diary Step 24
 
+
+## 2026-05-13
+
+Step 25: Expanded embedded Goja intake flow (commit 5fe8d96) to service/color/photos/budget/estimate/booking/confirm, added stable page/node ids and runtime tests for navigation plus representative updates.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/flows/intake.flow.js — Seven-step Goja intake flow implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/intake_flow_phase_c_test.go — Phase C navigation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/04-real-ui-app-integration-guide-for-goja-backend-dsl.md — Phase C implementation update
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/reference/01-diary.md — Diary Step 25
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/tasks.md — Phase C tasks marked complete
+

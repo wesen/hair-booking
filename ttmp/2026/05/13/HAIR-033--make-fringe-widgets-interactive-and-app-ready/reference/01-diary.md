@@ -2412,3 +2412,131 @@ Backend: http://127.0.0.1:19080
 Web:     http://127.0.0.1:5175
 Demo:    http://127.0.0.1:5175/dsl-goja-demo
 ```
+
+---
+
+## Step 25: Expand the Goja intake flow to seven steps
+
+Implemented Phase C by expanding the embedded Goja intake flow from two steps to seven steps. The flow now covers service, color, photos, budget, estimate, booking, and confirm. Each page has a stable page id, and each rendered node has a stable `meta.id` so the frontend can use backend-emitted ids for reconciliation and debugging.
+
+This gives the live DSL route a more realistic path to click through. It is still prototype data and does not yet call real intake/appointment host modules, but the action-based flow mechanics now cover the shape of the full booking funnel.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, do Phase C. Commit at appropriate intervals"
+
+**Assistant interpretation:** Implement the Phase C flow expansion tasks, validate them, update docs/diary, and commit the work.
+
+**Inferred user intent:** Move beyond the two-step prototype so the live Goja DSL app can be reviewed as a fuller intake flow.
+
+**Commit (code):** 5fe8d96 — "HAIR-033 Step 25: Expand Goja intake flow"
+
+### What I did
+
+- Rewrote `pkg/dslgoja/flows/intake.flow.js` to support:
+  - `serviceStep`,
+  - `colorStep`,
+  - `photosStep`,
+  - `budgetStep`,
+  - `estimateStep`,
+  - `bookingStep`,
+  - `confirmStep`.
+- Added JSON-serializable state for:
+  - category,
+  - service,
+  - tones,
+  - damage,
+  - photos,
+  - budget,
+  - day,
+  - time.
+- Added stable page ids:
+  - `intake-service`,
+  - `intake-color`,
+  - `intake-photos`,
+  - `intake-budget`,
+  - `intake-estimate`,
+  - `intake-booking`,
+  - `intake-confirm`.
+- Added stable node ids across all new pages and nested card/grid children.
+- Added `pkg/dslgoja/intake_flow_phase_c_test.go` covering:
+  - seven-step navigation through backend `next` actions,
+  - stable node id presence/uniqueness,
+  - photo upload update,
+  - budget update,
+  - booking day update,
+  - booking time update.
+- Marked Phase C tasks complete in `tasks.md`.
+- Updated the real UI app integration guide with a Phase C implementation note.
+
+### Why
+
+The two-step prototype proved the architecture, but it did not let us evaluate the flow as an intake app. Expanding to the full funnel lets us test whether the backend-driven action model remains understandable across navigation, nested nodes, field updates, and summary pages.
+
+### What worked
+
+- The existing `fringe/dsl` builder module already had enough primitives for a credible first pass: `photoTile`, `budgetOptionGroup`, `summaryRow`, `dayPickerGrid`, and `timeSlotGroup` were enough to build the new steps.
+- Focused Go validation passed:
+
+```bash
+go test ./pkg/dslgoja -count=1
+go test ./pkg/server -count=1
+```
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- The shell action helper in the flow script made navigation concise. A single `shell(ctx, { back, next, skip })` helper kept all footer callbacks page-version scoped through `ctx.action`.
+- Stable ids need to include nested children too. The new test walks nested nodes so cards and grids cannot accidentally contain anonymous child nodes.
+
+### What was tricky to build
+
+- Photo actions needed unique action names per tile, such as `uploadPhoto:front`, so tests and debugging can identify which backend callback was invoked.
+- The confirm page currently loops `next` back to service because there is no real appointment submission host module yet. That is intentional prototype behavior and should be replaced in Phase D.
+
+### What warrants a second pair of eyes
+
+- Whether the seven-step content and labels are good enough for the first live review or should be aligned more closely with the visual prototypes.
+- Whether photo upload/remove should stay as boolean prototype state or move to uploaded photo ids before Phase D.
+- Whether confirm `next` should loop to service or become a no-op/finish action until submission exists.
+
+### What should be done in the future
+
+- Restart the devctl-managed web service and click through all seven steps in the browser.
+- Phase D should add safe host modules for estimates, availability, and appointment/intake submission.
+- Expand HTTP/frontend smoke coverage after the browser path has been manually reviewed.
+
+### Code review instructions
+
+Start with:
+
+- `pkg/dslgoja/flows/intake.flow.js`
+- `pkg/dslgoja/intake_flow_phase_c_test.go`
+
+Validate with:
+
+```bash
+go test ./pkg/dslgoja -count=1
+go test ./pkg/server -count=1
+```
+
+Manual live review:
+
+```bash
+devctl restart hair-booking-backend
+devctl restart hair-booking-web
+open http://127.0.0.1:5175/dsl-goja-demo
+```
+
+Click through:
+
+```text
+service -> color -> photos -> budget -> estimate -> booking -> confirm
+```
+
+### Technical details
+
+The new state remains JSON-safe. There are no host objects, callbacks, Go pointers, or non-serializable values inside `ctx.state`.

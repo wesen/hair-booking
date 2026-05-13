@@ -1482,3 +1482,84 @@ npx storybook build --test
 ```
 
 Phase A proves that the action-based approach works in a real browser route. The next phase should improve debug ergonomics: show the last event, make current page JSON easier to copy, and make effects/toasts more visible during stale-page or callback-error testing.
+
+---
+
+## Implementation Update: Phase C Full Prototype Flow Completed
+
+Phase C has been implemented. The embedded Goja flow is no longer a two-step service/color prototype. It now renders a seven-step intake path:
+
+```text
+service -> color -> photos -> budget -> estimate -> booking -> confirm
+```
+
+The expanded flow lives in:
+
+```text
+pkg/dslgoja/flows/intake.flow.js
+```
+
+The JSON-serializable state shape now includes:
+
+```js
+{
+  step: "service",
+  category: "color",
+  service: "highlights",
+  tones: ["dimensional"],
+  damage: 2,
+  photos: {
+    front: false,
+    side: false,
+    back: false,
+  },
+  budget: "flexible",
+  day: "2026-05-19",
+  time: "12:00",
+}
+```
+
+Every rendered page now has a stable page id:
+
+| Step | Page id |
+|---|---|
+| service | `intake-service` |
+| color | `intake-color` |
+| photos | `intake-photos` |
+| budget | `intake-budget` |
+| estimate | `intake-estimate` |
+| booking | `intake-booking` |
+| confirm | `intake-confirm` |
+
+Representative stable node ids include:
+
+| Step | Node ids |
+|---|---|
+| service | `service-intro`, `category-tabs`, `service-options` |
+| color | `tone-chips`, `damage-rating` |
+| photos | `photos-intro`, `photo-grid`, `photo-front`, `photo-side`, `photo-back`, `photo-count` |
+| budget | `budget-intro`, `budget-options` |
+| estimate | `estimate-card`, `estimate-service`, `estimate-tones`, `estimate-photos`, `estimate-budget`, `estimate-range`, `estimate-note` |
+| booking | `booking-days`, `booking-times` |
+| confirm | `confirm-success`, `confirm-card`, `confirm-service`, `confirm-estimate`, `confirm-day`, `confirm-time` |
+
+New runtime tests live in:
+
+```text
+pkg/dslgoja/intake_flow_phase_c_test.go
+```
+
+They verify:
+
+- navigation through all seven page ids by dispatching the backend `next` action,
+- every rendered node has a stable non-empty `meta.id`, including nested card/grid children,
+- representative updates for photo upload, budget selection, booking day, and booking time.
+
+Focused validation passed:
+
+```bash
+go test ./pkg/dslgoja -count=1
+go test ./pkg/server -count=1
+```
+
+The next implementation phase can now use the live route to review the fuller flow in a browser and decide which steps need richer widgets, host modules, or real domain data.

@@ -23,10 +23,10 @@
 
 ## Phase C — Expand the Goja Intake Flow
 
-- [ ] Extend `pkg/dslgoja/flows/intake.flow.js` from two steps to service → color → photos → budget → estimate → booking → confirm.
-- [ ] Add stable page ids and node ids for every new step.
-- [ ] Add Go runtime tests for each new navigation transition and representative field update.
-- [ ] Keep `ctx.state` JSON-serializable and document the state shape in the guide.
+- [x] Extend `pkg/dslgoja/flows/intake.flow.js` from two steps to service → color → photos → budget → estimate → booking → confirm.
+- [x] Add stable page ids and node ids for every new step.
+- [x] Add Go runtime tests for each new navigation transition and representative field update.
+- [x] Keep `ctx.state` JSON-serializable and document the state shape in the guide.
 
 ## Phase D — Safe Host Modules and Domain Integration
 
