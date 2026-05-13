@@ -67,3 +67,13 @@ Step 5: Wired interactive widgets into the DSL with group node kinds, named acti
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — Renderer action routing for interactive widgets
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/schema.ts — DSL action payload and group node schema
 
+
+## 2026-05-13
+
+Step 6: Made Cut/Color/Extensions segmented controls visibly stateful in app-ready and DSL Storybook demos. Verified tests, typecheck, and Storybook build. (commit d30db28)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/InteractiveWidgets.stories.tsx — Segmented control state wiring
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/InteractiveDsl.stories.tsx — DSL segmented action-to-state wiring
+

@@ -492,3 +492,78 @@ Page DSL / Interactive Widgets / Interactive Intake
 Page DSL / Interactive Widgets / Interactive Booking
 Page DSL / Interactive Widgets / Interactive JSON Contract
 ```
+
+---
+
+## Step 6: Make the segmented Cut/Color/Extensions tabs visibly stateful
+
+Fixed the app-ready and DSL Storybook demos so the Cut/Color/Extensions segmented control is actually controlled by local state. Previously the segmented widget emitted a callback, but the demo pinned `value="color"` or only logged the event, so clicking another tab did not visibly update the selected state.
+
+### Prompt Context
+
+**User prompt (verbatim):** "The Tabs thing (Cut / Color / Extensions) doesn't seem to do anything either"
+
+**Assistant interpretation:** The segmented tab control in the interactive demos should visibly change when clicked and update state like the other controls.
+
+**Inferred user intent:** Ensure the interactive DSL demos are actually interactive, not just wired internally.
+
+**Commit (code):** d30db28 — "HAIR-033 Step 5: Make segmented DSL tabs stateful"
+
+### What I did
+
+- Updated `web/src/InteractiveWidgets.stories.tsx`:
+  - Added `category` state.
+  - Changed `Segmented` from fixed `value="color"` to `value={category}`.
+  - Changed `onChange` from `console.log` to `setCategory`.
+  - Included `category` in the displayed state dump.
+- Updated `web/src/page-dsl/InteractiveDsl.stories.tsx`:
+  - Added `category` to the interactive DSL intake state.
+  - Changed the DSL `n.segmented(...)` node to use `state.category`.
+  - Changed the action from `segmentChanged` logging to `categoryChanged` state update.
+  - Updated the JSON contract example.
+- Verified:
+  - `cd web && pnpm test -- --runInBand`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && npx storybook build --test`
+
+### Why
+
+A demo that emits an event but does not update its selected value feels broken. Since these stories are intended to prove app-ready interactivity, the tab state must round-trip through local state just like services, budgets, chips, and ratings.
+
+### What worked
+
+- The existing DSL action bridge already supported the fix; the story only needed to update state from the action payload.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- Interactive Storybook examples should always show visible state changes, not just log callbacks.
+
+### What was tricky to build
+
+- The segmented control itself was already app-ready; the bug was in the demo wiring. This is the kind of issue that interaction tests or Storybook play functions could catch later.
+
+### What warrants a second pair of eyes
+
+- Review other interactive DSL controls to ensure none only log changes without visible state updates.
+
+### What should be done in the future
+
+- Add Storybook play tests or interaction tests for the interactive DSL stories.
+
+### Code review instructions
+
+Check:
+
+- `web/src/InteractiveWidgets.stories.tsx`
+- `web/src/page-dsl/InteractiveDsl.stories.tsx`
+
+Open Storybook and click Cut/Color/Extensions in:
+
+```text
+App Ready Widgets / Interactive Form Controls / Intake Selections
+Page DSL / Interactive Widgets / Interactive Intake
+```
