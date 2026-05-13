@@ -42,7 +42,7 @@ Step 3: Restarted devctl backend/web and smoke-tested direct protobuf JSON FlowS
 
 ## 2026-05-13
 
-Step 4: Fixed value-less edit events (commit dc9f01e) under protobuf JSON by omitting undefined optional value/meta fields before fromJson(InteractionEventSchema); added TS contract coverage and validated Go/web tests.
+Step 4: Fixed value-less edit events (commit ba7a895) under protobuf JSON by omitting undefined optional value/meta fields before fromJson(InteractionEventSchema); added TS contract coverage and validated Go/web tests.
 
 ### Related Files
 

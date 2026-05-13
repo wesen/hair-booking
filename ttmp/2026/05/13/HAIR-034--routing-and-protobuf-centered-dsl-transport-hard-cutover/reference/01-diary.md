@@ -322,7 +322,7 @@ when i click edit"
 
 **Inferred user intent:** Fix edit-link dispatch under the protobuf hard cutover so value-less actions work.
 
-**Commit (code):** dc9f01e — "HAIR-034 Step 4: Omit undefined protobuf event values"
+**Commit (code):** ba7a895 — "HAIR-034 Step 4: Omit undefined protobuf event values"
 
 ### What I did
 
