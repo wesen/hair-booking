@@ -1114,3 +1114,69 @@ web/src/
 ├── store/          # RTK Query (api, slices, types, data)
 └── mock/           # MSW handlers
 ```
+
+---
+
+## Step 14: Add data-component attributes and organize Storybook sidebar
+
+Added `data-component="ComponentName"` to the root JSX element of every component (37 total), enabling css-visual-diff selectors like `[data-component="Button"]`. Reorganized Storybook story titles from the old flat categories (`Fringe/Primitives/*`, `Fringe/Chrome/*`, `Fringe/Salon/*`) to match the atomic design folders (`Atoms/*`, `Molecules/*`, `Organisms/*`).
+
+### Prompt Context
+
+**User prompt (verbatim):** "Organize the storybook folders so they match the real folders"
+
+**Assistant interpretation:** Change the `title` in each story's CSF meta from the old flat-category titles to `Atoms/X`, `Molecules/X`, `Organisms/X` so the Storybook sidebar matches the actual `src/atoms/`, `src/molecules/`, `src/organisms/` folder structure.
+
+**Inferred user intent:** The Storybook sidebar should be a direct mirror of the filesystem — no cognitive mapping required.
+
+**Commit (code):** a633942 — "HAIR-031 Step 14: Add data-component attributes + organize Storybook sidebar"
+
+### What I did
+
+1. Added `data-component` JSX attributes to all 37 components (14 atoms + 8 molecules + 15 organisms)
+2. First attempt used automated `perl -pi` regex which broke 6 files by inserting `data-component` inside style objects instead of as JSX props. Fixed by re-copying from deprecated and manually editing each with the `edit` tool.
+3. Rewrote all story `title:` fields: `Fringe/Primitives/X` → `Atoms/X`, `Fringe/Chrome/X` → `Atoms/X` or `Molecules/X`, `Fringe/Salon/X` → `Molecules/X`, `Fringe/Layout/X` → `Organisms/X`
+4. Verified `tsc --noEmit` clean, `storybook build --test` passes
+5. Restarted Storybook dev server
+
+### Why
+
+The Storybook sidebar is the primary component browsing interface during development. When it mirrors the filesystem, developers can find any component's story in the sidebar and immediately know where the source files are.
+
+### What worked
+
+- `find ... -exec perl -pi` for the story title rewrites was clean and reliable — no false positives since the patterns are specific to `title: "Fringe/...`
+- The `edit` tool's exact-match approach for the data-component fixes was precise and safe
+
+### What didn't work
+
+- The first automated `perl -pi` for `data-component` insertion tried to match `<div style={{` patterns but the regex was too loose — it matched inside the style object instead of at the JSX element level. The regex `s|(<div style=\{\{)|$1 data-component="Name"|` inserted text into the middle of the style prop because the opening `<div` was on the same line as `style={{` and the substitution placed the attribute inside the braces.
+
+### What I learned
+
+- For JSX attribute insertion, the `edit` tool with exact text matching is safer than regex. The regex approach works fine for simple string replacements (like import paths or story titles) but breaks when the target is embedded in multi-line JSX.
+- The `data-component` attribute should always be the first prop after the tag name, not interleaved with `style={{}}`.
+
+### What was tricky to build
+
+- The 6 broken files (Card, Eyebrow, Progress, Rule, StatusBar, Wordmark) had `data-component` inserted inside `style={{}}` objects, producing invalid TypeScript. Had to re-copy from `web.deprecated/`, re-fix the import path, then manually add `data-component` as a proper JSX prop using the `edit` tool.
+
+### What warrants a second pair of eyes
+
+- Verify the Storybook sidebar at http://localhost:6006 shows the correct Atoms/Molecules/Organisms hierarchy
+- Spot-check a few `data-component` attributes render in the DOM (use browser devtools)
+
+### What should be done in the future
+
+- Add `data-part` attributes for sub-elements (e.g., `data-part="fill"` on Progress bar fill, `data-part="label"` on RatingBar label)
+- The organisms (pages) should also get `data-section` attributes for their major content areas
+
+### Code review instructions
+
+```bash
+# Verify Storybook sidebar
+open http://localhost:6006
+
+# Check data-component renders
+# In browser console: document.querySelector('[data-component="Button"]')
+```

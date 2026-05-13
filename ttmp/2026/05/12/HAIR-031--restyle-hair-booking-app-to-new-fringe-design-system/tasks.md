@@ -19,15 +19,15 @@
 - [x] Verify `pnpm install && pnpm typecheck && pnpm storybook` works
 
 ### Phase 2: Tokens + Atoms
-- [ ] Update token TS constants + CSS custom properties to match FS
-- [ ] Implement atoms: Eyebrow, Button, Chip, Progress, RatingBar, Note, Rule
-- [ ] Implement atoms: Wordmark, StatusBar, HomeIndicator, AppHeader
-- [ ] Add Storybook stories for each atom with default + variants
-- [ ] Add data-component + data-part selectors
+- [x] Update token TS constants + CSS custom properties to match FS
+- [x] Implement atoms: Eyebrow, Button, Chip, Progress, RatingBar, Note, Rule
+- [x] Implement atoms: Wordmark, StatusBar, HomeIndicator, AppHeader
+- [x] Add Storybook stories for each atom with default + variants
+- [x] Add data-component + data-part selectors
 
 ### Phase 3: Molecules
-- [ ] Implement molecules: Card, SummaryRow, Masthead, PhotoTile
-- [ ] Implement molecules: StylistCard, DayCell, Segmented
+- [x] Implement molecules: Card, SummaryRow, Masthead, PhotoTile
+- [x] Implement molecules: StylistCard, DayCell, Segmented
 - [ ] Implement molecules: ServiceOption, BudgetOption, TimeSlot, ColorLevelBar, LengthSilhouette
 - [ ] Add Storybook stories + selectors for each
 
