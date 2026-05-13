@@ -192,3 +192,14 @@ Step 16: Expanded Goja runtime dispatch test coverage for unknown actions and ca
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/dispatch_errors_test.go — Dispatch error-path tests
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/dispatch_test.go — Core dispatch behavior tests
 
+
+## 2026-05-13
+
+Step 17: Added HTTP endpoints for Goja DSL flows (start, get current page, dispatch event) plus endpoint tests. Verified go test ./pkg/dslgoja ./pkg/server -count=1. (commit 2396d07)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl.go — DSL flow HTTP handlers and in-memory store
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_test.go — Endpoint start/get/dispatch tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/http.go — DSL route registration
+

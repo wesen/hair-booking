@@ -1428,3 +1428,90 @@ Validate with:
 ```bash
 go test ./pkg/dslgoja -count=1
 ```
+
+---
+
+## Step 17: Add HTTP endpoints for Goja DSL flows
+
+Wrapped the in-process Goja runtime with backend HTTP endpoints. The server can now start the embedded intake flow, return the current page snapshot for a flow session, and dispatch browser interaction events into the session's registered Goja callbacks.
+
+This is the first end-to-end backend API slice: the browser can start a Goja-authored DSL flow, receive page JSON with opaque action ids, post a widget event back to Go, and receive updated page JSON.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 10)
+
+**Assistant interpretation:** Continue the HAIR-033 task list by adding server endpoints around the tested Goja runtime.
+
+**Inferred user intent:** Make the backend DSL runtime reachable from the frontend, not just from Go unit tests.
+
+**Commit (code):** 2396d07 — "HAIR-033 Step 17: Add Goja DSL HTTP endpoints"
+
+### What I did
+
+- Added `pkg/server/handlers_dsl.go`:
+  - in-memory `dslFlowStore`,
+  - `POST /api/dsl/flows/{flowId}/start`,
+  - `GET /api/dsl/flows/{sessionId}`,
+  - `POST /api/dsl/flows/{sessionId}/events`.
+- Updated `pkg/server/http.go`:
+  - added `dslFlows` to `appHandler`,
+  - initialized a store in `NewHandler`,
+  - registered the DSL routes.
+- Added `pkg/server/handlers_dsl_test.go`:
+  - start a `fringe.intake.v1` flow,
+  - fetch current flow page,
+  - extract the `category-tabs` change action id,
+  - post an event selecting `extensions`,
+  - assert returned page version increments and page JSON reflects the new selected value,
+  - assert unknown flow start returns 404.
+- Added `FlowSession.Snapshot()` in `pkg/dslgoja/runtime.go` for safe current page/version reads.
+- Ran:
+
+```bash
+go test ./pkg/dslgoja ./pkg/server -count=1
+```
+
+### Why
+
+The frontend needs a concrete API to start flows and post interaction events. These endpoints connect the browser/server boundary to the Goja runtime implemented in previous steps.
+
+### What worked
+
+- Standard library `ServeMux` path parameters work cleanly for `/api/dsl/flows/{flowId}/start` and `/api/dsl/flows/{sessionId}/events`.
+- The endpoint test proves the core event round-trip with real HTTP handler code.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- The first endpoint layer can stay very small because the runtime already owns most behavior: action lookup, callback dispatch, versioning, stale recovery, and idempotency.
+
+### What was tricky to build
+
+- The endpoint test has to inspect generic JSON because the API envelope uses `any`. It extracts action ids from the returned page just like the frontend will.
+
+### What warrants a second pair of eyes
+
+- The in-memory store is intentionally prototype-only. It needs expiry, ownership checks, and persistence/sticky-session strategy before production.
+- Error codes should be reviewed before frontend code depends on them.
+
+### What should be done in the future
+
+- Task 18: add a frontend `backendClient` and `BackendDslPage` container that calls these endpoints.
+
+### Code review instructions
+
+Start with:
+
+- `pkg/server/handlers_dsl.go`
+- `pkg/server/handlers_dsl_test.go`
+- DSL route additions in `pkg/server/http.go`
+
+Validate with:
+
+```bash
+go test ./pkg/dslgoja ./pkg/server -count=1
+```
