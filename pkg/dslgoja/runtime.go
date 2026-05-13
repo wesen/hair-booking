@@ -15,6 +15,7 @@ const defaultCallbackTimeout = 2 * time.Second
 
 type Runtime struct {
 	callbackTimeout time.Duration
+	host            RuntimeHost
 }
 
 type RuntimeOption func(*Runtime)
@@ -82,8 +83,8 @@ type renderTransaction struct {
 
 func (rt *Runtime) StartFlow(ctx context.Context, flowID, source string) (*FlowSession, *InteractionResult, error) {
 	vm := goja.New()
-	if err := installDSLModule(vm); err != nil {
-		return nil, nil, fmt.Errorf("install DSL module: %w", err)
+	if err := rt.installModules(vm); err != nil {
+		return nil, nil, fmt.Errorf("install DSL modules: %w", err)
 	}
 	value, err := vm.RunString(wrapFlowSource(source))
 	if err != nil {
@@ -156,7 +157,7 @@ func (s *FlowSession) Dispatch(ctx context.Context, event InteractionEvent) (*In
 	if err != nil {
 		return s.errorResult(err), nil
 	}
-	page, err := exportPageValue(value)
+	page, err := exportPageValue(s.VM, value)
 	if err != nil {
 		return s.errorResult(fmt.Errorf("export callback page: %w", err)), nil
 	}
@@ -192,7 +193,7 @@ func (s *FlowSession) renderLocked(ctx context.Context) (*InteractionResult, err
 		return nil, fmt.Errorf("render: %w", err)
 	}
 
-	page, err := exportPageValue(value)
+	page, err := exportPageValue(s.VM, value)
 	if err != nil {
 		return nil, fmt.Errorf("export rendered page: %w", err)
 	}
@@ -320,7 +321,17 @@ func interactionEventObject(event InteractionEvent) map[string]any {
 	}
 }
 
-func exportPageValue(value goja.Value) (Page, error) {
+func exportPageValue(vm *goja.Runtime, value goja.Value) (Page, error) {
+	if value != nil && !goja.IsNull(value) && !goja.IsUndefined(value) {
+		obj := value.ToObject(vm)
+		if toJSON, ok := goja.AssertFunction(obj.Get("toJSON")); ok {
+			jsonValue, err := toJSON(value)
+			if err != nil {
+				return Page{}, err
+			}
+			value = jsonValue
+		}
+	}
 	exported := value.Export()
 	b, err := json.Marshal(exported)
 	if err != nil {

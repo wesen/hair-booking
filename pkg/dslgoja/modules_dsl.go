@@ -1,16 +1,38 @@
 package dslgoja
 
-import "github.com/dop251/goja"
+import (
+	"fmt"
 
-func installDSLModule(vm *goja.Runtime) error {
-	_, err := vm.RunString(dslModuleSource)
-	return err
+	"github.com/dop251/goja"
+	"github.com/dop251/goja_nodejs/require"
+	databasemod "github.com/go-go-golems/go-go-goja/modules/database"
+)
+
+func (rt *Runtime) installModules(vm *goja.Runtime) error {
+	registry := require.NewRegistry()
+	registry.RegisterNativeModule("fringe/dsl", loadFringeDSLModule)
+	if rt.host.HasDB() {
+		dbModule := databasemod.New(
+			databasemod.WithName("db"),
+			databasemod.WithPreconfiguredDB(rt.host.DB),
+			databasemod.WithConfigureEnabled(false),
+		)
+		registry.RegisterNativeModule(dbModule.Name(), dbModule.Loader)
+	}
+	registry.Enable(vm)
+	return nil
+}
+
+func loadFringeDSLModule(vm *goja.Runtime, moduleObj *goja.Object) {
+	value, err := vm.RunString(dslModuleSource)
+	if err != nil {
+		panic(vm.ToValue(fmt.Sprintf("install fringe/dsl: %v", err)))
+	}
+	_ = moduleObj.Set("exports", value)
 }
 
 const dslModuleSource = `
-(function(global) {
-  const modules = Object.create(null);
-
+(function() {
   function clone(value) {
     return JSON.parse(JSON.stringify(value));
   }
@@ -111,11 +133,6 @@ const dslModuleSource = `
     summaryRow: (label, value, props) => node("summaryRow", Object.assign({ label, value }, props || {})),
   };
 
-  modules["fringe/dsl"] = { page, n };
-
-  global.require = function(name) {
-    if (!modules[name]) throw new Error("unknown module: " + name);
-    return modules[name];
-  };
-})(globalThis);
+  return { page, n };
+})()
 `

@@ -11,59 +11,59 @@
 
 ## Phase 2 — Server Settings and CLI Plumbing
 
-- [ ] Add `--dsl-sqlite-path` Glazed flag to `cmd/hair-booking/cmds/serve.go`.
-- [ ] Add `--dsl-sqlite-migrate` Glazed flag to `cmd/hair-booking/cmds/serve.go`.
-- [ ] Choose defaults that work with devctl/local runs (`./var/fringe-dsl.sqlite`, migrate enabled).
-- [ ] Add matching fields to `ServeSettings`.
-- [ ] Add matching fields to `server.ServerOptions`.
-- [ ] Add matching fields to `server.HandlerOptions`.
-- [ ] Pass settings through `ServeSettings -> ServerOptions -> HandlerOptions` without touching frontend code.
-- [ ] Add log fields for DSL SQLite path and migration status at server startup.
+- [x] Add `--dsl-sqlite-path` Glazed flag to `cmd/hair-booking/cmds/serve.go`.
+- [x] Add `--dsl-sqlite-migrate` Glazed flag to `cmd/hair-booking/cmds/serve.go`.
+- [x] Choose defaults that work with devctl/local runs (`./var/fringe-dsl.sqlite`, migrate enabled).
+- [x] Add matching fields to `ServeSettings`.
+- [x] Add matching fields to `server.ServerOptions`.
+- [x] Add matching fields to `server.HandlerOptions`.
+- [x] Pass settings through `ServeSettings -> ServerOptions -> HandlerOptions` without touching frontend code.
+- [x] Add log fields for DSL SQLite path and migration status at server startup.
 
 ## Phase 3 — SQLite Host DB Package and Schema Provisioning
 
-- [ ] Add `pkg/dslhost` package.
-- [ ] Add `pkg/dslhost/schema.sql` embedded with `go:embed`.
-- [ ] Add `pkg/dslhost/db.go` with `OpenDB(ctx, DBOptions)` and `Close` ownership rules.
-- [ ] Ensure parent directory creation for file-backed SQLite paths.
-- [ ] Open SQLite using `github.com/mattn/go-sqlite3` driver.
-- [ ] Apply SQLite pragmas (`foreign_keys=ON`, WAL for file DBs where appropriate, busy timeout if useful).
-- [ ] Provision starting schema when `Migrate` is true.
-- [ ] Add tables for `dsl_flow_sessions`, `dsl_intake_drafts`, `dsl_uploads`, and `dsl_audit_events`.
-- [ ] Add indexes for session/user/status lookups.
-- [ ] Add `pkg/dslhost/db_test.go` using `t.TempDir()` and verifying schema exists.
-- [ ] Add a no-migrate test that opens DB without creating schema.
+- [x] Add `pkg/dslhost` package.
+- [x] Add `pkg/dslhost/schema.sql` embedded with `go:embed`.
+- [x] Add `pkg/dslhost/db.go` with `OpenDB(ctx, DBOptions)` and `Close` ownership rules.
+- [x] Ensure parent directory creation for file-backed SQLite paths.
+- [x] Open SQLite using `github.com/mattn/go-sqlite3` driver.
+- [x] Apply SQLite pragmas (`foreign_keys=ON`, WAL for file DBs where appropriate, busy timeout if useful).
+- [x] Provision starting schema when `Migrate` is true.
+- [x] Add tables for `dsl_flow_sessions`, `dsl_intake_drafts`, `dsl_uploads`, and `dsl_audit_events`.
+- [x] Add indexes for session/user/status lookups.
+- [x] Add `pkg/dslhost/db_test.go` using `t.TempDir()` and verifying schema exists.
+- [x] Add a no-migrate test that opens DB without creating schema.
 
 ## Phase 4 — Runtime Host Configuration Boundary
 
-- [ ] Add `RuntimeHost` or `HostOptions` type in/near `pkg/dslgoja` for DB, storage, and user/image services.
-- [ ] Add `WithHost(...)` or focused runtime options to `dslgoja.NewRuntime`.
-- [ ] Update `dslFlowStore` construction to receive configured runtime host dependencies.
-- [ ] Make host dependencies optional so existing pure runtime tests can still construct `dslgoja.NewRuntime()`.
-- [ ] Add tests that a runtime without host modules still runs the existing embedded intake flow.
-- [ ] Add tests that a runtime with host modules exposes those modules to JS.
+- [x] Add `RuntimeHost` or `HostOptions` type in/near `pkg/dslgoja` for DB, storage, and user/image services.
+- [x] Add `WithHost(...)` or focused runtime options to `dslgoja.NewRuntime`.
+- [x] Update `dslFlowStore` construction to receive configured runtime host dependencies.
+- [x] Make host dependencies optional so existing pure runtime tests can still construct `dslgoja.NewRuntime()`.
+- [x] Add tests that a runtime without host modules still runs the existing embedded intake flow.
+- [x] Add tests that a runtime with host modules exposes those modules to JS.
 
 ## Phase 5 — Module Registry Refactor for Server-Side Host Modules
 
-- [ ] Refactor `installDSLModule` so module registration is Go-owned instead of hidden inside the current JS IIFE.
-- [ ] Preserve `require("fringe/dsl")` behavior exactly.
-- [ ] Add a small module registry helper that can register JS/native module objects before flow source execution.
-- [ ] Decide whether this slice directly uses `go-go-goja/engine.NewBuilder` or a transitional module registry.
-- [ ] If using the engine builder, follow the pattern from `/home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/app/server.go`.
-- [ ] If using a transitional registry, document the later migration path to `engine.NewBuilder`.
-- [ ] Add runtime tests for `require("fringe/dsl")`, unknown module errors, and one host module.
+- [x] Refactor `installDSLModule` so module registration is Go-owned instead of hidden inside the current JS IIFE.
+- [x] Preserve `require("fringe/dsl")` behavior exactly.
+- [x] Add a small module registry helper that can register JS/native module objects before flow source execution.
+- [x] Decide whether this slice directly uses `go-go-goja/engine.NewBuilder` or a transitional module registry.
+- [x] If using the engine builder, follow the pattern from `/home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/app/server.go`.
+- [x] If using a transitional registry, document the later migration path to `engine.NewBuilder`.
+- [x] Add runtime tests for `require("fringe/dsl")`, unknown module errors, and one host module.
 
 ## Phase 6 — Register go-go-goja Database Module
 
-- [ ] Import and wire `github.com/go-go-golems/go-go-goja/modules/database`.
-- [ ] Create a preconfigured database module with `databasemod.WithPreconfiguredDB(...)`.
-- [ ] Disable JS-side DB reconfiguration with `databasemod.WithConfigureEnabled(false)`.
-- [ ] Expose module as `require("db")`.
-- [ ] Decide whether to also expose `require("database")`; default should be only `db` unless compatibility is needed.
-- [ ] Add a Goja integration test that executes JS using `require("db")`.
-- [ ] Test `db.exec(...)` inserting into `dsl_audit_events`.
-- [ ] Test a query path by reading the inserted row back using the actual database module API.
-- [ ] Verify DB module is backed by the configured SQLite file, not an in-memory accidental DB.
+- [x] Import and wire `github.com/go-go-golems/go-go-goja/modules/database`.
+- [x] Create a preconfigured database module with `databasemod.WithPreconfiguredDB(...)`.
+- [x] Disable JS-side DB reconfiguration with `databasemod.WithConfigureEnabled(false)`.
+- [x] Expose module as `require("db")`.
+- [x] Decide whether to also expose `require("database")`; default should be only `db` unless compatibility is needed.
+- [x] Add a Goja integration test that executes JS using `require("db")`.
+- [x] Test `db.exec(...)` inserting into `dsl_audit_events`.
+- [x] Test a query path by reading the inserted row back using the actual database module API.
+- [x] Verify DB module is backed by the configured SQLite file, not an in-memory accidental DB.
 
 ## Phase 7 — User Host Module Server-Side Implementation
 

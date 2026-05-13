@@ -18,6 +18,7 @@ import (
 	hairauth "github.com/go-go-golems/hair-booking/pkg/auth"
 	hairconfig "github.com/go-go-golems/hair-booking/pkg/config"
 	hairdb "github.com/go-go-golems/hair-booking/pkg/db"
+	"github.com/go-go-golems/hair-booking/pkg/dslhost"
 	"github.com/go-go-golems/hair-booking/pkg/server"
 	hairstorage "github.com/go-go-golems/hair-booking/pkg/storage"
 	pkgerrors "github.com/pkg/errors"
@@ -30,8 +31,10 @@ type ServeCommand struct {
 }
 
 type ServeSettings struct {
-	ListenHost string `glazed:"listen-host"`
-	ListenPort int    `glazed:"listen-port"`
+	ListenHost       string `glazed:"listen-host"`
+	ListenPort       int    `glazed:"listen-port"`
+	DSLSQLitePath    string `glazed:"dsl-sqlite-path"`
+	DSLSQLiteMigrate bool   `glazed:"dsl-sqlite-migrate"`
 }
 
 var _ cmds.BareCommand = &ServeCommand{}
@@ -52,6 +55,18 @@ func NewServeCommand(version string) (*ServeCommand, error) {
 				fields.TypeInteger,
 				fields.WithHelp("Port to listen on"),
 				fields.WithDefault(8080),
+			),
+			fields.New(
+				"dsl-sqlite-path",
+				fields.TypeString,
+				fields.WithHelp("SQLite database path used by Goja DSL host modules"),
+				fields.WithDefault(dslhost.DefaultSQLitePath),
+			),
+			fields.New(
+				"dsl-sqlite-migrate",
+				fields.TypeBool,
+				fields.WithHelp("Provision or migrate the Goja DSL SQLite schema on startup"),
+				fields.WithDefault(true),
 			),
 		),
 	)
@@ -127,6 +142,12 @@ func (c *ServeCommand) Run(ctx context.Context, parsedValues *values.Values) err
 		}
 	}
 
+	dslDB, err := dslhost.OpenDB(ctx, dslhost.DBOptions{Path: settings.DSLSQLitePath, Migrate: settings.DSLSQLiteMigrate})
+	if err != nil {
+		return pkgerrors.Wrap(err, "failed to open DSL SQLite database")
+	}
+	defer func() { _ = dslDB.Close() }()
+
 	var blobStore hairstorage.BlobStore
 	switch backendSettings.StorageMode {
 	case hairconfig.StorageModeLocal:
@@ -149,6 +170,9 @@ func (c *ServeCommand) Run(ctx context.Context, parsedValues *values.Values) err
 		Storage:             blobStore,
 		LocalUploadsDir:     backendSettings.StorageLocalDir,
 		FrontendDevProxyURL: backendSettings.FrontendDevProxyURL,
+		DSLSQLitePath:       dslDB.Path,
+		DSLSQLiteMigrate:    settings.DSLSQLiteMigrate,
+		DSLDB:               dslDB.DB,
 	})
 	if err != nil {
 		return pkgerrors.Wrap(err, "failed to create http server")
@@ -169,6 +193,8 @@ func (c *ServeCommand) Run(ctx context.Context, parsedValues *values.Values) err
 		Bool("database_configured", backendSettings.DatabaseURL != "").
 		Bool("auto_migrate", backendSettings.AutoMigrate).
 		Str("frontend_dev_proxy_url", backendSettings.FrontendDevProxyURL).
+		Str("dsl_sqlite_path", dslDB.Path).
+		Bool("dsl_sqlite_migrate", settings.DSLSQLiteMigrate).
 		Str("issuer", authSettings.OIDCIssuerURL).
 		Str("client_id", authSettings.OIDCClientID).
 		Msg("Starting hair-booking server")

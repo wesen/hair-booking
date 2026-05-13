@@ -1,12 +1,14 @@
 package server
 
 import (
+	"database/sql"
 	"io"
 	"net/http"
 	"sync"
 
 	dslv1 "github.com/go-go-golems/hair-booking/gen/proto/fringe/dsl/v1"
 	"github.com/go-go-golems/hair-booking/pkg/dslgoja"
+	"github.com/go-go-golems/hair-booking/pkg/storage"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
@@ -17,9 +19,14 @@ type dslFlowStore struct {
 	sessions map[string]*dslgoja.FlowSession
 }
 
-func newDSLFlowStore() *dslFlowStore {
+func newDSLFlowStore(db *sql.DB, dbPath string, blobStore storage.BlobStore) *dslFlowStore {
+	runtime := dslgoja.NewRuntime(dslgoja.WithHost(dslgoja.RuntimeHost{
+		DB:        db,
+		DBPath:    dbPath,
+		BlobStore: blobStore,
+	}))
 	return &dslFlowStore{
-		runtime:  dslgoja.NewRuntime(),
+		runtime:  runtime,
 		sessions: map[string]*dslgoja.FlowSession{},
 	}
 }

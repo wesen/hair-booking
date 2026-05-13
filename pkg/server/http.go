@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -40,6 +41,9 @@ type ServerOptions struct {
 	StylistService      *hairstylist.Service
 	LocalUploadsDir     string
 	FrontendDevProxyURL string
+	DSLSQLitePath       string
+	DSLSQLiteMigrate    bool
+	DSLDB               *sql.DB
 }
 
 type HandlerOptions struct {
@@ -58,6 +62,9 @@ type HandlerOptions struct {
 	StylistService      *hairstylist.Service
 	LocalUploadsDir     string
 	FrontendDevProxyURL string
+	DSLSQLitePath       string
+	DSLSQLiteMigrate    bool
+	DSLDB               *sql.DB
 }
 
 type infoResponse struct {
@@ -87,6 +94,8 @@ type appHandler struct {
 	localUploadsDir    string
 	stylistAuthorizer  *hairstylist.Authorizer
 	dslFlows           *dslFlowStore
+	dslSQLitePath      string
+	dslSQLiteMigrate   bool
 }
 
 type apiEnvelope struct {
@@ -175,6 +184,9 @@ func NewHTTPServer(ctx context.Context, options ServerOptions) (*http.Server, er
 			StylistService:      stylistService,
 			LocalUploadsDir:     options.LocalUploadsDir,
 			FrontendDevProxyURL: options.FrontendDevProxyURL,
+			DSLSQLitePath:       options.DSLSQLitePath,
+			DSLSQLiteMigrate:    options.DSLSQLiteMigrate,
+			DSLDB:               options.DSLDB,
 		}),
 		ReadHeaderTimeout: 10 * time.Second,
 	}, nil
@@ -204,7 +216,9 @@ func NewHandler(options HandlerOptions) http.Handler {
 		stylistService:     options.StylistService,
 		localUploadsDir:    options.LocalUploadsDir,
 		stylistAuthorizer:  hairstylist.NewAuthorizer(authSettings),
-		dslFlows:           newDSLFlowStore(),
+		dslFlows:           newDSLFlowStore(options.DSLDB, options.DSLSQLitePath, options.Storage),
+		dslSQLitePath:      options.DSLSQLitePath,
+		dslSQLiteMigrate:   options.DSLSQLiteMigrate,
 	}
 
 	mux := http.NewServeMux()

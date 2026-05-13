@@ -194,3 +194,123 @@ Do not review unrelated concurrent changes in:
 
 - `web/`
 - `ttmp/2026/05/13/HAIR-035--desktop-component-system-for-fringe-intake-dsl/`
+
+---
+
+## Step 3: Implement server-side host module foundation through DB registration
+
+Implemented the server-side foundation for HAIR-036: DSL SQLite configuration flags, schema provisioning, runtime host dependency wiring, Go-owned module registration, and `require("db")` backed by the go-go-goja database module. This was kept server-side only; concurrent colleague changes in `web/` and HAIR-035 were left untouched.
+
+The implementation uses a transitional `goja_nodejs/require.Registry` inside the existing `pkg/dslgoja` runtime rather than moving all of `dslgoja` to `go-go-goja/engine.NewBuilder` immediately. This preserves the current long-lived flow/session runtime while allowing native modules such as `db` to be registered cleanly.
+
+### Prompt Context
+
+**User prompt (verbatim):** "do phase 2 - 5. commit at appropriate intervals, keep a diary"
+
+**Assistant interpretation:** Implement the server-side HAIR-036 phases for CLI/settings, SQLite schema, runtime host wiring, and module registry work, while maintaining diary/changelog and committing focused server-side changes.
+
+**Inferred user intent:** Move from the host-module plan into working backend infrastructure without conflicting with parallel frontend/desktop work.
+
+**Commit (code):** 23a62df — "HAIR-036 Step 3: Add DSL SQLite host module foundation"
+
+### What I did
+
+- Added `pkg/dslhost`:
+  - `DefaultSQLitePath`,
+  - `OpenDB(ctx, DBOptions)`,
+  - `ProvisionSchema(ctx, db)`,
+  - embedded `schema.sql`,
+  - schema tests for migrated, non-migrated, and idempotent provisioning.
+- Added starting SQLite schema for:
+  - `dsl_flow_sessions`,
+  - `dsl_intake_drafts`,
+  - `dsl_uploads`,
+  - `dsl_audit_events`.
+- Added Glazed serve flags:
+  - `--dsl-sqlite-path`,
+  - `--dsl-sqlite-migrate`.
+- Bubbled settings through:
+  - `ServeSettings`,
+  - `server.ServerOptions`,
+  - `server.HandlerOptions`,
+  - `newDSLFlowStore`,
+  - `dslgoja.NewRuntime(WithHost(...))`.
+- Added startup logging for DSL SQLite path and migration status.
+- Added `dslgoja.RuntimeHost` and `WithHost(...)`.
+- Reworked DSL module installation to use a Go-owned `goja_nodejs/require.Registry`.
+- Preserved `require("fringe/dsl")` behavior by registering `fringe/dsl` as a native module that exports the existing DSL builder surface.
+- Registered the go-go-goja database module as `require("db")` when a host DB is configured:
+  - `databasemod.WithPreconfiguredDB(...)`,
+  - `databasemod.WithConfigureEnabled(false)`.
+- Added runtime tests proving:
+  - a runtime without host modules still runs `fringe/dsl`,
+  - a runtime with host DB can `require("db")`, insert, and query,
+  - a runtime without host DB rejects `require("db")`.
+- Added direct dependencies required for this server work:
+  - `github.com/go-go-golems/go-go-goja`,
+  - `github.com/mattn/go-sqlite3`.
+
+### Why
+
+The Goja flow needs safe host plumbing before it can become useful beyond an in-memory prototype. SQLite and the DB module are the first host module because they validate the complete path: CLI configuration, server ownership, runtime dependency injection, module registration, JavaScript use, and Go-side tests.
+
+### What worked
+
+Validation passed:
+
+```bash
+go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server ./cmd/hair-booking/cmds -count=1
+go test ./... -count=1
+```
+
+### What didn't work
+
+- After moving `fringe/dsl` behind `goja_nodejs/require`, page export initially failed with:
+
+```text
+json: unsupported type: func(goja.FunctionCall) goja.Value
+```
+
+The cause was that `exportPageValue` exported the JS builder object directly and `encoding/json` saw builder methods. The fix was to call a page object's JS `toJSON()` method explicitly before Go marshals/unmarshals it into the runtime `Page` struct.
+
+### What I learned
+
+- The current builder relies on `toJSON()` semantics. Once the module boundary changed, making that call explicit in Go made page export more robust and less dependent on Goja export quirks.
+- A transitional `require.Registry` is enough for DB registration now and avoids a larger runtime-owner/engine migration in the same slice.
+
+### What was tricky to build
+
+- The server owns the DSL SQLite DB lifetime in `ServeCommand`, but `NewHTTPServer`/`NewHandler` need the configured `*sql.DB` to build the `dslgoja.Runtime`. The solution was to open the DB in the command, defer close there, and pass the DB through server options into the runtime host.
+- The shared app has another primary application DB. The DSL SQLite DB is separate and specifically for Goja host modules, so naming and logging needed to distinguish it.
+
+### What warrants a second pair of eyes
+
+- `go get github.com/go-go-golems/go-go-goja@v0.4.16 github.com/mattn/go-sqlite3@latest` upgraded several indirect dependencies, including Glazed. Review `go.mod`/`go.sum` carefully before merging.
+- Whether we should expose only `db` long-term or also expose `database` as an alias. This slice exposes only `db`.
+- Whether the future `host/user` and `host/images` modules should keep using the transitional registry or trigger a full `engine.NewBuilder` migration.
+
+### What should be done in the future
+
+- Implement `host/user` next.
+- Then add image upload intent plumbing and server upload endpoint.
+- Run a devctl smoke to confirm the configured SQLite DB file is created during `hair-booking serve`.
+
+### Code review instructions
+
+Start with:
+
+- `cmd/hair-booking/cmds/serve.go`
+- `pkg/dslhost/db.go`
+- `pkg/dslhost/schema.sql`
+- `pkg/dslgoja/modules_dsl.go`
+- `pkg/dslgoja/host.go`
+- `pkg/dslgoja/runtime.go`
+- `pkg/server/handlers_dsl.go`
+- `pkg/server/http.go`
+
+Validate with:
+
+```bash
+go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server ./cmd/hair-booking/cmds -count=1
+go test ./... -count=1
+```
