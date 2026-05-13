@@ -14,7 +14,7 @@
 - [x] Design backend-driven DSL callback architecture and upload intern guide to reMarkable
 - [x] Define Go JSON DSL schema types in pkg/dslgoja and keep field names aligned with web/src/page-dsl/schema.ts
 - [x] Implement a minimal Goja flow runtime that can start a flow, load a JS script, create JSON state, render the first page, and expose ctx.action
-- [ ] Implement page-version-scoped action registry with CurrentActions, RetiredActions, ProcessedEvents, and render transactions
+- [x] Implement page-version-scoped action registry with CurrentActions, RetiredActions, ProcessedEvents, and render transactions
 - [ ] Expose a fringe/dsl-style JavaScript builder module inside Goja for page(), intake(), and core node helpers
 - [ ] Create a two-step intake.flow.js prototype with service and color steps using segmented, serviceOptionGroup, chipGroup, ratingBar, and footer navigation
 - [ ] Implement event dispatch into registered Goja callbacks with per-session locking, timeout/interrupt, idempotency, stale-page recovery, and node/action validation

@@ -139,3 +139,13 @@ Step 11: Added minimal Goja flow runtime that loads JS flow source, calls initia
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/runtime.go — Minimal Goja flow runtime and ctx.action support
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/runtime_test.go — Runtime start/render/action registration tests
 
+
+## 2026-05-13
+
+Step 12: Added page-version-scoped action lifecycle and render transactions to the Goja flow runtime; old actions retire only after successful render and failed render preserves current actions. Verified go test ./pkg/dslgoja -count=1. (commit 343626e)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/action_lifecycle_test.go — Action retirement and failed-render rollback tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/runtime.go — Render transaction and action lifecycle implementation
+

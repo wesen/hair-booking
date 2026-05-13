@@ -1000,3 +1000,82 @@ Validate with:
 ```bash
 go test ./pkg/dslgoja -count=1
 ```
+
+---
+
+## Step 12: Add page-version-scoped action lifecycle and render transactions
+
+Implemented the first version of the action lifecycle described in the Goja design document. Flow sessions now distinguish current actions from retired action metadata, and rendering is transactional: new actions are collected in a temporary map and only replace the current action registry after the page successfully exports.
+
+This means a failed render no longer risks clearing the currently usable page actions. A successful re-render retires old actions and installs a fresh current action set for the new page version.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 10)
+
+**Assistant interpretation:** Continue the HAIR-033 task list sequentially, implementing the page-version action lifecycle next.
+
+**Inferred user intent:** Build the Goja runtime according to the design, with safe stale-action and render lifecycle semantics rather than a throwaway prototype.
+
+**Commit (code):** 343626e — "HAIR-033 Step 12: Add page-version action lifecycle"
+
+### What I did
+
+- Updated `pkg/dslgoja/runtime.go`:
+  - Added `CurrentActions`, `RetiredActions`, and `ProcessedEvents` to `FlowSession`.
+  - Added action `Version` and `NodeID` fields.
+  - Added `RetiredActionInfo`.
+  - Added `renderTransaction` with `NextActions`.
+  - Changed `ctx.action(...)` to register into `NextActions` rather than mutating the current action map directly.
+  - Changed render commit to retire previous actions and install the new action set only after successful page export.
+- Added `pkg/dslgoja/action_lifecycle_test.go`:
+  - verifies successful re-render retires old actions,
+  - verifies failed render keeps old page version/current actions and does not retire them.
+- Ran:
+
+```bash
+go test ./pkg/dslgoja -count=1
+```
+
+### Why
+
+The user asked what happens to old registered actions and suggested long-running VMs. The answer is that VM/session state can be long-running, but action callbacks should be scoped to the current page version. This implementation starts enforcing that model in the runtime data structures.
+
+### What worked
+
+- The transaction pattern fit cleanly into the existing `Render` method.
+- Tests prove both commit and rollback behavior.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- It is important that `ctx.action` writes into a render transaction, not directly into `session.CurrentActions`. Otherwise a render failure can leave the session half-mutated.
+
+### What was tricky to build
+
+- The runtime currently does not know node ids while registering actions. `NodeID` exists on `ActionRegistration`, but it remains empty until the builder module can set the current node context. That will be addressed when the JS builder module is implemented.
+
+### What warrants a second pair of eyes
+
+- Whether to prune `RetiredActions` by time, count, or page-version window in the first dispatch implementation.
+- Whether render failures should return an error response or a same-page result with an error effect.
+
+### What should be done in the future
+
+- Task 13: expose a `fringe/dsl`-style builder module inside Goja so scripts do not have to hand-author raw JSON objects and so node/action context can become more structured.
+
+### Code review instructions
+
+Start with:
+
+- `pkg/dslgoja/runtime.go`
+- `pkg/dslgoja/action_lifecycle_test.go`
+
+Validate with:
+
+```bash
+go test ./pkg/dslgoja -count=1
+```
