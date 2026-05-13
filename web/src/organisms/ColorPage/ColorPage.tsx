@@ -7,7 +7,6 @@ import { color, font } from "../../fringe-ui/tokens";
 import { IntakeShell } from "../IntakeShell/IntakeShell";
 import { Chip } from "../../atoms/Chip/Chip";
 import { Note } from "../../atoms/Note/Note";
-import { Segmented } from "../../atoms/Segmented/Segmented";
 import { Eyebrow } from "../../atoms/Eyebrow/Eyebrow";
 import { useCreateIntakeMutation } from "../../store/api/bookingApi";
 import type { IntakeCreateRequestDto } from "../../store/api/types";
@@ -23,36 +22,28 @@ const TARGET_OPTIONS = [
   { value: "dimensional",   label: "Dimensional" },
 ];
 
-const COLOR_TYPES = [
-  { value: "full",       label: "Full color" },
-  { value: "highlights", label: "Highlights" },
-  { value: "balayage",   label: "Balayage" },
-  { value: "gloss",      label: "Gloss / toner" },
-  { value: "root",       label: "Root touch-up" },
-];
-
 interface ColorPageProps {
   onNext: () => void;
   onBack: () => void;
 }
 
 function levelLabel(l: number): string {
+  if (l === 7) return "dark blonde with warm undertones";
   if (l <= 3) return "dark";
-  if (l <= 6) return "medium";
-  if (l <= 8) return "light";
-  return "blonde";
+  if (l <= 6) return "medium brown";
+  if (l <= 8) return "light blonde";
+  return "platinum blonde";
 }
 
 export function ColorPage({ onNext, onBack }: ColorPageProps) {
   const [level, setLevel] = useState(7);
   const [target, setTarget] = useState("lighter1");
-  const [colorType, setColorType] = useState("highlights");
   const [createIntake, { isLoading }] = useCreateIntakeMutation();
 
   const handleSubmit = async () => {
     const payload: IntakeCreateRequestDto = {
       service_type: "color",
-      color_service: colorType,
+      color_service: "highlights",
       natural_level: String(level),
       current_color: `Level ${level} · ${levelLabel(level)}`,
     };
@@ -77,7 +68,7 @@ export function ColorPage({ onNext, onBack }: ColorPageProps) {
       <div data-component="ColorPage" data-page="ColorPage" style={{
         fontFamily: font.serif,
         fontStyle: "italic",
-        fontSize: 17,
+        fontSize: 19,
         color: color.softInk,
         marginBottom: 20,
       }}>
@@ -131,16 +122,6 @@ export function ColorPage({ onNext, onBack }: ColorPageProps) {
       <Note tone="info">
         You're at <strong>Level {level}</strong> — {levelLabel(level)}.
       </Note>
-
-      {/* Color service type */}
-      <div data-component="ColorPage" data-page="ColorPage" style={{ marginTop: 20 }}>
-        <Eyebrow style={{ marginBottom: 10 }}>SERVICE TYPE</Eyebrow>
-        <Segmented
-          options={COLOR_TYPES}
-          value={colorType}
-          onChange={(v) => setColorType(v)}
-        />
-      </div>
 
       {/* Target */}
       <div data-component="ColorPage" data-page="ColorPage" style={{ marginTop: 20 }}>
