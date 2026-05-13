@@ -123,7 +123,7 @@ The Goja runtime still uses plain Go structs internally, and the React renderer 
 
 **Inferred user intent:** Replace duplicate JSON DTOs with generated protobuf message contracts without spending effort on backwards compatibility.
 
-**Commit (code):** 911e679 — "HAIR-034 Step 2: Cut DSL transport to protobuf FlowState"
+**Commit (code):** c6c2be0 — "HAIR-034 Step 2: Cut DSL transport to protobuf FlowState"
 
 ### What I did
 

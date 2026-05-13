@@ -18,7 +18,7 @@ Step 1: Created HAIR-034, wrote the routing/session and protobuf-centered hard c
 
 ## 2026-05-13
 
-Step 2: Hard-cut DSL success transport (commit 911e679) to protobuf JSON FlowState, added schema envelopes, Go conversion helpers, server protobuf encoding/decoding, frontend generated-message client decoding/encoding, and Go/TS contract tests.
+Step 2: Hard-cut DSL success transport (commit c6c2be0) to protobuf JSON FlowState, added schema envelopes, Go conversion helpers, server protobuf encoding/decoding, frontend generated-message client decoding/encoding, and Go/TS contract tests.
 
 ### Related Files
 
