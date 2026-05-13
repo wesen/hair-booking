@@ -276,3 +276,90 @@ The DSL was still carrying 13 domain-specific node kinds that encoded hair-salon
 - selectable, selectableGroup, scale, kvRow, stat, uploadTile, personCard, calendarGrid
 
 **Schema total kinds (24):** text, spacer, stack, grid, eyebrow, button, note, card, rule, progress, masthead, chip, chipGroup, segmented, selectable, selectableGroup, scale, uploadTile, kvRow, stat, personCard, dayCell, calendarGrid
+
+## Step 4: Wire primitives to molecules + desktop partition + Storybook stories
+
+Connected all new UI-primitive render cases to existing molecule components instead of inline styles. Added `partitionForDesktop()` for automatic two-column desktop layout. Added `meta.region` for explicit node placement. Created comprehensive Storybook stories for all new primitives.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 1 — continuation)
+
+**Assistant interpretation:** Continue implementing the DSL redesign by wiring render cases to molecule components, adding desktop two-column partitioning, and creating Storybook stories.
+
+**Inferred user intent:** Complete the rendering pipeline so all primitives use proper styled components, enable desktop layout, and have visual documentation.
+
+**Commit (code):** b52d89a — "feat(dsl): wire UI primitives to existing molecule components"
+**Commit (code):** 36f24c2 — "feat(dsl): add partitionForDesktop() for two-column desktop layout"
+**Commit (code):** d5fab66 — "feat(dsl): add region() method to builder and Goja module"
+**Commit (code):** 45b6687 — "feat(dsl): add Storybook stories for all UI primitives + desktop partition"
+
+### What I did
+
+- **Molecule wiring:** selectable → ServiceOption, selectableGroup → ServiceOption/BudgetOption/TimeSlot (auto-detected by shape), kvRow → SummaryRow, personCard → StylistCard, uploadTile → PhotoTile, scale(swatches) → ColorLevelBar, calendarGrid → DayPickerGrid
+- **Desktop partition:** Added `partitionForDesktop()` that scans nodes and auto-pulls stat + personCard into right-side AccentPanel. DesktopShell now renders TwoColumnLayout when context nodes exist.
+- **meta.region:** Added `region: "main" | "context"` to DslNodeMeta type, `region()` method to builder and Goja module. Flow scripts can explicitly control desktop placement.
+- **Storybook:** Created UiPrimitives.stories.tsx with 12 stories covering all new primitives in both mobile and desktop modes.
+
+### Why
+
+Inline styles were a placeholder. The molecules already have proper styling, interaction patterns, and data-component attributes for visual regression testing. The desktop partition is the core value proposition — the same JSON produces different layouts on mobile (single column) and desktop (two-column with accent panel).
+
+### What worked
+
+- The molecule wiring was straightforward — the prop mapping was clean (title→name, subtitle→description, badge→rate)
+- The `selectableGroup` auto-detection by option shape works well: badges → ServiceOption, subtitles → BudgetOption, bare → TimeSlot
+- The partition logic is simple and extensible via meta.region
+- All 25 tests pass after fixing the query selectors from `data-dsl-kind` to `data-component`
+
+### What didn't work
+
+- The uploadTile test initially failed because `dispatchAction` expected `props.action` but the render used `localKey="onUpload"` instead of `localKey="action"`. Fixed by aligning the key.
+- Tests that queried `data-dsl-kind` broke when we switched to molecule components that use `data-component`. Updated to query the correct attribute.
+
+### What I learned
+
+- When rendering through molecules, the `data-dsl-kind` attribute is set via `{...common}` spread but the actual interactive element may be a child (e.g., `<button>` inside a molecule). Tests need to query by `data-component` instead.
+- The selectableGroup shape detection is a nice pattern: the same DSL kind can render as different molecules depending on the data shape. This means flow scripts don't need to know about component types.
+
+### What was tricky to build
+
+- The dispatchAction path: there are two paths (backend actionRef vs frontend action name) and the code needs to fall through correctly. The `localKey` parameter was confusingly named — it's the prop key where the action name is stored, not a local identifier.
+
+### What warrants a second pair of eyes
+
+- The selectableGroup shape detection (hasBadges/hasSubtitles) — is this the right heuristic or should we use explicit props?
+- The partitionForDesktop auto-pulling stat + personCard — should this be opt-in instead of automatic?
+
+### What should be done in the future
+
+- Add css-visual-diff specs for the new stories
+- Implement scale(swatches) with `target` prop support for before/after level comparison
+- Consider a `SelectableCard` molecule for the generic case (currently we reuse domain-specific molecules)
+
+### Code review instructions
+
+- `git diff b52d89a~1..45b6687` — 4 commits covering molecule wiring, partition, region, stories
+- Verify `npx tsc --noEmit`, `npx vitest run`, `go test ./pkg/dslgoja/... -count=1` all pass
+- Run `npx storybook` and check the "Page DSL/UI Primitives" section
+
+### Technical details
+
+**Molecule mapping:**
+- selectable → ServiceOption (title→name, subtitle→description, badge→rate)
+- selectableGroup (full-width, badges) → ServiceOption × N
+- selectableGroup (columns, subtitles) → BudgetOption × N
+- selectableGroup (columns, bare) → TimeSlot × N
+- kvRow → SummaryRow
+- personCard → StylistCard (name, role, rate/badge)
+- uploadTile → PhotoTile (onUpload/onRemove)
+- scale(swatches) → ColorLevelBar
+- calendarGrid → DayPickerGrid
+- stat → inline (no molecule)
+- scale(dots) → inline (no molecule)
+
+**Desktop partition rules:**
+- meta.region = "context" → right-side AccentPanel
+- meta.region = "main" → left column
+- kind = "stat" or "personCard" → right-side AccentPanel (auto)
+- everything else → left column
