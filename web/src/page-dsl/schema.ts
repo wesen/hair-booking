@@ -12,6 +12,7 @@ export type DslNodeKind =
   | "eyebrow"
   | "button"
   | "chip"
+  | "chipGroup"
   | "note"
   | "card"
   | "rule"
@@ -19,15 +20,19 @@ export type DslNodeKind =
   | "ratingBar"
   | "segmented"
   | "serviceOption"
+  | "serviceOptionGroup"
   | "budgetOption"
+  | "budgetOptionGroup"
   | "timeSlot"
+  | "timeSlotGroup"
   | "colorLevelBar"
   | "lengthSilhouette"
   | "photoTile"
   | "summaryRow"
   | "stylistCard"
   | "masthead"
-  | "dayCell";
+  | "dayCell"
+  | "dayPickerGrid";
 
 export interface DslNode<P extends JsonObject = JsonObject> {
   kind: DslNodeKind;
@@ -61,7 +66,15 @@ export interface DslPage {
   };
 }
 
-export type DslActionMap = Record<string, () => void>;
+export interface DslActionPayload {
+  node: DslNode;
+  action: string;
+  value?: JsonValue;
+  meta?: unknown;
+}
+
+export type DslAction = (payload?: DslActionPayload) => void;
+export type DslActionMap = Record<string, DslAction>;
 
 export interface DslRenderContext {
   actions?: DslActionMap;
