@@ -76,47 +76,48 @@
 - [ ] Implement `user.isAuthenticated()`.
 - [ ] Implement `user.hasRole(role)`.
 - [ ] Ensure JS receives a snapshot, not a mutable auth/session manager object.
-- [ ] Add runtime tests for anonymous/dev user context.
+- [x] Add runtime tests for anonymous/dev user context.
 - [ ] Add handler-level test proving a started flow receives a stable user snapshot.
 
 ## Phase 8 — Image Host Module Server-Side Foundation
 
-- [ ] Define upload intent model: `uploadId`, `sessionId`, `purpose`, `slot`, `accept`, `maxBytes`, `expiresAt`.
-- [ ] Add per-session upload intent registry to `FlowSession` or a server-owned store keyed by session id.
-- [ ] Expose `require("host/images")`.
-- [ ] Implement `images.createUploadIntent(options)`.
-- [ ] Implement `images.get(uploadId)` for completed uploads.
-- [ ] Implement `images.list(filter)` for session-scoped uploaded image metadata.
-- [ ] Enforce purpose allow-list (`intake-photo` initially).
-- [ ] Enforce max byte ceiling and content-type allow-list defaults.
-- [ ] Ensure JS/browser never controls final storage keys.
-- [ ] Add runtime tests for creating upload intents from JS.
+- [x] Define upload intent model: `uploadId`, `sessionId`, `purpose`, `slot`, `accept`, `maxBytes`, `expiresAt`.
+- [x] Add per-session upload intent registry to `FlowSession` or a server-owned store keyed by session id.
+- [x] Expose `require("host/images")`.
+- [x] Implement `images.createUploadIntent(options)`.
+- [x] Implement `images.get(uploadId)` for completed uploads.
+- [x] Implement `images.list(filter)` for session-scoped uploaded image metadata.
+- [x] Enforce purpose allow-list (`intake-photo` initially).
+- [x] Enforce max byte ceiling and content-type allow-list defaults.
+- [x] Ensure JS/browser never controls final storage keys.
+- [x] Add runtime tests for creating upload intents from JS.
 
 ## Phase 9 — Server Upload Endpoint and Storage Integration
 
-- [ ] Add session-scoped upload endpoint: `POST /api/dsl/flows/{sessionId}/uploads/{uploadId}`.
-- [ ] Verify the session exists and the upload intent belongs to that session.
-- [ ] Reject expired/unknown upload ids with protobuf DSL errors or endpoint-specific JSON errors documented in the guide.
-- [ ] Parse multipart form using the intent field name (`file` by default).
-- [ ] Reuse existing photo validation patterns from `pkg/server/handlers_public.go` where practical.
-- [ ] Save through the existing `hairstorage.BlobStore` abstraction.
-- [ ] Insert uploaded image metadata into `dsl_uploads`.
-- [ ] Return normalized metadata: `uploadId`, `url`, `storageKey`, `contentType`, `sizeBytes`, `slot`.
-- [ ] Add handler tests for success, wrong session, expired intent, invalid content type, and oversized file.
+- [x] Add session-scoped upload endpoint: `POST /api/dsl/flows/{sessionId}/uploads/{uploadId}`.
+- [x] Verify the session exists and the upload intent belongs to that session.
+- [x] Reject expired/unknown upload ids with protobuf DSL errors or endpoint-specific JSON errors documented in the guide.
+- [x] Parse multipart form using the intent field name (`file` by default).
+- [x] Reuse existing photo validation patterns from `pkg/server/handlers_public.go` where practical.
+- [x] Save through the existing `hairstorage.BlobStore` abstraction.
+- [x] Insert uploaded image metadata into `dsl_uploads`.
+- [x] Return normalized metadata: `uploadId`, `url`, `storageKey`, `contentType`, `sizeBytes`, `slot`.
+- [ ] Add handler tests for wrong session, expired intent, invalid content type, and oversized file.
+- [x] Add handler test for successful image upload and metadata persistence.
 
 ## Phase 10 — Flow-Side Server Integration Only
 
-- [ ] Update `pkg/dslgoja/flows/intake.flow.js` to optionally require `db`, `host/user`, and `host/images`.
+- [x] Update `pkg/dslgoja/flows/intake.flow.js` to optionally require `db`, `host/user`, and `host/images`.
 - [ ] Save/read a minimal draft or audit row through `db` from JS.
 - [ ] Add `host/user.current()` data to a debug-safe place in flow logic or tests without exposing sensitive claims in page JSON by default.
-- [ ] Add image upload intents to photo tile props in the backend DSL page JSON.
-- [ ] Do not modify `web/` in this phase; frontend upload UI is being handled separately by a colleague.
-- [ ] Add backend/runtime tests asserting the emitted photo page contains upload intent props.
+- [x] Add image upload intents to photo tile props in the backend DSL page JSON.
+- [x] Do not modify `web/` in this phase; frontend upload UI is being handled separately by a colleague.
+- [x] Add backend/runtime tests asserting the emitted photo page contains upload intent props.
 
 ## Phase 11 — Server-Side Validation and Devctl Smoke
 
-- [ ] Run `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1`.
-- [ ] Run full `go test ./... -count=1`.
+- [x] Run `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1`.
+- [x] Run full `go test ./... -count=1`.
 - [ ] Start/restart devctl backend only if web changes are not needed: `devctl restart hair-booking-backend`.
 - [ ] Smoke `POST /api/dsl/flows/fringe.intake.v1/start` and verify protobuf `FlowState` still returns.
 - [ ] Verify configured SQLite file is created.

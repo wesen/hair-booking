@@ -314,3 +314,106 @@ Validate with:
 go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server ./cmd/hair-booking/cmds -count=1
 go test ./... -count=1
 ```
+
+---
+
+## Step 4: Add `host/user` and `host/images` server modules
+
+Implemented the first two plumbing-oriented host modules on the server side: `host/user` and `host/images`. Flow scripts can now inspect a safe user snapshot through JavaScript and create upload intents for intake photos without owning storage keys, multipart parsing, or upload validation.
+
+This slice intentionally did not touch frontend `web/` files. The backend flow now emits upload intent props on `photoTile` nodes, so the separately developed UI can consume those props when ready.
+
+### Prompt Context
+
+**User prompt (verbatim):** "do host/user and host/images"
+
+**Assistant interpretation:** Implement the server-side Goja host modules for user context and image upload plumbing, plus the upload endpoint required to complete an upload intent.
+
+**Inferred user intent:** Continue HAIR-036 by giving JavaScript access to identity and image upload primitives while keeping low-level host responsibilities in Go.
+
+**Commit (code):** a677bbc — "HAIR-036 Step 4: Add user and image host modules"
+
+### What I did
+
+- Added `dslgoja.UserSnapshot` and `WithUser(...)` flow-start option.
+- Passed a safe user snapshot from the DSL start HTTP handler into `Runtime.StartFlow(...)`.
+- Exposed `require("host/user")` with:
+  - `current()`,
+  - `isAuthenticated()`,
+  - `hasRole(role)`.
+- Added upload intent and uploaded image models in `pkg/dslgoja/images.go`.
+- Added per-session upload intent and upload metadata maps on `FlowSession`.
+- Exposed `require("host/images")` with:
+  - `createUploadIntent(options)`,
+  - `get(uploadId)`,
+  - `list(filter)`.
+- Added session-scoped upload endpoint:
+  - `POST /api/dsl/flows/{sessionId}/uploads/{uploadId}`.
+- Reused existing image validation from `readValidatedPhotoUpload(...)`.
+- Saved uploaded files through the existing `hairstorage.BlobStore` abstraction.
+- Recorded upload metadata in `dsl_uploads` when the DSL SQLite DB is configured.
+- Recorded `dsl_flow_sessions` rows on DSL start so upload metadata can satisfy schema foreign keys.
+- Updated `pkg/dslgoja/flows/intake.flow.js` to emit upload intents on photo tiles.
+- Added runtime tests for `host/user` and `host/images`.
+- Added server handler test for successful upload storage and metadata persistence.
+
+### Why
+
+These modules establish the intended Phase-D replacement shape: JavaScript owns app behavior, while Go owns identity snapshots, upload validation, storage, database metadata, and host invariants.
+
+### What worked
+
+Validation passed:
+
+```bash
+go test ./pkg/dslgoja ./pkg/server -count=1
+go test ./... -count=1
+```
+
+### What didn't work
+
+- The first implementation of `host/images.list(...)` called a method that took the session mutex while the flow render already held that mutex. That caused a test timeout/deadlock. The fix was to have the JS module read the session's upload maps directly while already inside the render transaction.
+- `UserSnapshot` and `UploadIntent` initially exported to JavaScript with Go field names (`UploadID`, `SessionID`) rather than lowerCamel names. The fix was to explicitly return `map[string]any` values with lowerCamel API fields.
+- Upload metadata insertion initially failed a SQLite foreign key in tests because `dsl_uploads.session_id` references `dsl_flow_sessions`. The fix was to record a flow-session row at DSL start.
+
+### What I learned
+
+- Goja does not automatically apply JSON struct tags when exporting Go structs to JS. Host module APIs should explicitly shape JS-facing objects as lowerCamel maps.
+- Host module functions called during render must respect the session lock model. Avoid re-entering locked methods from JS module functions while the render transaction already holds the lock.
+
+### What was tricky to build
+
+- The upload flow crosses three separate boundaries: JavaScript upload intent creation, HTTP multipart upload, and session/SQLite metadata completion. The implementation keeps the browser-visible upload id opaque and ensures Go generates final storage keys.
+- User identity needs to be useful in JS but must not expose session manager internals. Passing a snapshot into `StartFlow` keeps the boundary narrow.
+
+### What warrants a second pair of eyes
+
+- Whether upload endpoint error responses should remain protobuf `DslError` while success metadata is plain JSON, or whether upload metadata should also get protobuf messages.
+- Whether upload intents should be pruned/expired periodically.
+- Whether repeated renders should reuse existing upload intents per slot instead of generating new ones each render.
+- Edge-case upload tests still need to be added for wrong session, expired intent, invalid content type, and oversized file.
+
+### What should be done in the future
+
+- Add the remaining upload failure tests.
+- Add `host/user` and `host/images` API documentation to the design guide after frontend integration confirms final prop names.
+- Run a devctl/curl smoke that creates an upload intent from the live flow and uploads a small image.
+
+### Code review instructions
+
+Review:
+
+- `pkg/dslgoja/user.go`
+- `pkg/dslgoja/images.go`
+- `pkg/dslgoja/modules_dsl.go`
+- `pkg/dslgoja/modules_host_helpers.go`
+- `pkg/server/handlers_dsl_uploads.go`
+- `pkg/server/handlers_dsl_uploads_test.go`
+- `pkg/dslgoja/flows/intake.flow.js`
+
+Validate with:
+
+```bash
+go test ./pkg/dslgoja ./pkg/server -count=1
+go test ./... -count=1
+```

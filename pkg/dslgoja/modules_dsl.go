@@ -8,9 +8,11 @@ import (
 	databasemod "github.com/go-go-golems/go-go-goja/modules/database"
 )
 
-func (rt *Runtime) installModules(vm *goja.Runtime) error {
+func (rt *Runtime) installModules(vm *goja.Runtime, session *FlowSession) error {
 	registry := require.NewRegistry()
 	registry.RegisterNativeModule("fringe/dsl", loadFringeDSLModule)
+	registry.RegisterNativeModule("host/user", loadUserModule(session))
+	registry.RegisterNativeModule("host/images", loadImagesModule(session))
 	if rt.host.HasDB() {
 		dbModule := databasemod.New(
 			databasemod.WithName("db"),
@@ -21,6 +23,54 @@ func (rt *Runtime) installModules(vm *goja.Runtime) error {
 	}
 	registry.Enable(vm)
 	return nil
+}
+
+func loadUserModule(session *FlowSession) func(*goja.Runtime, *goja.Object) {
+	return func(vm *goja.Runtime, moduleObj *goja.Object) {
+		exports := moduleObj.Get("exports").(*goja.Object)
+		_ = exports.Set("current", func() map[string]any { return userSnapshotJS(session.User) })
+		_ = exports.Set("isAuthenticated", func() bool { return session.User.Authenticated })
+		_ = exports.Set("hasRole", func(role string) bool { return session.User.HasRole(role) })
+	}
+}
+
+func loadImagesModule(session *FlowSession) func(*goja.Runtime, *goja.Object) {
+	return func(vm *goja.Runtime, moduleObj *goja.Object) {
+		exports := moduleObj.Get("exports").(*goja.Object)
+		_ = exports.Set("createUploadIntent", func(call goja.FunctionCall) goja.Value {
+			options := uploadIntentOptionsFromCall(vm, call)
+			intent, err := session.CreateUploadIntent(options)
+			if err != nil {
+				panic(vm.ToValue("host/images.createUploadIntent: " + err.Error()))
+			}
+			return vm.ToValue(uploadIntentJS(intent))
+		})
+		_ = exports.Set("get", func(uploadID string) any {
+			image, ok := session.Uploads[uploadID]
+			if !ok {
+				return nil
+			}
+			return uploadedImageJS(image)
+		})
+		_ = exports.Set("list", func(call goja.FunctionCall) goja.Value {
+			purpose := ""
+			if len(call.Arguments) > 0 && !goja.IsUndefined(call.Argument(0)) && !goja.IsNull(call.Argument(0)) {
+				obj := call.Argument(0).ToObject(vm)
+				if value := obj.Get("purpose"); !goja.IsUndefined(value) && !goja.IsNull(value) {
+					purpose = value.String()
+				}
+			}
+			images := session.Uploads
+			out := make([]map[string]any, 0, len(images))
+			for _, image := range images {
+				if purpose != "" && image.Purpose != purpose {
+					continue
+				}
+				out = append(out, uploadedImageJS(image))
+			}
+			return vm.ToValue(out)
+		})
+	}
 }
 
 func loadFringeDSLModule(vm *goja.Runtime, moduleObj *goja.Object) {

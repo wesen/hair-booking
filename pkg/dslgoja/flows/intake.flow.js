@@ -1,4 +1,6 @@
 const { page, n } = require("fringe/dsl");
+const user = require("host/user");
+const images = require("host/images");
 
 const serviceOptions = [
   { value: "cut", name: "Cut", description: "Trim · restyle · bangs", rate: "$80+" },
@@ -188,10 +190,18 @@ function colorStep(ctx) {
 
 function photosStep(ctx) {
   function tile(key, label) {
+    const upload = images.createUploadIntent({ purpose: "intake-photo", slot: key });
+    const uploaded = images.list({ purpose: "intake-photo" }).filter(function (item) { return item.slot === key; })[0];
     return n.photoTile(label, {
       value: key,
-      filled: !!ctx.state.photos[key],
+      filled: !!ctx.state.photos[key] || !!uploaded,
+      imageUrl: uploaded ? uploaded.url : undefined,
+      upload: upload,
       actions: {
+        uploaded: ctx.action("uploadedPhoto:" + key, function (event) {
+          ctx.state.photos[key] = event.value || true;
+          return render(ctx);
+        }, "uploaded"),
         upload: ctx.action("uploadPhoto:" + key, function () {
           ctx.state.photos[key] = true;
           return render(ctx);

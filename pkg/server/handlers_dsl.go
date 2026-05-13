@@ -14,9 +14,11 @@ import (
 )
 
 type dslFlowStore struct {
-	mu       sync.RWMutex
-	runtime  *dslgoja.Runtime
-	sessions map[string]*dslgoja.FlowSession
+	mu        sync.RWMutex
+	runtime   *dslgoja.Runtime
+	db        *sql.DB
+	blobStore storage.BlobStore
+	sessions  map[string]*dslgoja.FlowSession
 }
 
 func newDSLFlowStore(db *sql.DB, dbPath string, blobStore storage.BlobStore) *dslFlowStore {
@@ -26,8 +28,10 @@ func newDSLFlowStore(db *sql.DB, dbPath string, blobStore storage.BlobStore) *ds
 		BlobStore: blobStore,
 	}))
 	return &dslFlowStore{
-		runtime:  runtime,
-		sessions: map[string]*dslgoja.FlowSession{},
+		runtime:   runtime,
+		db:        db,
+		blobStore: blobStore,
+		sessions:  map[string]*dslgoja.FlowSession{},
 	}
 }
 
@@ -66,12 +70,16 @@ func (h *appHandler) handleDSLStartFlow(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	session, result, err := h.dslFlows.runtime.StartFlow(r.Context(), flowID, dslgoja.DemoIntakeFlowSource)
+	session, result, err := h.dslFlows.runtime.StartFlow(r.Context(), flowID, dslgoja.DemoIntakeFlowSource, dslgoja.WithUser(h.dslUserSnapshot(r)))
 	if err != nil {
 		writeDSLProtoError(w, http.StatusInternalServerError, "dsl_flow_start_failed", err.Error())
 		return
 	}
 	h.dslFlows.put(session)
+	if err := h.recordDSLFlowSession(r, session, result); err != nil {
+		writeDSLProtoError(w, http.StatusInternalServerError, "dsl_session_record_failed", err.Error())
+		return
+	}
 	state, err := dslgoja.FlowStateFromResult(result)
 	if err != nil {
 		writeDSLProtoError(w, http.StatusInternalServerError, "dsl_proto_conversion_failed", err.Error())

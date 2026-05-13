@@ -44,3 +44,20 @@ Step 3: Implemented server-side host module foundation (commit 8f5d0d2): DSL SQL
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl.go — Runtime host construction for DSL flow store
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/http.go — Server/handler option propagation
 
+
+## 2026-05-13
+
+Step 4: Added server-side host/user (commit a677bbc) and host/images Goja modules, user snapshots, upload intents, session-scoped upload endpoint, BlobStore persistence, SQLite upload metadata, flow photo upload intent props, and Go/server tests. Validated targeted and full Go tests.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/flows/intake.flow.js — Photo step emits host image upload intents
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/host_user_images_test.go — Runtime tests for user/images modules
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/images.go — Upload intent and uploaded image models
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/modules_dsl.go — Registers host/user and host/images modules
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/modules_host_helpers.go — LowerCamel JS object shaping for host modules
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/user.go — UserSnapshot and StartFlow user option
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_uploads.go — DSL upload endpoint and user snapshot resolution
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_uploads_test.go — Upload success/metadata test
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-036--go-host-modules-for-backend-driven-dsl-runtime/tasks.md — Marks user/images server tasks complete
+

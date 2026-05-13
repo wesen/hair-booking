@@ -47,6 +47,9 @@ type FlowSession struct {
 	CurrentActions  map[string]ActionRegistration
 	RetiredActions  map[string]RetiredActionInfo
 	ProcessedEvents map[string]InteractionResult
+	UploadIntents   map[string]UploadIntent
+	Uploads         map[string]UploadedImage
+	User            UserSnapshot
 	activeTx        *renderTransaction
 
 	mu sync.Mutex
@@ -81,29 +84,39 @@ type renderTransaction struct {
 	NextActions map[string]ActionRegistration
 }
 
-func (rt *Runtime) StartFlow(ctx context.Context, flowID, source string) (*FlowSession, *InteractionResult, error) {
+func (rt *Runtime) StartFlow(ctx context.Context, flowID, source string, options ...StartFlowOption) (*FlowSession, *InteractionResult, error) {
+	startOptions := StartFlowOptions{}
+	for _, option := range options {
+		if option != nil {
+			option(&startOptions)
+		}
+	}
+
 	vm := goja.New()
-	if err := rt.installModules(vm); err != nil {
+	session := &FlowSession{
+		ID:              "flow_" + uuid.NewString(),
+		FlowID:          flowID,
+		VM:              vm,
+		CurrentActions:  map[string]ActionRegistration{},
+		RetiredActions:  map[string]RetiredActionInfo{},
+		ProcessedEvents: map[string]InteractionResult{},
+		UploadIntents:   map[string]UploadIntent{},
+		Uploads:         map[string]UploadedImage{},
+		User:            startOptions.User,
+		rt:              rt,
+	}
+	session.User = session.User.WithSessionID(session.ID)
+
+	if err := rt.installModules(vm, session); err != nil {
 		return nil, nil, fmt.Errorf("install DSL modules: %w", err)
 	}
 	value, err := vm.RunString(wrapFlowSource(source))
 	if err != nil {
 		return nil, nil, fmt.Errorf("load flow %q: %w", flowID, err)
 	}
-	flow := value.ToObject(vm)
+	session.flow = value.ToObject(vm)
 
-	session := &FlowSession{
-		ID:              "flow_" + uuid.NewString(),
-		FlowID:          flowID,
-		VM:              vm,
-		flow:            flow,
-		CurrentActions:  map[string]ActionRegistration{},
-		RetiredActions:  map[string]RetiredActionInfo{},
-		ProcessedEvents: map[string]InteractionResult{},
-		rt:              rt,
-	}
-
-	initialState, ok := goja.AssertFunction(flow.Get("initialState"))
+	initialState, ok := goja.AssertFunction(session.flow.Get("initialState"))
 	if ok {
 		state, err := rt.callWithTimeout(ctx, session, initialState, goja.Undefined())
 		if err != nil {

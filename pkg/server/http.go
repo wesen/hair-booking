@@ -242,6 +242,7 @@ func NewHandler(options HandlerOptions) http.Handler {
 	mux.HandleFunc("POST /api/dsl/flows/{flowId}/start", h.handleDSLStartFlow)
 	mux.HandleFunc("GET /api/dsl/flows/{sessionId}", h.handleDSLGetFlow)
 	mux.HandleFunc("POST /api/dsl/flows/{sessionId}/events", h.handleDSLEvent)
+	mux.HandleFunc("POST /api/dsl/flows/{sessionId}/uploads/{uploadId}", h.handleDSLUpload)
 	mux.HandleFunc("GET /api/stylist/me", h.handleStylistMe)
 	mux.HandleFunc("GET /api/stylist/dashboard", h.handleStylistDashboard)
 	mux.HandleFunc("GET /api/stylist/intakes", h.handleStylistIntakes)
