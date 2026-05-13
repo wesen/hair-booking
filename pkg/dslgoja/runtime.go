@@ -46,6 +46,7 @@ type FlowSession struct {
 	CurrentActions  map[string]ActionRegistration
 	RetiredActions  map[string]RetiredActionInfo
 	ProcessedEvents map[string]InteractionResult
+	activeTx        *renderTransaction
 
 	mu sync.Mutex
 	rt *Runtime
@@ -126,7 +127,9 @@ func (s *FlowSession) renderLocked(ctx context.Context) (*InteractionResult, err
 	}
 
 	tx := &renderTransaction{NextActions: map[string]ActionRegistration{}}
-	ctxObj := s.newContextObject(tx)
+	s.activeTx = tx
+	defer func() { s.activeTx = nil }()
+	ctxObj := s.newContextObject()
 	value, err := s.rt.callWithTimeout(ctx, s, render, goja.Undefined(), ctxObj)
 	if err != nil {
 		return nil, fmt.Errorf("render: %w", err)
@@ -168,7 +171,7 @@ func (s *FlowSession) commitRenderTransaction(tx *renderTransaction, page Page, 
 	return &InteractionResult{SessionID: s.ID, PageVersion: s.Version, Page: page, Effects: effects}
 }
 
-func (s *FlowSession) newContextObject(tx *renderTransaction) *goja.Object {
+func (s *FlowSession) newContextObject() *goja.Object {
 	obj := s.VM.NewObject()
 	_ = obj.Set("sessionId", s.ID)
 	_ = obj.Set("flowId", s.FlowID)
@@ -183,8 +186,11 @@ func (s *FlowSession) newContextObject(tx *renderTransaction) *goja.Object {
 		if len(call.Arguments) >= 3 && !goja.IsUndefined(call.Argument(2)) && !goja.IsNull(call.Argument(2)) {
 			event = call.Argument(2).String()
 		}
+		if s.activeTx == nil {
+			panic(s.VM.ToValue("ctx.action called outside render transaction"))
+		}
 		id := "act_" + uuid.NewString()
-		tx.NextActions[id] = ActionRegistration{ID: id, Name: name, Event: event, Version: s.Version + 1, Callback: callback}
+		s.activeTx.NextActions[id] = ActionRegistration{ID: id, Name: name, Event: event, Version: s.Version + 1, Callback: callback}
 
 		ref := s.VM.NewObject()
 		_ = ref.Set("id", id)
