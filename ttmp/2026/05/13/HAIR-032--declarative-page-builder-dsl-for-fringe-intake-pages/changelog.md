@@ -17,3 +17,13 @@ Step 1: Implemented initial declarative page builder DSL (schema, fluent builder
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — JSON interpreter that renders existing widgets
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/schema.ts — JSON contract for pages and nodes
 
+
+## 2026-05-13
+
+Step 2: Added experimental DSL composition examples and Storybook stories (consultation dashboard, appointment planner, color lab, photo moodboard, aftercare plan). Verified typecheck and Storybook build. (commit 53d8e08)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/ExperimentalPageDsl.stories.tsx — Storybook stories for experimental DSL compositions
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/experimental.ts — Experimental DSL page definitions
+

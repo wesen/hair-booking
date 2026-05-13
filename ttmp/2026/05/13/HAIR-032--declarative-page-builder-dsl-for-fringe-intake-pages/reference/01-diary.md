@@ -141,3 +141,80 @@ The JSON then renders through:
 ```tsx
 <DslPageRenderer page={service} context={{ actions: { next, back, skip } }} />
 ```
+
+---
+
+## Step 2: Add experimental DSL composition stories
+
+Added a second Storybook group that demonstrates the DSL as a composition playground, not just a way to recreate the canonical intake pages. These examples combine many atoms and molecules in novel arrangements so designers and developers can see the expressive range of the JSON page system.
+
+### Prompt Context
+
+**User prompt (verbatim):** "create some more experimental  pages showing how to combine all the different kind of widgets we have"
+
+**Assistant interpretation:** Add more DSL-authored pages that combine diverse widgets beyond the standard mobile flow. The goal is to demonstrate the DSL's compositional power and provide examples future contributors can copy.
+
+**Inferred user intent:** Make the DSL feel useful as a rapid prototyping tool, not just a duplicate of handwritten pages.
+
+**Commit (code):** 53d8e08 — "HAIR-032 Step 2: Add experimental DSL composition stories"
+
+### What I did
+
+- Created `web/src/page-dsl/experimental.ts`.
+- Added five experimental DSL pages:
+  - `consultationDashboardDsl`: cards, rating bars, notes, service options.
+  - `appointmentPlannerDsl`: stylist card, budget options, calendar day cells, time slots.
+  - `colorLabDsl`: color level bar, chips, notes, summary rows.
+  - `photoMoodboardDsl`: photo tiles, chips, note, inspiration tags.
+  - `aftercarePlanDsl`: bare shell, masthead, notes, summary rows, buttons.
+- Created `web/src/page-dsl/ExperimentalPageDsl.stories.tsx` under `Page DSL/Experimental Compositions`.
+- Added an `Experimental JSON index` story that prints all generated experimental JSON.
+- Exported experimental examples from `web/src/page-dsl/index.ts`.
+- Verified `npx tsc --noEmit` and `npx storybook build --test`.
+
+### Why
+
+A DSL is easier to evaluate when it shows more than canonical pages. Experimental pages prove that the node vocabulary supports recombination: ratings with service options, calendar cells with budget cards, photo tiles with chips, and aftercare summaries with notes and actions.
+
+### What worked
+
+- The existing node set was enough to create several new page concepts without adding renderer cases.
+- Storybook's phone-frame decorator works for experimental DSL pages automatically.
+- The JSON index story makes it easy to inspect the emitted structure for all experiments.
+
+### What didn't work
+
+- Some layouts still require inline style glue in JSON (`display`, `aspectRatio`, `marginBottom`). This is acceptable for experiments, but the DSL should eventually grow reusable fragments/presets to reduce style noise.
+
+### What I learned
+
+- The generic `stack`, `grid`, `spacer`, and `text` nodes are essential. Without them, the DSL would only recreate fixed widgets and would not feel like a real page composition language.
+- The current node vocabulary is already expressive enough for dashboards, planners, labs, moodboards, and aftercare pages.
+
+### What was tricky to build
+
+- JSON style objects need to remain plain JSON. This means no computed functions or token references in the final output unless they are resolved during builder execution. In these examples, imported token values become strings in the emitted JSON.
+
+### What warrants a second pair of eyes
+
+- Review the experimental Storybook stories and decide which patterns should become official fragments or organisms.
+- Check whether `aftercarePlanDsl` should use a first-class shell rather than `bare`.
+
+### What should be done in the future
+
+- Add reusable DSL fragments for common page regions.
+- Add examples for desktop layouts once `DesktopShell` is implemented.
+- Add JSON snapshot tests to catch accidental output changes.
+
+### Code review instructions
+
+Open Storybook and inspect:
+
+```text
+Page DSL / Experimental Compositions / Consultation Dashboard
+Page DSL / Experimental Compositions / Appointment Planner
+Page DSL / Experimental Compositions / Color Lab
+Page DSL / Experimental Compositions / Photo Moodboard
+Page DSL / Experimental Compositions / Aftercare Plan
+Page DSL / Experimental Compositions / Experimental JSON index
+```
