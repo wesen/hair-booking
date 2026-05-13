@@ -1350,3 +1350,81 @@ Validate with:
 ```bash
 go test ./pkg/dslgoja -count=1
 ```
+
+---
+
+## Step 16: Expand Goja dispatch test coverage
+
+Completed the Go test coverage task for the current `pkg/dslgoja` runtime slice. The package already covered flow start, action registration, segmented changes, next navigation, stale action recovery, and duplicate event idempotency; this step added explicit error-path coverage for unknown actions and JavaScript callback exceptions.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 10)
+
+**Assistant interpretation:** Continue the HAIR-033 implementation checklist by ensuring the Goja runtime has the requested test coverage before moving to HTTP endpoints.
+
+**Inferred user intent:** Keep the backend DSL prototype reliable and reviewable as it grows.
+
+**Commit (code):** d81d233 — "HAIR-033 Step 16: Expand Goja dispatch test coverage"
+
+### What I did
+
+- Added `pkg/dslgoja/dispatch_errors_test.go`.
+- Added `TestDispatchUnknownActionReturnsError`.
+- Added `TestDispatchCallbackErrorReturnsCurrentPageWithDangerEffect`.
+- Verified the full current runtime test set covers:
+  - start flow,
+  - action registration,
+  - DSL builder module output,
+  - segmented value change,
+  - next navigation,
+  - stale action recovery,
+  - duplicate event idempotency,
+  - unknown action errors,
+  - JS callback exceptions.
+- Ran:
+
+```bash
+go test ./pkg/dslgoja -count=1
+```
+
+### Why
+
+Before adding HTTP endpoints, the in-process runtime should have strong behavior tests. Once endpoints exist, they can delegate to runtime methods whose correctness is already covered.
+
+### What worked
+
+- Error callbacks are converted into a current-page result with a danger effect, matching the design doc's recoverable-error model.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- Keeping dispatch tests in-process makes it easy to cover edge cases before HTTP envelopes and auth/session concerns are added.
+
+### What was tricky to build
+
+- Callback exceptions should not crash the session or advance the page version. The test verifies that the current page remains current and the returned effect carries the error message.
+
+### What warrants a second pair of eyes
+
+- Whether unknown action should remain an error return at the runtime level while HTTP maps it to an API error, or whether it should also return a recoverable current-page result.
+
+### What should be done in the future
+
+- Task 17: add HTTP endpoints around the tested runtime methods.
+
+### Code review instructions
+
+Start with:
+
+- `pkg/dslgoja/dispatch_errors_test.go`
+- `pkg/dslgoja/dispatch_test.go`
+
+Validate with:
+
+```bash
+go test ./pkg/dslgoja -count=1
+```

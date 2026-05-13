@@ -182,3 +182,13 @@ Step 15: Implemented FlowSession.Dispatch to route browser interaction events in
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/dispatch_test.go — Dispatch behavior tests
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/runtime.go — Goja interaction dispatch implementation
 
+
+## 2026-05-13
+
+Step 16: Expanded Goja runtime dispatch test coverage for unknown actions and callback exceptions; current tests cover flow start, action registration, segmented change, next navigation, stale action recovery, and duplicate idempotency. Verified go test ./pkg/dslgoja -count=1. (commit d81d233)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/dispatch_errors_test.go — Dispatch error-path tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/dispatch_test.go — Core dispatch behavior tests
+

@@ -18,7 +18,7 @@
 - [x] Expose a fringe/dsl-style JavaScript builder module inside Goja for page(), intake(), and core node helpers
 - [x] Create a two-step intake.flow.js prototype with service and color steps using segmented, serviceOptionGroup, chipGroup, ratingBar, and footer navigation
 - [x] Implement event dispatch into registered Goja callbacks with per-session locking, timeout/interrupt, idempotency, stale-page recovery, and node/action validation
-- [ ] Add Go tests covering start flow, action registration, segmented change, next navigation, stale action rejection/recovery, and duplicate event idempotency
+- [x] Add Go tests covering start flow, action registration, segmented change, next navigation, stale action rejection/recovery, and duplicate event idempotency
 - [ ] Add HTTP endpoints for starting a DSL flow, fetching the current page, and posting interaction events
 - [ ] Add frontend backendClient and BackendDslPage container that renders backend-produced JSON and posts action refs back to Go
 - [ ] Update DslPageRenderer to support backend action refs in props.actions while preserving local Storybook action names
