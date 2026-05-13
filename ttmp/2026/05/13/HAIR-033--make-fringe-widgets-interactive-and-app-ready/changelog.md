@@ -257,7 +257,7 @@ Step 21: Added a design note answering routing, flow/session identity, multiple 
 
 ## 2026-05-13
 
-Step 22: Stabilized the live DSL route with node.meta.id React keys (commit 74ebf17), tab-scoped sessionStorage resume, missing-session recovery, URL/page sync, last-event debug JSON, copyable page JSON, and visible effects. Web tests/typecheck/build/Storybook and Go tests passed.
+Step 22: Stabilized the live DSL route with node.meta.id React keys (commit 258f2e5), tab-scoped sessionStorage resume, missing-session recovery, URL/page sync, last-event debug JSON, copyable page JSON, and visible effects. Web tests/typecheck/build/Storybook and Go tests passed.
 
 ### Related Files
 

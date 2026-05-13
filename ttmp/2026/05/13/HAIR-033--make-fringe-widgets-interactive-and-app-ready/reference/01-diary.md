@@ -2052,7 +2052,7 @@ This step also addresses the observed DOM flashing risk by changing the DSL rend
 
 **Inferred user intent:** Move from planning to implementation for routing/session/debug/stability/protobuf follow-up work while keeping ticket documentation accurate.
 
-**Commit (code):** 74ebf17 — "HAIR-033 Step 22: Stabilize live DSL route state"
+**Commit (code):** 258f2e5 — "HAIR-033 Step 22: Stabilize live DSL route state"
 
 ### What I did
 
