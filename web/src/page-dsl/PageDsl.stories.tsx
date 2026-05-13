@@ -32,6 +32,7 @@ export const Photos: Story = { args: { page: dslExamples.photos } };
 export const Budget: Story = { args: { page: dslExamples.budget } };
 export const Estimate: Story = { args: { page: dslExamples.estimate } };
 export const Booking: Story = { args: { page: dslExamples.booking } };
+export const Confirm: Story = { args: { page: dslExamples.confirm } };
 
 export const JsonContract: Story = {
   name: "JSON contract",

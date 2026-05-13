@@ -178,7 +178,7 @@ const desktopExplicitRegionDsl: DslPage = page("desktop-region", "Desktop Explic
 
 const meta: Meta = {
   title: "Page DSL/UI Primitives",
-  parameters: { layout: "fullscreen", phone: true },
+  parameters: { layout: "fullscreen", phone: true, viewport: { defaultViewport: "iPhone14" } },
 };
 
 export default meta;
@@ -209,12 +209,12 @@ export const KvRow: Story = {
 };
 
 export const Stat: Story = {
-  parameters: { phone: false, layout: "padded" },
+  parameters: { phone: false, layout: "padded", viewport: { defaultViewport: "desktop1440" } },
   render: () => <DslPageRenderer page={statDsl} />,
 };
 
 export const PersonCard: Story = {
-  parameters: { phone: false, layout: "padded" },
+  parameters: { phone: false, layout: "padded", viewport: { defaultViewport: "desktop1440" } },
   render: () => <DslPageRenderer page={personCardDsl} />,
 };
 
@@ -227,11 +227,11 @@ export const CalendarGrid: Story = {
 };
 
 export const DesktopPartition: Story = {
-  parameters: { phone: false },
+  parameters: { phone: false, viewport: { defaultViewport: "desktop1440" } },
   render: () => <DslPageRenderer page={desktopPartitionDsl} context={{ actions }} />,
 };
 
 export const DesktopExplicitRegion: Story = {
-  parameters: { phone: false },
+  parameters: { phone: false, viewport: { defaultViewport: "desktop1440" } },
   render: () => <DslPageRenderer page={desktopExplicitRegionDsl} context={{ actions }} />,
 };
