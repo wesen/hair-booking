@@ -74,7 +74,7 @@ export function ColorPage({ onNext, onBack }: ColorPageProps) {
       onBack={onBack}
       nextLabel={isLoading ? "Saving…" : "Keep going →"}
     >
-      <div data-component="ColorPage" style={{
+      <div data-component="ColorPage" data-page="ColorPage" style={{
         fontFamily: font.serif,
         fontStyle: "italic",
         fontSize: 17,
@@ -85,7 +85,7 @@ export function ColorPage({ onNext, onBack }: ColorPageProps) {
       </div>
 
       {/* Color level visualizer */}
-      <div data-component="ColorPage" style={{
+      <div data-component="ColorPage" data-page="ColorPage" style={{
         display: "flex",
         alignItems: "flex-end",
         gap: 4,
@@ -95,7 +95,7 @@ export function ColorPage({ onNext, onBack }: ColorPageProps) {
         {LEVELS.map((l) => {
           const sel = l === level;
           return (
-            <div data-component="ColorPage"
+            <div data-component="ColorPage" data-page="ColorPage"
               key={l}
               onClick={() => setLevel(l)}
               style={{
@@ -107,7 +107,7 @@ export function ColorPage({ onNext, onBack }: ColorPageProps) {
                 cursor: "pointer",
               }}
             >
-              <div data-component="ColorPage" style={{
+              <div data-component="ColorPage" data-page="ColorPage" style={{
                 flex: 1,
                 width: "100%",
                 background: LEVEL_COLORS[l - 1],
@@ -115,7 +115,7 @@ export function ColorPage({ onNext, onBack }: ColorPageProps) {
                 marginBottom: 4,
                 borderRadius: 2,
               }} />
-              <div data-component="ColorPage" style={{
+              <div data-component="ColorPage" data-page="ColorPage" style={{
                 fontFamily: font.mono,
                 fontSize: 10,
                 color: sel ? color.plum : color.soft,
@@ -133,7 +133,7 @@ export function ColorPage({ onNext, onBack }: ColorPageProps) {
       </Note>
 
       {/* Color service type */}
-      <div data-component="ColorPage" style={{ marginTop: 20 }}>
+      <div data-component="ColorPage" data-page="ColorPage" style={{ marginTop: 20 }}>
         <Eyebrow style={{ marginBottom: 10 }}>SERVICE TYPE</Eyebrow>
         <Segmented
           options={COLOR_TYPES}
@@ -143,9 +143,9 @@ export function ColorPage({ onNext, onBack }: ColorPageProps) {
       </div>
 
       {/* Target */}
-      <div data-component="ColorPage" style={{ marginTop: 20 }}>
+      <div data-component="ColorPage" data-page="ColorPage" style={{ marginTop: 20 }}>
         <Eyebrow style={{ marginBottom: 10 }}>TARGET (OPTIONAL)</Eyebrow>
-        <div data-component="ColorPage" style={{ display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
+        <div data-component="ColorPage" data-page="ColorPage" style={{ display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
           {TARGET_OPTIONS.map((o) => (
             <Chip
               key={o.value}

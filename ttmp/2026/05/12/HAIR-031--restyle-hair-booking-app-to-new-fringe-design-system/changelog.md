@@ -52,3 +52,8 @@ Step 13: Restructured components into atoms/molecules/organisms with one folder 
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/molecules/ — 8 molecule folders (AppHeader
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/organisms/ — 15 organism folders (IntakeShell
 
+
+## 2026-05-12
+
+Step 15: Implemented 5 new intake molecules (ServiceOption, BudgetOption, TimeSlot, ColorLevelBar, LengthSilhouette) with data-component attributes and Storybook stories. Organized Storybook sidebar to match atoms/molecules/organisms folders. Added data-component to all 37 existing components. (commit a633942, 2ba03ed)
+

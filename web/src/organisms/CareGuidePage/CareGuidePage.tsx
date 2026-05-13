@@ -25,14 +25,14 @@ export function CareGuidePage({
   onDone,
 }: CareGuidePageProps) {
   return (
-    <div data-component="CareGuidePage" style={{ minHeight: "100vh", background: color.paper }}>
-      <div data-component="CareGuidePage" style={{ paddingTop: 8 }}>
+    <div data-component="CareGuidePage" data-page="CareGuidePage" style={{ minHeight: "100vh", background: color.paper }}>
+      <div data-component="CareGuidePage" data-page="CareGuidePage" style={{ paddingTop: 8 }}>
         <AppHeader onBack={onBack} />
       </div>
 
-      <div data-component="CareGuidePage" style={{ padding: "12px 22px 24px" }}>
+      <div data-component="CareGuidePage" data-page="CareGuidePage" style={{ padding: "12px 22px 24px" }}>
         <Eyebrow style={{ marginBottom: 8 }}>EXTENSION CARE · AFTERCARE GUIDE</Eyebrow>
-        <div data-component="CareGuidePage"
+        <div data-component="CareGuidePage" data-page="CareGuidePage"
           style={{
             fontFamily: font.block,
             fontSize: 36,
@@ -46,7 +46,7 @@ export function CareGuidePage({
           <br />
           new hair happy.
         </div>
-        <div data-component="CareGuidePage"
+        <div data-component="CareGuidePage" data-page="CareGuidePage"
           style={{
             fontFamily: font.serif,
             fontStyle: "italic",
@@ -59,12 +59,12 @@ export function CareGuidePage({
           A simple care guide for washing, styling, sleeping, and maintenance after install.
         </div>
 
-        <div data-component="CareGuidePage" style={{ display: "grid", gap: 12 }}>
+        <div data-component="CareGuidePage" data-page="CareGuidePage" style={{ display: "grid", gap: 12 }}>
           {sections.map((section) => (
             <Card key={section.heading}>
-              <div data-component="CareGuidePage" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
-                <div data-component="CareGuidePage" style={{ fontSize: 22 }}>{section.emoji}</div>
-                <div data-component="CareGuidePage"
+              <div data-component="CareGuidePage" data-page="CareGuidePage" style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+                <div data-component="CareGuidePage" data-page="CareGuidePage" style={{ fontSize: 22 }}>{section.emoji}</div>
+                <div data-component="CareGuidePage" data-page="CareGuidePage"
                   style={{
                     fontFamily: font.block,
                     fontSize: 18,
@@ -75,9 +75,9 @@ export function CareGuidePage({
                   {section.heading}
                 </div>
               </div>
-              <div data-component="CareGuidePage" style={{ display: "grid", gap: 8 }}>
+              <div data-component="CareGuidePage" data-page="CareGuidePage" style={{ display: "grid", gap: 8 }}>
                 {section.items.map((item) => (
-                  <div data-component="CareGuidePage"
+                  <div data-component="CareGuidePage" data-page="CareGuidePage"
                     key={item}
                     style={{
                       display: "grid",
@@ -99,11 +99,11 @@ export function CareGuidePage({
           ))}
         </div>
 
-        <div data-component="CareGuidePage" style={{ margin: "22px 0 18px" }}>
+        <div data-component="CareGuidePage" data-page="CareGuidePage" style={{ margin: "22px 0 18px" }}>
           <Rule />
         </div>
 
-        <div data-component="CareGuidePage" style={{ fontFamily: font.mono, fontSize: 11, letterSpacing: 1.2, color: color.soft, marginBottom: 14 }}>
+        <div data-component="CareGuidePage" data-page="CareGuidePage" style={{ fontFamily: font.mono, fontSize: 11, letterSpacing: 1.2, color: color.soft, marginBottom: 14 }}>
           QUESTIONS? TEXT {contactPhone}
         </div>
 

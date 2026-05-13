@@ -67,18 +67,18 @@ export function BookingPage({ intakeId, serviceId, stylist, onNext, onBack }: Bo
         available={stylist.available}
       />
 
-      <div data-component="BookingPage" style={{ height: 20 }} />
+      <div data-component="BookingPage" data-page="BookingPage" style={{ height: 20 }} />
 
       {/* Calendar */}
       <Eyebrow style={{ marginBottom: 10 }}>JUNE 2025</Eyebrow>
-      <div data-component="BookingPage" style={{
+      <div data-component="BookingPage" data-page="BookingPage" style={{
         display: "grid",
         gridTemplateColumns: "repeat(7, 1fr)",
         gap: 4,
         marginBottom: 20,
       }}>
         {["M", "T", "W", "T", "F", "S", "S"].map((d) => (
-          <div data-component="BookingPage" key={d} style={{
+          <div data-component="BookingPage" data-page="BookingPage" key={d} style={{
             fontFamily: font.mono,
             fontSize: 10,
             color: color.soft,
@@ -88,7 +88,7 @@ export function BookingPage({ intakeId, serviceId, stylist, onNext, onBack }: Bo
             {d}
           </div>
         ))}
-        {[0, 1].map((i) => <div key={`gap-${i}`} />)}
+        {[0, 1].map((i) => <div data-page="BookingPage" key={`gap-${i}`} />)}
         {MONTH_DAYS.map((d) => (
           <DayCell
             key={d}
@@ -105,7 +105,7 @@ export function BookingPage({ intakeId, serviceId, stylist, onNext, onBack }: Bo
       {selectedDay && (
         <>
           <Eyebrow style={{ marginBottom: 10 }}>Tue, Jun {selectedDay} — available times</Eyebrow>
-          <div data-component="BookingPage" style={{
+          <div data-component="BookingPage" data-page="BookingPage" style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
             gap: 6,
@@ -113,7 +113,7 @@ export function BookingPage({ intakeId, serviceId, stylist, onNext, onBack }: Bo
             {TIMES.map((t) => {
               const sel = t === selectedTime;
               return (
-                <div data-component="BookingPage"
+                <div data-component="BookingPage" data-page="BookingPage"
                   key={t}
                   onClick={() => setSelectedTime(t)}
                   style={{

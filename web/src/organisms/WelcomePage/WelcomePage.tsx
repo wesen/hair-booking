@@ -53,22 +53,22 @@ export function WelcomePage({
   };
 
   return (
-    <div data-component="WelcomePage" style={{ background: color.cream, minHeight: "100vh" }}>
+    <div data-component="WelcomePage" data-page="WelcomePage" style={{ background: color.cream, minHeight: "100vh" }}>
       {/* Top bar */}
-      <div data-component="WelcomePage" style={{
+      <div data-component="WelcomePage" data-page="WelcomePage" style={{
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
         padding: "14px 24px",
         borderBottom: `1px solid ${color.rule}`,
       }}>
-        <div data-component="WelcomePage" style={{ fontFamily: font.sans, fontSize: 18, color: color.soft }}>☰</div>
+        <div data-component="WelcomePage" data-page="WelcomePage" style={{ fontFamily: font.sans, fontSize: 18, color: color.soft }}>☰</div>
         <Eyebrow color={color.soft}>Providence, RI</Eyebrow>
       </div>
 
       {/* Logo area */}
-      <div data-component="WelcomePage" style={{ padding: "40px 24px 32px", textAlign: "center" as const }}>
-        <div data-component="WelcomePage" style={{
+      <div data-component="WelcomePage" data-page="WelcomePage" style={{ padding: "40px 24px 32px", textAlign: "center" as const }}>
+        <div data-component="WelcomePage" data-page="WelcomePage" style={{
           fontFamily: font.mono,
           fontSize: 11,
           letterSpacing: 2.5,
@@ -78,7 +78,7 @@ export function WelcomePage({
         }}>
           ✦&ensp;Fringe&ensp;✦
         </div>
-        <div data-component="WelcomePage" style={{
+        <div data-component="WelcomePage" data-page="WelcomePage" style={{
           ...type.display3,
           fontSize: 40,
           color: color.ink,
@@ -87,7 +87,7 @@ export function WelcomePage({
         }}>
           Ready for your<br />hair transformation?
         </div>
-        <div data-component="WelcomePage" style={{
+        <div data-component="WelcomePage" data-page="WelcomePage" style={{
           fontFamily: font.serif,
           fontStyle: "italic",
           fontSize: 17,
@@ -99,7 +99,7 @@ export function WelcomePage({
       </div>
 
       {/* Service cards */}
-      <div data-component="WelcomePage" style={{ padding: "0 24px 24px", display: "flex", flexDirection: "column" as const, gap: 12 }}>
+      <div data-component="WelcomePage" data-page="WelcomePage" style={{ padding: "0 24px 24px", display: "flex", flexDirection: "column" as const, gap: 12 }}>
         {SERVICES.map((s) => (
           <ServiceCard
             key={s.key}
@@ -114,7 +114,7 @@ export function WelcomePage({
       <Rule />
 
       {/* Sign in link */}
-      <div data-component="WelcomePage" style={{ padding: "16px 24px 40px", textAlign: "center" as const }}>
+      <div data-component="WelcomePage" data-page="WelcomePage" style={{ padding: "16px 24px 40px", textAlign: "center" as const }}>
         {clientName ? (
           <span data-component="WelcomePage" style={{ fontFamily: font.sans, fontSize: 13, color: color.soft }}>
             Signed in as {clientName}.
@@ -148,7 +148,7 @@ function ServiceCard({
   onClick: () => void;
 }) {
   return (
-    <div data-component="WelcomePage"
+    <div data-component="WelcomePage" data-page="WelcomePage"
       onClick={onClick}
       style={{
         background: color.cream,
@@ -163,7 +163,7 @@ function ServiceCard({
       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = color.creamDeep; }}
       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = color.cream; }}
     >
-      <div data-component="WelcomePage" style={{
+      <div data-component="WelcomePage" data-page="WelcomePage" style={{
         fontFamily: font.block,
         fontSize: 26,
         letterSpacing: 0,
@@ -174,8 +174,8 @@ function ServiceCard({
           {title.includes("Color") ? "💇‍♀️" : title.includes("Extensions") ? "✨" : "🎨"}
         </span>
       </div>
-      <div data-component="WelcomePage" style={{ flex: 1 }}>
-        <div data-component="WelcomePage" style={{
+      <div data-component="WelcomePage" data-page="WelcomePage" style={{ flex: 1 }}>
+        <div data-component="WelcomePage" data-page="WelcomePage" style={{
           fontFamily: font.block,
           fontSize: 16,
           letterSpacing: 0.5,
@@ -184,7 +184,7 @@ function ServiceCard({
         }}>
           {title}
         </div>
-        <div data-component="WelcomePage" style={{
+        <div data-component="WelcomePage" data-page="WelcomePage" style={{
           fontFamily: font.sans,
           fontSize: 12,
           color: color.softInk,
@@ -193,8 +193,8 @@ function ServiceCard({
           {description}
         </div>
       </div>
-      <div data-component="WelcomePage" style={{ textAlign: "right" }}>
-        <div data-component="WelcomePage" style={{ fontFamily: font.mono, fontSize: 11, color: color.plum }}>{rate}</div>
+      <div data-component="WelcomePage" data-page="WelcomePage" style={{ textAlign: "right" }}>
+        <div data-component="WelcomePage" data-page="WelcomePage" style={{ fontFamily: font.mono, fontSize: 11, color: color.plum }}>{rate}</div>
       </div>
     </div>
   );

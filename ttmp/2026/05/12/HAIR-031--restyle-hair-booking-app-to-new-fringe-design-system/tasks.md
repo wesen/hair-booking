@@ -28,17 +28,17 @@
 ### Phase 3: Molecules
 - [x] Implement molecules: Card, SummaryRow, Masthead, PhotoTile
 - [x] Implement molecules: StylistCard, DayCell, Segmented
-- [ ] Implement molecules: ServiceOption, BudgetOption, TimeSlot, ColorLevelBar, LengthSilhouette
-- [ ] Add Storybook stories + selectors for each
+- [x] Implement molecules: ServiceOption, BudgetOption, TimeSlot, ColorLevelBar, LengthSilhouette
+- [x] Add Storybook stories + selectors for each
 
 ### Phase 4: Organisms + IntakeShell
-- [ ] Implement IntakeShell organism (mobile screen wrapper)
-- [ ] Implement 9 mobile page organisms (Service through Confirm)
+- [x] Implement IntakeShell organism (mobile screen wrapper)
+- [x] Implement 9 mobile page organisms (Service through Confirm)
 - [ ] Add data-page + data-section selectors
 - [ ] Add page-level Storybook stories
 
 ### Phase 5: Desktop variants
-- [ ] Implement DesktopShell + StepRail
+- [x] Implement DesktopShell + StepRail
 - [ ] Implement 3 desktop page organisms (Estimate/Booking/Confirm)
 - [ ] Add desktop Storybook stories
 

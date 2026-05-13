@@ -37,7 +37,7 @@ export function ServicePage({ onNext, onBack }: ServicePageProps) {
       onNext={onNext}
       onBack={onBack}
     >
-      <div data-component="ServicePage" style={{
+      <div data-component="ServicePage" data-page="ServicePage" style={{
         fontFamily: font.serif,
         fontStyle: "italic",
         fontSize: 17,
@@ -50,7 +50,7 @@ export function ServicePage({ onNext, onBack }: ServicePageProps) {
       {SERVICES.map((s) => {
         const sel = s.key === selected;
         return (
-          <div data-component="ServicePage"
+          <div data-component="ServicePage" data-page="ServicePage"
             key={s.key}
             onClick={() => setSelected(s.key)}
             style={{
@@ -64,15 +64,15 @@ export function ServicePage({ onNext, onBack }: ServicePageProps) {
               cursor: "pointer",
             }}
           >
-            <div data-component="ServicePage" style={{ flex: 1 }}>
-              <div data-component="ServicePage" style={{
+            <div data-component="ServicePage" data-page="ServicePage" style={{ flex: 1 }}>
+              <div data-component="ServicePage" data-page="ServicePage" style={{
                 fontFamily: font.block,
                 fontSize: 20,
                 textTransform: "uppercase" as const,
               }}>
                 {s.key}
               </div>
-              <div data-component="ServicePage" style={{
+              <div data-component="ServicePage" data-page="ServicePage" style={{
                 fontFamily: font.sans,
                 fontSize: 12,
                 color: color.softInk,
@@ -81,7 +81,7 @@ export function ServicePage({ onNext, onBack }: ServicePageProps) {
                 {s.description}
               </div>
             </div>
-            <div data-component="ServicePage" style={{ fontFamily: font.mono, fontSize: 11, color: color.plum }}>
+            <div data-component="ServicePage" data-page="ServicePage" style={{ fontFamily: font.mono, fontSize: 11, color: color.plum }}>
               {s.rate}
             </div>
           </div>

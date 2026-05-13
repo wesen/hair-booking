@@ -37,7 +37,7 @@ export function PhotosPage({ onNext, onBack }: PhotosPageProps) {
       onNext={onNext}
       onBack={onBack}
     >
-      <div data-component="PhotosPage" style={{
+      <div data-component="PhotosPage" data-page="PhotosPage" style={{
         fontFamily: font.serif,
         fontStyle: "italic",
         fontSize: 17,
@@ -49,7 +49,7 @@ export function PhotosPage({ onNext, onBack }: PhotosPageProps) {
 
       {/* Current hair photos */}
       <Eyebrow style={{ marginBottom: 10 }}>CURRENT HAIR — 3 ANGLES</Eyebrow>
-      <div data-component="PhotosPage" style={{
+      <div data-component="PhotosPage" data-page="PhotosPage" style={{
         display: "grid",
         gridTemplateColumns: "repeat(3, 1fr)",
         gap: 8,
@@ -66,7 +66,7 @@ export function PhotosPage({ onNext, onBack }: PhotosPageProps) {
 
       {/* Inspiration */}
       <Eyebrow style={{ marginBottom: 10 }}>INSPIRATION (OPTIONAL · UP TO {INSPIRATION_MAX})</Eyebrow>
-      <div data-component="PhotosPage" style={{
+      <div data-component="PhotosPage" data-page="PhotosPage" style={{
         display: "grid",
         gridTemplateColumns: `repeat(${INSPIRATION_MAX}, 1fr)`,
         gap: 6,

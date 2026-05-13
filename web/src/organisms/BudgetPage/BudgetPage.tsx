@@ -36,7 +36,7 @@ export function BudgetPage({ onNext, onBack, onSelect }: BudgetPageProps) {
       onNext={onNext}
       onBack={onBack}
     >
-      <div data-component="BudgetPage" style={{
+      <div data-component="BudgetPage" data-page="BudgetPage" style={{
         fontFamily: font.serif,
         fontStyle: "italic",
         fontSize: 17,
@@ -49,7 +49,7 @@ export function BudgetPage({ onNext, onBack, onSelect }: BudgetPageProps) {
       {TIERS.map((t) => {
         const sel = t.key === selected;
         return (
-          <div data-component="BudgetPage"
+          <div data-component="BudgetPage" data-page="BudgetPage"
             key={t.key}
             onClick={() => handleTier(t.key)}
             style={{
@@ -64,7 +64,7 @@ export function BudgetPage({ onNext, onBack, onSelect }: BudgetPageProps) {
             }}
           >
             {/* Radio circle */}
-            <div data-component="BudgetPage" style={{
+            <div data-component="BudgetPage" data-page="BudgetPage" style={{
               width: 18,
               height: 18,
               borderRadius: 999,
@@ -75,7 +75,7 @@ export function BudgetPage({ onNext, onBack, onSelect }: BudgetPageProps) {
               flexShrink: 0,
             }}>
               {sel && (
-                <div data-component="BudgetPage" style={{
+                <div data-component="BudgetPage" data-page="BudgetPage" style={{
                   width: 8,
                   height: 8,
                   borderRadius: 999,
@@ -83,15 +83,15 @@ export function BudgetPage({ onNext, onBack, onSelect }: BudgetPageProps) {
                 }} />
               )}
             </div>
-            <div data-component="BudgetPage" style={{ flex: 1 }}>
-              <div data-component="BudgetPage" style={{
+            <div data-component="BudgetPage" data-page="BudgetPage" style={{ flex: 1 }}>
+              <div data-component="BudgetPage" data-page="BudgetPage" style={{
                 fontFamily: font.block,
                 fontSize: 19,
                 textTransform: "uppercase" as const,
               }}>
                 {t.label}
               </div>
-              <div data-component="BudgetPage" style={{
+              <div data-component="BudgetPage" data-page="BudgetPage" style={{
                 fontFamily: font.sans,
                 fontSize: 12,
                 color: color.softInk,

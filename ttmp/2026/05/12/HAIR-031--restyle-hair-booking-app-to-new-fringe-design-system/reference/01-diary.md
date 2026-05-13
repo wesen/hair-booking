@@ -1180,3 +1180,62 @@ open http://localhost:6006
 # Check data-component renders
 # In browser console: document.querySelector('[data-component="Button"]')
 ```
+
+---
+
+## Step 15: Implement 5 new intake molecules
+
+Implemented the 5 molecules that were unique to the new Fringe intake design (not present in the deprecated codebase): ServiceOption, BudgetOption, TimeSlot, ColorLevelBar, LengthSilhouette. Each extracted from the FS design system prototype (`intake-fs.jsx`) and converted to TypeScript with proper props, `data-component`/`data-part` attributes, and Storybook stories.
+
+### Prompt Context
+
+**User prompt (verbatim):** (see Step 13 — "atoms/molecules/organisms" directive led to Task 19)
+
+**Assistant interpretation:** Build the 5 intake-specific molecules that the deprecated codebase didn't have, matching the FS design system prototype pixel-for-pixel.
+
+**Inferred user intent:** Complete the molecule layer so page organisms can reference these components instead of inline JSX.
+
+**Commit (code):** 2ba03ed — "HAIR-031 Step 15: Implement 5 new intake molecules"
+
+### What I did
+
+1. **ServiceOption**: Tappable row with name (h3, 20px), description (bodySm), rate (meta, plum), selected state (peachSoft bg + plum borderLeft + data-part="selected")
+2. **BudgetOption**: Radio-style row with label (h3, 19px), description (bodySm), 18px circle radio indicator with plum fill, selected state
+3. **TimeSlot**: Compact time chip (mono, 12px) with selected (plum bg + paper text), disabled (soft text + 0.4 opacity), default (cream bg + ink text)
+4. **ColorLevelBar**: 10-column hair color level visualization using HSL-based tones, current marker (plum border), optional target marker (dashed peach border), level numbers below
+5. **LengthSilhouette**: SVG hair length icon with head circle + hair paths, 5 sizes (Pixie 30px → Waist 120px), selected state (plum fill) vs unselected (soft fill)
+
+### Why
+
+These molecules were inline JSX in the prototype. Extracting them into proper React components with typed props enables reuse, testability, and css-visual-diff targeting.
+
+### What worked
+
+- The FS design system was the source of truth — each molecule is a direct TypeScript translation of the inline JSX from `intake-fs.jsx`
+- Storybook stories demonstrate default, selected, and variant states for each molecule
+
+### What didn't work
+
+- Forgot to import `font` in TimeSlot — caught by `tsc --noEmit`
+
+### What was tricky to build
+
+- ColorLevelBar uses HSL-based tones (`hsl(30, ${20 + l*3}%, ${10 + l*8}%)`) from the prototype rather than the `levelSwatches` from tokens. Should reconcile these in a future pass.
+- LengthSilhouette SVG paths are approximate — they work visually but aren't pixel-perfect reproductions of the prototype.
+
+### What warrants a second pair of eyes
+
+- ColorLevelBar tones vs tokens `levelSwatches` — they should be unified
+- LengthSilhouette SVG viewBox is 40×120 but the paths might clip for the tallest options
+
+### What should be done in the future
+
+- Replace ColorLevelBar HSL tones with the `levelSwatches` from `fringe-ui/tokens/index.ts`
+- Consider making LengthSilhouette heights configurable via a prop
+
+### Code review instructions
+
+```bash
+cd web/ && npx tsc --noEmit  # clean
+# View in Storybook: Molecules/ServiceOption, Molecules/BudgetOption, etc.
+```
