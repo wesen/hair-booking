@@ -54,11 +54,12 @@ function buildServicePage(state: { category: string; service: string; tones: str
         },
       },
       {
-        kind: "serviceOptionGroup",
+        kind: "selectableGroup",
         meta: { id: "service-options" },
         props: {
           value: state.service,
-          options: serviceOptions,
+          mode: "single",
+          options: serviceOptions.map((o: any) => ({ value: o.value, title: o.name, subtitle: o.description, badge: o.rate })),
           actions: { change: { id: "act_service", event: "change" } },
         },
       },
@@ -97,11 +98,12 @@ function buildColorPage(state: { category: string; service: string; tones: strin
         },
       },
       {
-        kind: "ratingBar",
+        kind: "scale",
         meta: { id: "damage-rating" },
         props: {
           label: "Damage",
           value: state.damage,
+          max: 5,
           interactive: true,
           actions: { change: { id: "act_damage", event: "change" } },
           style: { marginTop: 14 },

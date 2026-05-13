@@ -94,34 +94,40 @@ export class DslPageBuilder {
 export const page = (id: string, title: string) => new DslPageBuilder(id, title);
 
 export const n = {
+  // ── Layout primitives ──────────────────────────────────────
   text: (text: string, props: JsonObject = {}) => new DslNodeBuilder("text", { text, ...props }),
   spacer: (height: number) => new DslNodeBuilder("spacer", { height }),
   stack: (props: JsonObject = {}, ...children: NodeInput[]) => new DslNodeBuilder("stack", props).children(...children),
   grid: (columns: number | string, props: JsonObject = {}, ...children: NodeInput[]) => new DslNodeBuilder("grid", { columns, ...props }).children(...children),
+
+  // ── Display primitives ─────────────────────────────────────
   eyebrow: (children: string, props: JsonObject = {}) => new DslNodeBuilder("eyebrow", { children, ...props }),
   button: (children: string, props: JsonObject = {}) => new DslNodeBuilder("button", { children, ...props }),
-  chip: (children: string, props: JsonObject = {}) => new DslNodeBuilder("chip", { children, ...props }),
-  chipGroup: (options: JsonObject[], value: string[] = [], props: JsonObject = {}) => new DslNodeBuilder("chipGroup", { options, value, ...props }),
   note: (children: string, props: JsonObject = {}) => new DslNodeBuilder("note", { children, ...props }),
   card: (props: JsonObject = {}, ...children: NodeInput[]) => new DslNodeBuilder("card", props).children(...children),
   rule: (props: JsonObject = {}) => new DslNodeBuilder("rule", props),
   progress: (value: number, props: JsonObject = {}) => new DslNodeBuilder("progress", { value, ...props }),
-  ratingBar: (value: number, props: JsonObject = {}) => new DslNodeBuilder("ratingBar", { value, ...props }),
-  segmented: (options: JsonObject[], value: string, props: JsonObject = {}) => new DslNodeBuilder("segmented", { options, value, ...props }),
-  serviceOption: (name: string, description: string, props: JsonObject = {}) => new DslNodeBuilder("serviceOption", { name, description, ...props }),
-  serviceOptionGroup: (options: JsonObject[], value: string | null = null, props: JsonObject = {}) => new DslNodeBuilder("serviceOptionGroup", { options, value, ...props }),
-  budgetOption: (label: string, description: string, props: JsonObject = {}) => new DslNodeBuilder("budgetOption", { label, description, ...props }),
-  budgetOptionGroup: (options: JsonObject[], value: string | null = null, props: JsonObject = {}) => new DslNodeBuilder("budgetOptionGroup", { options, value, ...props }),
-  timeSlot: (label: string, props: JsonObject = {}) => new DslNodeBuilder("timeSlot", { label, ...props }),
-  timeSlotGroup: (options: JsonObject[], value: string | null = null, props: JsonObject = {}) => new DslNodeBuilder("timeSlotGroup", { options, value, ...props }),
-  colorLevelBar: (current: number, props: JsonObject = {}) => new DslNodeBuilder("colorLevelBar", { current, ...props }),
-  lengthSilhouette: (label: string, props: JsonObject = {}) => new DslNodeBuilder("lengthSilhouette", { label, ...props }),
-  photoTile: (label: string, props: JsonObject = {}) => new DslNodeBuilder("photoTile", { label, ...props }),
-  summaryRow: (label: string, value: string, props: JsonObject = {}) => new DslNodeBuilder("summaryRow", { label, value, ...props }),
-  stylistCard: (name: string, role: string, props: JsonObject = {}) => new DslNodeBuilder("stylistCard", { name, role, ...props }),
   masthead: (title: string, props: JsonObject = {}) => new DslNodeBuilder("masthead", { title, ...props }),
+
+  // ── Selection primitives ───────────────────────────────────
+  selectable: (title: string, props: JsonObject = {}) => new DslNodeBuilder("selectable", { title, ...props }),
+  selectableGroup: (options: JsonObject[], value: string | string[] | null = null, props: JsonObject = {}) => new DslNodeBuilder("selectableGroup", { options, value, ...props }),
+  chip: (children: string, props: JsonObject = {}) => new DslNodeBuilder("chip", { children, ...props }),
+  chipGroup: (options: JsonObject[], value: string[] = [], props: JsonObject = {}) => new DslNodeBuilder("chipGroup", { options, value, ...props }),
+  segmented: (options: JsonObject[], value: string, props: JsonObject = {}) => new DslNodeBuilder("segmented", { options, value, ...props }),
+
+  // ── Input primitives ───────────────────────────────────────
+  scale: (value: number, props: JsonObject = {}) => new DslNodeBuilder("scale", { value, ...props }),
+  uploadTile: (label: string, props: JsonObject = {}) => new DslNodeBuilder("uploadTile", { label, ...props }),
+
+  // ── Data display primitives ────────────────────────────────
+  kvRow: (label: string, value: string, props: JsonObject = {}) => new DslNodeBuilder("kvRow", { label, value, ...props }),
+  stat: (value: string, props: JsonObject = {}) => new DslNodeBuilder("stat", { value, ...props }),
+  personCard: (name: string, props: JsonObject = {}) => new DslNodeBuilder("personCard", { name, ...props }),
+
+  // ── Date/time primitives ───────────────────────────────────
   dayCell: (day: string | number, props: JsonObject = {}) => new DslNodeBuilder("dayCell", { day: String(day), ...props }),
-  dayPickerGrid: (days: JsonObject[], value: string | null = null, props: JsonObject = {}) => new DslNodeBuilder("dayPickerGrid", { days, value, ...props }),
+  calendarGrid: (year: number, month: number, days: JsonObject[], value: string | null = null, props: JsonObject = {}) => new DslNodeBuilder("calendarGrid", { year, month, days, value, ...props }),
 };
 
 export type { StyleJson };

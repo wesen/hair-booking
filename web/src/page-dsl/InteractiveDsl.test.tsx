@@ -4,7 +4,7 @@ import { page, n } from "./builder";
 import { DslPageRenderer } from "./render";
 
 describe("interactive DSL renderer", () => {
-  it("routes ChipGroup changes through named DSL action payloads", () => {
+  it("routes chipGroup changes through named DSL action payloads", () => {
     const onTonesChanged = vi.fn();
     const dsl = page("tones", "Tones")
       .bare()
@@ -22,44 +22,46 @@ describe("interactive DSL renderer", () => {
     }));
   });
 
-  it("routes ServiceOptionGroup changes through named DSL action payloads", () => {
+  it("routes selectableGroup changes through named DSL action payloads", () => {
     const onServiceChanged = vi.fn();
     const dsl = page("service", "Service")
       .bare()
-      .add(n.serviceOptionGroup([
-        { value: "cut", name: "Cut", description: "Trim" },
-        { value: "color", name: "Color", description: "Gloss" },
-      ], "cut", { action: "serviceChanged" }))
+      .add(n.selectableGroup([
+        { value: "cut", title: "Cut", subtitle: "Trim" },
+        { value: "color", title: "Color", subtitle: "Gloss" },
+      ], "cut", { mode: "single", action: "serviceChanged" }))
       .toJSON();
 
-    render(<DslPageRenderer page={dsl} context={{ actions: { serviceChanged: onServiceChanged } }} />);
+    const { container } = render(<DslPageRenderer page={dsl} context={{ actions: { serviceChanged: onServiceChanged } }} />);
 
-    fireEvent.click(screen.getByRole("button", { name: /Color/ }));
+    // SelectableGroup renders divs with onClick, not buttons — click the second item
+    const items = container.querySelectorAll("[data-dsl-kind='selectableGroup'] > div");
+    expect(items.length).toBe(2);
+    fireEvent.click(items[1]);
 
     expect(onServiceChanged).toHaveBeenCalledWith(expect.objectContaining({
       action: "serviceChanged",
       value: "color",
-      node: expect.objectContaining({ kind: "serviceOptionGroup" }),
+      node: expect.objectContaining({ kind: "selectableGroup" }),
     }));
   });
 
-  it("routes PhotoTile upload/remove actions independently", () => {
+  it("routes uploadTile actions", () => {
     const onUpload = vi.fn();
-    const onRemove = vi.fn();
     const dsl = page("photos", "Photos")
       .bare()
-      .add(
-        n.photoTile("front", { value: "front", onUpload: "photoUploaded" }),
-        n.photoTile("side", { value: "side", filled: true, onRemove: "photoRemoved" }),
-      )
+      .add(n.uploadTile("front", { value: "front", actions: { upload: { id: "act_upload", event: "upload" } } }))
       .toJSON();
 
-    render(<DslPageRenderer page={dsl} context={{ actions: { photoUploaded: onUpload, photoRemoved: onRemove } }} />);
+    const { container } = render(<DslPageRenderer page={dsl} context={{ backendDispatch: onUpload }} />);
 
-    fireEvent.click(screen.getByRole("button", { name: "front" }));
-    fireEvent.click(screen.getByRole("button", { name: "✓ side" }));
+    const tile = container.querySelector("[data-dsl-kind='uploadTile']");
+    expect(tile).toBeTruthy();
+    fireEvent.click(tile!);
 
-    expect(onUpload).toHaveBeenCalledWith(expect.objectContaining({ action: "photoUploaded", value: "front" }));
-    expect(onRemove).toHaveBeenCalledWith(expect.objectContaining({ action: "photoRemoved", value: "side" }));
+    expect(onUpload).toHaveBeenCalledWith(expect.objectContaining({
+      actionId: "act_upload",
+      event: "upload",
+    }));
   });
 });

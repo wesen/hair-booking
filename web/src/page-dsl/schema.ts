@@ -5,34 +5,35 @@ export type JsonValue = JsonPrimitive | JsonValue[] | { [key: string]: JsonValue
 export type JsonObject = { [key: string]: JsonValue };
 
 export type DslNodeKind =
+  // Layout
   | "text"
   | "spacer"
   | "stack"
   | "grid"
+  // Display
   | "eyebrow"
   | "button"
-  | "chip"
-  | "chipGroup"
   | "note"
   | "card"
   | "rule"
   | "progress"
-  | "ratingBar"
-  | "segmented"
-  | "serviceOption"
-  | "serviceOptionGroup"
-  | "budgetOption"
-  | "budgetOptionGroup"
-  | "timeSlot"
-  | "timeSlotGroup"
-  | "colorLevelBar"
-  | "lengthSilhouette"
-  | "photoTile"
-  | "summaryRow"
-  | "stylistCard"
   | "masthead"
+  // Selection
+  | "selectable"
+  | "selectableGroup"
+  | "chip"
+  | "chipGroup"
+  | "segmented"
+  // Input
+  | "scale"
+  | "uploadTile"
+  // Data display
+  | "kvRow"
+  | "stat"
+  | "personCard"
+  // Date/time
   | "dayCell"
-  | "dayPickerGrid";
+  | "calendarGrid";
 
 export interface DslNode<P extends JsonObject = JsonObject> {
   kind: DslNodeKind;

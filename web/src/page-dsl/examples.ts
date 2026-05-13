@@ -3,118 +3,124 @@ import type { DslPage } from "./schema";
 import { color } from "../fringe-ui/tokens";
 
 export const serviceDsl = page("dsl-service", "Service DSL")
-  .describe("Service selection screen built entirely from JSON DSL nodes.")
-  .intake({ step: 1, total: 9, eyebrow: "Chapter I · The Ask", title: "What brings you in?", onNext: "next", onBack: "back", onSkip: "skip" })
+  .describe("Service selection using selectableGroup primitive.")
+  .intake({ step: 1, total: 7, eyebrow: "Chapter I · The Ask", title: "What brings you in?" })
   .add(
     n.text("Pick one to start — you can add more later.", { variant: "editorial", style: { marginBottom: 18 } }),
-    n.serviceOption("Cut", "Trim · restyle · bangs", { rate: "$80+" }),
-    n.serviceOption("Color", "Single process · gloss · root touch-up", { rate: "$120+" }),
-    n.serviceOption("Highlights", "Partial · full · balayage", { rate: "$180+", selected: true }),
-    n.serviceOption("Extensions", "Tape-in · hand-tied · consultation first", { rate: "$400+" }),
-    n.serviceOption("Treatment", "Olaplex · bond-repair · scalp", { rate: "$60+" }),
+    n.segmented([
+      { value: "cut", label: "Cut" },
+      { value: "color", label: "Color" },
+      { value: "extensions", label: "Extensions" },
+    ], "color", { style: { marginBottom: 16 } }),
+    n.selectableGroup([
+      { value: "cut", title: "Cut", subtitle: "Trim · restyle · bangs", badge: "$80+" },
+      { value: "color", title: "Color", subtitle: "Single process · gloss · root touch-up", badge: "$120+" },
+      { value: "highlights", title: "Highlights", subtitle: "Partial · full · balayage", badge: "$180+" },
+      { value: "extensions", title: "Extensions", subtitle: "Tape-in · hand-tied · consultation first", badge: "$400+" },
+      { value: "treatment", title: "Treatment", subtitle: "Olaplex · bond-repair · scalp", badge: "$60+" },
+    ], "highlights", { mode: "single" }),
   )
   .toJSON();
 
 export const colorDsl = page("dsl-color", "Color DSL")
-  .intake({ step: 2, total: 9, eyebrow: "Chapter II · The Tone", title: "Current level", onNext: "next", onBack: "back", onSkip: "skip" })
+  .intake({ step: 2, total: 7, eyebrow: "Chapter II · The Tone", title: "Tune the plan" })
   .add(
     n.text("Slide to your starting point. 1 is black, 10 is platinum.", { variant: "editorial", style: { marginBottom: 20 } }),
-    n.colorLevelBar(7, { style: { marginBottom: 18 } }),
+    n.scale(7, { max: 10, label: "Current level", variant: "swatches", style: { marginBottom: 18 } }),
     n.note("You're at Level 7 — dark blonde with warm undertones.", { tone: "info" }),
     n.spacer(20),
     n.eyebrow("Target (optional)", { style: { marginBottom: 10 } }),
-    n.stack({ gap: 8, style: { flexDirection: "row", flexWrap: "wrap" } },
-      n.chip("Stay the same"),
-      n.chip("Go 1 shade lighter", { selected: true }),
-      n.chip("Go 2 shades lighter"),
-      n.chip("Darker"),
-      n.chip("Dimensional"),
-    ),
+    n.chipGroup([
+      { value: "same", label: "Stay the same" },
+      { value: "lighter1", label: "Go 1 shade lighter" },
+      { value: "lighter2", label: "Go 2 shades lighter" },
+      { value: "darker", label: "Darker" },
+      { value: "dimensional", label: "Dimensional" },
+    ], ["lighter1"], { selectionMode: "single" }),
   )
   .toJSON();
 
 export const lengthDsl = page("dsl-length", "Length DSL")
-  .intake({ step: 3, total: 9, eyebrow: "Chapter III · The Length", title: "How long is it now?", onNext: "next", onBack: "back", onSkip: "skip" })
+  .intake({ step: 3, total: 7, eyebrow: "Chapter III · The Length", title: "How long is it now?" })
   .add(
     n.text("Pick the silhouette that matches best today.", { variant: "editorial", style: { marginBottom: 20 } }),
-    n.grid(4, { gap: 8, style: { marginBottom: 24 } },
-      n.lengthSilhouette("Pixie"),
-      n.lengthSilhouette("Bob"),
-      n.lengthSilhouette("Shoulder"),
-      n.lengthSilhouette("Mid-back", { selected: true }),
-    ),
-    n.eyebrow("Extensions", { style: { marginBottom: 12 } }),
-    n.segmented([
-      { value: "none", label: "None" },
-      { value: "taped", label: "Tape-in" },
-      { value: "tied", label: "Hand-tied" },
-    ], "none"),
+    n.selectableGroup([
+      { value: "pixie", title: "Pixie" },
+      { value: "bob", title: "Bob" },
+      { value: "shoulder", title: "Shoulder" },
+      { value: "mid-back", title: "Mid-back" },
+    ], "mid-back", { mode: "single", columns: 4 }),
+    n.spacer(20),
+    n.eyebrow("Damage level", { style: { marginBottom: 12 } }),
+    n.scale(2, { max: 5, label: "Damage", interactive: true }),
   )
   .toJSON();
 
 export const photosDsl = page("dsl-photos", "Photos DSL")
-  .intake({ step: 4, total: 9, eyebrow: "Chapter IV · The Reference", title: "Three angles, please.", titleSize: 44, onNext: "next", onBack: "back", onSkip: "skip" })
+  .intake({ step: 4, total: 7, eyebrow: "Chapter IV · The Reference", title: "Three angles, please.", titleSize: 44 })
   .add(
     n.text("Front, side, and back in natural light. Helps more than you'd think.", { variant: "editorial", style: { fontSize: 16, marginBottom: 20 } }),
     n.eyebrow("Current hair — 3 angles", { style: { marginBottom: 10 } }),
-    n.grid(3, { gap: 8, style: { marginBottom: 20 } },
-      n.photoTile("Front", { filled: true }),
-      n.photoTile("Side", { filled: true }),
-      n.photoTile("Back"),
+    n.grid(3, { gap: 10 },
+      n.uploadTile("Front", { filled: true, value: "front" }),
+      n.uploadTile("Side", { filled: true, value: "side" }),
+      n.uploadTile("Back", { value: "back" }),
     ),
-    n.eyebrow("Inspiration (optional · up to 4)", { style: { marginBottom: 10 } }),
-    n.grid(4, { gap: 6 },
-      n.card({ style: { aspectRatio: "1 / 1", background: color.peach, display: "flex", alignItems: "center", justifyContent: "center" } }, n.text("✓", { variant: "h3", style: { color: color.plum } })),
-      n.card({ style: { aspectRatio: "1 / 1", background: color.peach, display: "flex", alignItems: "center", justifyContent: "center" } }, n.text("✓", { variant: "h3", style: { color: color.plum } })),
-      n.card({ style: { aspectRatio: "1 / 1", background: color.cream, display: "flex", alignItems: "center", justifyContent: "center" } }, n.text("+", { variant: "h3", style: { color: color.soft } })),
-      n.card({ style: { aspectRatio: "1 / 1", background: color.cream, display: "flex", alignItems: "center", justifyContent: "center" } }, n.text("+", { variant: "h3", style: { color: color.soft } })),
-    ),
+    n.spacer(16),
+    n.note("2 of 3 photo angles selected", { tone: "info" }),
   )
   .toJSON();
 
 export const budgetDsl = page("dsl-budget", "Budget DSL")
-  .intake({ step: 6, total: 9, eyebrow: "Chapter VI · The Budget", title: "Comfortable range?", titleSize: 36, onNext: "next", onBack: "back", onSkip: "skip" })
+  .intake({ step: 5, total: 7, eyebrow: "Chapter V · The Budget", title: "Comfortable range?", titleSize: 36 })
   .add(
     n.text("Helps us match you to the right stylist. Tips not included.", { variant: "editorial", style: { marginBottom: 20 } }),
-    n.budgetOption("Under $150", "Cut or single-service touch-up"),
-    n.budgetOption("$150 – $250", "Partial color + cut", { selected: true }),
-    n.budgetOption("$250 – $400", "Full color · highlights + cut"),
-    n.budgetOption("$400+", "Extensions · correction · balayage"),
+    n.selectableGroup([
+      { value: "under-150", title: "Under $150", subtitle: "Cut or single-service touch-up" },
+      { value: "150-250", title: "$150 – $250", subtitle: "Partial color + cut" },
+      { value: "250-400", title: "$250 – $400", subtitle: "Full color · highlights + cut" },
+      { value: "400-plus", title: "$400+", subtitle: "Extensions · correction · balayage" },
+    ], "150-250", { mode: "single", columns: 2 }),
   )
   .toJSON();
 
 export const estimateDsl = page("dsl-estimate", "Estimate DSL")
-  .intake({ step: 7, total: 9, eyebrow: "Chapter VII · The Quote", title: "Your estimate", onNext: "next", onBack: "back", onSkip: "skip" })
+  .intake({ step: 6, total: 7, eyebrow: "Chapter VI · The Quote", title: "Your estimate" })
   .add(
-    n.masthead("$245", { eyebrow: "ESTIMATED TOTAL", right: "3h 15m", compact: true }),
+    n.stat("$245", { label: "ESTIMATED TOTAL", subtitle: "3 hours, 15 minutes" }),
     n.spacer(16),
-    n.summaryRow("Service", "Partial highlights + cut", { onEdit: "editService" }),
-    n.summaryRow("Color level", "Level 7 → Level 8", { onEdit: "editColor" }),
-    n.summaryRow("Length", "Mid-back · no extensions", { onEdit: "editLength" }),
-    n.summaryRow("Add-ons", "Olaplex bond treatment · $45"),
+    n.card({ accent: "plum" },
+      n.kvRow("Service", "Partial highlights + cut", { editable: true }),
+      n.kvRow("Color level", "Level 7 → Level 8", { editable: true }),
+      n.kvRow("Length", "Mid-back · no extensions", { editable: true }),
+      n.kvRow("Add-ons", "Olaplex bond treatment · $45"),
+    ),
     n.spacer(20),
     n.note("Estimate only. Final cost depends on in-salon assessment of current color and condition.", { tone: "warn" }),
   )
   .toJSON();
 
 export const bookingDsl = page("dsl-booking", "Booking DSL")
-  .intake({ step: 8, total: 9, eyebrow: "Chapter VIII · The Date", title: "When suits you?", onNext: "next", onBack: "back", onSkip: "skip" })
+  .intake({ step: 7, total: 7, eyebrow: "Chapter VII · The Date", title: "When suits you?" })
   .add(
-    n.stylistCard("Nadia Rivera", "Senior colorist · Lived-in blonde", { rate: "$180+", available: "Available Tue 2:00p" }),
+    n.personCard("Nadia Rivera", {
+      role: "Senior colorist · Lived-in blonde",
+      badge: "$180+",
+    }),
     n.spacer(20),
-    n.eyebrow("June 2025", { style: { marginBottom: 10 } }),
-    n.grid(7, { gap: 4, style: { marginBottom: 20 } },
-      ...["M", "T", "W", "T", "F", "S", "S"].map(d => n.text(d, { style: { textAlign: "center", color: color.soft, fontFamily: '"JetBrains Mono", monospace', fontSize: 10 } })),
-      ...Array.from({ length: 2 }).map(() => n.spacer(1)),
-      ...Array.from({ length: 28 }).map((_, i) => n.dayCell(i + 1, { selected: i + 1 === 18, disabled: i + 1 < 12, dot: [14, 17, 18, 19, 23].includes(i + 1) })),
-    ),
-    n.eyebrow("Tue, Jun 18 — available times", { style: { marginBottom: 10 } }),
-    n.grid(4, { gap: 6 },
-      n.timeSlot("10:30a"),
-      n.timeSlot("12:00p"),
-      n.timeSlot("2:00p", { selected: true }),
-      n.timeSlot("4:30p"),
-    ),
+    n.calendarGrid(2026, 6, Array.from({ length: 30 }, (_, i) => ({
+      day: i + 1, date: `2026-06-${String(i + 1).padStart(2, "0")}`,
+      selected: i + 1 === 18,
+      disabled: i + 1 < 12,
+      dot: [14, 17, 18, 19, 23].includes(i + 1),
+    })), "2026-06-18", { columns: 7 }),
+    n.spacer(16),
+    n.selectableGroup([
+      { value: "10:30", title: "10:30a" },
+      { value: "12:00", title: "12:00p" },
+      { value: "14:00", title: "2:00p" },
+      { value: "16:30", title: "4:30p" },
+    ], "14:00", { mode: "single", columns: 4 }),
   )
   .toJSON();
 
@@ -122,13 +128,14 @@ export const confirmDsl = page("dsl-confirm", "Confirm DSL")
   .bare()
   .add(
     n.stack({ gap: 14, style: { padding: 30 } },
+      n.stat("#4281", { label: "CONFIRMATION" }),
       n.masthead("See you Tuesday.", { eyebrow: "You're booked.", right: "CONF #4281", accent: color.peach }),
       n.text("A confirmation and prep notes are on their way.", { variant: "editorial" }),
-      n.summaryRow("When", "TUE, JUN 18 · 2:00P"),
-      n.summaryRow("With", "Nadia Rivera"),
-      n.summaryRow("Service", "Partial highlights + cut"),
-      n.summaryRow("Estimate", "$245 · 3h 15m"),
-      n.summaryRow("Deposit", "$50 held"),
+      n.kvRow("When", "TUE, JUN 18 · 2:00P"),
+      n.kvRow("With", "Nadia Rivera"),
+      n.kvRow("Service", "Partial highlights + cut"),
+      n.kvRow("Estimate", "$245 · 3h 15m"),
+      n.kvRow("Deposit", "$50 held"),
       n.note("Deposit received. Cancellations inside 24h forfeit deposit.", { tone: "success" }),
     ),
   )

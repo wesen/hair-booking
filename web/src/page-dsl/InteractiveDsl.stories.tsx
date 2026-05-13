@@ -6,14 +6,14 @@ import type { DslActionPayload, DslPage } from "./schema";
 import { color, font } from "../fringe-ui/tokens";
 
 const serviceOptions = [
-  { value: "cut", name: "Cut", description: "Trim · restyle · bangs", rate: "$80+" },
-  { value: "highlights", name: "Highlights", description: "Partial · full · balayage", rate: "$180+" },
-  { value: "gloss", name: "Gloss refresh", description: "Tone · shine · maintenance", rate: "$120+" },
+  { value: "cut", title: "Cut", subtitle: "Trim · restyle · bangs", badge: "$80+" },
+  { value: "highlights", title: "Highlights", subtitle: "Partial · full · balayage", badge: "$180+" },
+  { value: "gloss", title: "Gloss refresh", subtitle: "Tone · shine · maintenance", badge: "$120+" },
 ];
 
 const budgetOptions = [
-  { value: "150-250", label: "$150 – $250", description: "Partial color" },
-  { value: "250-400", label: "$250 – $400", description: "Full color" },
+  { value: "150-250", title: "$150 – $250", subtitle: "Partial color" },
+  { value: "250-400", title: "$250 – $400", subtitle: "Full color" },
 ];
 
 const toneOptions = [
@@ -24,17 +24,7 @@ const toneOptions = [
   { value: "low-maintenance", label: "Low upkeep" },
 ];
 
-const timeOptions = ["10:30a", "12:00p", "2:00p", "4:30p"].map((slot) => ({ value: slot, label: slot }));
-const dayOptions = Array.from({ length: 21 }).map((_, i) => {
-  const disabled = i < 10;
-  return {
-    value: String(i + 1),
-    day: i + 1,
-    disabled,
-    ...(disabled ? { disabledReason: "too soon" } : {}),
-    dot: [14, 17, 18].includes(i + 1),
-  };
-});
+const timeOptions = ["10:30a", "12:00p", "2:00p", "4:30p"].map((slot) => ({ value: slot, title: slot }));
 
 function buildInteractiveIntakeDsl(state: {
   category: string;
@@ -44,7 +34,7 @@ function buildInteractiveIntakeDsl(state: {
   damage: number;
 }): DslPage {
   return page("interactive-dsl-intake", "Interactive DSL intake")
-    .intake({ step: 2, total: 9, eyebrow: "DSL · Interactive", title: "Build the visit", onNext: "next", onBack: "back", onSkip: "skip" })
+    .intake({ step: 2, total: 7, eyebrow: "DSL · Interactive", title: "Build the visit" })
     .add(
       n.text("This page is JSON DSL. Every control below sends callback payloads back through the renderer context.", { variant: "editorial", style: { marginBottom: 16 } }),
       n.segmented([
@@ -52,32 +42,35 @@ function buildInteractiveIntakeDsl(state: {
         { value: "color", label: "Color" },
         { value: "extensions", label: "Extensions" },
       ], state.category, { action: "categoryChanged", style: { marginBottom: 16 } }),
-      n.serviceOptionGroup(serviceOptions, state.service, { action: "serviceChanged" }),
-      n.budgetOptionGroup(budgetOptions, state.budget, { action: "budgetChanged", columns: 2, style: { marginTop: 12 } }),
+      n.selectableGroup(serviceOptions, state.service, { mode: "single", action: "serviceChanged" }),
+      n.selectableGroup(budgetOptions, state.budget, { mode: "single", columns: 2, style: { marginTop: 12 } }),
       n.chipGroup(toneOptions, state.tones, {
         action: "tonesChanged",
         label: "Tone family",
         helperText: "Multi-select chips rendered by the DSL.",
         style: { marginTop: 16 },
       }),
-      n.ratingBar(state.damage, { label: "Damage", interactive: true, action: "damageChanged", style: { marginTop: 14 } }),
+      n.scale(state.damage, { max: 5, label: "Damage", interactive: true, style: { marginTop: 14 } }),
     )
     .toJSON();
 }
 
 function buildInteractiveBookingDsl(state: { day: string; time: string; photos: string[] }): DslPage {
+  const dayOptions = Array.from({ length: 21 }, (_, i) => ({
+    day: i + 1, date: `2026-06-${String(i + 1).padStart(2, "0")}`,
+    disabled: i < 10,
+    dot: [14, 17, 18].includes(i + 1),
+  }));
   return page("interactive-dsl-booking", "Interactive DSL booking")
-    .intake({ step: 8, total: 9, eyebrow: "DSL · Booking", title: "Pick a slot", onNext: "next", onBack: "back", onSkip: "skip" })
+    .intake({ step: 6, total: 7, eyebrow: "DSL · Booking", title: "Pick a slot" })
     .add(
-      n.dayPickerGrid(dayOptions, state.day, { action: "dayChanged", style: { marginBottom: 16 } }),
-      n.timeSlotGroup(timeOptions, state.time, { action: "timeChanged", style: { marginBottom: 18 } }),
+      n.calendarGrid(2026, 6, dayOptions, `2026-06-${state.day.padStart(2, "0")}`, { columns: 7, style: { marginBottom: 16 } }),
+      n.selectableGroup(timeOptions, state.time, { mode: "single", columns: 4, style: { marginBottom: 18 } }),
       n.eyebrow("Photos", { style: { marginBottom: 10 } }),
       n.grid(3, { gap: 8 },
-        ...["front", "side", "back"].map((photo) => n.photoTile(photo, {
+        ...["front", "side", "back"].map((photo) => n.uploadTile(photo, {
           value: photo,
           filled: state.photos.includes(photo),
-          onUpload: "photoUploaded",
-          onRemove: "photoRemoved",
         })),
       ),
     )
@@ -141,10 +134,10 @@ export const InteractiveBooking: Story = {
         page={dsl}
         context={{
           actions: {
-            dayChanged: (payload?: DslActionPayload) => setState((current) => ({ ...current, day: String(payload?.value ?? current.day) })),
+            dayChanged: (payload?: DslActionPayload) => setState((current) => ({ ...current, day: String(payload?.value ?? current.day).replace("2026-06-", "") })),
             timeChanged: (payload?: DslActionPayload) => setState((current) => ({ ...current, time: String(payload?.value ?? current.time) })),
-            photoUploaded: (payload?: DslActionPayload) => setState((current) => ({ ...current, photos: Array.from(new Set([...current.photos, String(payload?.value)])) })),
-            photoRemoved: (payload?: DslActionPayload) => setState((current) => ({ ...current, photos: current.photos.filter((photo) => photo !== String(payload?.value)) })),
+            upload: (payload?: DslActionPayload) => setState((current) => ({ ...current, photos: Array.from(new Set([...current.photos, String(payload?.value)])) })),
+            remove: (payload?: DslActionPayload) => setState((current) => ({ ...current, photos: current.photos.filter((p) => p !== String(payload?.value)) })),
             next: () => console.log("next", state),
             back: () => console.log("back"),
             skip: () => console.log("skip"),
