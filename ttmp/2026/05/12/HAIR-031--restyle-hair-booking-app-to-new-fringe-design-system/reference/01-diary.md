@@ -1239,3 +1239,81 @@ These molecules were inline JSX in the prototype. Extracting them into proper Re
 cd web/ && npx tsc --noEmit  # clean
 # View in Storybook: Molecules/ServiceOption, Molecules/BudgetOption, etc.
 ```
+
+---
+
+## Step 17: Page stories + Step 18: Phone frame decorator
+
+Added Storybook stories for all 11 page organisms, then added a phone frame decorator so page stories render inside a visual iPhone container instead of edge-to-edge.
+
+### Prompt Context
+
+**User prompt (verbatim):** "I want stories for each page. Which pages do you have?"
+**User prompt (verbatim):** "make a separate top level category for pages."
+**User prompt (verbatim):** "also, looks like we need some padding to make this properly for the phone? It has no boundary whatsoever now."
+
+**Assistant interpretation:** 1) Create stories for all 11 page organisms. 2) Move them to a top-level "Pages/" category in Storybook sidebar. 3) Add a phone frame decorator so pages render inside a realistic iPhone container with rounded corners, dark bezel, and Dynamic Island notch.
+
+**Inferred user intent:** The Storybook should present each intake page exactly as it would look on a real phone — with clear visual boundaries so you can evaluate the layout.
+
+**Commit (code):** 7efe171 — "HAIR-031 Step 17: Add Storybook stories for all 11 page organisms"
+**Commit (code):** ff4abad — "HAIR-031: Move page stories to top-level Pages/ category in Storybook"
+**Commit (code):** 9e7bde0 — "HAIR-031 Step 18: Phone frame decorator for page stories"
+
+### What I did
+
+1. Created 11 story files (one per page organism). Had to match actual prop types — several stories had wrong prop names that `tsc` caught:
+   - BookingPage: stylist needs `available` field
+   - CareGuidePage: sections use `emoji` + `heading`, not `title`
+   - ConfirmPage: uses `estimate` not `total`, needs `duration` + `deposit`
+   - EstimatePage: no `duration` prop
+   - WelcomePage: no `onSelectCut` prop
+2. 3 pages (ColorPage, ExtensionsPage, BookingPage) use RTK Query hooks — their stories get a Redux Provider decorator with `createRuntimeStore()`
+3. Moved all page story titles from `Organisms/XPage` to `Pages/XPage` — top-level sidebar category
+4. Added `phoneFrame` global decorator in `.storybook/preview.tsx`:
+   - Checks `parameters.phone` — only wraps stories tagged `{ phone: true }`
+   - Renders 390×844 container with `borderRadius: 48`, `border: 8px solid #1a1a1a`, `boxShadow`, Dynamic Island notch
+   - Centered on cream background with 24px padding
+5. Tagged all 11 page stories with `parameters: { phone: true }`
+6. Renamed `preview.ts` → `preview.tsx` (contains JSX)
+
+### Why
+
+Pages without a phone frame looked edge-to-edge with no visual boundary — impossible to judge spacing, safe areas, and overall layout. The phone frame gives immediate visual context: "this is how it looks on device."
+
+### What worked
+
+- The `parameters.phone` opt-in pattern keeps the decorator clean — atoms and molecules render without the frame, only pages get it
+- The phone frame matches the FS design system's `PhoneFrame` component exactly (same dimensions, border radius, shadow)
+
+### What didn't work
+
+- `preview.ts` with JSX caused esbuild to fail with "Expected '>' but found '/'". Fix: rename to `.tsx`. Obvious in hindsight but caught me off guard since the old preview.ts had no JSX.
+
+### What I learned
+
+- Storybook decorators can read `parameters` from the story meta, enabling conditional wrapping
+- The `.storybook/preview` file must be `.tsx` if it contains any JSX — even if it's just a decorator
+
+### What was tricky to build
+
+- Getting the prop types right for each page story required reading each page's interface. Several pages had non-obvious required props (BookingPage's `stylist.available`, CareGuidePage's `emoji`+`heading`). TypeScript caught all of these.
+
+### What warrants a second pair of eyes
+
+- View a few page stories in Storybook and verify the phone frame looks right
+- Check that atoms/molecules still render without the phone frame
+
+### What should be done in the future
+
+- The phone frame could be parameterized (different phone models, orientations)
+- Consider adding a "no frame" story variant for each page
+
+### Code review instructions
+
+```bash
+# View in Storybook
+open http://localhost:6006
+# Navigate to Pages/ServicePage — should see iPhone frame around the content
+# Navigate to Atoms/Button — should NOT have phone frame
+```

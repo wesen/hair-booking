@@ -34,13 +34,13 @@
 ### Phase 4: Organisms + IntakeShell
 - [x] Implement IntakeShell organism (mobile screen wrapper)
 - [x] Implement 9 mobile page organisms (Service through Confirm)
-- [ ] Add data-page + data-section selectors
-- [ ] Add page-level Storybook stories
+- [x] Add data-page + data-section selectors
+- [x] Add page-level Storybook stories
 
 ### Phase 5: Desktop variants
 - [x] Implement DesktopShell + StepRail
-- [ ] Implement 3 desktop page organisms (Estimate/Booking/Confirm)
-- [ ] Add desktop Storybook stories
+- [x] Implement 3 desktop page organisms (Estimate/Booking/Confirm)
+- [x] Add desktop Storybook stories
 
 ### Phase 6: Visual tuning with css-visual-diff
 - [ ] Run prototype baseline catalog
