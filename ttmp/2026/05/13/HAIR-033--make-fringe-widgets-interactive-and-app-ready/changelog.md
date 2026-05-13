@@ -272,7 +272,7 @@ Step 22: Stabilized the live DSL route with node.meta.id React keys (commit 258f
 
 ## 2026-05-13
 
-Step 23: Added protobuf transport-contract spike (commit 3d94fce) for DSL Page/Node/Event/Result using Buf, generated Go and TypeScript bindings, added Go protojson and TypeScript fromJson tests, and validated Go/web builds.
+Step 23: Added protobuf transport-contract spike (commit 76a347c) for DSL Page/Node/Event/Result using Buf, generated Go and TypeScript bindings, added Go protojson and TypeScript fromJson tests, and validated Go/web builds.
 
 ### Related Files
 

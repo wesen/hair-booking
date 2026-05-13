@@ -2173,7 +2173,7 @@ The spike uses `google.protobuf.Struct` for dynamic node and shell props, and `g
 
 **Inferred user intent:** Test whether protobuf can become the shared source of truth for backend/frontend DSL transport definitions.
 
-**Commit (code):** 3d94fce — "HAIR-033 Step 23: Add DSL protobuf contract spike"
+**Commit (code):** 76a347c — "HAIR-033 Step 23: Add DSL protobuf contract spike"
 
 ### What I did
 
