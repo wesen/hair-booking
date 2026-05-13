@@ -47,7 +47,7 @@ Step 3: Implemented server-side host module foundation (commit 8f5d0d2): DSL SQL
 
 ## 2026-05-13
 
-Step 4: Added server-side host/user (commit a677bbc) and host/images Goja modules, user snapshots, upload intents, session-scoped upload endpoint, BlobStore persistence, SQLite upload metadata, flow photo upload intent props, and Go/server tests. Validated targeted and full Go tests.
+Step 4: Added server-side host/user (commit 7b94c9c) and host/images Goja modules, user snapshots, upload intents, session-scoped upload endpoint, BlobStore persistence, SQLite upload metadata, flow photo upload intent props, and Go/server tests. Validated targeted and full Go tests.
 
 ### Related Files
 

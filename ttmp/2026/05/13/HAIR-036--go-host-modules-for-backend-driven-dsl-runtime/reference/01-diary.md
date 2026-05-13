@@ -331,7 +331,7 @@ This slice intentionally did not touch frontend `web/` files. The backend flow n
 
 **Inferred user intent:** Continue HAIR-036 by giving JavaScript access to identity and image upload primitives while keeping low-level host responsibilities in Go.
 
-**Commit (code):** a677bbc — "HAIR-036 Step 4: Add user and image host modules"
+**Commit (code):** 7b94c9c — "HAIR-036 Step 4: Add user and image host modules"
 
 ### What I did
 
