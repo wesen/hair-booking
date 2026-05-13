@@ -2429,7 +2429,7 @@ This gives the live DSL route a more realistic path to click through. It is stil
 
 **Inferred user intent:** Move beyond the two-step prototype so the live Goja DSL app can be reviewed as a fuller intake flow.
 
-**Commit (code):** 5fe8d96 — "HAIR-033 Step 25: Expand Goja intake flow"
+**Commit (code):** 48cc750 — "HAIR-033 Step 25: Expand Goja intake flow"
 
 ### What I did
 

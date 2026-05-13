@@ -312,7 +312,7 @@ Step 24: Added devctl setup (commit 3b3fd4b) for the hair-booking live DSL stack
 
 ## 2026-05-13
 
-Step 25: Expanded embedded Goja intake flow (commit 5fe8d96) to service/color/photos/budget/estimate/booking/confirm, added stable page/node ids and runtime tests for navigation plus representative updates.
+Step 25: Expanded embedded Goja intake flow (commit 48cc750) to service/color/photos/budget/estimate/booking/confirm, added stable page/node ids and runtime tests for navigation plus representative updates.
 
 ### Related Files
 
