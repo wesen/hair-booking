@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { HistoryPage } from "./HistoryPage";
 
 const meta: Meta<typeof HistoryPage> = {
-  title: "Organisms/HistoryPage",
+  title: "Pages/HistoryPage",
   component: HistoryPage,
   parameters: { layout: "fullscreen" },
 };

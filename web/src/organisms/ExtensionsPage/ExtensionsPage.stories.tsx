@@ -6,7 +6,7 @@ import { createRuntimeStore } from "../../store";
 const store = createRuntimeStore();
 
 const meta: Meta<typeof ExtensionsPage> = {
-  title: "Organisms/ExtensionsPage",
+  title: "Pages/ExtensionsPage",
   component: ExtensionsPage,
   parameters: { layout: "fullscreen" },
   decorators: [(Story) => <Provider store={store}><Story/></Provider>],

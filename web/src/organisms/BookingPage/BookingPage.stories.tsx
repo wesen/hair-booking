@@ -6,7 +6,7 @@ import { createRuntimeStore } from "../../store";
 const store = createRuntimeStore();
 
 const meta: Meta<typeof BookingPage> = {
-  title: "Organisms/BookingPage",
+  title: "Pages/BookingPage",
   component: BookingPage,
   parameters: { layout: "fullscreen" },
   decorators: [(Story) => <Provider store={store}><Story/></Provider>],

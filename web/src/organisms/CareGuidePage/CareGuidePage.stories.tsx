@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { CareGuidePage } from "./CareGuidePage";
 
 const meta: Meta<typeof CareGuidePage> = {
-  title: "Organisms/CareGuidePage",
+  title: "Pages/CareGuidePage",
   component: CareGuidePage,
   parameters: { layout: "fullscreen" },
 };

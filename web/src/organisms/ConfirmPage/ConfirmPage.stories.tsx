@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { ConfirmPage } from "./ConfirmPage";
 
 const meta: Meta<typeof ConfirmPage> = {
-  title: "Organisms/ConfirmPage",
+  title: "Pages/ConfirmPage",
   component: ConfirmPage,
   parameters: { layout: "fullscreen" },
 };

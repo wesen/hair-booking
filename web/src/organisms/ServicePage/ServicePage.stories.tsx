@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { ServicePage } from "./ServicePage";
 
 const meta: Meta<typeof ServicePage> = {
-  title: "Organisms/ServicePage",
+  title: "Pages/ServicePage",
   component: ServicePage,
   parameters: { layout: "fullscreen" },
 };

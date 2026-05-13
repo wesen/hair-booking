@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { WelcomePage } from "./WelcomePage";
 
 const meta: Meta<typeof WelcomePage> = {
-  title: "Organisms/WelcomePage",
+  title: "Pages/WelcomePage",
   component: WelcomePage,
   parameters: { layout: "fullscreen" },
 };

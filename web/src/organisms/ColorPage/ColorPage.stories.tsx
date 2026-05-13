@@ -6,7 +6,7 @@ import { createRuntimeStore } from "../../store";
 const store = createRuntimeStore();
 
 const meta: Meta<typeof ColorPage> = {
-  title: "Organisms/ColorPage",
+  title: "Pages/ColorPage",
   component: ColorPage,
   parameters: { layout: "fullscreen" },
   decorators: [(Story) => <Provider store={store}><Story/></Provider>],
