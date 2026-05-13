@@ -126,3 +126,71 @@ Uploaded the initial HAIR-036 guide bundle to reMarkable:
 ```text
 /ai/2026/05/13/HAIR-036/HAIR_036_Go_Host_Modules_DB_Images_User_Guide.pdf
 ```
+
+---
+
+## Step 2: Expand server-side implementation phases
+
+Expanded the HAIR-036 task list into server-side implementation phases for the Go host module work. The new task breakdown deliberately avoids frontend implementation work because desktop/UI changes are happening separately in `web/` and related ticket docs.
+
+The phases now cover CLI flag plumbing, SQLite schema provisioning, runtime host configuration, module registry refactoring, go-go-goja database module registration, the `host/user` module, image upload intent plumbing, the server upload endpoint, backend flow integration, validation, and documentation handoff.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Go ahead, add tasks / phases to implement server side work, we are currently working on the UI separately to add desktop side UI, so don't get confused by things changing in web/ ttmp/, it's our colleague"
+
+**Assistant interpretation:** Update HAIR-036 planning with detailed server-side implementation phases only, and avoid touching concurrent frontend/desktop work or unrelated ticket directories.
+
+**Inferred user intent:** Prepare the backend host-module implementation plan while respecting parallel UI work by another contributor.
+
+**Commit (code):** N/A at diary-write time — task-only planning change.
+
+### What I did
+
+- Checked `git status` and saw concurrent colleague changes in `web/` plus an unrelated HAIR-035 ticket directory.
+- Rewrote `HAIR-036/tasks.md` into detailed server-side phases.
+- Explicitly added a flow-integration task that says not to modify `web/` in this phase.
+- Kept changes limited to HAIR-036 ticket docs.
+
+### Why
+
+The original HAIR-036 tasks were intentionally high-level. Before implementation, the backend work needs a more concrete phase breakdown so it can be executed in focused commits without colliding with parallel frontend changes.
+
+### What worked
+
+- The tasks now separate backend work from frontend upload UI work.
+- The task list includes validation and smoke checks for DB provisioning, `require("db")`, user context, image upload intents, upload endpoint behavior, and SQLite row/file verification.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- There are active uncommitted colleague changes in `web/` and an unrelated HAIR-035 ticket directory. These should remain untouched by HAIR-036 server-side implementation unless explicitly requested.
+
+### What was tricky to build
+
+- The task plan needed to include enough implementation detail to guide coding while keeping frontend/UI work out of scope. The image host module requires server-side upload intent and upload endpoint tasks, but frontend `photoTile` UI wiring is explicitly deferred/owned separately.
+
+### What warrants a second pair of eyes
+
+- Whether to use `go-go-goja/engine.NewBuilder` immediately or introduce a transitional module registry first.
+- Whether upload endpoint error responses should be protobuf `DslError` or endpoint-specific JSON due to multipart context.
+
+### What should be done in the future
+
+- Implement Phase 2 first: CLI flags and settings plumbing.
+- Continue to avoid `web/` changes until the frontend colleague's desktop/UI work is integrated.
+
+### Code review instructions
+
+Review only:
+
+- `ttmp/2026/05/13/HAIR-036--go-host-modules-for-backend-driven-dsl-runtime/tasks.md`
+- this diary section
+
+Do not review unrelated concurrent changes in:
+
+- `web/`
+- `ttmp/2026/05/13/HAIR-035--desktop-component-system-for-fringe-intake-dsl/`

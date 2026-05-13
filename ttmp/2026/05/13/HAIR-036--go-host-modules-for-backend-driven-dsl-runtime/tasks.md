@@ -9,32 +9,129 @@
 - [x] Upload guide bundle to reMarkable.
 - [x] Commit ticket docs.
 
-## Phase 2 — SQLite Host Module Foundation
+## Phase 2 — Server Settings and CLI Plumbing
 
-- [ ] Add `--dsl-sqlite-path` Glazed flag.
-- [ ] Add `--dsl-sqlite-migrate` Glazed flag.
-- [ ] Bubble settings through `ServeSettings -> ServerOptions -> HandlerOptions -> dslgoja.Runtime`.
-- [ ] Add SQLite open/provision package and starting schema.
-- [ ] Register go-go-goja database module as `db` for flow scripts.
-- [ ] Add Goja integration tests for `require("db")`.
+- [ ] Add `--dsl-sqlite-path` Glazed flag to `cmd/hair-booking/cmds/serve.go`.
+- [ ] Add `--dsl-sqlite-migrate` Glazed flag to `cmd/hair-booking/cmds/serve.go`.
+- [ ] Choose defaults that work with devctl/local runs (`./var/fringe-dsl.sqlite`, migrate enabled).
+- [ ] Add matching fields to `ServeSettings`.
+- [ ] Add matching fields to `server.ServerOptions`.
+- [ ] Add matching fields to `server.HandlerOptions`.
+- [ ] Pass settings through `ServeSettings -> ServerOptions -> HandlerOptions` without touching frontend code.
+- [ ] Add log fields for DSL SQLite path and migration status at server startup.
 
-## Phase 3 — User Host Module
+## Phase 3 — SQLite Host DB Package and Schema Provisioning
 
-- [ ] Define `UserSnapshot` and user provider/resolver.
-- [ ] Expose `require("host/user")` with `current()`, `isAuthenticated()`, and `hasRole(role)`.
+- [ ] Add `pkg/dslhost` package.
+- [ ] Add `pkg/dslhost/schema.sql` embedded with `go:embed`.
+- [ ] Add `pkg/dslhost/db.go` with `OpenDB(ctx, DBOptions)` and `Close` ownership rules.
+- [ ] Ensure parent directory creation for file-backed SQLite paths.
+- [ ] Open SQLite using `github.com/mattn/go-sqlite3` driver.
+- [ ] Apply SQLite pragmas (`foreign_keys=ON`, WAL for file DBs where appropriate, busy timeout if useful).
+- [ ] Provision starting schema when `Migrate` is true.
+- [ ] Add tables for `dsl_flow_sessions`, `dsl_intake_drafts`, `dsl_uploads`, and `dsl_audit_events`.
+- [ ] Add indexes for session/user/status lookups.
+- [ ] Add `pkg/dslhost/db_test.go` using `t.TempDir()` and verifying schema exists.
+- [ ] Add a no-migrate test that opens DB without creating schema.
+
+## Phase 4 — Runtime Host Configuration Boundary
+
+- [ ] Add `RuntimeHost` or `HostOptions` type in/near `pkg/dslgoja` for DB, storage, and user/image services.
+- [ ] Add `WithHost(...)` or focused runtime options to `dslgoja.NewRuntime`.
+- [ ] Update `dslFlowStore` construction to receive configured runtime host dependencies.
+- [ ] Make host dependencies optional so existing pure runtime tests can still construct `dslgoja.NewRuntime()`.
+- [ ] Add tests that a runtime without host modules still runs the existing embedded intake flow.
+- [ ] Add tests that a runtime with host modules exposes those modules to JS.
+
+## Phase 5 — Module Registry Refactor for Server-Side Host Modules
+
+- [ ] Refactor `installDSLModule` so module registration is Go-owned instead of hidden inside the current JS IIFE.
+- [ ] Preserve `require("fringe/dsl")` behavior exactly.
+- [ ] Add a small module registry helper that can register JS/native module objects before flow source execution.
+- [ ] Decide whether this slice directly uses `go-go-goja/engine.NewBuilder` or a transitional module registry.
+- [ ] If using the engine builder, follow the pattern from `/home/manuel/code/wesen/2026-05-03--goja-hosting-site/pkg/app/server.go`.
+- [ ] If using a transitional registry, document the later migration path to `engine.NewBuilder`.
+- [ ] Add runtime tests for `require("fringe/dsl")`, unknown module errors, and one host module.
+
+## Phase 6 — Register go-go-goja Database Module
+
+- [ ] Import and wire `github.com/go-go-golems/go-go-goja/modules/database`.
+- [ ] Create a preconfigured database module with `databasemod.WithPreconfiguredDB(...)`.
+- [ ] Disable JS-side DB reconfiguration with `databasemod.WithConfigureEnabled(false)`.
+- [ ] Expose module as `require("db")`.
+- [ ] Decide whether to also expose `require("database")`; default should be only `db` unless compatibility is needed.
+- [ ] Add a Goja integration test that executes JS using `require("db")`.
+- [ ] Test `db.exec(...)` inserting into `dsl_audit_events`.
+- [ ] Test a query path by reading the inserted row back using the actual database module API.
+- [ ] Verify DB module is backed by the configured SQLite file, not an in-memory accidental DB.
+
+## Phase 7 — User Host Module Server-Side Implementation
+
+- [ ] Define `dslgoja.UserSnapshot` with `authenticated`, `id`, `displayName`, `email`, `roles`, `claims`, and `sessionId` JSON fields.
+- [ ] Add server-side user resolution for DSL start requests.
+- [ ] Support dev/anonymous mode without requiring OIDC.
+- [ ] Pass `UserSnapshot` into flow session creation.
+- [ ] Expose `require("host/user")`.
+- [ ] Implement `user.current()`.
+- [ ] Implement `user.isAuthenticated()`.
+- [ ] Implement `user.hasRole(role)`.
+- [ ] Ensure JS receives a snapshot, not a mutable auth/session manager object.
 - [ ] Add runtime tests for anonymous/dev user context.
+- [ ] Add handler-level test proving a started flow receives a stable user snapshot.
 
-## Phase 4 — Image Upload Host Module
+## Phase 8 — Image Host Module Server-Side Foundation
 
-- [ ] Define upload intent model and per-session registry.
-- [ ] Expose `require("host/images")` with `createUploadIntent`, `get`, and `list`.
-- [ ] Add session-scoped upload endpoint.
-- [ ] Save images via existing `hairstorage.BlobStore`.
-- [ ] Record upload metadata in SQLite.
-- [ ] Update frontend `photoTile` rendering to upload and dispatch `uploaded` events.
+- [ ] Define upload intent model: `uploadId`, `sessionId`, `purpose`, `slot`, `accept`, `maxBytes`, `expiresAt`.
+- [ ] Add per-session upload intent registry to `FlowSession` or a server-owned store keyed by session id.
+- [ ] Expose `require("host/images")`.
+- [ ] Implement `images.createUploadIntent(options)`.
+- [ ] Implement `images.get(uploadId)` for completed uploads.
+- [ ] Implement `images.list(filter)` for session-scoped uploaded image metadata.
+- [ ] Enforce purpose allow-list (`intake-photo` initially).
+- [ ] Enforce max byte ceiling and content-type allow-list defaults.
+- [ ] Ensure JS/browser never controls final storage keys.
+- [ ] Add runtime tests for creating upload intents from JS.
 
-## Phase 5 — Flow Integration and Validation
+## Phase 9 — Server Upload Endpoint and Storage Integration
 
-- [ ] Use `db`, `host/user`, and `host/images` in `intake.flow.js`.
-- [ ] Run Go/web validation.
-- [ ] Smoke test live flow with DB file creation and image upload.
+- [ ] Add session-scoped upload endpoint: `POST /api/dsl/flows/{sessionId}/uploads/{uploadId}`.
+- [ ] Verify the session exists and the upload intent belongs to that session.
+- [ ] Reject expired/unknown upload ids with protobuf DSL errors or endpoint-specific JSON errors documented in the guide.
+- [ ] Parse multipart form using the intent field name (`file` by default).
+- [ ] Reuse existing photo validation patterns from `pkg/server/handlers_public.go` where practical.
+- [ ] Save through the existing `hairstorage.BlobStore` abstraction.
+- [ ] Insert uploaded image metadata into `dsl_uploads`.
+- [ ] Return normalized metadata: `uploadId`, `url`, `storageKey`, `contentType`, `sizeBytes`, `slot`.
+- [ ] Add handler tests for success, wrong session, expired intent, invalid content type, and oversized file.
+
+## Phase 10 — Flow-Side Server Integration Only
+
+- [ ] Update `pkg/dslgoja/flows/intake.flow.js` to optionally require `db`, `host/user`, and `host/images`.
+- [ ] Save/read a minimal draft or audit row through `db` from JS.
+- [ ] Add `host/user.current()` data to a debug-safe place in flow logic or tests without exposing sensitive claims in page JSON by default.
+- [ ] Add image upload intents to photo tile props in the backend DSL page JSON.
+- [ ] Do not modify `web/` in this phase; frontend upload UI is being handled separately by a colleague.
+- [ ] Add backend/runtime tests asserting the emitted photo page contains upload intent props.
+
+## Phase 11 — Server-Side Validation and Devctl Smoke
+
+- [ ] Run `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1`.
+- [ ] Run full `go test ./... -count=1`.
+- [ ] Start/restart devctl backend only if web changes are not needed: `devctl restart hair-booking-backend`.
+- [ ] Smoke `POST /api/dsl/flows/fringe.intake.v1/start` and verify protobuf `FlowState` still returns.
+- [ ] Verify configured SQLite file is created.
+- [ ] Inspect SQLite schema with `sqlite3`.
+- [ ] Trigger JS DB write path and verify row exists.
+- [ ] Create an upload intent through the flow and verify it appears in page JSON/API response.
+- [ ] Upload a small test image with `curl` to the server upload endpoint.
+- [ ] Verify upload metadata row exists and stored file URL is usable.
+
+## Phase 12 — Documentation, Changelog, and Handoff
+
+- [ ] Update HAIR-036 diary after each implementation slice.
+- [ ] Update HAIR-036 changelog with commit hashes and related files.
+- [ ] Update the design guide if implementation choices differ from the initial plan.
+- [ ] Document exact JS APIs shipped (`db`, `host/user`, `host/images`).
+- [ ] Document exact CLI flags and defaults.
+- [ ] Add copy/paste smoke commands for DB and upload verification.
+- [ ] Commit server-side work in focused slices.

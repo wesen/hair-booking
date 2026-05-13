@@ -16,3 +16,13 @@ Step 1: Created HAIR-036, inspected goja-hosting-site DB module patterns, wrote 
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-036--go-host-modules-for-backend-driven-dsl-runtime/reference/01-diary.md — Diary and upload record
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-036--go-host-modules-for-backend-driven-dsl-runtime/tasks.md — Phased implementation tasks
 
+
+## 2026-05-13
+
+Step 2: Expanded HAIR-036 into detailed server-side implementation phases for CLI SQLite flags, DB provisioning, runtime host modules, user context, image upload intents, server upload endpoint, validation, and handoff while avoiding parallel web/desktop work.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-036--go-host-modules-for-backend-driven-dsl-runtime/reference/01-diary.md — Diary Step 2
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-036--go-host-modules-for-backend-driven-dsl-runtime/tasks.md — Detailed server-side implementation phases
+
