@@ -34,8 +34,8 @@ describe("interactive DSL renderer", () => {
 
     const { container } = render(<DslPageRenderer page={dsl} context={{ actions: { serviceChanged: onServiceChanged } }} />);
 
-    // SelectableGroup renders divs with onClick, not buttons — click the second item
-    const items = container.querySelectorAll("[data-dsl-kind='selectableGroup'] > div");
+    // SelectableGroup renders ServiceOption buttons
+    const items = container.querySelectorAll("[data-component='ServiceOption']");
     expect(items.length).toBe(2);
     fireEvent.click(items[1]);
 
@@ -50,18 +50,16 @@ describe("interactive DSL renderer", () => {
     const onUpload = vi.fn();
     const dsl = page("photos", "Photos")
       .bare()
-      .add(n.uploadTile("front", { value: "front", actions: { upload: { id: "act_upload", event: "upload" } } }))
+      .add(n.uploadTile("front", { value: "front", action: "upload" }))
       .toJSON();
 
-    const { container } = render(<DslPageRenderer page={dsl} context={{ backendDispatch: onUpload }} />);
+    const { container } = render(<DslPageRenderer page={dsl} context={{ actions: { upload: onUpload } }} />);
 
-    const tile = container.querySelector("[data-dsl-kind='uploadTile']");
+    // uploadTile renders PhotoTile button
+    const tile = container.querySelector("[data-component='PhotoTile']");
     expect(tile).toBeTruthy();
     fireEvent.click(tile!);
 
-    expect(onUpload).toHaveBeenCalledWith(expect.objectContaining({
-      actionId: "act_upload",
-      event: "upload",
-    }));
+    expect(onUpload).toHaveBeenCalledWith(expect.objectContaining({ action: "upload", value: "front" }));
   });
 });

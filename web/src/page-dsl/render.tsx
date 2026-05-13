@@ -12,7 +12,15 @@ import { Rule } from "../atoms/Rule/Rule";
 import { Progress } from "../atoms/Progress/Progress";
 import { Segmented } from "../atoms/Segmented/Segmented";
 import { Masthead } from "../molecules/Masthead/Masthead";
+import { ServiceOption } from "../molecules/ServiceOption/ServiceOption";
+import { BudgetOption } from "../molecules/BudgetOption/BudgetOption";
+import { TimeSlot } from "../molecules/TimeSlot/TimeSlot";
+import { SummaryRow } from "../molecules/SummaryRow/SummaryRow";
+import { StylistCard } from "../molecules/StylistCard/StylistCard";
+import { PhotoTile } from "../molecules/PhotoTile/PhotoTile";
 import { DayCell } from "../molecules/DayCell/DayCell";
+import { DayPickerGrid } from "../molecules/DayCell/DayPickerGrid";
+import { ColorLevelBar } from "../molecules/ColorLevelBar/ColorLevelBar";
 import { color, font } from "../fringe-ui/tokens";
 import { dslDebug } from "./debug";
 
@@ -178,30 +186,22 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
     case "masthead":
       return <Masthead key={key} {...common} title={str(props, "title")} eyebrow={str(props, "eyebrow", undefined as unknown as string)} accent={str(props, "accent", undefined as unknown as string)} right={str(props, "right", undefined as unknown as string)} compact={bool(props, "compact")} />;
 
-    // ── Selection primitives (new) ───────────────────────────
+    // ── Selection primitives ───────────────────────────────
     case "selectable": {
-      const title = str(props, "title");
-      const subtitle = str(props, "subtitle", undefined as unknown as string);
-      const badge = str(props, "badge", undefined as unknown as string);
-      const selected = bool(props, "selected");
-      const disabled = bool(props, "disabled");
+      // Render as ServiceOption molecule (maps title→name, subtitle→description, badge→rate)
       return (
-        <div key={key} {...common}
-          onClick={disabled ? undefined : () => dispatchAction(ctx, node, props, "change", "action", str(props, "value", title))}
-          style={{
-            padding: 14, marginBottom: 8, display: "flex", gap: 14, alignItems: "center", cursor: disabled ? "default" : "pointer",
-            background: selected ? color.cream : "transparent",
-            borderLeft: selected ? `3px solid ${color.plum}` : "3px solid transparent",
-            opacity: disabled ? 0.5 : 1,
-            ...style(props),
-          }}
-        >
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: font.block, fontSize: 18, textTransform: "uppercase", letterSpacing: 0.5 }}>{title}</div>
-            {subtitle && <div style={{ fontFamily: font.sans, fontSize: 12, color: color.soft, marginTop: 2 }}>{subtitle}</div>}
-          </div>
-          {badge && <div style={{ fontFamily: font.mono, fontSize: 11, letterSpacing: 1, color: color.plum }}>{badge}</div>}
-        </div>
+        <ServiceOption
+          key={key}
+          {...common}
+          value={str(props, "value", str(props, "title"))}
+          name={str(props, "title")}
+          description={str(props, "subtitle", "")}
+          rate={str(props, "badge", undefined as unknown as string) || undefined}
+          selected={bool(props, "selected")}
+          disabled={bool(props, "disabled")}
+          onSelect={(value) => dispatchAction(ctx, node, props, "change", "action", value)}
+          style={style(props)}
+        />
       );
     }
     case "selectableGroup": {
@@ -213,11 +213,85 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
       const currentValue = isMulti
         ? (Array.isArray(rawValue) ? rawValue as string[] : [])
         : (typeof rawValue === "string" ? rawValue : null);
+
+      // Detect which molecule to use based on option shape:
+      // - Options with subtitle only → BudgetOption (label + description, supports columns)
+      // - Options with title only → TimeSlot (compact pill, supports columns)
+      // - Options with title + subtitle + badge → ServiceOption (full row)
+      const hasBadges = options.some((opt) => str(opt as any, "badge", ""));
+      const hasSubtitles = options.some((opt) => str(opt as any, "subtitle", ""));
+
+      if (columns > 1 && !hasBadges) {
+        // Compact grid layout: use BudgetOption for items with descriptions, TimeSlot for bare items
+        if (hasSubtitles) {
+          return (
+            <div key={key} {...common} style={{ display: "grid", gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap, ...style(props) }}>
+              {options.map((opt, i) => {
+                const optTitle = str(opt as any, "title", "");
+                const optValue = str(opt as any, "value", optTitle);
+                const isSelected = isMulti
+                  ? (currentValue as string[]).includes(optValue)
+                  : currentValue === optValue;
+                return (
+                  <BudgetOption
+                    key={i}
+                    value={optValue}
+                    label={optTitle}
+                    description={str(opt as any, "subtitle", "")}
+                    selected={isSelected}
+                    disabled={bool(opt as any, "disabled")}
+                    onSelect={(v) => {
+                      if (isMulti) {
+                        const next = isSelected
+                          ? (currentValue as string[]).filter(x => x !== optValue)
+                          : [...(currentValue as string[]), optValue];
+                        dispatchAction(ctx, node, props, "change", "action", next);
+                      } else {
+                        dispatchAction(ctx, node, props, "change", "action", v);
+                      }
+                    }}
+                  />
+                );
+              })}
+            </div>
+          );
+        }
+        // Bare items in columns → TimeSlot pills
+        return (
+          <div key={key} {...common} style={{ display: "grid", gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap, ...style(props) }}>
+            {options.map((opt, i) => {
+              const optTitle = str(opt as any, "title", "");
+              const optValue = str(opt as any, "value", optTitle);
+              const isSelected = isMulti
+                ? (currentValue as string[]).includes(optValue)
+                : currentValue === optValue;
+              return (
+                <TimeSlot
+                  key={i}
+                  value={optValue}
+                  label={optTitle}
+                  selected={isSelected}
+                  disabled={bool(opt as any, "disabled")}
+                  onSelect={(v) => {
+                    if (isMulti) {
+                      const next = isSelected
+                        ? (currentValue as string[]).filter(x => x !== optValue)
+                        : [...(currentValue as string[]), optValue];
+                      dispatchAction(ctx, node, props, "change", "action", next);
+                    } else {
+                      dispatchAction(ctx, node, props, "change", "action", v);
+                    }
+                  }}
+                />
+              );
+            })}
+          </div>
+        );
+      }
+
+      // Full-width rows with badges → ServiceOption
       return (
-        <div key={key} {...common} style={{
-          display: "grid", gridTemplateColumns: `repeat(${columns}, 1fr)`, gap,
-          ...style(props),
-        }}>
+        <div key={key} {...common} style={style(props)}>
           {options.map((opt, i) => {
             const optTitle = str(opt as any, "title", "");
             const optValue = str(opt as any, "value", optTitle);
@@ -225,29 +299,25 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
               ? (currentValue as string[]).includes(optValue)
               : currentValue === optValue;
             return (
-              <div key={i}
-                onClick={() => {
+              <ServiceOption
+                key={i}
+                value={optValue}
+                name={optTitle}
+                description={str(opt as any, "subtitle", "")}
+                rate={str(opt as any, "badge", undefined as unknown as string) || undefined}
+                selected={isSelected}
+                disabled={bool(opt as any, "disabled")}
+                onSelect={(v) => {
                   if (isMulti) {
                     const next = isSelected
-                      ? (currentValue as string[]).filter(v => v !== optValue)
+                      ? (currentValue as string[]).filter(x => x !== optValue)
                       : [...(currentValue as string[]), optValue];
                     dispatchAction(ctx, node, props, "change", "action", next);
                   } else {
-                    dispatchAction(ctx, node, props, "change", "action", optValue);
+                    dispatchAction(ctx, node, props, "change", "action", v);
                   }
                 }}
-                style={{
-                  padding: 14, display: "flex", gap: 14, alignItems: "center", cursor: "pointer",
-                  background: isSelected ? color.cream : "transparent",
-                  borderLeft: isSelected ? `3px solid ${color.plum}` : "3px solid transparent",
-                }}
-              >
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontFamily: font.block, fontSize: 18, textTransform: "uppercase", letterSpacing: 0.5 }}>{optTitle}</div>
-                  {str(opt as any, "subtitle", "") && <div style={{ fontFamily: font.sans, fontSize: 12, color: color.soft, marginTop: 2 }}>{str(opt as any, "subtitle", "")}</div>}
-                </div>
-                {str(opt as any, "badge", "") && <div style={{ fontFamily: font.mono, fontSize: 11, letterSpacing: 1, color: color.plum }}>{str(opt as any, "badge", "")}</div>}
-              </div>
+              />
             );
           })}
         </div>
@@ -260,7 +330,7 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
     case "segmented":
       return <Segmented key={key} {...common} options={jsonArray(props, "options") as any} value={str(props, "value")} onChange={(value, meta) => dispatchAction(ctx, node, props, "change", "action", value, meta)} style={style(props)} />;
 
-    // ── Input primitives (new) ───────────────────────────────
+    // ── Input primitives ───────────────────────────────────
     case "scale": {
       const value = num(props, "value", 0);
       const max = num(props, "max", 5);
@@ -268,24 +338,15 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
       const label = str(props, "label", undefined as unknown as string);
       const variant = str(props, "variant", "dots");
       if (variant === "swatches") {
-        // Color level swatches — rendered inline
-        const swatches = ["#1a120c", "#2a1c10", "#3d2a1e", "#5a3e2a", "#7a5638", "#9b7547", "#b89461", "#d1b283", "#e2ce9e", "#ead9af"];
+        // Use ColorLevelBar molecule for swatches
         return (
           <div key={key} {...common} style={{ ...style(props) }}>
             {label && <div style={{ fontFamily: font.mono, fontSize: 10, letterSpacing: 1.8, textTransform: "uppercase", color: color.plum, marginBottom: 8 }}>{label}</div>}
-            <div style={{ display: "flex", gap: 6 }}>
-              {swatches.slice(0, max).map((s, i) => (
-                <div key={i} onClick={interactive ? () => dispatchAction(ctx, node, props, "change", "action", i + 1) : undefined} style={{
-                  width: 28, height: 28, borderRadius: 4, background: s,
-                  border: i + 1 === value ? `2px solid ${color.ink}` : "2px solid transparent",
-                  cursor: interactive ? "pointer" : "default",
-                }} />
-              ))}
-            </div>
+            <ColorLevelBar current={value} target={num(props, "target", undefined as unknown as number)} />
           </div>
         );
       }
-      // Dots variant (rating)
+      // Dots variant (rating) — inline since there's no molecule for this
       return (
         <div key={key} {...common} style={{ ...style(props) }}>
           {label && <div style={{ fontFamily: font.mono, fontSize: 10, letterSpacing: 1.8, textTransform: "uppercase", color: color.plum, marginBottom: 8 }}>{label}</div>}
@@ -302,42 +363,39 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
       );
     }
     case "uploadTile": {
-      const label = str(props, "label");
-      const filled = bool(props, "filled");
-      const disabled = bool(props, "disabled");
+      // Use PhotoTile molecule
       return (
-        <div key={key} {...common}
-          onClick={!disabled ? () => dispatchAction(ctx, node, props, "upload", "onUpload", str(props, "value", label)) : undefined}
-          style={{
-            aspectRatio: "1", background: filled ? color.cream : "transparent",
-            border: `1px dashed ${filled ? color.plum : color.rule}`,
-            display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-            cursor: disabled ? "default" : "pointer", padding: 8, gap: 4,
-            ...style(props),
-          }}
-        >
-          <div style={{ fontFamily: font.block, fontSize: 16, textTransform: "uppercase", color: filled ? color.plum : color.soft }}>{filled ? "✓" : "+"}</div>
-          <div style={{ fontFamily: font.mono, fontSize: 9, letterSpacing: 1, color: color.soft }}>{label}</div>
-        </div>
+        <PhotoTile
+          key={key}
+          {...common}
+          value={str(props, "value", str(props, "label"))}
+          label={str(props, "label")}
+          filled={bool(props, "filled")}
+          disabled={bool(props, "disabled")}
+          onUpload={(value) => dispatchAction(ctx, node, props, "upload", "action", value)}
+          onRemove={(value) => dispatchAction(ctx, node, props, "remove", "action", value)}
+          style={style(props)}
+        />
       );
     }
 
-    // ── Data display primitives (new) ────────────────────────
+    // ── Data display primitives ──────────────────────────────
     case "kvRow": {
-      const label = str(props, "label");
-      const value = str(props, "value");
+      // Use SummaryRow molecule
       const editable = bool(props, "editable") || !!actionRef(props, "edit");
       return (
-        <div key={key} {...common} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: `1px solid ${color.rule}`, ...style(props) }}>
-          <div style={{ fontFamily: font.mono, fontSize: 10, letterSpacing: 1.8, textTransform: "uppercase", color: color.soft }}>{label}</div>
-          <div style={{ fontFamily: font.sans, fontSize: 14, fontWeight: 600, color: color.ink, display: "flex", gap: 8, alignItems: "center" }}>
-            {value}
-            {editable && <span onClick={() => dispatchAction(ctx, node, props, "edit", "onEdit")} style={{ fontFamily: font.mono, fontSize: 10, color: color.plum, cursor: "pointer" }}>EDIT</span>}
-          </div>
-        </div>
+        <SummaryRow
+          key={key}
+          {...common}
+          label={str(props, "label")}
+          value={str(props, "value")}
+          onEdit={editable ? () => dispatchAction(ctx, node, props, "edit", "onEdit") : undefined}
+          style={style(props)}
+        />
       );
     }
     case "stat": {
+      // No existing molecule — stat is a display-only hero number
       const value = str(props, "value");
       const label = str(props, "label", undefined as unknown as string);
       const subtitle = str(props, "subtitle", undefined as unknown as string);
@@ -350,25 +408,17 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
       );
     }
     case "personCard": {
-      const name = str(props, "name");
-      const role = str(props, "role", undefined as unknown as string);
-      const initial = str(props, "initial", name.charAt(0));
-      const badge = str(props, "badge", undefined as unknown as string);
-      const stats = jsonArray<JsonObject>(props, "stats");
+      // Use StylistCard molecule
       return (
-        <div key={key} {...common} style={{ padding: "14px 18px", background: color.cream, display: "flex", gap: 14, alignItems: "center", ...style(props) }}>
-          <div style={{ width: 56, height: 56, borderRadius: 999, background: color.peachSoft, display: "flex", alignItems: "center", justifyContent: "center", fontFamily: font.block, fontSize: 22, color: color.plum }}>{initial}</div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontFamily: font.block, fontSize: 16, textTransform: "uppercase" }}>{name}</div>
-            {role && <div style={{ fontFamily: font.serif, fontStyle: "italic", fontSize: 12, color: color.soft, marginTop: 2 }}>{role}</div>}
-            {stats.length > 0 && <div style={{ display: "flex", gap: 12, marginTop: 6 }}>
-              {stats.map((s, i) => <div key={i} style={{ fontFamily: font.mono, fontSize: 10, color: color.soft }}>{str(s as any, "label", "")} {str(s as any, "value", "")}</div>)}
-            </div>}
-          </div>
-          {badge && <div style={{ textAlign: "right" }}>
-            <div style={{ fontFamily: font.mono, fontSize: 11, color: color.plum }}>{badge}</div>
-          </div>}
-        </div>
+        <StylistCard
+          key={key}
+          {...common}
+          name={str(props, "name")}
+          role={str(props, "role", "")}
+          rate={str(props, "badge", undefined as unknown as string) || undefined}
+          available={str(props, "available", undefined as unknown as string) || undefined}
+          style={style(props)}
+        />
       );
     }
 
@@ -376,32 +426,29 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
     case "dayCell":
       return <DayCell key={key} {...common} value={str(props, "value", str(props, "day"))} day={str(props, "day")} selected={bool(props, "selected")} disabled={bool(props, "disabled")} dot={bool(props, "dot")} onSelect={(value, meta) => dispatchAction(ctx, node, props, "change", "action", value, meta)} />;
     case "calendarGrid": {
-      // TODO: implement full month calendar — for now renders compact day grid
-      const days = jsonArray(props, "days");
-      const value = nullableStr(props, "value");
+      // Use DayPickerGrid molecule wrapping DayCell components
+      const days = jsonArray<JsonObject>(props, "days").map((d) => {
+        const dayStr = str(d as any, "day", "");
+        const dateStr = str(d as any, "date", dayStr);
+        return {
+          value: str(d as any, "value", dateStr),
+          day: dayStr,
+          disabled: bool(d as any, "disabled"),
+          disabledReason: str(d as any, "disabledReason", undefined as unknown as string) || undefined,
+          dot: bool(d as any, "dot"),
+        };
+      });
       return (
-        <div key={key} {...common} style={{ display: "grid", gridTemplateColumns: `repeat(${num(props, "columns", 7)}, 1fr)`, gap: 6, ...style(props) }}>
-          {days.map((d, i) => {
-            const dayStr = str(d as any, "day", str(d as any, "label", String(i + 1)));
-            const selected = bool(d as any, "selected");
-            const disabled = bool(d as any, "disabled");
-            const dot = bool(d as any, "dot");
-            return (
-              <div key={i}
-                onClick={!disabled ? () => dispatchAction(ctx, node, props, "change", "action", str(d as any, "value", dayStr)) : undefined}
-                style={{
-                  padding: "10px 4px", textAlign: "center", cursor: disabled ? "default" : "pointer",
-                  background: selected ? color.plum : "transparent",
-                  color: selected ? color.paper : disabled ? color.soft : color.ink,
-                  borderRadius: 4, position: "relative",
-                }}
-              >
-                <div style={{ fontFamily: font.block, fontSize: 16, textTransform: "uppercase" }}>{dayStr}</div>
-                {dot && <div style={{ width: 4, height: 4, borderRadius: 999, background: selected ? color.paper : color.plum, margin: "4px auto 0" }} />}
-              </div>
-            );
-          })}
-        </div>
+        <DayPickerGrid
+          key={key}
+          {...common}
+          days={days as any}
+          value={nullableStr(props, "value")}
+          onChange={(value) => dispatchAction(ctx, node, props, "change", "action", value)}
+          columns={num(props, "columns", 7)}
+          gap={num(props, "gap", 4)}
+          style={style(props)}
+        />
       );
     }
     default:
