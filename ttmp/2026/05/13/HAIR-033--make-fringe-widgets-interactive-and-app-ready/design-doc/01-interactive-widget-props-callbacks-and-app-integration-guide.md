@@ -159,3 +159,39 @@ function ToneSelector() {
 - Should the DSL action system support structured callback payloads now or later?
 - Which widgets need uncontrolled defaults (`defaultValue`) versus controlled-only APIs?
 - How much keyboard navigation is required for the first pass?
+
+## Implementation Note: ChipGroup Reference Pattern
+
+Implemented in commit `277df67`.
+
+`ChipGroup` is the first reference implementation for selectable widget contracts. It uses the following rules:
+
+- Component can be **controlled** with `value`.
+- Component can be **uncontrolled** with `defaultValue`.
+- Values are strings and the selected value is represented as `string[]`.
+- Single-select mode still emits an array, but with zero or one item.
+- `onChange(nextValue, meta)` receives the full next value plus metadata.
+
+Example:
+
+```tsx
+const [tones, setTones] = useState<string[]>(["dimensional"]);
+
+<ChipGroup
+  label="Tone family"
+  selectionMode="multiple"
+  value={tones}
+  options={[
+    { value: "neutral", label: "Neutral" },
+    { value: "warm", label: "Warm" },
+    { value: "cool", label: "Cool" },
+    { value: "dimensional", label: "Dimensional" },
+  ]}
+  onChange={(nextValues, meta) => {
+    console.log(meta.action, meta.value, meta.previousValue);
+    setTones(nextValues);
+  }}
+/>
+```
+
+This should be used as the model for the next selectable components.

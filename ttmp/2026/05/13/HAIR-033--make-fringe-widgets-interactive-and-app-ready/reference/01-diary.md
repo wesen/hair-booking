@@ -79,3 +79,107 @@ The UI library needs explicit interaction contracts before it can safely power a
 ### Code review instructions
 
 Review the ticket tasks and design doc outline before implementation starts.
+
+---
+
+## Step 2: Implement interactive Chip and ChipGroup controls
+
+Implemented the first app-ready interaction slice: chips are now accessible buttons with explicit selection callbacks, and a new `ChipGroup` manages controlled or uncontrolled single/multiple selection. This establishes the callback and state-management pattern we can reuse for service cards, budget options, time slots, day cells, and other selectable widgets.
+
+The main use case was the user's example of choosing a set of toggled chips. The new Storybook stories show a controlled multi-select tone picker and a controlled single-select length picker, with live JSON state output so reviewers can see exactly what app state receives.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead"
+
+**Assistant interpretation:** Begin HAIR-033 implementation now, starting with the toggled chip interaction pattern called out in the previous prompt.
+
+**Inferred user intent:** Move from ticket setup into concrete widget productionization work.
+
+**Commit (code):** 277df67 — "HAIR-033 Step 1: Add interactive ChipGroup controls"
+
+### What I did
+
+- Updated `web/src/atoms/Chip/Chip.tsx`:
+  - Switched the rendered element from `span` to `button` for keyboard and accessibility semantics.
+  - Added `value`, `disabled`, `onSelectedChange`, and metadata payload support.
+  - Preserved `onClick` for backward compatibility with existing stories/usages.
+  - Added `aria-pressed` to expose toggle state.
+- Added `web/src/atoms/Chip/ChipGroup.tsx`:
+  - Supports `selectionMode="single" | "multiple"`.
+  - Supports controlled `value` and uncontrolled `defaultValue`.
+  - Emits `onChange(nextValue, meta)` with previous value and selected option metadata.
+- Rewrote `web/src/atoms/Chip/Chip.stories.tsx`:
+  - Kept visual examples.
+  - Added `Interactive — toggled tone chips`.
+  - Added `Interactive — single length selector`.
+- Added `web/src/atoms/Chip/ChipGroup.test.tsx`:
+  - Verifies chip callback metadata.
+  - Verifies multi-select changes.
+  - Verifies single-select changes.
+  - Verifies uncontrolled state updates.
+- Verified:
+  - `cd web && pnpm test -- --runInBand`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && npx storybook build --test`
+
+### Why
+
+`Chip` is the smallest selectable widget and a good reference implementation for the rest of HAIR-033. A robust chip group clarifies how state should flow through the component library: the app owns selected values, widgets emit next values and metadata, and Storybook demonstrates the contract with live state.
+
+### What worked
+
+- The controlled/uncontrolled pattern is compact and reusable.
+- Existing visual chip stories still work.
+- Tests cover the behavior requested by the user: selecting/toggling chip sets.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- Turning a visual `span` into a semantic `button` improves accessibility and testability without changing the visual design much.
+- The callback metadata should be standardized before upgrading all selectable widgets, because the same concepts appear everywhere: selected item, previous value, action, and source.
+
+### What was tricky to build
+
+- Single-select and multi-select share most behavior but differ in how next values are computed. The implementation keeps the public value shape consistently as an array, even for single selection, to make `ChipGroup` predictable.
+- Maintaining compatibility with existing `onClick` uses required keeping `onClick?: () => void` while adding the richer `onSelectedChange` contract.
+
+### What warrants a second pair of eyes
+
+- Whether single-select `ChipGroup` should expose a scalar value instead of an array.
+- Whether the metadata `source` should distinguish pointer vs keyboard immediately, or whether pointer is enough until keyboard-specific handlers are added.
+- Whether `Chip` should support `as="span"` for non-interactive decorative tags; currently it always renders a `button`.
+
+### What should be done in the future
+
+- Apply the same controlled/callback pattern to `Segmented`, `ServiceOption`, `BudgetOption`, `TimeSlot`, `DayCell`, `PhotoTile`, `RatingBar`, and `LengthSilhouette`.
+- Add a shared `ChangeMeta` type instead of per-widget local metadata types.
+- Add keyboard-focused tests if we customize keyboard behavior beyond native button semantics.
+
+### Code review instructions
+
+Start with:
+
+- `web/src/atoms/Chip/Chip.tsx`
+- `web/src/atoms/Chip/ChipGroup.tsx`
+- `web/src/atoms/Chip/Chip.stories.tsx`
+- `web/src/atoms/Chip/ChipGroup.test.tsx`
+
+Validate with:
+
+```bash
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+npx storybook build --test
+```
+
+Open Storybook:
+
+```text
+Atoms / Chip / Interactive — toggled tone chips
+Atoms / Chip / Interactive — single length selector
+```
