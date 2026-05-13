@@ -110,6 +110,21 @@ pages:
       screen:
         leftSelector: '[data-page="photos"]'
         rightSelector: '[data-component="StoryPhoneFrame"]'
+      heading:
+        leftSelector: '[data-page="photos"] > div > div:nth-child(4)'
+        rightSelector: '[data-section="page-heading"]'
+      intro:
+        leftSelector: '[data-page="photos"] > div > div:nth-child(5) > div:nth-child(1)'
+        rightSelector: '[data-section="photos-intro"]'
+      current-grid:
+        leftSelector: '[data-page="photos"] > div > div:nth-child(5) > div:nth-child(2)'
+        rightSelector: '[data-section="photos-current-grid"]'
+      inspiration-title:
+        leftSelector: '[data-page="photos"] > div > div:nth-child(5) > div:nth-child(3)'
+        rightSelector: '[data-section="photos-inspiration-title"]'
+      inspiration-grid:
+        leftSelector: '[data-page="photos"] > div > div:nth-child(5) > div:nth-child(4)'
+        rightSelector: '[data-section="photos-inspiration-grid"]'
 
   history:
     leftUrl: http://localhost:7071/standalone/mobile/05-history.html
