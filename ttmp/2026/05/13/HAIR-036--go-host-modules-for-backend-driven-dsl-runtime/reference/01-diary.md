@@ -211,7 +211,7 @@ The implementation uses a transitional `goja_nodejs/require.Registry` inside the
 
 **Inferred user intent:** Move from the host-module plan into working backend infrastructure without conflicting with parallel frontend/desktop work.
 
-**Commit (code):** 23a62df — "HAIR-036 Step 3: Add DSL SQLite host module foundation"
+**Commit (code):** 8f5d0d2 — "HAIR-036 Step 3: Add DSL SQLite host module foundation"
 
 ### What I did
 

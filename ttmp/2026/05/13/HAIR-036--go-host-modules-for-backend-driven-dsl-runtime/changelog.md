@@ -29,7 +29,7 @@ Step 2: Expanded HAIR-036 into detailed server-side implementation phases for CL
 
 ## 2026-05-13
 
-Step 3: Implemented server-side host module foundation (commit 23a62df): DSL SQLite flags, schema provisioning package, runtime host wiring, Go-owned module registry, and preconfigured go-go-goja db module registration with integration tests. Validated targeted and full Go tests.
+Step 3: Implemented server-side host module foundation (commit 8f5d0d2): DSL SQLite flags, schema provisioning package, runtime host wiring, Go-owned module registry, and preconfigured go-go-goja db module registration with integration tests. Validated targeted and full Go tests.
 
 ### Related Files
 
