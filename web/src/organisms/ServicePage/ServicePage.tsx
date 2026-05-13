@@ -37,6 +37,7 @@ export function ServicePage({ onNext, onBack }: ServicePageProps) {
       onNext={onNext}
       onBack={onBack}
     >
+      <div data-section="service-content">
       <div data-component="ServicePage" data-page="ServicePage" style={{
         fontFamily: font.serif,
         fontStyle: "italic",
@@ -54,7 +55,7 @@ export function ServicePage({ onNext, onBack }: ServicePageProps) {
             key={s.key}
             onClick={() => setSelected(s.key)}
             style={{
-              padding: "14px 16px",
+              padding: "10px 16px",
               marginBottom: 8,
               background: sel ? color.peachSoft : color.cream,
               borderLeft: `3px solid ${sel ? color.plum : "transparent"}`,
@@ -67,7 +68,7 @@ export function ServicePage({ onNext, onBack }: ServicePageProps) {
             <div data-component="ServicePage" data-page="ServicePage" style={{ flex: 1 }}>
               <div data-component="ServicePage" data-page="ServicePage" style={{
                 fontFamily: font.block,
-                fontSize: 20,
+                fontSize: 19,
                 textTransform: "uppercase" as const,
               }}>
                 {s.key}
@@ -81,12 +82,13 @@ export function ServicePage({ onNext, onBack }: ServicePageProps) {
                 {s.description}
               </div>
             </div>
-            <div data-component="ServicePage" data-page="ServicePage" style={{ fontFamily: font.mono, fontSize: 11, color: color.plum }}>
+            <div data-component="ServicePage" data-page="ServicePage" style={{ fontFamily: font.mono, fontSize: 11, color: color.plum, paddingRight: 2 }}>
               {s.rate}
             </div>
           </div>
         );
       })}
+      </div>
     </IntakeShell>
   );
 }

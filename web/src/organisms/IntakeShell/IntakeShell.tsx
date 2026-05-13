@@ -6,6 +6,7 @@ interface IntakeShellProps {
   total: number;
   title: string;
   eyebrow?: string;
+  titleSize?: number;
   children?: ReactNode;
   style?: CSSProperties;
   onNext?: () => void;
@@ -30,6 +31,7 @@ export function IntakeShell({
   total,
   title,
   eyebrow,
+  titleSize = 40,
   children,
   style,
   onNext,
@@ -123,7 +125,7 @@ export function IntakeShell({
       </div>
 
       {/* ── Eyebrow + Title section ─────────────────────────── */}
-      <div style={{ padding: '20px 22px 0' }}>
+      <div data-section="page-heading" style={{ padding: '20px 22px 0' }}>
         {eyebrow && (
           <div style={{
             ...typeToken.eyebrow,
@@ -135,7 +137,7 @@ export function IntakeShell({
         )}
         <div style={{
           fontFamily: font.block,
-          fontSize: 36,
+          fontSize: titleSize,
           lineHeight: 1,
           letterSpacing: 0.3,
           textTransform: 'uppercase',
@@ -153,21 +155,22 @@ export function IntakeShell({
       {/* ── Bottom CTA bar ──────────────────────────────────── */}
       {onNext && (
         <div style={{
-          padding: '16px 22px 28px',
+          padding: '10px 22px 20px',
           borderTop: `1px solid ${color.rule}`,
           display: 'flex',
           gap: 10,
           background: color.paper,
-        }}>
+        }} data-section="intake-cta">
           <button
             onClick={onSkip}
             style={{
               fontFamily: font.block,
-              fontSize: 14,
+              fontSize: 17,
               letterSpacing: 1,
               textTransform: 'uppercase',
               width: 75,
-              padding: '12px 0',
+              height: 62,
+              padding: '0',
               border: `1px solid ${color.ink}`,
               background: 'transparent',
               color: color.ink,
@@ -181,10 +184,11 @@ export function IntakeShell({
             onClick={onNext}
             style={{
               fontFamily: font.block,
-              fontSize: 14,
+              fontSize: 18,
               letterSpacing: 1.5,
               textTransform: 'uppercase',
-              padding: '14px 20px',
+              height: 62,
+              padding: '0 20px',
               border: 'none',
               background: color.plum,
               color: color.paper,

@@ -33,6 +33,7 @@ export function BudgetPage({ onNext, onBack, onSelect }: BudgetPageProps) {
       total={9}
       eyebrow="Chapter VI · The Budget"
       title="Comfortable range?"
+      titleSize={36}
       onNext={onNext}
       onBack={onBack}
     >

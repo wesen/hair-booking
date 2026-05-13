@@ -71,6 +71,21 @@ pages:
       screen:
         leftSelector: '[data-page="service"]'
         rightSelector: '[data-component="StoryPhoneFrame"]'
+      heading:
+        leftSelector: '[data-page="service"] > div > div:nth-child(4)'
+        rightSelector: '[data-section="page-heading"]'
+      content:
+        leftSelector: '[data-page="service"] > div > div:nth-child(5)'
+        rightSelector: '[data-part="content"]'
+      first-card:
+        leftSelector: '[data-page="service"] > div > div:nth-child(5) > div:nth-child(2)'
+        rightSelector: '[data-section="service-content"] > div:nth-child(2)'
+      selected-card:
+        leftSelector: '[data-page="service"] > div > div:nth-child(5) > div:nth-child(4)'
+        rightSelector: '[data-section="service-content"] > div:nth-child(4)'
+      cta:
+        leftSelector: '[data-page="service"] > div > div:nth-child(6)'
+        rightSelector: '[data-section="intake-cta"]'
 
   color:
     leftUrl: http://localhost:7071/standalone/mobile/02-color.html
