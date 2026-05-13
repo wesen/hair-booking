@@ -1794,3 +1794,73 @@ css-visual-diff verbs --repository design-galley/visual-diff/userland/verbs \
   --outDir /tmp/fringe-review-service-cta \
   --page service --section cta
 ```
+
+---
+
+## Step 25: Tune PhotosPage and add focused photo comparisons
+
+Used the user's PhotosPage review note as the next target. The note said the original title is larger, the React cursive copy is too large, and the React side was missing the `Current hair — 3 angles` title. In the latest artifacts, the React side already showed that title, but I added stable section hooks so this can be reviewed explicitly and then tuned the visible mismatches.
+
+### Prompt Context
+
+**User prompt (verbatim):** "/tmp/pi-clipboard-c8065875-6e97-46a3-8abe-64a70cbfd641.png This is the photos page, with a split left / right . you can see the title font on the right (original) is larger, and left (react), the cursive font how ever is larger on the react, it's also missing the \"Current hair - 3 angles\" title."
+
+**Assistant interpretation:** Tune PhotosPage based on human visual review: larger page title, smaller editorial/cursive intro, ensure `Current hair — 3 angles` exists, and add focused sections for PhotosPage.
+
+**Inferred user intent:** Make the PhotosPage easier to review and closer to the original prototype, using focused section comparisons rather than whole-screen-only diffs.
+
+**Commit (code):** 63c4583 — "HAIR-031 Step 25: Tune PhotosPage and add focused photo comparisons"
+
+### What I did
+
+- Set `PhotosPage` `titleSize={44}` so the main title is larger only on this page.
+- Reduced the editorial/cursive intro copy from 17px to 16px.
+- Added `data-section` hooks: `photos-intro`, `photos-current-title`, `photos-current-grid`, `photos-inspiration-title`, `photos-inspiration-grid`.
+- Added focused PhotosPage sections to `fringe-intake.yaml`: `heading`, `intro`, `current-grid`, `inspiration-title`, `inspiration-grid`.
+- Reworked the inspiration grid to match the prototype: filled tiles are solid peach with a centered check mark; empty tiles are cream with a plus sign. This replaced the dashed `PhotoTile` labels used previously.
+- Ran a focused photos comparison and served it at http://127.0.0.1:18100.
+
+### Why
+
+The focused photos run showed that the current-hair grid already matched exactly, but the inspiration grid was a 55.22% major mismatch. Fixing that section was the highest-value PhotosPage improvement.
+
+### What worked
+
+- PhotosPage screen improved from 20.22% to 14.95%.
+- `photos/inspiration-grid` improved from 55.22% major-mismatch to 2.83% review.
+- `photos/current-grid` and `photos/inspiration-title` are accepted at 0.00% in the focused run.
+
+### What didn't work
+
+- The current artifact did not match the user's side description exactly: in the current generated comparison, React is on the right and already includes `CURRENT HAIR — 3 ANGLES`, while the target/prototype left does not show that title. I proceeded with safe tuning and added section hooks so the discrepancy can be reviewed directly.
+
+### What I learned
+
+- Focused sections again prevented over-tuning: the whole page was 20%, but the actual largest mismatch was specifically the inspiration grid.
+- The existing `PhotoTile` molecule is correct for current-hair reference photos, but not for inspiration uploads in this prototype.
+
+### What was tricky to build
+
+- Because the prototype standalone HTML lacks semantic section attributes, focused left-side selectors still rely on positional `nth-child()` selectors. The React side now has stable `data-section` hooks.
+
+### What warrants a second pair of eyes
+
+- Review http://127.0.0.1:18100 to confirm whether the PhotosPage title/intro direction matches the intended original.
+- Confirm whether `CURRENT HAIR — 3 ANGLES` should appear in the prototype target or be omitted; current generated target omits it.
+
+### What should be done in the future
+
+- Tune the remaining PhotosPage heading and intro sections; they are currently the highest focused PhotosPage diffs.
+
+### Code review instructions
+
+Focused photos run:
+
+```text
+photos / intro              26.21% tune-required
+photos / heading            21.99% tune-required
+photos / screen             14.95% tune-required
+photos / inspiration-grid    2.83% review
+photos / current-grid        0.00% accepted
+photos / inspiration-title   0.00% accepted
+```
