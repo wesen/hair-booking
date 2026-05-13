@@ -657,3 +657,88 @@ Then compare against:
 - `web/src/page-dsl/render.tsx`
 - `pkg/server/http.go`
 
+
+---
+
+## Step 8: Document the Goja-hosted multi-step intake DSL model
+
+Created a third HAIR-033 design document focused on the corrected backend model: the DSL is JavaScript running inside a Goja sandbox hosted by the Go backend. In that model, JavaScript flow scripts build JSON pages, register callbacks through the Go host, and return next pages when the browser posts interaction events.
+
+The document explains what a multi-step intake flow looks like with Goja: service, color, photos, budget, booking, and confirm steps; JSON-serializable flow state; `ctx.action(...)` callback registration; per-session action registries; Goja runtime constraints; and the frontend event dispatch needed to connect the browser renderer to the backend sandbox.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Oh the backend API is actually:
+
+JS in a goja sandbox inside the go itself.
+
+So one question I have, what would a multi step intake look like with that concept?
+
+Create a 3rd document."
+
+**User prompt (verbatim):** "md-view too when done"
+
+**Assistant interpretation:** Add a third design document to HAIR-033 that revises the backend callback architecture around Goja-hosted JavaScript, with a concrete multi-step intake example, and open it with md-view.
+
+**Inferred user intent:** Clarify the intended backend API and provide an implementation guide for building multi-step intake flows in JavaScript inside Go, rather than pure Go handlers or browser-local callbacks.
+
+**Commit (code):** N/A — documentation/design step only
+
+### What I did
+
+- Created `design-doc/03-goja-sandbox-multi-step-intake-dsl-guide.md`.
+- Documented:
+  - flow scripts loaded into Goja,
+  - `ctx.action(...)` callback registration,
+  - session-scoped action registries,
+  - multi-step intake state machine design,
+  - service/color/photos/budget/booking/confirm steps,
+  - frontend/backend event payloads,
+  - Goja runtime constraints and locking,
+  - host modules such as `fringe/dsl` and `fringe/intake`,
+  - implementation phases and test plan.
+- Related the document to current frontend DSL files and backend service/route files.
+- Opened the document with `md-view` in a tmux session.
+
+### Why
+
+The previous backend-driven guide was directionally correct, but too generic: it treated handlers as Go functions or symbolic handler keys. The actual target is JavaScript callbacks in a Goja sandbox, so the architecture needs to explain runtime lifecycle, callback registration, sandbox modules, and what a real multi-step intake script would look like.
+
+### What worked
+
+- The current TypeScript DSL builder maps naturally to a Goja-hosted JavaScript API.
+- The current frontend renderer can remain the browser-side JSON interpreter, with an added backend event transport.
+
+### What didn't work
+
+- N/A; this was documentation.
+
+### What I learned
+
+- The first implementation can use in-memory Goja sessions with live callback closures, but the flow state should still remain JSON-serializable so a persisted/recreated runtime is possible later.
+
+### What was tricky to build
+
+- The guide needed to preserve the ergonomic "register a callback" programming model while still explaining that the browser only receives opaque action ids. The registered Goja callback remains server-side.
+
+### What warrants a second pair of eyes
+
+- Whether the first runtime should use one Goja VM per active flow session or recreate a VM per event from persisted state.
+- Whether action callbacks should be closures in the first prototype or symbolic function references from the start.
+
+### What should be done in the future
+
+- Implement `pkg/dslgoja` with a minimal in-memory flow runtime and one two-step intake prototype.
+- Add `BackendDslPage` support for backend action refs.
+
+### Code review instructions
+
+Read:
+
+- `ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/03-goja-sandbox-multi-step-intake-dsl-guide.md`
+
+Then compare against:
+
+- `web/src/page-dsl/schema.ts`
+- `web/src/page-dsl/render.tsx`
+- `pkg/server/http.go`

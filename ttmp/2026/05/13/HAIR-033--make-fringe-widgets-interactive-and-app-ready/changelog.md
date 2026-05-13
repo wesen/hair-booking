@@ -89,3 +89,14 @@ Step 7: Wrote backend-driven DSL callback architecture guide explaining page ins
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — Current renderer action-routing model referenced by guide
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/schema.ts — Current frontend DSL schema referenced by guide
 
+
+## 2026-05-13
+
+Step 8: Added third design document explaining Goja-hosted JavaScript DSL flow scripts, callback registration, and a multi-step intake state machine model.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/intake/service.go — Domain service referenced for future Goja host module
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/03-goja-sandbox-multi-step-intake-dsl-guide.md — Goja sandbox multi-step intake DSL guide
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/schema.ts — Frontend JSON contract referenced by guide
+
