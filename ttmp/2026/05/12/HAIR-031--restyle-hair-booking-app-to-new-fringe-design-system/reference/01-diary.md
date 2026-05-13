@@ -935,3 +935,145 @@ img2pdf overlays/mobile/content-cropped/*.png /tmp/fringe-overlays/*.annotated.p
 # Upload
 rmapi put /tmp/fringe-upload/cssvd-overlays.pdf "/ai/2026/05/12/HAIR-031/"
 ```
+
+---
+
+## Step 12: Scaffold web/ directory from web.deprecated/
+
+Created a fresh `web/` directory beside `web.deprecated/`, salvaging the RTK Query store, MSW mock handlers, and Fringe UI tokens without modifying the deprecated codebase. The user confirmed the structure should use atoms/molecules/organisms folders (not the old fringe-ui flat structure).
+
+### Prompt Context
+
+**User prompt (verbatim):** "Go ahead, remember to keep a diary and commit at appropriate intervals, and update tasks in your ticket (see docmgr and diary skills)"
+
+**Assistant interpretation:** Begin Phase 1 implementation: scaffold `web/` directory, copy config + store + mock + tokens from `web.deprecated/`, verify typecheck and Storybook, then restructure components into atoms/molecules/organisms with one folder per widget.
+
+**Inferred user intent:** Get the new web/ project bootstrapped so that `pnpm install && tsc --noEmit && storybook build --test` passes, then start copying components into a clean atomic design folder structure.
+
+**Commit (code):** d1a9997 — "HAIR-031 Step 12: Scaffold web/ with Vite, Storybook, RTK Query store, MSW"
+
+### What I did
+
+1. Created `web/` with `package.json`, `vite.config.ts`, `tsconfig.json` copied verbatim from `web.deprecated/`
+2. Copied RTK Query store (`src/store/`) — all slices, API modules, types, data/constants — fixing relative imports from `../types` → `./types` and `../data/` → `./data/` since we co-located types.ts and data/ inside the store directory
+3. Copied MSW mock handlers (`src/mock/`) — browser.ts, handlers.ts, setup.ts
+4. Copied test setup (`src/test/setup.ts`)
+5. Copied Fringe UI tokens (`src/fringe-ui/tokens/`) — index.ts (TS constants) + index.css (CSS custom properties)
+6. Created `.storybook/main.ts` and `.storybook/preview.ts` with Fringe-specific viewports (iPhone 14, Pro Max, Desktop 1440) and cream/paper/plum backgrounds
+7. Ran `pnpm install`, `tsc --noEmit` (clean), `storybook build --test` (passes)
+8. Committed as d1a9997
+
+### Why
+
+The store (RTK Query) and MSW handlers are infrastructure that doesn't change with the restyle — they handle API calls, auth, booking state. Salvaging them as-is means Phase 1 can focus purely on the visual layer.
+
+### What worked
+
+- `tsc --noEmit` passed immediately — the import path fixes were straightforward
+- Storybook build passed with no stories (expected — empty canvas)
+- Co-locating `types.ts` and `data/` inside `store/` eliminated the `../stylist/types` dependency entirely
+
+### What didn't work
+
+- Initially used `sed` to fix `../../../` import paths in page files — the escaping was unreliable. Switched to `perl -pi -e` which handled it correctly.
+
+### What I learned
+
+- The store files referenced `../types` (going from `src/stylist/store/` → `src/stylist/types.ts`) and `../data/constants` (going to `src/stylist/data/`). By moving both types.ts and data/ into `src/store/`, the relative paths become `./types` and `./data/` — clean.
+- The `tsconfig.json` has `"include": ["src"]` so only files under `web/src/` are compiled — this is correct and means the old fringe-ui flat structure we temporarily copied didn't interfere.
+
+### What was tricky to build
+
+- Import path normalization required understanding the original directory structure (`src/stylist/store/api/` → `src/stylist/types.ts` was `../../types`) and mapping it to the new structure (`src/store/api/` → `src/store/types.ts` is `../types`). The mappers.ts file had `../../types` which needed to become `../types`.
+
+### What warrants a second pair of eyes
+
+- The `store/types.ts` was copied from `web.deprecated/src/stylist/types.ts` — verify it doesn't reference any `../stylist/` paths internally
+- The MSW handlers reference mock data inline (no external imports to fix) — good
+
+### What should be done in the future
+
+- The store has many slices (clients, appointments, consultation, portal, auth, ui) that may not all be needed for the intake flow. A cleanup pass to remove unused slices would reduce bundle size.
+
+### Code review instructions
+
+```bash
+cd web/
+pnpm install && npx tsc --noEmit   # should be clean
+npx storybook build --test          # should build (no stories yet)
+```
+
+### Technical details
+
+```
+web/
+├── .storybook/main.ts          # Storybook 8 + react-vite
+├── .storybook/preview.ts       # Fringe viewports + backgrounds + MSW
+├── package.json                # Vite 6, React 19, RTK, MSW, Storybook 8
+├── tsconfig.json               # strict, ESNext, react-jsx
+├── vite.config.ts              # proxy /api → :8080
+├── public/mockServiceWorker.js  # MSW browser worker
+└── src/
+    ├── fringe-ui/tokens/       # CSS vars + TS constants
+    ├── store/                  # RTK Query (api, slices, types, data)
+    ├── mock/                   # MSW handlers
+    └── test/setup.ts           # vitest + @testing-library
+```
+
+---
+
+## Step 13: Restructure components into atoms/molecules/organisms (in progress)
+
+The user specified: "one folder per widget, with tsx and stories.tsx and such" and "atoms/molecules/organisms". This is a departure from the flat `fringe-ui/primitives|chrome|salon-widgets|layout` structure. Each component gets its own folder containing the `.tsx` implementation, `.stories.tsx`, and eventually `index.ts` barrel, `styles.ts`, `types.ts`, and test files.
+
+### Prompt Context
+
+**User prompt (verbatim):** "one folder per widget, with tsx and stories.tsx and such"
+
+**User prompt (verbatim):** "atoms/molecules/organisms"
+
+**Assistant interpretation:** Restructure the flat fringe-ui components into an atomic design hierarchy: atoms (leaf primitives like Button, Chip, Eyebrow), molecules (compositions like AppHeader, StylistCard, DayCell), organisms (shells and pages like IntakeShell, ServicePage). Each component lives in its own folder.
+
+**Inferred user intent:** Clean, scalable component architecture where each widget is self-contained and discoverable.
+
+### What I did
+
+1. Created folder structure under `web/src/`:
+   - `atoms/` — 15 folders: Button, Card, Chip, Eyebrow, IndexChip, Note, Progress, RatingBar, Rule, Segmented, TextField, Wordmark, StatusBar, HomeIndicator
+   - `molecules/` — 8 folders: AppHeader, TabBar, DayCell, Masthead, PhotoTile, Section, StylistCard, SummaryRow
+   - `organisms/` — 15 folders: IntakeShell, StepRail, ClientShell, StylistShell, ServicePage through ConfirmPage, WelcomePage, CareGuidePage
+
+2. Removed the temporary flat `fringe-ui/` copies (primitives, chrome, etc.)
+
+3. About to copy each component's `.tsx` + `.stories.tsx` into its folder, fixing imports
+
+### Why
+
+Atomic design (atoms → molecules → organisms) scales better than the flat category structure. One folder per widget makes it easy to find related files (component, stories, tests, styles) and supports future additions like `parts.ts` for CSS custom properties or `hooks.ts` for component-local logic.
+
+### What worked
+
+- The categorization is clean: atoms are leaf nodes (no children), molecules compose atoms, organisms compose molecules+atoms
+
+### What didn't work
+
+- N/A — still in progress
+
+### What was tricky to build
+
+- Deciding whether AppHeader is a molecule or organism — it composes Wordmark (atom) + back button (inline), so it's a molecule. TabBar similarly composes multiple tab items, so it's a molecule.
+- StatusBar and HomeIndicator are pure chrome decoration with no children — atoms.
+
+### What warrants a second pair of eyes
+
+- The molecule/organism boundary: IntakeShell is an organism because it's a full screen layout; StepRail is also an organism because it manages multi-step navigation state.
+
+### What should be done in the future
+
+- Add `index.ts` barrel exports for each component folder
+- Add `data-component` and `data-part` attributes for css-visual-diff targeting
+- Eventually add `styles.ts` or `parts.ts` for CSS custom properties per component
+
+### Code review instructions
+
+- Folder structure: `find web/src/{atoms,molecules,organisms} -type d | sort`
