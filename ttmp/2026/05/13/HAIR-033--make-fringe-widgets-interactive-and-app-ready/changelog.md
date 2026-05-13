@@ -227,3 +227,19 @@ Step 19: Added an intern-facing real UI app integration guide for the Goja backe
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/reference/01-diary.md — Diary step recording guide creation and reMarkable upload
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/tasks.md — Phased task plan for getting a live DSL viewing page working
 
+
+## 2026-05-13
+
+Step 20: Implemented the live Vite viewing page for the Goja backend DSL (commit 52dfccf). Added web/index.html, main.tsx, App.tsx, LiveDslDemoApp.tsx, configurable Vite backend proxy, and ignored tsbuildinfo. Verified Go tests, web tests, typecheck, Vite build, Storybook build, and a live browser path against backend port 19080.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/04-real-ui-app-integration-guide-for-goja-backend-dsl.md — Updated with Phase A implementation notes
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/tasks.md — Phase A marked complete
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/.gitignore — Ignores generated tsbuildinfo
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/index.html — Vite app entrypoint for the live DSL demo
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/App.tsx — Minimal app shell for the live DSL viewing page
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/LiveDslDemoApp.tsx — Phone-frame live backend DSL demo and debug panel
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/main.tsx — React bootstrap for the live app without StrictMode duplicate backend flow starts
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/vite.config.ts — Configurable backend proxy with HAIR_BOOKING_BACKEND_URL
+

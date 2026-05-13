@@ -2,13 +2,13 @@
 
 ## Phase A — Real Viewing Page for Live Goja Backend DSL
 
-- [ ] Add `web/index.html` as the Vite app entrypoint for the live DSL demo.
-- [ ] Add `web/src/main.tsx` to mount React and import Fringe design tokens.
-- [ ] Add `web/src/App.tsx` with a minimal app shell for the DSL demo route.
-- [ ] Add `web/src/LiveDslDemoApp.tsx` that renders `BackendDslPage flowId="fringe.intake.v1"` inside a phone-frame development shell.
-- [ ] Verify `VITE_ENABLE_MSW=false pnpm dev:backend` proxies `/api/dsl/*` to the live Go backend on `127.0.0.1:8080`.
-- [ ] Manually test the live browser path: service step loads, segmented changes dispatch to Goja, shell next opens color step, chip/rating changes persist after backend responses.
-- [ ] Add or document a smoke test recipe for `/dsl-goja-demo` that proves browser clicks traverse React → Go HTTP → Goja callback → JSON response → React rerender.
+- [x] Add `web/index.html` as the Vite app entrypoint for the live DSL demo.
+- [x] Add `web/src/main.tsx` to mount React and import Fringe design tokens.
+- [x] Add `web/src/App.tsx` with a minimal app shell for the DSL demo route.
+- [x] Add `web/src/LiveDslDemoApp.tsx` that renders `BackendDslPage flowId="fringe.intake.v1"` inside a phone-frame development shell.
+- [x] Verify `VITE_ENABLE_MSW=false pnpm dev:backend` proxies `/api/dsl/*` to the live Go backend on `127.0.0.1:8080`.
+- [x] Manually test the live browser path: service step loads, segmented changes dispatch to Goja, shell next opens color step, chip/rating changes persist after backend responses.
+- [x] Add or document a smoke test recipe for `/dsl-goja-demo` that proves browser clicks traverse React → Go HTTP → Goja callback → JSON response → React rerender.
 
 ## Phase B — Debuggability and Review Surface
 
