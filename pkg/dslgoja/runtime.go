@@ -43,7 +43,9 @@ type FlowSession struct {
 	state       goja.Value
 	CurrentPage Page
 
-	CurrentActions map[string]ActionRegistration
+	CurrentActions  map[string]ActionRegistration
+	RetiredActions  map[string]RetiredActionInfo
+	ProcessedEvents map[string]InteractionResult
 
 	mu sync.Mutex
 	rt *Runtime
@@ -53,7 +55,22 @@ type ActionRegistration struct {
 	ID       string
 	Name     string
 	Event    string
+	NodeID   string
+	Version  int64
 	Callback goja.Callable
+}
+
+type RetiredActionInfo struct {
+	ID        string
+	Name      string
+	Event     string
+	NodeID    string
+	Version   int64
+	RetiredAt time.Time
+}
+
+type renderTransaction struct {
+	NextActions map[string]ActionRegistration
 }
 
 func (rt *Runtime) StartFlow(ctx context.Context, flowID, source string) (*FlowSession, *InteractionResult, error) {
@@ -69,8 +86,10 @@ func (rt *Runtime) StartFlow(ctx context.Context, flowID, source string) (*FlowS
 		FlowID:         flowID,
 		VM:             vm,
 		flow:           flow,
-		CurrentActions: map[string]ActionRegistration{},
-		rt:             rt,
+		CurrentActions:  map[string]ActionRegistration{},
+		RetiredActions:  map[string]RetiredActionInfo{},
+		ProcessedEvents: map[string]InteractionResult{},
+		rt:              rt,
 	}
 
 	initialState, ok := goja.AssertFunction(flow.Get("initialState"))
@@ -103,8 +122,8 @@ func (s *FlowSession) renderLocked(ctx context.Context) (*InteractionResult, err
 		return nil, fmt.Errorf("flow %q does not export render(ctx)", s.FlowID)
 	}
 
-	s.CurrentActions = map[string]ActionRegistration{}
-	ctxObj := s.newContextObject()
+	tx := &renderTransaction{NextActions: map[string]ActionRegistration{}}
+	ctxObj := s.newContextObject(tx)
 	value, err := s.rt.callWithTimeout(ctx, s, render, goja.Undefined(), ctxObj)
 	if err != nil {
 		return nil, fmt.Errorf("render: %w", err)
@@ -124,12 +143,29 @@ func (s *FlowSession) renderLocked(ctx context.Context) (*InteractionResult, err
 		page.Nodes = []Node{}
 	}
 
-	s.Version++
-	s.CurrentPage = page
-	return &InteractionResult{SessionID: s.ID, PageVersion: s.Version, Page: page}, nil
+	return s.commitRenderTransaction(tx, page, nil), nil
 }
 
-func (s *FlowSession) newContextObject() *goja.Object {
+func (s *FlowSession) commitRenderTransaction(tx *renderTransaction, page Page, effects []Effect) *InteractionResult {
+	now := time.Now()
+	for id, action := range s.CurrentActions {
+		s.RetiredActions[id] = RetiredActionInfo{
+			ID:        action.ID,
+			Name:      action.Name,
+			Event:     action.Event,
+			NodeID:    action.NodeID,
+			Version:   action.Version,
+			RetiredAt: now,
+		}
+	}
+
+	s.Version++
+	s.CurrentPage = page
+	s.CurrentActions = tx.NextActions
+	return &InteractionResult{SessionID: s.ID, PageVersion: s.Version, Page: page, Effects: effects}
+}
+
+func (s *FlowSession) newContextObject(tx *renderTransaction) *goja.Object {
 	obj := s.VM.NewObject()
 	_ = obj.Set("sessionId", s.ID)
 	_ = obj.Set("flowId", s.FlowID)
@@ -145,7 +181,7 @@ func (s *FlowSession) newContextObject() *goja.Object {
 			event = call.Argument(2).String()
 		}
 		id := "act_" + uuid.NewString()
-		s.CurrentActions[id] = ActionRegistration{ID: id, Name: name, Event: event, Callback: callback}
+		tx.NextActions[id] = ActionRegistration{ID: id, Name: name, Event: event, Version: s.Version + 1, Callback: callback}
 
 		ref := s.VM.NewObject()
 		_ = ref.Set("id", id)
