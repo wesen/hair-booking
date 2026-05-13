@@ -1,8 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { fromJson, toJson } from "@bufbuild/protobuf";
-import { FlowStateSchema, InteractionEventSchema, PageSchema } from "../pb/proto/fringe/dsl/v1/dsl_pb";
+import { DslErrorSchema, FlowStateSchema, InteractionEventSchema, PageSchema } from "../pb/proto/fringe/dsl/v1/dsl_pb";
 
 describe("DSL protobuf JSON contract", () => {
+  it("decodes protobuf DSL errors", () => {
+    const error = fromJson(DslErrorSchema, {
+      code: "dsl_session_not_found",
+      message: "DSL session not found",
+      details: { sessionId: "flow_missing" },
+    });
+
+    expect(error.code).toBe("dsl_session_not_found");
+    expect(error.message).toBe("DSL session not found");
+    expect(error.details).toMatchObject({ sessionId: "flow_missing" });
+  });
+
   it("decodes the central FlowState transport envelope", () => {
     const state = fromJson(FlowStateSchema, {
       sessionId: "flow_1",

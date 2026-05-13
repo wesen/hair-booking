@@ -1,5 +1,5 @@
 import { fromJson, toJson, type JsonValue as ProtoJsonValue } from "@bufbuild/protobuf";
-import { FlowStateSchema, InteractionEventSchema, type FlowState as ProtoFlowState } from "../pb/proto/fringe/dsl/v1/dsl_pb";
+import { DslErrorSchema, FlowStateSchema, InteractionEventSchema, type FlowState as ProtoFlowState } from "../pb/proto/fringe/dsl/v1/dsl_pb";
 import type { DslBackendEvent, DslPage } from "./schema";
 
 export interface DslFlowState {
@@ -19,10 +19,6 @@ export interface DslEffect {
 export interface DslInteractionEvent extends DslBackendEvent {
   eventId: string;
   pageVersion: number;
-}
-
-interface ApiErrorEnvelope {
-  error?: { code: string; message: string };
 }
 
 export class DslApiError extends Error {
@@ -48,9 +44,16 @@ async function readProtoJSON(response: Response): Promise<unknown> {
   }
 
   if (!response.ok) {
-    const envelope = payload as ApiErrorEnvelope;
-    const message = envelope.error?.message || `DSL request failed with status ${response.status}`;
-    throw new DslApiError(message, { code: envelope.error?.code, status: response.status });
+    try {
+      const error = fromJson(DslErrorSchema, payload as ProtoJsonValue);
+      throw new DslApiError(error.message || `DSL request failed with status ${response.status}`, {
+        code: error.code || undefined,
+        status: response.status,
+      });
+    } catch (err) {
+      if (err instanceof DslApiError) throw err;
+      throw new DslApiError(`DSL request failed with status ${response.status}`, { status: response.status });
+    }
   }
   return payload;
 }

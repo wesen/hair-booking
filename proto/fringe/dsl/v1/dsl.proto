@@ -89,11 +89,9 @@ message FlowState {
   repeated Effect effects = 4;
 }
 
-// InteractionResult is retained as a same-shaped semantic alias for lower-level
-// runtime tests and future RPC methods that want an explicit dispatch result.
-message InteractionResult {
-  string session_id = 1;
-  uint32 page_version = 2;
-  Page page = 3;
-  repeated Effect effects = 4;
+// DslError is the canonical error envelope for DSL flow API failures.
+message DslError {
+  string code = 1;
+  string message = 2;
+  google.protobuf.Struct details = 3;
 }

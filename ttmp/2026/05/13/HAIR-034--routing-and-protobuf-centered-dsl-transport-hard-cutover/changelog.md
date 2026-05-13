@@ -50,3 +50,18 @@ Step 4: Fixed value-less edit events (commit ba7a895) under protobuf JSON by omi
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/ProtobufContract.test.ts — Covers value-less interaction events
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/backendClient.ts — Omits undefined optional protobuf JSON fields for edit/next/back/skip events
 
+
+## 2026-05-13
+
+Step 5: Finished protobuf cleanup (commit 851c25c) by adding DslError, returning protobuf JSON errors from DSL endpoints, decoding protobuf errors on the frontend, and removing the duplicate generated InteractionResult proto message. Validated Go/web tests, typecheck, and Vite build.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl.go — Returns protobuf JSON errors for DSL endpoint failures
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_test.go — Verifies protobuf error responses
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/proto/fringe/dsl/v1/dsl.proto — Defines FlowState success and DslError failure transport envelopes
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-034--routing-and-protobuf-centered-dsl-transport-hard-cutover/reference/01-diary.md — Diary Step 5
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-034--routing-and-protobuf-centered-dsl-transport-hard-cutover/tasks.md — Marks protobuf cleanup and live smoke tasks complete
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/ProtobufContract.test.ts — Covers DslError decoding
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/backendClient.ts — Decodes DslErrorSchema for non-2xx DSL responses
+

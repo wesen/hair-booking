@@ -6,6 +6,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	dslv1 "github.com/go-go-golems/hair-booking/gen/proto/fringe/dsl/v1"
+	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func TestDSLFlowEndpointsStartGetAndDispatch(t *testing.T) {
@@ -68,13 +71,20 @@ func TestDSLFlowEndpointsStartGetAndDispatch(t *testing.T) {
 	}
 }
 
-func TestDSLStartUnknownFlowReturnsNotFound(t *testing.T) {
+func TestDSLStartUnknownFlowReturnsProtobufError(t *testing.T) {
 	handler := NewHandler(HandlerOptions{Version: "test"})
 	req := httptest.NewRequest(http.MethodPost, "/api/dsl/flows/missing/start", nil)
 	rec := httptest.NewRecorder()
 	handler.ServeHTTP(rec, req)
 	if rec.Code != http.StatusNotFound {
 		t.Fatalf("status = %d body=%s", rec.Code, rec.Body.String())
+	}
+	var protoErr dslv1.DslError
+	if err := protojson.Unmarshal(rec.Body.Bytes(), &protoErr); err != nil {
+		t.Fatalf("decode proto error: %v body=%s", err, rec.Body.String())
+	}
+	if protoErr.Code != "dsl_flow_not_found" || protoErr.Message != "DSL flow not found" {
+		t.Fatalf("proto error = %#v", &protoErr)
 	}
 }
 

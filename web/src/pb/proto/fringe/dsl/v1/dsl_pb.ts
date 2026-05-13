@@ -12,7 +12,7 @@ import type { JsonObject, Message } from "@bufbuild/protobuf";
  * Describes the file proto/fringe/dsl/v1/dsl.proto.
  */
 export const file_proto_fringe_dsl_v1_dsl: GenFile = /*@__PURE__*/
-  fileDesc("Ch1wcm90by9mcmluZ2UvZHNsL3YxL2RzbC5wcm90bxINZnJpbmdlLmRzbC52MSK+AQoEUGFnZRIWCg5zY2hlbWFfdmVyc2lvbhgBIAEoDRIKCgJpZBgCIAEoCRINCgV0aXRsZRgDIAEoCRITCgtkZXNjcmlwdGlvbhgEIAEoCRIjCgVzaGVsbBgFIAEoCzIULmZyaW5nZS5kc2wudjEuU2hlbGwSIgoFbm9kZXMYBiADKAsyEy5mcmluZ2UuZHNsLnYxLk5vZGUSJQoEbWV0YRgHIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiPQoFU2hlbGwSDAoEa2luZBgBIAEoCRImCgVwcm9wcxgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiigEKBE5vZGUSDAoEa2luZBgBIAEoCRImCgVwcm9wcxgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSJQoIY2hpbGRyZW4YAyADKAsyEy5mcmluZ2UuZHNsLnYxLk5vZGUSJQoEbWV0YRgEIAEoCzIXLmZyaW5nZS5kc2wudjEuTm9kZU1ldGEicwoITm9kZU1ldGESCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIWCg5kYXRhX2NvbXBvbmVudBgDIAEoCRIUCgxkYXRhX3NlY3Rpb24YBCABKAkSEQoJZGF0YV9wYXJ0GAUgASgJEgwKBG5vdGUYBiABKAkiJgoJQWN0aW9uUmVmEgoKAmlkGAEgASgJEg0KBWV2ZW50GAIgASgJIl8KBkVmZmVjdBIMCgRraW5kGAEgASgJEgwKBHRvbmUYAiABKAkSDwoHbWVzc2FnZRgDIAEoCRIoCgdwYXlsb2FkGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCLiAQoQSW50ZXJhY3Rpb25FdmVudBIQCghldmVudF9pZBgBIAEoCRISCgpzZXNzaW9uX2lkGAIgASgJEhQKDHBhZ2VfdmVyc2lvbhgDIAEoDRIPCgdub2RlX2lkGAQgASgJEhEKCW5vZGVfa2luZBgFIAEoCRIRCglhY3Rpb25faWQYBiABKAkSDQoFZXZlbnQYByABKAkSJQoFdmFsdWUYCCABKAsyFi5nb29nbGUucHJvdG9idWYuVmFsdWUSJQoEbWV0YRgJIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiSwoQU3RhcnRGbG93UmVxdWVzdBIPCgdmbG93X2lkGAEgASgJEiYKBWlucHV0GAIgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCIkCg5HZXRGbG93UmVxdWVzdBISCgpzZXNzaW9uX2lkGAEgASgJIloKFERpc3BhdGNoRXZlbnRSZXF1ZXN0EhIKCnNlc3Npb25faWQYASABKAkSLgoFZXZlbnQYAiABKAsyHy5mcmluZ2UuZHNsLnYxLkludGVyYWN0aW9uRXZlbnQigAEKCUZsb3dTdGF0ZRISCgpzZXNzaW9uX2lkGAEgASgJEhQKDHBhZ2VfdmVyc2lvbhgCIAEoDRIhCgRwYWdlGAMgASgLMhMuZnJpbmdlLmRzbC52MS5QYWdlEiYKB2VmZmVjdHMYBCADKAsyFS5mcmluZ2UuZHNsLnYxLkVmZmVjdCKIAQoRSW50ZXJhY3Rpb25SZXN1bHQSEgoKc2Vzc2lvbl9pZBgBIAEoCRIUCgxwYWdlX3ZlcnNpb24YAiABKA0SIQoEcGFnZRgDIAEoCzITLmZyaW5nZS5kc2wudjEuUGFnZRImCgdlZmZlY3RzGAQgAygLMhUuZnJpbmdlLmRzbC52MS5FZmZlY3RCRFpCZ2l0aHViLmNvbS9nby1nby1nb2xlbXMvaGFpci1ib29raW5nL2dlbi9wcm90by9mcmluZ2UvZHNsL3YxO2RzbHYxYgZwcm90bzM", [file_google_protobuf_struct]);
+  fileDesc("Ch1wcm90by9mcmluZ2UvZHNsL3YxL2RzbC5wcm90bxINZnJpbmdlLmRzbC52MSK+AQoEUGFnZRIWCg5zY2hlbWFfdmVyc2lvbhgBIAEoDRIKCgJpZBgCIAEoCRINCgV0aXRsZRgDIAEoCRITCgtkZXNjcmlwdGlvbhgEIAEoCRIjCgVzaGVsbBgFIAEoCzIULmZyaW5nZS5kc2wudjEuU2hlbGwSIgoFbm9kZXMYBiADKAsyEy5mcmluZ2UuZHNsLnYxLk5vZGUSJQoEbWV0YRgHIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiPQoFU2hlbGwSDAoEa2luZBgBIAEoCRImCgVwcm9wcxgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiigEKBE5vZGUSDAoEa2luZBgBIAEoCRImCgVwcm9wcxgCIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QSJQoIY2hpbGRyZW4YAyADKAsyEy5mcmluZ2UuZHNsLnYxLk5vZGUSJQoEbWV0YRgEIAEoCzIXLmZyaW5nZS5kc2wudjEuTm9kZU1ldGEicwoITm9kZU1ldGESCgoCaWQYASABKAkSDAoEbmFtZRgCIAEoCRIWCg5kYXRhX2NvbXBvbmVudBgDIAEoCRIUCgxkYXRhX3NlY3Rpb24YBCABKAkSEQoJZGF0YV9wYXJ0GAUgASgJEgwKBG5vdGUYBiABKAkiJgoJQWN0aW9uUmVmEgoKAmlkGAEgASgJEg0KBWV2ZW50GAIgASgJIl8KBkVmZmVjdBIMCgRraW5kGAEgASgJEgwKBHRvbmUYAiABKAkSDwoHbWVzc2FnZRgDIAEoCRIoCgdwYXlsb2FkGAQgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCLiAQoQSW50ZXJhY3Rpb25FdmVudBIQCghldmVudF9pZBgBIAEoCRISCgpzZXNzaW9uX2lkGAIgASgJEhQKDHBhZ2VfdmVyc2lvbhgDIAEoDRIPCgdub2RlX2lkGAQgASgJEhEKCW5vZGVfa2luZBgFIAEoCRIRCglhY3Rpb25faWQYBiABKAkSDQoFZXZlbnQYByABKAkSJQoFdmFsdWUYCCABKAsyFi5nb29nbGUucHJvdG9idWYuVmFsdWUSJQoEbWV0YRgJIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3QiSwoQU3RhcnRGbG93UmVxdWVzdBIPCgdmbG93X2lkGAEgASgJEiYKBWlucHV0GAIgASgLMhcuZ29vZ2xlLnByb3RvYnVmLlN0cnVjdCIkCg5HZXRGbG93UmVxdWVzdBISCgpzZXNzaW9uX2lkGAEgASgJIloKFERpc3BhdGNoRXZlbnRSZXF1ZXN0EhIKCnNlc3Npb25faWQYASABKAkSLgoFZXZlbnQYAiABKAsyHy5mcmluZ2UuZHNsLnYxLkludGVyYWN0aW9uRXZlbnQigAEKCUZsb3dTdGF0ZRISCgpzZXNzaW9uX2lkGAEgASgJEhQKDHBhZ2VfdmVyc2lvbhgCIAEoDRIhCgRwYWdlGAMgASgLMhMuZnJpbmdlLmRzbC52MS5QYWdlEiYKB2VmZmVjdHMYBCADKAsyFS5mcmluZ2UuZHNsLnYxLkVmZmVjdCJTCghEc2xFcnJvchIMCgRjb2RlGAEgASgJEg8KB21lc3NhZ2UYAiABKAkSKAoHZGV0YWlscxgDIAEoCzIXLmdvb2dsZS5wcm90b2J1Zi5TdHJ1Y3RCRFpCZ2l0aHViLmNvbS9nby1nby1nb2xlbXMvaGFpci1ib29raW5nL2dlbi9wcm90by9mcmluZ2UvZHNsL3YxO2RzbHYxYgZwcm90bzM", [file_google_protobuf_struct]);
 
 /**
  * Page is the stable transport envelope for a backend-authored DSL page.
@@ -372,37 +372,31 @@ export const FlowStateSchema: GenMessage<FlowState> = /*@__PURE__*/
   messageDesc(file_proto_fringe_dsl_v1_dsl, 10);
 
 /**
- * InteractionResult is retained as a same-shaped semantic alias for lower-level
- * runtime tests and future RPC methods that want an explicit dispatch result.
+ * DslError is the canonical error envelope for DSL flow API failures.
  *
- * @generated from message fringe.dsl.v1.InteractionResult
+ * @generated from message fringe.dsl.v1.DslError
  */
-export type InteractionResult = Message<"fringe.dsl.v1.InteractionResult"> & {
+export type DslError = Message<"fringe.dsl.v1.DslError"> & {
   /**
-   * @generated from field: string session_id = 1;
+   * @generated from field: string code = 1;
    */
-  sessionId: string;
+  code: string;
 
   /**
-   * @generated from field: uint32 page_version = 2;
+   * @generated from field: string message = 2;
    */
-  pageVersion: number;
+  message: string;
 
   /**
-   * @generated from field: fringe.dsl.v1.Page page = 3;
+   * @generated from field: google.protobuf.Struct details = 3;
    */
-  page?: Page | undefined;
-
-  /**
-   * @generated from field: repeated fringe.dsl.v1.Effect effects = 4;
-   */
-  effects: Effect[];
+  details?: JsonObject | undefined;
 };
 
 /**
- * Describes the message fringe.dsl.v1.InteractionResult.
- * Use `create(InteractionResultSchema)` to create a new message.
+ * Describes the message fringe.dsl.v1.DslError.
+ * Use `create(DslErrorSchema)` to create a new message.
  */
-export const InteractionResultSchema: GenMessage<InteractionResult> = /*@__PURE__*/
+export const DslErrorSchema: GenMessage<DslError> = /*@__PURE__*/
   messageDesc(file_proto_fringe_dsl_v1_dsl, 11);
 

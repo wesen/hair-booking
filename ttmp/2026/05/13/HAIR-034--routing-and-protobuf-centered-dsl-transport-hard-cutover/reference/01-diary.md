@@ -393,3 +393,99 @@ pnpm build
 cd ..
 go test ./... -count=1
 ```
+
+---
+
+## Step 5: Finish protobuf cleanup with DSL error envelopes
+
+Completed the protobuf transport cleanup for the DSL API. Successful responses were already direct protobuf JSON `FlowState` objects; this step makes DSL endpoint failures protobuf JSON too by adding a `DslError` message and returning it from the DSL handlers. The generated `InteractionResult` proto message was removed so `FlowState` is the single canonical transport success envelope.
+
+The Goja runtime still keeps its internal `InteractionResult` struct because that is an in-process runtime concept, not a transport schema. The proto no longer exports a duplicate generated transport message with the same shape.
+
+### Prompt Context
+
+**User prompt (verbatim):** "works, now finish up all the protobuf"
+
+**Assistant interpretation:** The live browser smoke passed; finish the remaining protobuf cleanup work, especially error envelopes and duplicate proto messages.
+
+**Inferred user intent:** Make the DSL API consistently protobuf-defined across success and error transport shapes and remove leftover schema duplication from the hard cutover.
+
+**Commit (code):** 851c25c — "HAIR-034 Step 5: Finish protobuf DSL envelopes"
+
+### What I did
+
+- Added `DslError` to `proto/fringe/dsl/v1/dsl.proto`.
+- Removed generated proto `InteractionResult` from `dsl.proto`; `FlowState` is now the canonical success envelope.
+- Regenerated Go and TypeScript protobuf code with `buf generate`.
+- Updated `pkg/server/handlers_dsl.go`:
+  - added `writeDSLProtoError`,
+  - switched DSL endpoint failures from the generic API error envelope to direct protobuf JSON `DslError`,
+  - kept successful responses as direct protobuf JSON `FlowState`.
+- Updated `web/src/page-dsl/backendClient.ts`:
+  - decodes non-2xx DSL responses via `DslErrorSchema`,
+  - preserves `DslApiError.code` for recovery logic such as `dsl_session_not_found`.
+- Updated Go and TypeScript tests for protobuf error decoding.
+- Marked the live smoke tasks complete based on the user's confirmation that the browser flow works.
+
+### Why
+
+After the hard cutover, successes were protobuf-defined but errors were still in the old hand-written envelope shape. That left one remaining split contract. This step makes the DSL API transport consistently protobuf-defined for both success and failure payloads.
+
+### What worked
+
+Validation passed:
+
+```bash
+go test ./pkg/server ./pkg/dslgoja -count=1
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+pnpm build
+cd ..
+go test ./... -count=1
+```
+
+Frontend tests now include 25 passing tests.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- It is cleaner to make only the DSL endpoints return protobuf errors rather than changing the global `writeAPIError` helper, because the rest of the product API still uses the older JSON envelope.
+
+### What was tricky to build
+
+- The server has a shared generic error helper used by many non-DSL endpoints. The protobuf cleanup needed a DSL-specific error writer to avoid unintentionally changing unrelated APIs.
+- `writeProtoJSON` cannot call the protobuf DSL error writer on marshal failure without risking recursive failure, so it falls back to `http.Error` only in the unlikely case that protobuf marshaling itself fails.
+
+### What warrants a second pair of eyes
+
+- Whether `StartFlowRequest` and `GetFlowRequest` should be consumed by the current HTTP handlers now, or remain as RPC-compatible schema entries while path params remain canonical.
+- Whether the runtime's internal `InteractionResult` should eventually be renamed to avoid confusion with the removed proto message.
+
+### What should be done in the future
+
+- Consider adding a small browser smoke automation that asserts no console protobuf errors during edit-link clicks.
+- Begin Phase D host modules once routing/protobuf work is accepted.
+
+### Code review instructions
+
+Review:
+
+- `proto/fringe/dsl/v1/dsl.proto`
+- `pkg/server/handlers_dsl.go`
+- `web/src/page-dsl/backendClient.ts`
+- `pkg/server/handlers_dsl_test.go`
+- `web/src/page-dsl/ProtobufContract.test.ts`
+
+Validate with:
+
+```bash
+go test ./... -count=1
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+pnpm build
+```

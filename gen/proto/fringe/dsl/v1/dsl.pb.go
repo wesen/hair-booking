@@ -769,32 +769,30 @@ func (x *FlowState) GetEffects() []*Effect {
 	return nil
 }
 
-// InteractionResult is retained as a same-shaped semantic alias for lower-level
-// runtime tests and future RPC methods that want an explicit dispatch result.
-type InteractionResult struct {
+// DslError is the canonical error envelope for DSL flow API failures.
+type DslError struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	SessionId     string                 `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	PageVersion   uint32                 `protobuf:"varint,2,opt,name=page_version,json=pageVersion,proto3" json:"page_version,omitempty"`
-	Page          *Page                  `protobuf:"bytes,3,opt,name=page,proto3" json:"page,omitempty"`
-	Effects       []*Effect              `protobuf:"bytes,4,rep,name=effects,proto3" json:"effects,omitempty"`
+	Code          string                 `protobuf:"bytes,1,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	Details       *structpb.Struct       `protobuf:"bytes,3,opt,name=details,proto3" json:"details,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *InteractionResult) Reset() {
-	*x = InteractionResult{}
+func (x *DslError) Reset() {
+	*x = DslError{}
 	mi := &file_proto_fringe_dsl_v1_dsl_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *InteractionResult) String() string {
+func (x *DslError) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*InteractionResult) ProtoMessage() {}
+func (*DslError) ProtoMessage() {}
 
-func (x *InteractionResult) ProtoReflect() protoreflect.Message {
+func (x *DslError) ProtoReflect() protoreflect.Message {
 	mi := &file_proto_fringe_dsl_v1_dsl_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -806,35 +804,28 @@ func (x *InteractionResult) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use InteractionResult.ProtoReflect.Descriptor instead.
-func (*InteractionResult) Descriptor() ([]byte, []int) {
+// Deprecated: Use DslError.ProtoReflect.Descriptor instead.
+func (*DslError) Descriptor() ([]byte, []int) {
 	return file_proto_fringe_dsl_v1_dsl_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *InteractionResult) GetSessionId() string {
+func (x *DslError) GetCode() string {
 	if x != nil {
-		return x.SessionId
+		return x.Code
 	}
 	return ""
 }
 
-func (x *InteractionResult) GetPageVersion() uint32 {
+func (x *DslError) GetMessage() string {
 	if x != nil {
-		return x.PageVersion
+		return x.Message
 	}
-	return 0
+	return ""
 }
 
-func (x *InteractionResult) GetPage() *Page {
+func (x *DslError) GetDetails() *structpb.Struct {
 	if x != nil {
-		return x.Page
-	}
-	return nil
-}
-
-func (x *InteractionResult) GetEffects() []*Effect {
-	if x != nil {
-		return x.Effects
+		return x.Details
 	}
 	return nil
 }
@@ -901,13 +892,11 @@ const file_proto_fringe_dsl_v1_dsl_proto_rawDesc = "" +
 	"session_id\x18\x01 \x01(\tR\tsessionId\x12!\n" +
 	"\fpage_version\x18\x02 \x01(\rR\vpageVersion\x12'\n" +
 	"\x04page\x18\x03 \x01(\v2\x13.fringe.dsl.v1.PageR\x04page\x12/\n" +
-	"\aeffects\x18\x04 \x03(\v2\x15.fringe.dsl.v1.EffectR\aeffects\"\xaf\x01\n" +
-	"\x11InteractionResult\x12\x1d\n" +
-	"\n" +
-	"session_id\x18\x01 \x01(\tR\tsessionId\x12!\n" +
-	"\fpage_version\x18\x02 \x01(\rR\vpageVersion\x12'\n" +
-	"\x04page\x18\x03 \x01(\v2\x13.fringe.dsl.v1.PageR\x04page\x12/\n" +
-	"\aeffects\x18\x04 \x03(\v2\x15.fringe.dsl.v1.EffectR\aeffectsBDZBgithub.com/go-go-golems/hair-booking/gen/proto/fringe/dsl/v1;dslv1b\x06proto3"
+	"\aeffects\x18\x04 \x03(\v2\x15.fringe.dsl.v1.EffectR\aeffects\"k\n" +
+	"\bDslError\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\tR\x04code\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\x121\n" +
+	"\adetails\x18\x03 \x01(\v2\x17.google.protobuf.StructR\adetailsBDZBgithub.com/go-go-golems/hair-booking/gen/proto/fringe/dsl/v1;dslv1b\x06proto3"
 
 var (
 	file_proto_fringe_dsl_v1_dsl_proto_rawDescOnce sync.Once
@@ -934,7 +923,7 @@ var file_proto_fringe_dsl_v1_dsl_proto_goTypes = []any{
 	(*GetFlowRequest)(nil),       // 8: fringe.dsl.v1.GetFlowRequest
 	(*DispatchEventRequest)(nil), // 9: fringe.dsl.v1.DispatchEventRequest
 	(*FlowState)(nil),            // 10: fringe.dsl.v1.FlowState
-	(*InteractionResult)(nil),    // 11: fringe.dsl.v1.InteractionResult
+	(*DslError)(nil),             // 11: fringe.dsl.v1.DslError
 	(*structpb.Struct)(nil),      // 12: google.protobuf.Struct
 	(*structpb.Value)(nil),       // 13: google.protobuf.Value
 }
@@ -953,13 +942,12 @@ var file_proto_fringe_dsl_v1_dsl_proto_depIdxs = []int32{
 	6,  // 11: fringe.dsl.v1.DispatchEventRequest.event:type_name -> fringe.dsl.v1.InteractionEvent
 	0,  // 12: fringe.dsl.v1.FlowState.page:type_name -> fringe.dsl.v1.Page
 	5,  // 13: fringe.dsl.v1.FlowState.effects:type_name -> fringe.dsl.v1.Effect
-	0,  // 14: fringe.dsl.v1.InteractionResult.page:type_name -> fringe.dsl.v1.Page
-	5,  // 15: fringe.dsl.v1.InteractionResult.effects:type_name -> fringe.dsl.v1.Effect
-	16, // [16:16] is the sub-list for method output_type
-	16, // [16:16] is the sub-list for method input_type
-	16, // [16:16] is the sub-list for extension type_name
-	16, // [16:16] is the sub-list for extension extendee
-	0,  // [0:16] is the sub-list for field type_name
+	12, // 14: fringe.dsl.v1.DslError.details:type_name -> google.protobuf.Struct
+	15, // [15:15] is the sub-list for method output_type
+	15, // [15:15] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_proto_fringe_dsl_v1_dsl_proto_init() }

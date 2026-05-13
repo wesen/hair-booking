@@ -40,7 +40,7 @@ func (s *dslFlowStore) get(id string) (*dslgoja.FlowSession, bool) {
 func writeProtoJSON(w http.ResponseWriter, status int, msg proto.Message) {
 	payload, err := protojson.MarshalOptions{EmitUnpopulated: false}.Marshal(msg)
 	if err != nil {
-		writeAPIError(w, http.StatusInternalServerError, "proto_encode_failed", err.Error())
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
@@ -48,22 +48,26 @@ func writeProtoJSON(w http.ResponseWriter, status int, msg proto.Message) {
 	_, _ = w.Write(payload)
 }
 
+func writeDSLProtoError(w http.ResponseWriter, status int, code, message string) {
+	writeProtoJSON(w, status, &dslv1.DslError{Code: code, Message: message})
+}
+
 func (h *appHandler) handleDSLStartFlow(w http.ResponseWriter, r *http.Request) {
 	flowID := r.PathValue("flowId")
 	if flowID != "fringe.intake.v1" {
-		writeAPIError(w, http.StatusNotFound, "dsl_flow_not_found", "DSL flow not found")
+		writeDSLProtoError(w, http.StatusNotFound, "dsl_flow_not_found", "DSL flow not found")
 		return
 	}
 
 	session, result, err := h.dslFlows.runtime.StartFlow(r.Context(), flowID, dslgoja.DemoIntakeFlowSource)
 	if err != nil {
-		writeAPIError(w, http.StatusInternalServerError, "dsl_flow_start_failed", err.Error())
+		writeDSLProtoError(w, http.StatusInternalServerError, "dsl_flow_start_failed", err.Error())
 		return
 	}
 	h.dslFlows.put(session)
 	state, err := dslgoja.FlowStateFromResult(result)
 	if err != nil {
-		writeAPIError(w, http.StatusInternalServerError, "dsl_proto_conversion_failed", err.Error())
+		writeDSLProtoError(w, http.StatusInternalServerError, "dsl_proto_conversion_failed", err.Error())
 		return
 	}
 	writeProtoJSON(w, http.StatusOK, state)
@@ -73,13 +77,13 @@ func (h *appHandler) handleDSLGetFlow(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.PathValue("sessionId")
 	session, ok := h.dslFlows.get(sessionID)
 	if !ok {
-		writeAPIError(w, http.StatusNotFound, "dsl_session_not_found", "DSL session not found")
+		writeDSLProtoError(w, http.StatusNotFound, "dsl_session_not_found", "DSL session not found")
 		return
 	}
 	version, page := session.Snapshot()
 	state, err := dslgoja.FlowStateFromSnapshot(session.ID, version, page)
 	if err != nil {
-		writeAPIError(w, http.StatusInternalServerError, "dsl_proto_conversion_failed", err.Error())
+		writeDSLProtoError(w, http.StatusInternalServerError, "dsl_proto_conversion_failed", err.Error())
 		return
 	}
 	writeProtoJSON(w, http.StatusOK, state)
@@ -89,30 +93,30 @@ func (h *appHandler) handleDSLEvent(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.PathValue("sessionId")
 	session, ok := h.dslFlows.get(sessionID)
 	if !ok {
-		writeAPIError(w, http.StatusNotFound, "dsl_session_not_found", "DSL session not found")
+		writeDSLProtoError(w, http.StatusNotFound, "dsl_session_not_found", "DSL session not found")
 		return
 	}
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		writeAPIError(w, http.StatusBadRequest, "invalid_dsl_event", "Could not read DSL event body")
+		writeDSLProtoError(w, http.StatusBadRequest, "invalid_dsl_event", "Could not read DSL event body")
 		return
 	}
 	var protoEvent dslv1.InteractionEvent
 	if err := protojson.Unmarshal(body, &protoEvent); err != nil {
-		writeAPIError(w, http.StatusBadRequest, "invalid_dsl_event", "Invalid DSL event protobuf JSON")
+		writeDSLProtoError(w, http.StatusBadRequest, "invalid_dsl_event", "Invalid DSL event protobuf JSON")
 		return
 	}
 	protoEvent.SessionId = sessionID
 
 	result, err := session.Dispatch(r.Context(), dslgoja.InteractionEventFromProto(&protoEvent))
 	if err != nil {
-		writeAPIError(w, http.StatusBadRequest, "dsl_dispatch_failed", err.Error())
+		writeDSLProtoError(w, http.StatusBadRequest, "dsl_dispatch_failed", err.Error())
 		return
 	}
 	state, err := dslgoja.FlowStateFromResult(result)
 	if err != nil {
-		writeAPIError(w, http.StatusInternalServerError, "dsl_proto_conversion_failed", err.Error())
+		writeDSLProtoError(w, http.StatusInternalServerError, "dsl_proto_conversion_failed", err.Error())
 		return
 	}
 	writeProtoJSON(w, http.StatusOK, state)

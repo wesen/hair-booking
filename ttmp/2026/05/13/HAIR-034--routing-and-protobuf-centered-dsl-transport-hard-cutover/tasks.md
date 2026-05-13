@@ -32,6 +32,15 @@
 ## Phase 6 — Live Routing and Smoke
 
 - [x] Restart devctl backend/web.
-- [ ] Verify seven-step routing URL projection.
-- [ ] Verify estimate/confirm edit links.
-- [ ] Verify dispatch toast no longer overlaps footer.
+- [x] Verify seven-step routing URL projection.
+- [x] Verify estimate/confirm edit links.
+- [x] Verify dispatch toast no longer overlaps footer.
+
+
+## Phase 7 — Protobuf Cleanup and Error Envelopes
+
+- [x] Add protobuf-defined DSL error envelope.
+- [x] Return protobuf JSON errors from DSL endpoints.
+- [x] Decode protobuf errors in the frontend client.
+- [x] Remove duplicate generated `InteractionResult` proto message in favor of `FlowState`.
+- [x] Validate Go/web tests, typecheck, and Vite build.
