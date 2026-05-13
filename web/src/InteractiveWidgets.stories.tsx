@@ -2,10 +2,10 @@ import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { Segmented } from "./atoms/Segmented/Segmented";
 import { RatingBar } from "./atoms/RatingBar/RatingBar";
-import { ServiceOption } from "./molecules/ServiceOption/ServiceOption";
-import { BudgetOption } from "./molecules/BudgetOption/BudgetOption";
-import { TimeSlot } from "./molecules/TimeSlot/TimeSlot";
-import { DayCell } from "./molecules/DayCell/DayCell";
+import { ServiceOptionGroup } from "./molecules/ServiceOption/ServiceOptionGroup";
+import { BudgetOptionGroup } from "./molecules/BudgetOption/BudgetOptionGroup";
+import { TimeSlotGroup } from "./molecules/TimeSlot/TimeSlotGroup";
+import { DayPickerGrid } from "./molecules/DayCell/DayPickerGrid";
 import { LengthSilhouette } from "./molecules/LengthSilhouette/LengthSilhouette";
 import { PhotoTile } from "./molecules/PhotoTile/PhotoTile";
 import { color, font, type as typeToken } from "./fringe-ui/tokens";
@@ -26,6 +26,26 @@ function StateDump({ value }: { value: unknown }) {
   );
 }
 
+const serviceOptions = [
+  { value: "cut", name: "Cut", description: "Trim · restyle · bangs", rate: "$80+" },
+  { value: "highlights", name: "Highlights", description: "Partial · full · balayage", rate: "$180+" },
+  { value: "gloss", name: "Gloss refresh", description: "Tone · shine · maintenance", rate: "$120+" },
+];
+
+const budgetOptions = [
+  { value: "150-250", label: "$150 – $250", description: "Partial color" },
+  { value: "250-400", label: "$250 – $400", description: "Full color" },
+];
+
+const timeOptions = ["10:30a", "12:00p", "2:00p", "4:30p"].map((slot) => ({ value: slot, label: slot }));
+const dayOptions = Array.from({ length: 21 }).map((_, i) => ({
+  value: String(i + 1),
+  day: i + 1,
+  disabled: i < 10,
+  disabledReason: i < 10 ? "too soon" : undefined,
+  dot: [14, 17, 18].includes(i + 1),
+}));
+
 export const IntakeSelections: Story = {
   render: () => {
     const [service, setService] = useState("highlights");
@@ -44,14 +64,8 @@ export const IntakeSelections: Story = {
           onChange={(next) => console.log("segmented", next)}
           style={{ marginBottom: 16 }}
         />
-        <ServiceOption value="cut" name="Cut" description="Trim · restyle · bangs" rate="$80+" selected={service === "cut"} onSelect={setService} />
-        <ServiceOption value="highlights" name="Highlights" description="Partial · full · balayage" rate="$180+" selected={service === "highlights"} onSelect={setService} />
-        <ServiceOption value="gloss" name="Gloss refresh" description="Tone · shine · maintenance" rate="$120+" selected={service === "gloss"} onSelect={setService} />
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 12 }}>
-          <BudgetOption value="150-250" label="$150 – $250" description="Partial color" selected={budget === "150-250"} onSelect={setBudget} />
-          <BudgetOption value="250-400" label="$250 – $400" description="Full color" selected={budget === "250-400"} onSelect={setBudget} />
-        </div>
+        <ServiceOptionGroup options={serviceOptions} value={service} onChange={setService} />
+        <BudgetOptionGroup options={budgetOptions} value={budget} onChange={setBudget} columns={2} style={{ marginTop: 12 }} />
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, marginTop: 12 }}>
           {["Bob", "Shoulder", "Mid-back"].map((item) => (
@@ -79,17 +93,8 @@ export const BookingSelections: Story = {
     return (
       <div style={{ maxWidth: 420 }}>
         <h2 style={{ ...typeToken.h2, margin: "0 0 14px" }}>Booking and upload selectors</h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 16 }}>
-          {Array.from({ length: 21 }).map((_, i) => {
-            const value = String(i + 1);
-            return <DayCell key={value} day={value} selected={day === value} disabled={i < 10} dot={[14, 17, 18].includes(i + 1)} onSelect={setDay} />;
-          })}
-        </div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 6, marginBottom: 16 }}>
-          {["10:30a", "12:00p", "2:00p", "4:30p"].map((slot) => (
-            <TimeSlot key={slot} value={slot} label={slot} selected={time === slot} onSelect={setTime} />
-          ))}
-        </div>
+        <DayPickerGrid days={dayOptions} value={day} onChange={setDay} style={{ marginBottom: 16 }} />
+        <TimeSlotGroup options={timeOptions} value={time} onChange={setTime} style={{ marginBottom: 16 }} />
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8 }}>
           {["front", "side", "back"].map((item) => {
             const filled = photos.includes(item);
@@ -109,4 +114,15 @@ export const BookingSelections: Story = {
       </div>
     );
   },
+};
+
+export const UncontrolledGroups: Story = {
+  render: () => (
+    <div style={{ maxWidth: 420 }}>
+      <h2 style={{ ...typeToken.h2, margin: "0 0 14px" }}>Uncontrolled group defaults</h2>
+      <ServiceOptionGroup options={serviceOptions} defaultValue="gloss" />
+      <BudgetOptionGroup options={budgetOptions} defaultValue="150-250" columns={2} style={{ marginTop: 12 }} />
+      <TimeSlotGroup options={timeOptions} defaultValue="12:00p" style={{ marginTop: 12 }} />
+    </div>
+  ),
 };
