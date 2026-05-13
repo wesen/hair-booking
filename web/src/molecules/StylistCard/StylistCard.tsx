@@ -13,7 +13,7 @@ export function StylistCard({ name, role, rate, available, style }: StylistCardP
   const initials = name.split(' ').map(w => w[0]).join('').slice(0, 2);
 
   return (
-    <div style={{
+    <div data-component="StylistCard" style={{
       background: color.paper,
       border: `1px solid ${color.rule}`,
       padding: 16,
@@ -22,7 +22,7 @@ export function StylistCard({ name, role, rate, available, style }: StylistCardP
       alignItems: 'center',
       ...style,
     }}>
-      <div style={{
+      <div data-component="StylistCard" style={{
         width: 56,
         height: 56,
         borderRadius: 999,
@@ -37,8 +37,8 @@ export function StylistCard({ name, role, rate, available, style }: StylistCardP
       }}>
         {initials}
       </div>
-      <div style={{ flex: 1 }}>
-        <div style={{
+      <div data-component="StylistCard" style={{ flex: 1 }}>
+        <div data-component="StylistCard" style={{
           fontFamily: font.block,
           fontSize: 18,
           letterSpacing: 0.3,
@@ -47,7 +47,7 @@ export function StylistCard({ name, role, rate, available, style }: StylistCardP
         }}>
           {name}
         </div>
-        <div style={{
+        <div data-component="StylistCard" style={{
           fontFamily: font.sans,
           fontSize: 12,
           color: color.soft,
@@ -56,9 +56,9 @@ export function StylistCard({ name, role, rate, available, style }: StylistCardP
           {role}
         </div>
       </div>
-      <div style={{ textAlign: 'right' }}>
+      <div data-component="StylistCard" style={{ textAlign: 'right' }}>
         {rate && (
-          <div style={{
+          <div data-component="StylistCard" style={{
             fontFamily: font.mono,
             fontSize: 11,
             color: color.plum,
@@ -67,7 +67,7 @@ export function StylistCard({ name, role, rate, available, style }: StylistCardP
           </div>
         )}
         {available && (
-          <div style={{
+          <div data-component="StylistCard" style={{
             fontFamily: font.serif,
             fontStyle: 'italic',
             fontSize: 13,

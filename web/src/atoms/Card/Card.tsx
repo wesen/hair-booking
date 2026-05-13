@@ -9,7 +9,7 @@ interface CardProps {
 
 export function Card({ accent, children, style }: CardProps) {
   return (
-    <div style={{
+    <div data-component="Card" style={{
       background: color.cream,
       padding: '16px 18px',
       borderLeft: accent ? `3px solid ${accent}` : 'none',

@@ -20,14 +20,14 @@ export function StylistShell({
   style,
 }: StylistShellProps) {
   return (
-    <div style={{
+    <div data-component="StylistShell" style={{
       minHeight: '100vh',
       background: '#faf8f5',
       display: 'flex',
       flexDirection: 'column',
       ...style,
     }}>
-      <div style={{ flex: 1 }}>{children}</div>
+      <div data-component="StylistShell" style={{ flex: 1 }}>{children}</div>
 
       {onTabChange && (
         <TabBar

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { ClientShell } from "./ClientShell";
 
 const meta: Meta<typeof ClientShell> = {
-  title: "Fringe/Layout/ClientShell",
+  title: "Organisms/ClientShell",
   component: ClientShell,
   tags: ["autodocs"],
 };

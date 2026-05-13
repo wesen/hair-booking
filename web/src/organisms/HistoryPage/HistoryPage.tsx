@@ -52,14 +52,14 @@ export function HistoryPage({ onNext, onBack, lastService = "Partial highlights"
     >
       {/* Last service card */}
       <Card accent={color.plum} style={{ marginBottom: 14 }}>
-        <div style={{
+        <div data-component="HistoryPage" style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "baseline",
           marginBottom: 4,
         }}>
           <Eyebrow>01 — LAST SERVICE</Eyebrow>
-          <div style={{
+          <div data-component="HistoryPage" style={{
             fontFamily: font.serif,
             fontStyle: "italic",
             fontSize: 14,
@@ -68,14 +68,14 @@ export function HistoryPage({ onNext, onBack, lastService = "Partial highlights"
             edit
           </div>
         </div>
-        <div style={{
+        <div data-component="HistoryPage" style={{
           fontFamily: font.block,
           fontSize: 22,
           textTransform: "uppercase" as const,
         }}>
           {lastService}
         </div>
-        <div style={{
+        <div data-component="HistoryPage" style={{
           fontFamily: font.serif,
           fontStyle: "italic",
           fontSize: 16,
@@ -87,9 +87,9 @@ export function HistoryPage({ onNext, onBack, lastService = "Partial highlights"
       </Card>
 
       {/* Current condition */}
-      <div style={{ padding: "10px 0 14px" }}>
+      <div data-component="HistoryPage" style={{ padding: "10px 0 14px" }}>
         <Eyebrow style={{ marginBottom: 10 }}>02 — CURRENT CONDITION</Eyebrow>
-        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
+        <div data-component="HistoryPage" style={{ display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
           {CONDITIONS.map((c) => (
             <Chip
               key={c}
@@ -103,7 +103,7 @@ export function HistoryPage({ onNext, onBack, lastService = "Partial highlights"
       </div>
 
       {/* Condition rating bars */}
-      <div style={{ padding: "14px 0", borderTop: `1px solid ${color.rule}` }}>
+      <div data-component="HistoryPage" style={{ padding: "14px 0", borderTop: `1px solid ${color.rule}` }}>
         <Eyebrow style={{ marginBottom: 12 }}>03 — RATE CONDITION</Eyebrow>
         <RatingBar
           label="Breakage"

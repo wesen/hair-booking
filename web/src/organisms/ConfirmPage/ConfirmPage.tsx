@@ -44,7 +44,7 @@ export function ConfirmPage({
       onNext={onDone}
       onSkip={undefined}
     >
-      <div style={{
+      <div data-component="ConfirmPage" style={{
         fontFamily: font.serif,
         fontStyle: "italic",
         fontSize: 17,
@@ -60,14 +60,14 @@ export function ConfirmPage({
       <SummaryRow label="Estimate" value={`${estimate} · ${duration}`} />
       <SummaryRow label="Deposit"  value={deposit} />
 
-      <div style={{ marginTop: 20 }}>
+      <div data-component="ConfirmPage" style={{ marginTop: 20 }}>
         <Note tone="success">
           Deposit received. Cancellations inside 24h forfeit deposit.
         </Note>
       </div>
 
       {onAddToCalendar && (
-        <div style={{ marginTop: 20 }}>
+        <div data-component="ConfirmPage" style={{ marginTop: 20 }}>
           <Button variant="secondary" onClick={onAddToCalendar}>
             Add to calendar
           </Button>

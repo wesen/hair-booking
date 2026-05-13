@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Wordmark } from "./Wordmark";
 
 const meta: Meta<typeof Wordmark> = {
-  title: "Fringe/Primitives/Wordmark",
+  title: "Atoms/Wordmark",
   component: Wordmark,
   tags: ["autodocs"],
 };

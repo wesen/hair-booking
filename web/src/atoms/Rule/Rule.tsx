@@ -8,6 +8,6 @@ interface RuleProps {
 
 export function Rule({ color: c = color.rule, thick }: RuleProps) {
   return (
-    <div style={{ height: thick ? 2 : 1, background: c, width: '100%' }} />
+    <div data-component="Rule" style={{ height: thick ? 2 : 1, background: c, width: '100%' }} />
   );
 }

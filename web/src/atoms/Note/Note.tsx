@@ -17,7 +17,7 @@ const palette = {
 export function Note({ tone = 'info', children, style }: NoteProps) {
   const { bg, accent } = palette[tone];
   return (
-    <div style={{
+    <div data-component="Note" style={{
       background: bg,
       padding: '12px 14px',
       borderLeft: `3px solid ${accent}`,

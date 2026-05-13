@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { DayCell } from "./DayCell";
 
 const meta: Meta<typeof DayCell> = {
-  title: "Fringe/Salon/DayCell",
+  title: "Molecules/DayCell",
   component: DayCell,
   tags: ["autodocs"],
 };

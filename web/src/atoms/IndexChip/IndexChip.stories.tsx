@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { IndexChip } from "./IndexChip";
 
 const meta: Meta<typeof IndexChip> = {
-  title: "Fringe/Primitives/IndexChip",
+  title: "Atoms/IndexChip",
   component: IndexChip,
   tags: ["autodocs"],
 };

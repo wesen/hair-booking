@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { StylistShell } from "./StylistShell";
 
 const meta: Meta<typeof StylistShell> = {
-  title: "Fringe/Layout/StylistShell",
+  title: "Organisms/StylistShell",
   component: StylistShell,
   tags: ["autodocs"],
 };

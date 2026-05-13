@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { TabBar, ClientTabBar } from "./TabBar";
 
 const meta: Meta<typeof TabBar> = {
-  title: "Fringe/Chrome/TabBar",
+  title: "Molecules/TabBar",
   component: TabBar,
   tags: ["autodocs"],
 };
@@ -71,7 +71,7 @@ export const Unstyled: Story = {
 
 // ── Client Tab Bar ──────────────────────────────────────
 const clientMeta: Meta<typeof ClientTabBar> = {
-  title: "Fringe/Chrome/ClientTabBar",
+  title: "Molecules/ClientTabBar",
   component: ClientTabBar,
   tags: ["autodocs"],
 };

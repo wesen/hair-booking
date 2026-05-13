@@ -23,9 +23,9 @@ export function RatingBar({
   );
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', ...style }}>
+    <div data-component="RatingBar" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', ...style }}>
       {label && (
-        <div style={{
+        <div data-component="RatingBar" style={{
           fontFamily: '"Anton", Impact, sans-serif',
           fontSize: 14,
           color: color.ink,
@@ -35,9 +35,9 @@ export function RatingBar({
           {label}
         </div>
       )}
-      <div style={{ display: 'flex', gap: 3, flex: 1 }}>
+      <div data-component="RatingBar" style={{ display: 'flex', gap: 3, flex: 1 }}>
         {Array.from({ length: max }).map((_, i) => (
-          <div
+          <div data-component="RatingBar"
             key={i}
             style={{
               flex: 1,
@@ -48,7 +48,7 @@ export function RatingBar({
           />
         ))}
       </div>
-      <div style={{
+      <div data-component="RatingBar" style={{
         fontFamily: '"JetBrains Mono", monospace',
         fontSize: 11,
         color: color.soft,

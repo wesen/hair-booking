@@ -18,14 +18,14 @@ export function ClientShell({
   style,
 }: ClientShellProps) {
   return (
-    <div style={{
+    <div data-component="ClientShell" style={{
       minHeight: '100vh',
       background: '#faf8f5',
       display: 'flex',
       flexDirection: 'column',
       ...style,
     }}>
-      <div style={{ flex: 1 }}>{children}</div>
+      <div data-component="ClientShell" style={{ flex: 1 }}>{children}</div>
 
       {onTabChange && (
         <ClientTabBar

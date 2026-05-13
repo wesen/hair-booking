@@ -10,7 +10,7 @@ interface SummaryRowProps {
 
 export function SummaryRow({ label, value, onEdit, style }: SummaryRowProps) {
   return (
-    <div style={{
+    <div data-component="SummaryRow" style={{
       padding: '14px 0',
       borderTop: `1px solid ${color.rule}`,
       display: 'flex',
@@ -19,8 +19,8 @@ export function SummaryRow({ label, value, onEdit, style }: SummaryRowProps) {
       gap: 16,
       ...style,
     }}>
-      <div style={{ flex: 1 }}>
-        <div style={{
+      <div data-component="SummaryRow" style={{ flex: 1 }}>
+        <div data-component="SummaryRow" style={{
           fontFamily: font.mono,
           fontSize: 10,
           letterSpacing: 1.8,
@@ -31,7 +31,7 @@ export function SummaryRow({ label, value, onEdit, style }: SummaryRowProps) {
         }}>
           {label}
         </div>
-        <div style={{
+        <div data-component="SummaryRow" style={{
           fontFamily: font.block,
           fontSize: 18,
           letterSpacing: 0.3,
@@ -42,7 +42,7 @@ export function SummaryRow({ label, value, onEdit, style }: SummaryRowProps) {
         </div>
       </div>
       {onEdit && (
-        <div
+        <div data-component="SummaryRow"
           onClick={onEdit}
           style={{
             fontFamily: font.serif,

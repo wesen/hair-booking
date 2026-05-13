@@ -24,7 +24,7 @@ export function TabBar({ activeTab, onTabChange, accentColor = "#e8573c", style 
   ];
 
   return (
-    <div style={{
+    <div data-component="TabBar" style={{
       display: 'flex',
       padding: '16px 8px 24px',
       borderTop: '1px solid #e8e3da',
@@ -34,7 +34,7 @@ export function TabBar({ activeTab, onTabChange, accentColor = "#e8573c", style 
       {tabs.map(tab => {
         const on = tab.key === activeTab;
         return (
-          <div
+          <div data-component="TabBar"
             key={tab.key}
             onClick={() => onTabChange(tab.key)}
             style={{
@@ -48,14 +48,14 @@ export function TabBar({ activeTab, onTabChange, accentColor = "#e8573c", style 
               position: 'relative',
             }}
           >
-            <div style={{
+            <div data-component="TabBar" style={{
               fontFamily: '"Anton", Impact, sans-serif',
               fontSize: 18,
               color: on ? '#111111' : '#9a958e',
             }}>
               {tab.icon}
             </div>
-            <div style={{
+            <div data-component="TabBar" style={{
               fontFamily: '"JetBrains Mono", monospace',
               fontSize: 9,
               letterSpacing: 1.2,
@@ -64,7 +64,7 @@ export function TabBar({ activeTab, onTabChange, accentColor = "#e8573c", style 
               {tab.label}
             </div>
             {tab.badge != null && (
-              <div style={{
+              <div data-component="TabBar" style={{
                 position: 'absolute',
                 top: -4,
                 right: 'calc(50% - 16px)',
@@ -101,7 +101,7 @@ export function ClientTabBar({ activeTab, onTabChange, style }: Omit<TabBarProps
   ];
 
   return (
-    <div style={{
+    <div data-component="TabBar" style={{
       display: 'flex',
       padding: '16px 8px 24px',
       borderTop: '1px solid #e8e3da',
@@ -111,7 +111,7 @@ export function ClientTabBar({ activeTab, onTabChange, style }: Omit<TabBarProps
       {tabs.map(tab => {
         const on = tab.key === activeTab;
         return (
-          <div
+          <div data-component="TabBar"
             key={tab.key}
             onClick={() => onTabChange(tab.key)}
             style={{
@@ -124,14 +124,14 @@ export function ClientTabBar({ activeTab, onTabChange, style }: Omit<TabBarProps
               cursor: 'pointer',
             }}
           >
-            <div style={{
+            <div data-component="TabBar" style={{
               fontFamily: '"Anton", Impact, sans-serif',
               fontSize: 18,
               color: on ? '#111111' : '#9a958e',
             }}>
               {tab.icon}
             </div>
-            <div style={{
+            <div data-component="TabBar" style={{
               fontFamily: '"JetBrains Mono", monospace',
               fontSize: 9,
               letterSpacing: 1.2,

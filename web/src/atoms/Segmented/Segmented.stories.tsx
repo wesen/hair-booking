@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Segmented } from "./Segmented";
 
 const meta: Meta<typeof Segmented> = {
-  title: "Fringe/Primitives/Segmented",
+  title: "Atoms/Segmented",
   component: Segmented,
   tags: ["autodocs"],
 };

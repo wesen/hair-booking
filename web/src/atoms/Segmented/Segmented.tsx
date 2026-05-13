@@ -10,7 +10,7 @@ interface SegmentedProps {
 
 export function Segmented({ options, value, onChange, style }: SegmentedProps) {
   return (
-    <div style={{ display: 'flex', border: `1px solid ${color.ink}`, ...style }}>
+    <div data-component="Segmented" style={{ display: 'flex', border: `1px solid ${color.ink}`, ...style }}>
       {options.map((o, i) => {
         const val = typeof o === 'string' ? o : o.value;
         const label = typeof o === 'string' ? o : o.label;

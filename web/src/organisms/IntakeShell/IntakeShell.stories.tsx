@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { IntakeShell } from "./IntakeShell";
 
 const meta: Meta<typeof IntakeShell> = {
-  title: "Fringe/Layout/IntakeShell",
+  title: "Organisms/IntakeShell",
   component: IntakeShell,
   tags: ["autodocs"],
 };

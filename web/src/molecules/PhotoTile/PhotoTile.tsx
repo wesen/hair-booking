@@ -9,7 +9,7 @@ interface PhotoTileProps {
 
 export function PhotoTile({ label, filled, style }: PhotoTileProps) {
   return (
-    <div style={{
+    <div data-component="PhotoTile" style={{
       aspectRatio: '1/1.2',
       background: filled ? color.peachSoft : color.cream,
       border: `1px dashed ${filled ? color.plum : color.soft}`,

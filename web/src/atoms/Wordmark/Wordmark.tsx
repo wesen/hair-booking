@@ -8,7 +8,7 @@ interface WordmarkProps {
 
 export function Wordmark({ size = 16, color: c = color.ink }: WordmarkProps) {
   return (
-    <div style={{
+    <div data-component="Wordmark" style={{
       fontFamily: font.block,
       fontSize: size,
       color: c,

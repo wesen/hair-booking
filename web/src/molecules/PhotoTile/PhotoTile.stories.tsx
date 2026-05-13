@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { PhotoTile } from "./PhotoTile";
 
 const meta: Meta<typeof PhotoTile> = {
-  title: "Fringe/Salon/PhotoTile",
+  title: "Molecules/PhotoTile",
   component: PhotoTile,
   tags: ["autodocs"],
 };

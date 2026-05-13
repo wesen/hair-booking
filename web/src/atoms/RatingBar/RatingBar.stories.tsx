@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { RatingBar } from "./RatingBar";
 
 const meta: Meta<typeof RatingBar> = {
-  title: "Fringe/Primitives/RatingBar",
+  title: "Atoms/RatingBar",
   component: RatingBar,
   tags: ["autodocs"],
 };

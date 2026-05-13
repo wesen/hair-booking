@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { AppHeader } from "./AppHeader";
 
 const meta: Meta<typeof AppHeader> = {
-  title: "Fringe/Chrome/AppHeader",
+  title: "Molecules/AppHeader",
   component: AppHeader,
   tags: ["autodocs"],
 };

@@ -10,7 +10,7 @@ interface IndexChipProps {
 
 export function IndexChip({ n, bg = color.plum, color: c = color.paper, style }: IndexChipProps) {
   return (
-    <div style={{
+    <div data-component="IndexChip" style={{
       fontFamily: '"Anton", Impact, sans-serif',
       fontSize: 13,
       letterSpacing: 1.5,

@@ -17,7 +17,7 @@ const STEPS = [
 
 export function StepRail({ current, accent = color.butter, style }: StepRailProps) {
   return (
-    <div style={{
+    <div data-component="StepRail" style={{
       width: 220,
       padding: '32px 28px',
       borderRight: `1px solid ${color.rule}`,
@@ -25,7 +25,7 @@ export function StepRail({ current, accent = color.butter, style }: StepRailProp
       flexShrink: 0,
       ...style,
     }}>
-      <div style={{
+      <div data-component="StepRail" style={{
         fontFamily: '"JetBrains Mono", monospace',
         fontSize: 10,
         letterSpacing: 1.8,
@@ -42,7 +42,7 @@ export function StepRail({ current, accent = color.butter, style }: StepRailProp
         const active  = i === current;
 
         return (
-          <div key={label} style={{
+          <div data-component="StepRail" key={label} style={{
             padding: '10px 0',
             display: 'flex',
             alignItems: 'center',
@@ -50,14 +50,14 @@ export function StepRail({ current, accent = color.butter, style }: StepRailProp
             borderTop: i === 0 ? 'none' : `1px solid ${color.rule}`,
             color: active ? color.ink : done ? color.softInk : color.soft,
           }}>
-            <div style={{
+            <div data-component="StepRail" style={{
               width: 6,
               height: 6,
               borderRadius: 999,
               background: active ? accent : done ? color.plum : 'transparent',
               border: !active && !done ? `1px solid ${color.soft}` : 'none',
             }} />
-            <div style={{
+            <div data-component="StepRail" style={{
               fontFamily: '"Anton", Impact, sans-serif',
               fontSize: 12,
               letterSpacing: 1,

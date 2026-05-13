@@ -37,7 +37,7 @@ export function Button({
   onClick,
 }: ButtonProps) {
   return (
-    <button
+    <button data-component="Button"
       type={type}
       disabled={disabled}
       onClick={onClick}

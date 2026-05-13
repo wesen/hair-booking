@@ -12,16 +12,16 @@ interface SectionProps {
 
 export function Section({ n, title, children, accent = color.plum, topBorder = true, style }: SectionProps) {
   return (
-    <div style={{
+    <div data-component="Section" style={{
       padding: '18px 0',
       borderTop: topBorder ? `1px solid ${color.rule}` : 'none',
       display: 'flex',
       gap: 14,
       ...style,
     }}>
-      <div style={{ width: 32 }}>
+      <div data-component="Section" style={{ width: 32 }}>
         {n != null && (
-          <div style={{
+          <div data-component="Section" style={{
             fontFamily: '"Anton", Impact, sans-serif',
             fontSize: 13,
             letterSpacing: 1.5,
@@ -34,9 +34,9 @@ export function Section({ n, title, children, accent = color.plum, topBorder = t
           </div>
         )}
       </div>
-      <div style={{ flex: 1 }}>
+      <div data-component="Section" style={{ flex: 1 }}>
         {title && (
-          <div style={{
+          <div data-component="Section" style={{
             fontFamily: '"JetBrains Mono", monospace',
             fontSize: 10,
             letterSpacing: 1.8,

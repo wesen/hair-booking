@@ -30,7 +30,7 @@ export function IntakeShell({
   onBack,
 }: IntakeShellProps) {
   return (
-    <div style={{
+    <div data-component="IntakeShell" style={{
       minHeight: '100vh',
       background: 'var(--fringe-color-paper, #faf8f5)',
       display: 'flex',
@@ -38,11 +38,11 @@ export function IntakeShell({
       ...style,
     }}>
       {/* Page content */}
-      <div style={{ flex: 1 }}>{children}</div>
+      <div data-component="IntakeShell" style={{ flex: 1 }}>{children}</div>
 
       {/* Bottom CTA bar */}
       {onNext && (
-        <div style={{
+        <div data-component="IntakeShell" style={{
           padding: '16px 24px 24px',
           borderTop: '1px solid var(--fringe-color-rule, #e8e3da)',
           display: 'flex',
@@ -50,7 +50,7 @@ export function IntakeShell({
           background: 'var(--fringe-color-paper, #faf8f5)',
         }}>
           {onBack && (
-            <button
+            <button data-component="IntakeShell"
               onClick={onBack}
               style={{
                 fontFamily: 'var(--fringe-font-block, "Anton", sans-serif)',
@@ -68,7 +68,7 @@ export function IntakeShell({
             </button>
           )}
           {onSkip && (
-            <button
+            <button data-component="IntakeShell"
               onClick={onSkip}
               style={{
                 fontFamily: 'var(--fringe-font-block, "Anton", sans-serif)',
@@ -85,7 +85,7 @@ export function IntakeShell({
               Skip
             </button>
           )}
-          <button
+          <button data-component="IntakeShell"
             onClick={onNext}
             style={{
               fontFamily: 'var(--fringe-font-block, "Anton", sans-serif)',

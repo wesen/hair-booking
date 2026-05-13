@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { StepRail } from "./StepRail";
 
 const meta: Meta<typeof StepRail> = {
-  title: "Fringe/Layout/StepRail",
+  title: "Organisms/StepRail",
   component: StepRail,
   tags: ["autodocs"],
 };

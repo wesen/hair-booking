@@ -49,14 +49,14 @@ export function EstimatePage({
         compact
       />
 
-      <div style={{ height: 16 }} />
+      <div data-component="EstimatePage" style={{ height: 16 }} />
 
       <SummaryRow label="Service"    value={service}        onEdit={() => {}} />
       <SummaryRow label="Color level" value={colorLevel}   onEdit={() => {}} />
       <SummaryRow label="Length"    value={length}           onEdit={() => {}} />
       {addOns && <SummaryRow label="Add-ons" value={addOns} />}
 
-      <div style={{ marginTop: 20 }}>
+      <div data-component="EstimatePage" style={{ marginTop: 20 }}>
         <Note tone="warn">
           Estimate only. Final cost depends on in-salon assessment of current color and condition.
         </Note>
@@ -81,13 +81,13 @@ export function EstimatePageDesktop({
   const accent = color.butter;
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh", background: color.paper }}>
+    <div data-component="EstimatePage" style={{ display: "flex", minHeight: "100vh", background: color.paper }}>
       {/* Left — white panel */}
-      <div style={{ flex: 1.15, padding: "48px 56px" }}>
-        <div style={{ fontFamily: font.mono, fontSize: 10, letterSpacing: 1.8, textTransform: "uppercase" as const, color: color.plum, marginBottom: 10 }}>
+      <div data-component="EstimatePage" style={{ flex: 1.15, padding: "48px 56px" }}>
+        <div data-component="EstimatePage" style={{ fontFamily: font.mono, fontSize: 10, letterSpacing: 1.8, textTransform: "uppercase" as const, color: color.plum, marginBottom: 10 }}>
           Chapter VII · The Quote
         </div>
-        <div style={{
+        <div data-component="EstimatePage" style={{
           fontFamily: font.block,
           fontSize: 84,
           textTransform: "uppercase" as const,
@@ -98,7 +98,7 @@ export function EstimatePageDesktop({
         }}>
           Your<br />estimate.
         </div>
-        <div style={{
+        <div data-component="EstimatePage" style={{
           fontFamily: font.serif,
           fontStyle: "italic",
           fontSize: 22,
@@ -109,12 +109,12 @@ export function EstimatePageDesktop({
           Based on what you've shared. Final number depends on an in-chair look.
         </div>
 
-        <div style={{ marginTop: 48, borderTop: `1px solid ${color.rule}` }}>
+        <div data-component="EstimatePage" style={{ marginTop: 48, borderTop: `1px solid ${color.rule}` }}>
           <SummaryRow label="Service" value={service} onEdit={() => {}} />
           <SummaryRow label="Add-ons" value="Olaplex bond treatment · $45" />
         </div>
 
-        <div style={{ marginTop: 32 }}>
+        <div data-component="EstimatePage" style={{ marginTop: 32 }}>
           <Note tone="warn">
             Color corrections or unexpected length may adjust the final quote in-salon.
           </Note>
@@ -122,7 +122,7 @@ export function EstimatePageDesktop({
       </div>
 
       {/* Right — butter panel */}
-      <div style={{
+      <div data-component="EstimatePage" style={{
         background: accent,
         padding: "56px 56px 48px",
         display: "flex",
@@ -130,11 +130,11 @@ export function EstimatePageDesktop({
         justifyContent: "space-between" as const,
         minHeight: 680,
       }}>
-        <div>
-          <div style={{ fontFamily: font.mono, fontSize: 10, letterSpacing: 1.8, textTransform: "uppercase" as const, color: color.plumDeep }}>
+        <div data-component="EstimatePage">
+          <div data-component="EstimatePage" style={{ fontFamily: font.mono, fontSize: 10, letterSpacing: 1.8, textTransform: "uppercase" as const, color: color.plumDeep }}>
             ESTIMATED · USD
           </div>
-          <div style={{
+          <div data-component="EstimatePage" style={{
             fontFamily: font.block,
             fontSize: 220,
             textTransform: "uppercase" as const,
@@ -145,7 +145,7 @@ export function EstimatePageDesktop({
           }}>
             ${midpoint}
           </div>
-          <div style={{
+          <div data-component="EstimatePage" style={{
             fontFamily: font.serif,
             fontStyle: "italic",
             fontSize: 26,
@@ -156,24 +156,24 @@ export function EstimatePageDesktop({
           </div>
         </div>
 
-        <div>
+        <div data-component="EstimatePage">
           {[
             { k: "LOW", v: `$${estimateLow}` },
             { k: "LIKELY", v: `$${midpoint}` },
             { k: "HIGH", v: `$${estimateHigh}` },
           ].map((row) => (
-            <div key={row.k} style={{
+            <div data-component="EstimatePage" key={row.k} style={{
               padding: "16px 0",
               borderTop: `1px solid ${color.ink}`,
               display: "flex",
               justifyContent: "space-between" as const,
             }}>
-              <div style={{ fontFamily: font.mono, fontSize: 11, color: color.ink }}>{row.k}</div>
-              <div style={{ fontFamily: font.block, fontSize: 26, textTransform: "uppercase" as const, color: color.ink }}>{row.v}</div>
+              <div data-component="EstimatePage" style={{ fontFamily: font.mono, fontSize: 11, color: color.ink }}>{row.k}</div>
+              <div data-component="EstimatePage" style={{ fontFamily: font.block, fontSize: 26, textTransform: "uppercase" as const, color: color.ink }}>{row.v}</div>
             </div>
           ))}
-          <div style={{ marginTop: 24, display: "flex", gap: 12 }}>
-            <button style={{
+          <div data-component="EstimatePage" style={{ marginTop: 24, display: "flex", gap: 12 }}>
+            <button data-component="EstimatePage" style={{
               fontFamily: font.block,
               textTransform: "uppercase" as const,
               padding: "14px 20px",
@@ -184,7 +184,7 @@ export function EstimatePageDesktop({
             }}>
               Adjust
             </button>
-            <button
+            <button data-component="EstimatePage"
               onClick={onBook}
               style={{
                 fontFamily: font.block,

@@ -3,7 +3,7 @@
 
 export function StatusBar({ color = '#111111' }: { color?: string }) {
   return (
-    <div style={{
+    <div data-component="StatusBar" style={{
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',

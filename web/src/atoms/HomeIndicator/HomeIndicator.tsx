@@ -2,7 +2,7 @@
 
 export function HomeIndicator({ color = '#111111' }: { color?: string }) {
   return (
-    <div style={{
+    <div data-component="HomeIndicator" style={{
       position: 'absolute',
       bottom: 6,
       left: 0,
@@ -12,7 +12,7 @@ export function HomeIndicator({ color = '#111111' }: { color?: string }) {
       pointerEvents: 'none',
       zIndex: 50,
     }}>
-      <div style={{
+      <div data-component="HomeIndicator" style={{
         width: 120,
         height: 4,
         borderRadius: 2,

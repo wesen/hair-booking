@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Rule } from "./Rule";
 
 const meta: Meta<typeof Rule> = {
-  title: "Fringe/Primitives/Rule",
+  title: "Atoms/Rule",
   component: Rule,
   tags: ["autodocs"],
 };

@@ -17,7 +17,7 @@ export function Chip({
   style,
 }: ChipProps) {
   return (
-    <span
+    <span data-component="Chip"
       onClick={onClick}
       style={{
         fontFamily: font.block,

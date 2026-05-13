@@ -57,7 +57,7 @@ export function ExtensionsPage({ onNext, onBack }: ExtensionsPageProps) {
       onBack={onBack}
       nextLabel={isLoading ? "Saving…" : "Keep going →"}
     >
-      <div style={{
+      <div data-component="ExtensionsPage" style={{
         fontFamily: font.serif,
         fontStyle: "italic",
         fontSize: 17,
@@ -68,7 +68,7 @@ export function ExtensionsPage({ onNext, onBack }: ExtensionsPageProps) {
       </div>
 
       {/* Length silhouette grid */}
-      <div style={{
+      <div data-component="ExtensionsPage" style={{
         display: "grid",
         gridTemplateColumns: "repeat(4, 1fr)",
         gap: 8,
@@ -77,7 +77,7 @@ export function ExtensionsPage({ onNext, onBack }: ExtensionsPageProps) {
         {LENGTHS.map((l) => {
           const sel = l.label === selectedLength;
           return (
-            <div
+            <div data-component="ExtensionsPage"
               key={l.label}
               onClick={() => setSelectedLength(l.label)}
               style={{

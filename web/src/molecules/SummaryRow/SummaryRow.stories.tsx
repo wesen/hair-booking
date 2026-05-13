@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { SummaryRow } from "./SummaryRow";
 
 const meta: Meta<typeof SummaryRow> = {
-  title: "Fringe/Salon/SummaryRow",
+  title: "Molecules/SummaryRow",
   component: SummaryRow,
   tags: ["autodocs"],
 };

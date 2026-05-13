@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { StatusBar } from "./StatusBar";
 
 const meta: Meta<typeof StatusBar> = {
-  title: "Fringe/Chrome/StatusBar",
+  title: "Atoms/StatusBar",
   component: StatusBar,
   tags: ["autodocs"],
 };

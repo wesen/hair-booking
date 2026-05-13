@@ -9,7 +9,7 @@ interface EyebrowProps {
 
 export function Eyebrow({ children, color: c = color.plum, style }: EyebrowProps) {
   return (
-    <div style={{
+    <div data-component="Eyebrow" style={{
       fontFamily: font.mono,
       fontSize: 10,
       letterSpacing: 1.8,

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { TextField } from "./TextField";
 
 const meta: Meta<typeof TextField> = {
-  title: "Fringe/Primitives/TextField",
+  title: "Atoms/TextField",
   component: TextField,
   tags: ["autodocs"],
 };

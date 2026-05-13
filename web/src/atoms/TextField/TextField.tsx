@@ -39,7 +39,7 @@ export function TextField({
   };
 
   return (
-    <label style={{ display: 'block' }}>
+    <label data-component="TextField" style={{ display: 'block' }}>
       {label && (
         <div style={{
           fontFamily: font.mono,

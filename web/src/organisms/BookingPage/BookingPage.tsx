@@ -67,18 +67,18 @@ export function BookingPage({ intakeId, serviceId, stylist, onNext, onBack }: Bo
         available={stylist.available}
       />
 
-      <div style={{ height: 20 }} />
+      <div data-component="BookingPage" style={{ height: 20 }} />
 
       {/* Calendar */}
       <Eyebrow style={{ marginBottom: 10 }}>JUNE 2025</Eyebrow>
-      <div style={{
+      <div data-component="BookingPage" style={{
         display: "grid",
         gridTemplateColumns: "repeat(7, 1fr)",
         gap: 4,
         marginBottom: 20,
       }}>
         {["M", "T", "W", "T", "F", "S", "S"].map((d) => (
-          <div key={d} style={{
+          <div data-component="BookingPage" key={d} style={{
             fontFamily: font.mono,
             fontSize: 10,
             color: color.soft,
@@ -105,7 +105,7 @@ export function BookingPage({ intakeId, serviceId, stylist, onNext, onBack }: Bo
       {selectedDay && (
         <>
           <Eyebrow style={{ marginBottom: 10 }}>Tue, Jun {selectedDay} — available times</Eyebrow>
-          <div style={{
+          <div data-component="BookingPage" style={{
             display: "grid",
             gridTemplateColumns: "repeat(4, 1fr)",
             gap: 6,
@@ -113,7 +113,7 @@ export function BookingPage({ intakeId, serviceId, stylist, onNext, onBack }: Bo
             {TIMES.map((t) => {
               const sel = t === selectedTime;
               return (
-                <div
+                <div data-component="BookingPage"
                   key={t}
                   onClick={() => setSelectedTime(t)}
                   style={{

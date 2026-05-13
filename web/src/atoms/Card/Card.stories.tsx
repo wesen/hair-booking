@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { Card } from "./Card";
 
 const meta: Meta<typeof Card> = {
-  title: "Fringe/Primitives/Card",
+  title: "Atoms/Card",
   component: Card,
   tags: ["autodocs"],
 };

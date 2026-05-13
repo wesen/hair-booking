@@ -10,7 +10,7 @@ interface ProgressProps {
 
 export function Progress({ value, max = 100, color: barColor = color.plum, style }: ProgressProps) {
   return (
-    <div style={{ height: 3, background: color.rule, width: '100%', ...style }}>
+    <div data-component="Progress" style={{ height: 3, background: color.rule, width: '100%', ...style }}>
       <div style={{ height: 3, background: barColor, width: `${(value / max) * 100}%` }} />
     </div>
   );

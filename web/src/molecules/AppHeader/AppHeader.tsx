@@ -11,13 +11,13 @@ interface AppHeaderProps {
 
 export function AppHeader({ step, total, onBack }: AppHeaderProps) {
   return (
-    <div style={{
+    <div data-component="AppHeader" style={{
       padding: '6px 22px 0',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
     }}>
-      <button
+      <button data-component="AppHeader"
         onClick={onBack}
         style={{
           background: 'transparent',
@@ -37,7 +37,7 @@ export function AppHeader({ step, total, onBack }: AppHeaderProps) {
       <Wordmark size={14}/>
 
       {step != null && (
-        <div style={{
+        <div data-component="AppHeader" style={{
           fontFamily: '"JetBrains Mono", monospace',
           fontSize: 11,
           letterSpacing: 1.5,

@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from "@storybook/react";
 import { HomeIndicator } from "./HomeIndicator";
 
 const meta: Meta<typeof HomeIndicator> = {
-  title: "Fringe/Chrome/HomeIndicator",
+  title: "Atoms/HomeIndicator",
   component: HomeIndicator,
   tags: ["autodocs"],
 };

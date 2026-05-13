@@ -53,22 +53,22 @@ export function WelcomePage({
   };
 
   return (
-    <div style={{ background: color.cream, minHeight: "100vh" }}>
+    <div data-component="WelcomePage" style={{ background: color.cream, minHeight: "100vh" }}>
       {/* Top bar */}
-      <div style={{
+      <div data-component="WelcomePage" style={{
         display: "flex",
         justifyContent: "space-between",
         alignItems: "center",
         padding: "14px 24px",
         borderBottom: `1px solid ${color.rule}`,
       }}>
-        <div style={{ fontFamily: font.sans, fontSize: 18, color: color.soft }}>☰</div>
+        <div data-component="WelcomePage" style={{ fontFamily: font.sans, fontSize: 18, color: color.soft }}>☰</div>
         <Eyebrow color={color.soft}>Providence, RI</Eyebrow>
       </div>
 
       {/* Logo area */}
-      <div style={{ padding: "40px 24px 32px", textAlign: "center" as const }}>
-        <div style={{
+      <div data-component="WelcomePage" style={{ padding: "40px 24px 32px", textAlign: "center" as const }}>
+        <div data-component="WelcomePage" style={{
           fontFamily: font.mono,
           fontSize: 11,
           letterSpacing: 2.5,
@@ -78,7 +78,7 @@ export function WelcomePage({
         }}>
           ✦&ensp;Fringe&ensp;✦
         </div>
-        <div style={{
+        <div data-component="WelcomePage" style={{
           ...type.display3,
           fontSize: 40,
           color: color.ink,
@@ -87,7 +87,7 @@ export function WelcomePage({
         }}>
           Ready for your<br />hair transformation?
         </div>
-        <div style={{
+        <div data-component="WelcomePage" style={{
           fontFamily: font.serif,
           fontStyle: "italic",
           fontSize: 17,
@@ -99,7 +99,7 @@ export function WelcomePage({
       </div>
 
       {/* Service cards */}
-      <div style={{ padding: "0 24px 24px", display: "flex", flexDirection: "column" as const, gap: 12 }}>
+      <div data-component="WelcomePage" style={{ padding: "0 24px 24px", display: "flex", flexDirection: "column" as const, gap: 12 }}>
         {SERVICES.map((s) => (
           <ServiceCard
             key={s.key}
@@ -114,15 +114,15 @@ export function WelcomePage({
       <Rule />
 
       {/* Sign in link */}
-      <div style={{ padding: "16px 24px 40px", textAlign: "center" as const }}>
+      <div data-component="WelcomePage" style={{ padding: "16px 24px 40px", textAlign: "center" as const }}>
         {clientName ? (
-          <span style={{ fontFamily: font.sans, fontSize: 13, color: color.soft }}>
+          <span data-component="WelcomePage" style={{ fontFamily: font.sans, fontSize: 13, color: color.soft }}>
             Signed in as {clientName}.
           </span>
         ) : (
-          <span style={{ fontFamily: font.sans, fontSize: 13, color: color.soft }}>
+          <span data-component="WelcomePage" style={{ fontFamily: font.sans, fontSize: 13, color: color.soft }}>
             Already a client?{" "}
-            <span
+            <span data-component="WelcomePage"
               onClick={() => {}}
               style={{ color: color.plum, cursor: "pointer", fontWeight: 500 }}
             >
@@ -148,7 +148,7 @@ function ServiceCard({
   onClick: () => void;
 }) {
   return (
-    <div
+    <div data-component="WelcomePage"
       onClick={onClick}
       style={{
         background: color.cream,
@@ -163,19 +163,19 @@ function ServiceCard({
       onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = color.creamDeep; }}
       onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = color.cream; }}
     >
-      <div style={{
+      <div data-component="WelcomePage" style={{
         fontFamily: font.block,
         fontSize: 26,
         letterSpacing: 0,
         color: color.plum,
         flex: 1,
       }}>
-        <span style={{ display: "inline-block", transform: "scale(1.2)" }}>
+        <span data-component="WelcomePage" style={{ display: "inline-block", transform: "scale(1.2)" }}>
           {title.includes("Color") ? "💇‍♀️" : title.includes("Extensions") ? "✨" : "🎨"}
         </span>
       </div>
-      <div style={{ flex: 1 }}>
-        <div style={{
+      <div data-component="WelcomePage" style={{ flex: 1 }}>
+        <div data-component="WelcomePage" style={{
           fontFamily: font.block,
           fontSize: 16,
           letterSpacing: 0.5,
@@ -184,7 +184,7 @@ function ServiceCard({
         }}>
           {title}
         </div>
-        <div style={{
+        <div data-component="WelcomePage" style={{
           fontFamily: font.sans,
           fontSize: 12,
           color: color.softInk,
@@ -193,8 +193,8 @@ function ServiceCard({
           {description}
         </div>
       </div>
-      <div style={{ textAlign: "right" }}>
-        <div style={{ fontFamily: font.mono, fontSize: 11, color: color.plum }}>{rate}</div>
+      <div data-component="WelcomePage" style={{ textAlign: "right" }}>
+        <div data-component="WelcomePage" style={{ fontFamily: font.mono, fontSize: 11, color: color.plum }}>{rate}</div>
       </div>
     </div>
   );

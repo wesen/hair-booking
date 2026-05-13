@@ -19,14 +19,14 @@ export function Masthead({
   style,
 }: MastheadProps) {
   return (
-    <div style={{
+    <div data-component="Masthead" style={{
       background: color.peach,
       padding: compact ? '18px 20px 20px' : '24px 24px 26px',
       position: 'relative',
       ...style,
     }}>
       {eyebrow && (
-        <div style={{
+        <div data-component="Masthead" style={{
           fontFamily: font.mono,
           fontSize: 10,
           letterSpacing: 1.8,
@@ -38,7 +38,7 @@ export function Masthead({
           {eyebrow}
         </div>
       )}
-      <div style={{
+      <div data-component="Masthead" style={{
         fontFamily: font.block,
         fontSize: compact ? 48 : 56,
         letterSpacing: -0.5,
@@ -50,12 +50,12 @@ export function Masthead({
         {accent && (
           <>
             <br />
-            <span style={{ color: color.ink }}>{accent}</span>
+            <span data-component="Masthead" style={{ color: color.ink }}>{accent}</span>
           </>
         )}
       </div>
       {right && (
-        <div style={{
+        <div data-component="Masthead" style={{
           position: 'absolute',
           top: 14,
           right: 14,

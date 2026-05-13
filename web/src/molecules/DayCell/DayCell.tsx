@@ -12,7 +12,7 @@ interface DayCellProps {
 
 export function DayCell({ day, selected, disabled, onClick, dot, style }: DayCellProps) {
   return (
-    <button
+    <button data-component="DayCell"
       onClick={onClick}
       disabled={disabled}
       style={{
@@ -31,7 +31,7 @@ export function DayCell({ day, selected, disabled, onClick, dot, style }: DayCel
     >
       {day}
       {dot && (
-        <div style={{
+        <div data-component="DayCell" style={{
           position: 'absolute',
           bottom: 4,
           left: '50%',
