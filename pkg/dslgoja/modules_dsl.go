@@ -105,6 +105,10 @@ const dslModuleSource = `
         this.meta = Object.assign({}, this.meta || {}, { dataPart });
         return this;
       },
+      region(region) {
+        this.meta = Object.assign({}, this.meta || {}, { region });
+        return this;
+      },
       child(...items) {
         this.children.push(...items.map(toJSON));
         return this;

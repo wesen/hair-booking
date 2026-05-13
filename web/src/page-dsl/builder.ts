@@ -38,6 +38,11 @@ export class DslNodeBuilder<P extends JsonObject = JsonObject> {
     return this;
   }
 
+  region(region: "main" | "context") {
+    this.node.meta = { ...(this.node.meta || {}), region };
+    return this;
+  }
+
   children(...children: NodeInput[]) {
     this.node.children = children.map(unwrap);
     return this;
