@@ -33,8 +33,8 @@ RelatedFiles:
       Note: Current JSON page contract that Goja-hosted JS should emit
     - Path: web/src/page-dsl/schema.ts:Current JSON page contract that Goja scripts should emit
 ExternalSources: []
-Summary: Design guide for a multi-step Fringe intake flow where the DSL runs as JavaScript inside a Goja sandbox hosted by the Go backend, registers callbacks with the Go host, and emits JSON pages rendered by the browser.
-LastUpdated: 2026-05-13T11:20:00-04:00
+Summary: Design guide for a multi-step Fringe intake flow where the DSL runs as JavaScript inside a long-running per-flow Goja sandbox, registers page-version-scoped callbacks with the Go host, and emits JSON pages rendered by the browser.
+LastUpdated: 2026-05-13T11:45:00-04:00
 WhatFor: Use when implementing Goja-hosted JavaScript flow scripts for backend-driven DSL pages and multi-step intake interactions.
 WhenToUse: Use before building the Goja runtime, JS DSL modules, flow session lifecycle, callback registry, or multi-step intake scripts.
 ---
@@ -633,6 +633,8 @@ type ActionRegistration struct {
 
 ### Dispatch
 
+Dispatch is page-version scoped. The backend should only invoke callbacks that are registered for the **current rendered page version**. Old actions become stale after a successful re-render.
+
 ```go
 func (rt *Runtime) Dispatch(ctx context.Context, sessionID string, event InteractionEvent) (*InteractionResult, error) {
     session, err := rt.store.Get(ctx, sessionID)
@@ -641,20 +643,49 @@ func (rt *Runtime) Dispatch(ctx context.Context, sessionID string, event Interac
     session.Mu.Lock()
     defer session.Mu.Unlock()
 
-    action, ok := session.Actions[event.ActionID]
-    if !ok { return nil, ErrUnknownAction }
+    // Idempotency first: browser retries and double-clicks should not run a
+    // callback twice.
+    if cached, ok := session.ProcessedEvents[event.EventID]; ok {
+        return &cached, nil
+    }
+
+    // The browser is holding an old page. Do not run old callbacks against new
+    // state. Return the current page so the browser can recover.
+    if event.PageVersion != session.Version {
+        return session.StalePageResult("This page was already updated."), nil
+    }
+
+    action, ok := session.CurrentActions[event.ActionID]
+    if !ok {
+        if _, wasRetired := session.RetiredActions[event.ActionID]; wasRetired {
+            return session.StalePageResult("This action is no longer active."), nil
+        }
+        return nil, ErrUnknownAction
+    }
+
+    if action.NodeID != event.NodeID {
+        return nil, ErrActionNodeMismatch
+    }
 
     jsEvent := session.VM.ToValue(event)
-    result, err := action.Callback(goja.Undefined(), jsEvent)
-    if err != nil { return nil, err }
+    result, err := rt.callWithTimeout(session, action.Callback, jsEvent)
+    if err != nil {
+        return session.ErrorResult(err), nil
+    }
 
-    page := exportPage(result)
-    session.Version++
-    session.Page = page
-    session.Actions = collectNewActionsForPage(session)
+    page, effects, err := session.ExportHandlerResult(result)
+    if err != nil {
+        return session.ErrorResult(err), nil
+    }
+
+    // A successful callback normally returns a newly rendered page. Commit that
+    // page transactionally: old actions are retired, new actions become current,
+    // and the page version increments.
+    committed := session.CommitRenderedPage(page, effects)
+    session.ProcessedEvents[event.EventID] = *committed
 
     if err := rt.store.Save(ctx, session); err != nil { return nil, err }
-    return &InteractionResult{Page: page, PageVersion: session.Version}, nil
+    return committed, nil
 }
 ```
 
@@ -699,40 +730,182 @@ Cons:
 
 Recommendation: start with a mutex and strict callback timeout. Move to actor model if needed.
 
-## Page Rendering Cycle
+## Page Rendering Cycle and Old Action Lifecycle
 
-Every render should clear and rebuild the action registry for the current page.
+Every render should rebuild the action registry for the current page, but it should do so **transactionally**. Do not clear current actions before the new page is successfully produced. If render fails, the browser should still be able to use the previous page/actions or receive a clear error response.
 
-Why?
-
-- Old actions should not remain valid after navigation.
-- New page version should have fresh action ids.
-- The registry should match exactly what the browser sees.
-
-Render cycle:
+### Recommended lifetime boundaries
 
 ```text
-start render
-  clear current page actions
+Goja VM lifetime:             whole active flow session
+Flow state lifetime:          whole active flow session
+Current action lifetime:      current page version only
+Processed event cache:        short retry/idempotency window
+Retired action metadata:      short stale-action diagnostics window
+Old Goja callback closures:   released after page advances
+```
+
+This is the key point: a long-running VM does **not** mean every callback ever registered remains callable forever. The VM and `ctx.state` can stay alive for the whole intake, while the active interaction surface changes on every successful page render.
+
+### Why old actions should become stale
+
+Imagine this sequence:
+
+```text
+pageVersion 1
+  act_a -> categoryChanged
+  act_b -> next
+
+user clicks category
+  act_a runs
+  JS updates state
+  JS renders pageVersion 2
+
+pageVersion 2
+  act_c -> categoryChanged
+  act_d -> next
+```
+
+After page version 2 is committed, `act_a` and `act_b` should not mutate the flow anymore. If an old tab or delayed request posts `act_a`, the backend should return the current page with a stale-page effect instead of running the old callback.
+
+### Render transaction
+
+Render should collect actions into a temporary `NextActions` map. Only after the render succeeds should those actions replace the current action map.
+
+```text
+start render transaction
+  nextActions = {}
   JS builds page
-  every ctx.action registers a new action id
+  every ctx.action registers into nextActions
   builder embeds action ids in JSON
-finish render
-  save page + action registry + version
+if render succeeds:
+  retire currentActions metadata
+  currentActions = nextActions
+  currentPage = page
+  version++
+if render fails:
+  keep old currentPage/currentActions/version
 ```
 
 Pseudocode:
 
 ```go
-func (s *FlowSession) RenderCurrentPage() (dsl.Page, error) {
-    s.Actions = map[string]ActionRegistration{}
-    result, err := s.RenderFunc(goja.Undefined(), s.ContextObject)
-    if err != nil { return dsl.Page{}, err }
-    page := ExportPage(result)
-    s.Page = page
-    s.Version++
-    return page, nil
+type RenderTransaction struct {
+    Session     *FlowSession
+    NextActions map[string]ActionRegistration
 }
+
+func (s *FlowSession) RenderCurrentPage() (*InteractionResult, error) {
+    tx := &RenderTransaction{
+        Session:     s,
+        NextActions: map[string]ActionRegistration{},
+    }
+
+    // ctx.action(...) writes into tx.NextActions, not s.CurrentActions.
+    ctxObj := s.NewContextObject(tx)
+    result, err := s.RenderFunc(goja.Undefined(), ctxObj)
+    if err != nil {
+        return nil, err // previous page/actions remain valid
+    }
+
+    page, effects, err := s.ExportHandlerResult(result)
+    if err != nil {
+        return nil, err // previous page/actions remain valid
+    }
+
+    return s.CommitRenderTransaction(tx, page, effects), nil
+}
+
+func (s *FlowSession) CommitRenderTransaction(tx *RenderTransaction, page dsl.Page, effects []Effect) *InteractionResult {
+    now := time.Now()
+    for id, action := range s.CurrentActions {
+        s.RetiredActions[id] = RetiredActionInfo{
+            ID:        id,
+            Name:      action.Name,
+            Event:     action.Event,
+            NodeID:    action.NodeID,
+            Version:   action.Version,
+            RetiredAt: now,
+        }
+    }
+
+    s.Version++
+    s.CurrentPage = page
+    s.CurrentActions = tx.NextActions
+    s.pruneRetiredActions(now)
+    s.pruneProcessedEvents(now)
+
+    return &InteractionResult{
+        SessionID:   s.ID,
+        PageVersion: s.Version,
+        Page:        page,
+        Effects:     effects,
+    }
+}
+```
+
+### Action registration with a render transaction
+
+From JavaScript:
+
+```js
+ctx.action("next", () => ctx.goto("color"))
+```
+
+Inside Go:
+
+```go
+func (ctx *BuildContext) Action(name string, callback goja.Callable) ActionRef {
+    id := newActionID()
+    ctx.RenderTx.NextActions[id] = ActionRegistration{
+        ID:       id,
+        Name:     name,
+        Event:    ctx.CurrentEventName,
+        NodeID:   ctx.CurrentNodeID,
+        Version:  ctx.Session.Version + 1,
+        Callback: callback,
+    }
+    return ActionRef{ID: id, Event: ctx.CurrentEventName}
+}
+```
+
+### Handling stale actions
+
+Stale action response should be recoverable, not catastrophic:
+
+```json
+{
+  "data": {
+    "sessionId": "flow_123",
+    "pageVersion": 4,
+    "page": { "...": "current page" },
+    "effects": [
+      {
+        "kind": "toast",
+        "tone": "info",
+        "message": "This page was already updated."
+      }
+    ]
+  }
+}
+```
+
+The frontend replaces its page JSON with the current page and continues.
+
+### Retention policy
+
+Do not keep old `goja.Callable` values forever. They may retain closures and VM objects. Keep only:
+
+- current live callbacks in `CurrentActions`,
+- processed event results for idempotency,
+- lightweight retired action metadata for stale-action diagnostics.
+
+Example retention:
+
+```text
+ProcessedEvents: keep 5-15 minutes or last N events
+RetiredActions:  keep 5-15 minutes or last N page versions
+CurrentActions:  replace on every successful render
 ```
 
 ## Multi-Step Navigation Pattern
@@ -1051,50 +1224,129 @@ The sandbox should not expose arbitrary:
 
 Only explicit host modules should exist.
 
-## Persistence Choices
+## Persistence and VM Lifetime Choices
 
-### In-memory session with live Goja VM
+### Recommended first implementation: long-running VM per active flow session
 
-This is the easiest first implementation.
+Use one Goja VM per active DSL flow session, not one global VM and not necessarily one VM for the entire logged-in user.
+
+```text
+User session
+  ├─ intake flow session      -> Goja VM A
+  ├─ booking reschedule flow  -> Goja VM B
+  └─ stylist wizard flow      -> Goja VM C
+```
+
+Why per-flow rather than per-user?
+
+- A user can have multiple flows open in different tabs.
+- Each flow has its own state machine and action registry.
+- Cleanup is simpler: completing/canceling/expiring a flow kills one VM.
+- It avoids accidental cross-flow state leakage.
+- It keeps action ids scoped to one flow instance.
+
+Flow session sketch:
+
+```go
+type FlowSession struct {
+    ID       string
+    UserID   string
+    FlowID   string
+    Version  int64
+    VM       *goja.Runtime
+    State    map[string]any
+
+    CurrentPage    dsl.Page
+    CurrentActions map[string]ActionRegistration
+
+    ProcessedEvents map[string]InteractionResult
+    RetiredActions  map[string]RetiredActionInfo
+
+    Mu       sync.Mutex
+    ExpiresAt time.Time
+}
+```
 
 Pros:
 
-- JS callbacks can be actual closures.
-- Very ergonomic.
-- Great for proving the model.
+- JS callbacks can be real closures.
+- The authoring model is ergonomic: `ctx.action("next", () => ctx.goto("color"))`.
+- The script and modules are already loaded when events arrive.
+- Multi-step intake state naturally lives in `ctx.state`.
 
 Cons:
 
-- Sessions die on process restart.
-- Harder to scale horizontally.
-- Memory cleanup is important.
+- Sessions die on process restart unless state is persisted and replayable.
+- Horizontal scaling needs sticky sessions or shared/persisted runtime strategy.
+- Memory cleanup is mandatory.
+- Goja runtime access must be serialized.
 
-### Persist state and recreate VM on every event
+### Required long-running VM guardrails
 
-In this model, callbacks are not stored as closures. Instead, each render registers action ids with symbolic callback paths. On event, Go recreates the VM, loads the script, restores state, and dispatches by symbolic handler.
+1. **Per-session mutex or actor loop**
+
+   ```go
+   session.Mu.Lock()
+   defer session.Mu.Unlock()
+   ```
+
+   Start with a mutex. Move to an actor/event-loop if callbacks become complex.
+
+2. **Callback timeout / interrupt**
+
+   ```go
+   timer := time.AfterFunc(2*time.Second, func() {
+       session.VM.Interrupt("callback timeout")
+   })
+   defer timer.Stop()
+   ```
+
+3. **Idle and absolute expiry**
+
+   Suggested defaults:
+
+   ```text
+   idle timeout:      30 minutes
+   absolute timeout:   4 hours
+   completion expiry:  immediate or short grace period
+   ```
+
+4. **Bounded current/old action storage**
+
+   Keep current callbacks only for the current page version. Keep retired metadata and event results briefly for stale-action recovery/idempotency.
+
+5. **JSON-serializable flow state**
+
+   Even if the VM is long-running, `ctx.state` should remain JSON-compatible so the system can be debugged, inspected, snapshotted, and later migrated to a persisted/recreated runtime.
+
+### Alternative: persist state and recreate VM on every event
+
+In this model, callbacks are not stored as closures. Each event recreates a VM, loads the script, restores JSON state, and dispatches through symbolic handler references.
 
 Pros:
 
 - Durable.
 - Horizontally scalable.
-- Easier to reason about after restart.
+- Easier to recover after restart.
 
 Cons:
 
 - More complex JS API.
 - Less callback-closure magic.
+- Slower per event.
 
 ### Hybrid recommendation
 
-Start with in-memory Goja sessions to prove the UX and API. Design action ids and session storage so that a later symbolic/persisted implementation is possible.
+Start with long-running in-memory Goja sessions to prove the UX and API. Design the state/action model so a later persisted implementation is possible.
 
 Specifically:
 
-- Action ids should remain opaque.
-- Browser should not know handler names.
-- Flow state should be JSON-serializable.
-- Page JSON should be JSON-serializable.
-- Avoid relying on closure-captured non-serializable state for core business data.
+- Action ids remain opaque.
+- Browser never sees handler names.
+- Flow state stays JSON-serializable.
+- Page JSON stays JSON-serializable.
+- Old callbacks are released after page advances.
+- Do not rely on closure-captured non-serializable state for core business data.
 
 ## State Rules for Multi-Step Intake
 
@@ -1417,7 +1669,9 @@ editBudget -> goto("budget")
 
 ## Final Recommendation
 
-Use Goja as the backend DSL authoring environment, but keep the runtime architecture disciplined:
+Use Goja as the backend DSL authoring environment, with **one long-running Goja VM per active flow session** for the first implementation.
+
+Keep the runtime architecture disciplined:
 
 - JS authors write ergonomic flow scripts.
 - Go owns sessions, modules, security, event dispatch, and persistence.
@@ -1425,5 +1679,17 @@ Use Goja as the backend DSL authoring environment, but keep the runtime architec
 - Browser posts exact interaction events back to Go.
 - Go invokes registered Goja callbacks under a per-session lock/timeout.
 - JS callbacks mutate JSON-serializable flow state and return next page JSON.
+- Current callbacks are valid only for the current page version.
+- Old callbacks become stale after a successful re-render and should not be invoked.
+- Retain processed events and retired action metadata only briefly for idempotency and stale-page recovery.
 
 The resulting model gives the user what they want: a backend-hosted JavaScript DSL where callbacks are registered during page construction and invoked later when frontend interactions happen, while preserving a safe and inspectable JSON boundary between backend and browser.
+
+The most important lifecycle rule is:
+
+```text
+VM lifetime: whole flow session
+State lifetime: whole flow session
+Action callback lifetime: current page version
+Old action behavior: stale/recover current page, never silently run
+```

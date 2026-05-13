@@ -100,3 +100,12 @@ Step 8: Added third design document explaining Goja-hosted JavaScript DSL flow s
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/03-goja-sandbox-multi-step-intake-dsl-guide.md — Goja sandbox multi-step intake DSL guide
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/schema.ts — Frontend JSON contract referenced by guide
 
+
+## 2026-05-13
+
+Step 9: Updated Goja multi-step intake design with long-running per-flow VM recommendation, page-version-scoped current actions, stale action recovery, render transactions, idempotency, and callback cleanup rules.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/03-goja-sandbox-multi-step-intake-dsl-guide.md — Updated Goja VM/action lifecycle design
+

@@ -742,3 +742,85 @@ Then compare against:
 - `web/src/page-dsl/schema.ts`
 - `web/src/page-dsl/render.tsx`
 - `pkg/server/http.go`
+
+---
+
+## Step 9: Clarify long-running Goja VM and old action lifecycle
+
+Updated the Goja multi-step intake design document to clarify the intended runtime lifecycle: one long-running Goja VM per active flow session is the recommended first implementation, but registered actions remain page-version scoped. Old actions should become stale after a successful re-render, rather than staying callable for the entire VM lifetime.
+
+This distinction is important for safety and memory management. The VM and flow state can live for the whole intake session, while the currently valid action callbacks should match only the currently rendered page version. Retired actions keep lightweight metadata briefly for diagnostics and stale-page recovery, but old `goja.Callable` closures should be released after page advances.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Update the design document."
+
+**Assistant interpretation:** Incorporate the discussion about old registered actions and long-running VMs into the Goja multi-step intake design document.
+
+**Inferred user intent:** Make the design document accurately reflect the desired runtime model before implementation starts.
+
+**Commit (code):** TBD — documentation update only
+
+### What I did
+
+- Updated `design-doc/03-goja-sandbox-multi-step-intake-dsl-guide.md`.
+- Rewrote dispatch pseudocode to:
+  - check idempotency first,
+  - reject/recover stale page-version events,
+  - dispatch only current-page actions,
+  - return current page for retired action ids,
+  - call Goja with timeout handling,
+  - commit successful rendered pages transactionally.
+- Replaced the old page rendering cycle section with a detailed page-version-scoped action lifecycle section.
+- Added render transaction pseudocode:
+  - collect `NextActions`,
+  - commit only after successful render,
+  - retire previous action metadata,
+  - prune old processed events and retired actions.
+- Expanded persistence/runtime recommendations to prefer one long-running VM per active flow session for the first implementation.
+- Updated the final recommendation with the lifecycle rule:
+  - VM lifetime: whole flow session,
+  - state lifetime: whole flow session,
+  - action callback lifetime: current page version,
+  - old action behavior: stale/recover current page, never silently run.
+- Validated doc frontmatter with `docmgr validate frontmatter`.
+
+### Why
+
+A long-running VM is useful for ergonomic JavaScript callbacks, but it would be unsafe and leaky if every registered callback remained valid forever. Page-version-scoped actions give us the ergonomic Goja model while preventing stale UI events from mutating newer flow state.
+
+### What worked
+
+- The existing document structure already had sections for dispatch, rendering cycle, persistence, and final recommendation, so the lifecycle clarification fit naturally.
+
+### What didn't work
+
+- The first `docmgr validate frontmatter` command used a path with an accidental doubled `ttmp/` prefix and failed with:
+  - `Error: open .../ttmp/ttmp/...: no such file or directory`
+- Re-running with the path relative to the docmgr root succeeded.
+
+### What I learned
+
+- The most precise model is not "one VM per user" but "one VM per active flow session". A user may have multiple flows/tabs; each needs isolated state and action registries.
+
+### What was tricky to build
+
+- The design has to separate VM lifetime from action lifetime. Long-running VM does not imply long-running callbacks. Current actions should be replaced atomically on successful render, while old actions should become stale and recoverable.
+
+### What warrants a second pair of eyes
+
+- Whether stale action events should always return the current page with an informational effect or sometimes return an HTTP conflict.
+- The exact retention window for `ProcessedEvents` and `RetiredActions`.
+
+### What should be done in the future
+
+- Implement the render transaction and action lifecycle exactly this way in the first `pkg/dslgoja` prototype.
+
+### Code review instructions
+
+Review these updated sections in the design doc:
+
+- `Dispatch`
+- `Page Rendering Cycle and Old Action Lifecycle`
+- `Persistence and VM Lifetime Choices`
+- `Final Recommendation`
