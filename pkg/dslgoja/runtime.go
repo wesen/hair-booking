@@ -75,6 +75,9 @@ type renderTransaction struct {
 
 func (rt *Runtime) StartFlow(ctx context.Context, flowID, source string) (*FlowSession, *InteractionResult, error) {
 	vm := goja.New()
+	if err := installDSLModule(vm); err != nil {
+		return nil, nil, fmt.Errorf("install DSL module: %w", err)
+	}
 	value, err := vm.RunString(wrapFlowSource(source))
 	if err != nil {
 		return nil, nil, fmt.Errorf("load flow %q: %w", flowID, err)
