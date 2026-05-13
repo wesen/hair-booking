@@ -54,7 +54,7 @@ export interface DslPage {
   title: string;
   description?: string;
   shell: {
-    kind: "intake" | "bare";
+    kind: "intake" | "bare" | "desktop";
     props?: JsonObject;
   };
   nodes: DslNode[];

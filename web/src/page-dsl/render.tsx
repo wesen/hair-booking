@@ -1,6 +1,7 @@
 import type { CSSProperties, Key, ReactNode } from "react";
 import type { DslActionRef, DslNode, DslPage, DslRenderContext, JsonObject, JsonValue } from "./schema";
 import { IntakeShell } from "../organisms/IntakeShell/IntakeShell";
+import { DesktopShell } from "../organisms/DesktopShell/DesktopShell";
 import { Eyebrow } from "../atoms/Eyebrow/Eyebrow";
 import { Button } from "../atoms/Button/Button";
 import { Chip } from "../atoms/Chip/Chip";
@@ -245,6 +246,32 @@ export function DslPageRenderer({ page, context }: { page: DslPage; context?: Ds
       >
         {content}
       </IntakeShell>
+    );
+  }
+  if (page.shell.kind === "desktop") {
+    const props = page.shell.props || {};
+    const accentName = str(props, "accent", "plum");
+    const accentMap: Record<string, string> = {
+      plum: color.plum, butter: color.butter, sage: color.sage,
+      peach: color.peach, coral: color.coral, ochre: color.ochre,
+    };
+    const accent = accentMap[accentName] || color.plum;
+    const accentInkName = str(props, "accentInk", "paper");
+    const inkMap: Record<string, string> = {
+      paper: color.paper, ink: color.ink, cream: color.cream,
+    };
+    const accentInk = inkMap[accentInkName] || color.paper;
+    return (
+      <DesktopShell
+        step={num(props, "step", 1)}
+        total={num(props, "total", 9)}
+        accent={accent}
+        accentInk={accentInk}
+        activeNav={str(props, "activeNav", "Book")}
+        user={(props.user as any) || { name: "Mia", initial: "M" }}
+      >
+        {content}
+      </DesktopShell>
     );
   }
   return <div data-component="DslBarePage" data-page={page.id}>{content}</div>;
