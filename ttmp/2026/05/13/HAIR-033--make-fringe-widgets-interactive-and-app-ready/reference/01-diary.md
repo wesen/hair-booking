@@ -2553,3 +2553,100 @@ The new state remains JSON-safe. There are no host objects, callbacks, Go pointe
 ### Validation addendum
 
 After committing Step 25, ran the full validation suite and restarted the devctl-managed backend/web services so the live route picks up the expanded embedded flow. The backend DSL start smoke check returned HTTP 200 with page id `intake-service`.
+
+---
+
+## Step 26: Write refresh blanking and stable rendering debugging guide
+
+Created a textbook-style debugging guide for investigating the live Goja DSL UI blanking/flashing behavior. The guide explains the rendering path from `LiveDslDemoApp` through `BackendDslPage`, `DslPageRenderer`, and `IntakeShell`, then separates hard-refresh loading blanking from interaction-time footer flashing.
+
+The guide emphasizes the core distinction between rerender and remount. It also explains why stable `node.meta.id` keys help DSL content nodes but do not fully explain bottom CTA flashing, because the bottom buttons are shell DOM created by `IntakeShell`, not ordinary DSL nodes.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Create a detailed analysis guide with all that information and explaining the context and fundamentals as well, in a textbook writing style. Store in ticket and upload to remarkable when done."
+
+**Assistant interpretation:** Write a ticket document that answers how to debug refresh blanking and bottom button flashing, including fundamentals, context, and concrete instrumentation guidance.
+
+**Inferred user intent:** Understand the rendering stability problem deeply enough to debug it methodically rather than guessing at fixes.
+
+**Commit (code):** N/A — documentation only.
+
+### What I did
+
+- Created `design-doc/06-debugging-refresh-blanking-and-stable-rendering-in-the-goja-dsl-ui.md`.
+- Covered:
+  - current rendering path,
+  - hard-refresh blanking versus interaction flashing,
+  - rerender versus remount,
+  - backend semantic ids versus frontend shell structural ids,
+  - likely causes in the current codebase,
+  - debug-gated console logging,
+  - mount/unmount tracing,
+  - DOM identity tracing,
+  - browser console MutationObserver snippets,
+  - React Profiler strategy,
+  - performance marks,
+  - possible fixes after measurement.
+- Related the guide to the relevant frontend/backend files.
+- Uploaded the guide to reMarkable:
+
+```text
+/ai/2026/05/13/HAIR-033/HAIR_033_Debugging_Refresh_Blanking_Stable_Rendering.pdf
+```
+
+### Why
+
+The observed bottom button flashing could have several causes. Adding stable ids blindly may help part of the problem, but the footer is rendered by `IntakeShell`, not by a DSL node. The next step should be instrumentation that tells us whether the shell/footer remounts, the footer DOM node is replaced, the dispatch overlay is visually interfering, or the page is simply going through expected refresh loading.
+
+### What worked
+
+- `docmgr validate frontmatter` passed.
+- `docmgr doc relate` linked the guide to the files that shape the rendering path.
+- `remarquee upload bundle` succeeded.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- The bottom CTA needs frontend structural debug attributes such as `data-component="IntakeShellNext"`; backend `node.meta.id` is not enough for shell-owned DOM.
+- The safest next code patch is gated debug instrumentation plus stable shell selectors, not a premature memoization or cached snapshot change.
+
+### What was tricky to build
+
+- The guide needed to avoid conflating hard browser refresh blanking with interaction-time flashing. They can look similar but have different causes and different fixes.
+- It also needed to explain that React rerendering is not inherently bad; remounting or layout/paint shifts are the more important things to prove.
+
+### What warrants a second pair of eyes
+
+- Whether the dispatch status overlay should move out of `BackendDslPage` and into the side debug panel to avoid visually competing with footer buttons.
+- Whether we should implement a shell-shaped loading skeleton before considering cached page snapshots.
+
+### What should be done in the future
+
+- Add `web/src/page-dsl/debug.ts` with gated debug logging.
+- Add stable `data-component` attributes to the CTA bar and shell buttons.
+- Add mount/unmount and DOM identity traces behind `?debugDsl` or localStorage flags.
+- Use the browser console snippets from the guide to determine whether the footer is remounting or only repainting.
+
+### Code review instructions
+
+Review:
+
+- `ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/06-debugging-refresh-blanking-and-stable-rendering-in-the-goja-dsl-ui.md`
+
+Validate:
+
+```bash
+docmgr validate frontmatter --doc 2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/06-debugging-refresh-blanking-and-stable-rendering-in-the-goja-dsl-ui.md --suggest-fixes
+```
+
+### Technical details
+
+The guide recommends instrumenting:
+
+- `web/src/page-dsl/BackendDslPage.tsx`
+- `web/src/page-dsl/render.tsx`
+- `web/src/organisms/IntakeShell/IntakeShell.tsx`
