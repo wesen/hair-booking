@@ -8,7 +8,7 @@ const store = createRuntimeStore();
 const meta: Meta<typeof ColorPage> = {
   title: "Pages/ColorPage",
   component: ColorPage,
-  parameters: { layout: "fullscreen" },
+  parameters: { layout: "fullscreen", phone: true },
   decorators: [(Story) => <Provider store={store}><Story/></Provider>],
 };
 

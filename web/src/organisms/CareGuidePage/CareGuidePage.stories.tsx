@@ -4,7 +4,7 @@ import { CareGuidePage } from "./CareGuidePage";
 const meta: Meta<typeof CareGuidePage> = {
   title: "Pages/CareGuidePage",
   component: CareGuidePage,
-  parameters: { layout: "fullscreen" },
+  parameters: { layout: "fullscreen", phone: true },
 };
 
 export default meta;

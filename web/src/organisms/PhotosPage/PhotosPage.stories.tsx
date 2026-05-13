@@ -4,7 +4,7 @@ import { PhotosPage } from "./PhotosPage";
 const meta: Meta<typeof PhotosPage> = {
   title: "Pages/PhotosPage",
   component: PhotosPage,
-  parameters: { layout: "fullscreen" },
+  parameters: { layout: "fullscreen", phone: true },
 };
 
 export default meta;

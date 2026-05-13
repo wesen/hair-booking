@@ -4,7 +4,7 @@ import { ConfirmPage } from "./ConfirmPage";
 const meta: Meta<typeof ConfirmPage> = {
   title: "Pages/ConfirmPage",
   component: ConfirmPage,
-  parameters: { layout: "fullscreen" },
+  parameters: { layout: "fullscreen", phone: true },
 };
 
 export default meta;

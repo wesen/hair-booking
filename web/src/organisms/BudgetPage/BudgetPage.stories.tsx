@@ -4,7 +4,7 @@ import { BudgetPage } from "./BudgetPage";
 const meta: Meta<typeof BudgetPage> = {
   title: "Pages/BudgetPage",
   component: BudgetPage,
-  parameters: { layout: "fullscreen" },
+  parameters: { layout: "fullscreen", phone: true },
 };
 
 export default meta;

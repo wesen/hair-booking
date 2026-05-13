@@ -4,7 +4,7 @@ import { HistoryPage } from "./HistoryPage";
 const meta: Meta<typeof HistoryPage> = {
   title: "Pages/HistoryPage",
   component: HistoryPage,
-  parameters: { layout: "fullscreen" },
+  parameters: { layout: "fullscreen", phone: true },
 };
 
 export default meta;

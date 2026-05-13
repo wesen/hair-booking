@@ -4,7 +4,7 @@ import { ServicePage } from "./ServicePage";
 const meta: Meta<typeof ServicePage> = {
   title: "Pages/ServicePage",
   component: ServicePage,
-  parameters: { layout: "fullscreen" },
+  parameters: { layout: "fullscreen", phone: true },
 };
 
 export default meta;

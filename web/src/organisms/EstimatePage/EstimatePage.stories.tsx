@@ -4,7 +4,7 @@ import { EstimatePage } from "./EstimatePage";
 const meta: Meta<typeof EstimatePage> = {
   title: "Pages/EstimatePage",
   component: EstimatePage,
-  parameters: { layout: "fullscreen" },
+  parameters: { layout: "fullscreen", phone: true },
 };
 
 export default meta;

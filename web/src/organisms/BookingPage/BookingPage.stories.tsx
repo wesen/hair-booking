@@ -8,7 +8,7 @@ const store = createRuntimeStore();
 const meta: Meta<typeof BookingPage> = {
   title: "Pages/BookingPage",
   component: BookingPage,
-  parameters: { layout: "fullscreen" },
+  parameters: { layout: "fullscreen", phone: true },
   decorators: [(Story) => <Provider store={store}><Story/></Provider>],
 };
 

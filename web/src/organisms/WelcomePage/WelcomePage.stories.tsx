@@ -4,7 +4,7 @@ import { WelcomePage } from "./WelcomePage";
 const meta: Meta<typeof WelcomePage> = {
   title: "Pages/WelcomePage",
   component: WelcomePage,
-  parameters: { layout: "fullscreen" },
+  parameters: { layout: "fullscreen", phone: true },
 };
 
 export default meta;
