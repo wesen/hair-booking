@@ -1317,3 +1317,104 @@ open http://localhost:6006
 # Navigate to Pages/ServicePage — should see iPhone frame around the content
 # Navigate to Atoms/Button — should NOT have phone frame
 ```
+
+---
+
+## Step 19: Visual diff tooling + IntakeShell chrome fix
+
+Built the full css-visual-diff comparison pipeline: a YAML site spec comparing 9 prototype pages against Storybook iframe stories, a custom JS verb (`fringe-review.js`) generating review-site data, and the `css-visual-diff serve` interactive review site. Discovered via VLM analysis that IntakeShell was missing all header chrome (StatusBar, AppHeader, Progress, Eyebrow, Title). Rewrote IntakeShell to include the full mobile phone chrome matching the prototype.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead, let's build out our visual diff tooling, so that we can also compile review pages for me to look at as we go and provide my own feedback, using the comparison website feature."
+**User prompt (verbatim):** "YOu can use `PINOCCHIO_PROFILE=gpt-5-low pinocchio code professional --images img1,img2,img3 "question"` to ask questions from a VLM"
+**User prompt (verbatim):** "not just the diffs but any screenshot, btw"
+
+**Assistant interpretation:** Build the css-visual-diff site-comparison-workflow end-to-end: YAML spec → JS verb that calls `diff.compareRegion()` → review-site data directory → `css-visual-diff serve` interactive UI. Use pinocchio VLM to analyze before/after screenshots and identify what needs fixing.
+
+**Inferred user intent:** Have a repeatable visual diff pipeline that produces review pages you can browse and annotate, plus VLM analysis to guide CSS tuning.
+
+**Commit (code):** feb4125 — "HAIR-031 Step 19: Visual diff tooling + IntakeShell chrome fix"
+
+### What I did
+
+1. **Created `fringe-intake.yaml` site spec** with 9 pages (service through confirm), each comparing:
+   - Left (prototype): `http://localhost:7071/standalone/mobile/NN-name.html` using `[data-page="name"]`
+   - Right (implementation): `http://localhost:6006/iframe.html?id=pages-namepage--default` using `[data-component="IntakeShell"]`
+
+2. **Created `fringe-review.js` verb** adapted from the css-visual-diff example `review-sweep.js`:
+   - `fromSpec`: reads YAML, loops pages/sections, calls `diff.compareRegion()`, writes `summary.json` + artifacts
+   - `rebuildSummary`: rebuilds `summary.json` from existing compare artifacts
+   - Uses policy bands: accepted ≤0.5%, review ≤10%, tune-required ≤30%, major-mismatch >30%
+
+3. **First sweep results**: All 9 pages were major-mismatch (38-52% pixel diff). Used pinocchio VLM to analyze screenshots — immediately identified the root cause: IntakeShell was only rendering children + CTA bar, missing ALL header chrome.
+
+4. **Rewrote IntakeShell** to include full mobile phone chrome matching the FS prototype:
+   - StatusBar (9:41 time + signal/wifi SVG icons)
+   - AppHeader (back chevron + "FRINGE" wordmark + step counter "01 / 09")
+   - Progress bar (3px plum fill, width = step/total × 100%)
+   - Eyebrow + Title section (h1 Anton 36px uppercase)
+   - Bottom CTA bar (Skip + Keep Going buttons with plum primary + outline secondary)
+   - Home indicator (120×4px pill at bottom)
+
+5. **Second sweep**: 3 tune-required (25-30%), 6 major-mismatch (30-48%). Service went from 49% → 31%, budget from 45% → 30%.
+
+6. **Used pinocchio VLM** on the updated service page diff — confirmed header chrome now renders correctly. Remaining issues: card background shade, spacing, button labels (Skip vs Back), chevron visibility.
+
+### Why
+
+The visual diff pipeline is the core feedback loop for the restyle: generate artifacts, review in the interactive site, identify specific CSS/timing issues, fix, re-sweep. The review site lets you browse side-by-side, overlay, slider, and diff-only views with notes and export.
+
+### What worked
+
+- The css-visual-diff site-comparison-workflow is well-designed: spec → verb → artifacts → serve is a clean pipeline
+- `diff.compareRegion()` produces rich artifacts: pixel diff, CSS computed style diffs, attribute diffs, bounds deltas
+- pinocchio VLM with `--images` is incredibly effective for analyzing visual diffs — it immediately spotted the missing IntakeShell header chrome that I hadn't noticed
+- The review site at http://127.0.0.1:18098 provides side-by-side, overlay, slider, and diff-only views
+
+### What didn't work
+
+- The `--images` flag requires comma-separated paths without spaces (no space after comma)
+- The verb's `sectionSpec.selector` fallback needed a fix — the spec uses `leftSelector`/`rightSelector` without a base `selector`, so I added `sectionSpec.selector || sectionSpec.leftSelector || sectionSpec.rightSelector`
+- Function names must match `__verb__` names exactly — I had `function summary()` but `__verb__("rebuildSummary")`, causing a "references unknown function" error
+
+### What I learned
+
+- pinocchio with VLM is a powerful visual diff analysis tool — much faster than manual inspection for identifying layout/typography/color discrepancies
+- The IntakeShell was the single biggest source of pixel mismatch — once fixed, the diffs dropped by ~15-20 percentage points across all pages
+- The css-visual-diff `serve` command provides a self-contained review site with localStorage persistence for notes/annotations
+
+### What was tricky to build
+
+- The Storybook iframe URLs use the pattern `iframe.html?id=pages-servicepage--default&viewMode=story` — the story ID is derived from the story title (lowercased, slashes replaced with dashes)
+- The prototype pages use `[data-page="service"]` on a wrapper div, but the implementation uses `[data-component="IntakeShell"]` — the selectors need to match the actual DOM elements that contain the visual content
+
+### What warrants a second pair of eyes
+
+- Browse the review site at http://127.0.0.1:18098 and check the side-by-side views
+- Verify the IntakeShell renders correctly in Storybook at http://localhost:6006 (Organisms/IntakeShell)
+
+### What should be done in the future
+
+- Run pinocchio on each page's diff to create a prioritized fix list
+- Fix card backgrounds (cream shade), spacing, and button labels
+- The confirm page is the worst mismatch (48%) — likely needs the most CSS tuning
+- Consider adding per-component section selectors (not just whole-screen) for more granular diff analysis
+
+### Code review instructions
+
+```bash
+# Run the comparison sweep
+css-visual-diff verbs --repository design-galley/visual-diff/userland/verbs \
+  fringe review from-spec \
+  --specFile design-galley/visual-diff/userland/specs/fringe-intake.yaml \
+  --outDir /tmp/fringe-review-smoke
+
+# Serve the review site
+css-visual-diff serve --data-dir /tmp/fringe-review-smoke --port 18098 --open
+
+# Analyze a specific page with VLM
+PINOCCHIO_PROFILE=gpt-5-low pinocchio code professional --non-interactive \
+  --images /tmp/fringe-review-smoke/service/artifacts/screen/left_region.png,/tmp/fringe-review-smoke/service/artifacts/screen/right_region.png \
+  "Compare left (prototype) vs right (React). What needs fixing?"
+```

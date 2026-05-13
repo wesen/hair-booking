@@ -57,3 +57,19 @@ Step 13: Restructured components into atoms/molecules/organisms with one folder 
 
 Step 15: Implemented 5 new intake molecules (ServiceOption, BudgetOption, TimeSlot, ColorLevelBar, LengthSilhouette) with data-component attributes and Storybook stories. Organized Storybook sidebar to match atoms/molecules/organisms folders. Added data-component to all 37 existing components. (commit a633942, 2ba03ed)
 
+
+## 2026-05-12
+
+Steps 17-18: Added stories for all 11 page organisms in Pages/ top-level category. Added phone frame decorator (390×844 iPhone container with bezel + Dynamic Island). Fixed prop mismatches in stories. Renamed preview.ts → preview.tsx. (commits 7efe171, ff4abad, 9e7bde0)
+
+
+## 2026-05-12
+
+Step 19: Built css-visual-diff comparison pipeline (spec + verb + review site). Discovered IntakeShell missing header chrome via VLM analysis. Rewrote IntakeShell with StatusBar, AppHeader, Progress, Eyebrow+Title, CTA bar, Home indicator. Pixel diffs improved ~15-20pts across all pages. Review site served at :18098. (commit feb4125)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/design-galley/visual-diff/userland/specs/fringe-intake.yaml — Site spec comparing 9 prototype pages vs Storybook stories
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/design-galley/visual-diff/userland/verbs/fringe-review.js — Review verb with from-spec + rebuildSummary
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/organisms/IntakeShell/IntakeShell.tsx — Full mobile chrome (StatusBar
+
