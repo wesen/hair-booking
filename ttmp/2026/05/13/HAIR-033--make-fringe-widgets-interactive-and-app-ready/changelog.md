@@ -40,3 +40,17 @@ Step 3: Standardized app-ready callback props across selectable widgets, added s
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/fringe-ui/interactions.ts — Shared interaction metadata types
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/molecules/PhotoTile/PhotoTile.tsx — Upload/remove callback upgrade
 
+
+## 2026-05-13
+
+Step 4: Added reusable selection group components (ServiceOptionGroup, BudgetOptionGroup, TimeSlotGroup, DayPickerGrid), a shared controllable-value hook, updated Storybook demos, and tests. Verified pnpm test, typecheck, and Storybook build. (commit 96ba17e)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/SelectionGroups.test.tsx — Selection group behavior tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/fringe-ui/selection.ts — Controlled/uncontrolled value helper
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/molecules/BudgetOption/BudgetOptionGroup.tsx — Budget option group
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/molecules/DayCell/DayPickerGrid.tsx — Day picker grid
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/molecules/ServiceOption/ServiceOptionGroup.tsx — Service option group
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/molecules/TimeSlot/TimeSlotGroup.tsx — Time slot group
+

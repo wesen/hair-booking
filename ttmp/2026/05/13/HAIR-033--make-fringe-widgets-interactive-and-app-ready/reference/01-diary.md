@@ -278,3 +278,102 @@ pnpm test -- --runInBand
 npx tsc --noEmit
 npx storybook build --test
 ```
+
+---
+
+## Step 4: Add reusable selection group components
+
+Added group-level components around the app-ready selectable widgets so pages do not need to manually map options and repeat selection-state wiring. These groups are the natural next layer above individual controls: they own the controlled/uncontrolled selection pattern, preserve callback metadata, and make application stories shorter and closer to real app code.
+
+The updated Storybook examples now demonstrate both controlled app state and uncontrolled defaults for full widget groups, not just individual cards/buttons.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead"
+
+**Assistant interpretation:** Continue HAIR-033 by building the next app-ready abstraction layer after individual widget callbacks.
+
+**Inferred user intent:** Keep moving toward widgets that can be dropped into real app screens with minimal custom glue.
+
+**Commit (code):** 96ba17e — "HAIR-033 Step 3: Add reusable selection group components"
+
+### What I did
+
+- Added `web/src/fringe-ui/selection.ts`:
+  - `useControllableValue()` for controlled/uncontrolled single-value groups.
+- Added group components:
+  - `ServiceOptionGroup`
+  - `BudgetOptionGroup`
+  - `TimeSlotGroup`
+  - `DayPickerGrid`
+- Updated `web/src/InteractiveWidgets.stories.tsx`:
+  - `IntakeSelections` now uses `ServiceOptionGroup` and `BudgetOptionGroup`.
+  - `BookingSelections` now uses `DayPickerGrid` and `TimeSlotGroup`.
+  - Added `UncontrolledGroups` example.
+- Added `web/src/SelectionGroups.test.tsx`:
+  - Verifies group callback payloads.
+  - Verifies uncontrolled state updates.
+  - Verifies disabled options do not emit changes.
+  - Verifies day grid selection metadata.
+- Verified:
+  - `cd web && pnpm test -- --runInBand`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && npx storybook build --test`
+
+### Why
+
+Individual app-ready widgets are useful, but app screens usually render sets of options. Without group components, every page repeats the same code: track selected value, compare each option, pass `selected`, pass callbacks, forward metadata. The group components make this pattern reusable and less error-prone.
+
+### What worked
+
+- `useControllableValue()` reduced repeated controlled/uncontrolled plumbing.
+- The group APIs make Storybook examples shorter and clearer.
+- Tests validate both controlled callback and uncontrolled internal state paths.
+
+### What didn't work
+
+- There is not yet a multi-select generic group beyond `ChipGroup`. Current service/budget/time/day groups are single-select.
+
+### What I learned
+
+- The component library wants two layers for many controls:
+  - leaf option component (`ServiceOption`, `TimeSlot`, `DayCell`), and
+  - option group component (`ServiceOptionGroup`, `TimeSlotGroup`, `DayPickerGrid`).
+- This mirrors the way real app state is structured and should be the default pattern for future selectable widgets.
+
+### What was tricky to build
+
+- The groups need to preserve the child widget's metadata while overriding `previousValue` with the group-level selected value. That gives callers the complete state transition instead of only the clicked option's local selected state.
+
+### What warrants a second pair of eyes
+
+- Whether group components should support `allowDeselect` for optional single-select fields.
+- Whether `useControllableValue()` should move to a more general hooks folder if more components use it.
+- Whether the group components should expose labels/helper text like `ChipGroup` does.
+
+### What should be done in the future
+
+- Add a `LengthSilhouetteGroup`.
+- Add `PhotoTileGrid` for upload/remove collections.
+- Update the DSL renderer to support group nodes instead of only leaf nodes.
+
+### Code review instructions
+
+Start with:
+
+- `web/src/fringe-ui/selection.ts`
+- `web/src/molecules/ServiceOption/ServiceOptionGroup.tsx`
+- `web/src/molecules/BudgetOption/BudgetOptionGroup.tsx`
+- `web/src/molecules/TimeSlot/TimeSlotGroup.tsx`
+- `web/src/molecules/DayCell/DayPickerGrid.tsx`
+- `web/src/InteractiveWidgets.stories.tsx`
+- `web/src/SelectionGroups.test.tsx`
+
+Validate with:
+
+```bash
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+npx storybook build --test
+```

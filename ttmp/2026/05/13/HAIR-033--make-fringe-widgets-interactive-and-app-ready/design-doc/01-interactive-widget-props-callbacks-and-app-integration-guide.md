@@ -235,3 +235,35 @@ Storybook examples live under:
 ```text
 App Ready Widgets / Interactive Form Controls
 ```
+
+## Implementation Note: Selection Group Components
+
+Implemented in commit `96ba17e`.
+
+The widget library now has group-level abstractions for common single-select option sets:
+
+- `ServiceOptionGroup`
+- `BudgetOptionGroup`
+- `TimeSlotGroup`
+- `DayPickerGrid`
+
+These components use `useControllableValue()` from:
+
+```text
+web/src/fringe-ui/selection.ts
+```
+
+The pattern is:
+
+```tsx
+<ServiceOptionGroup
+  options={serviceOptions}
+  value={service}
+  onChange={(nextService, meta) => {
+    console.log(meta.previousValue, "→", nextService);
+    setService(nextService);
+  }}
+/>
+```
+
+Use the group components in app pages instead of manually mapping leaf widgets unless the page needs custom layout behavior.
