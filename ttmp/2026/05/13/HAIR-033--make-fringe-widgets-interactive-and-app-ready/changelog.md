@@ -216,3 +216,14 @@ Step 18: Connected frontend DSL renderer to backend action refs with backendClie
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/backendClient.ts — Client for Goja DSL flow endpoints
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — Renderer backend action-ref dispatch support
 
+
+## 2026-05-13
+
+Step 19: Added an intern-facing real UI app integration guide for the Goja backend DSL, scoped phases for live viewing page work, flow expansion, host modules, session lifecycle, and auth hardening, updated tasks, and uploaded the guide to reMarkable.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/04-real-ui-app-integration-guide-for-goja-backend-dsl.md — New intern-facing guide and implementation plan
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/reference/01-diary.md — Diary step recording guide creation and reMarkable upload
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/tasks.md — Phased task plan for getting a live DSL viewing page working
+

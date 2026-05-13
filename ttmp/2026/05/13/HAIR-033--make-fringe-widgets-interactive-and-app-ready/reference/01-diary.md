@@ -1632,3 +1632,136 @@ Open Storybook:
 ```text
 Page DSL / Backend Goja Flow / Mocked Backend Flow
 ```
+
+---
+
+## Step 19: Write the real UI app integration guide and phase plan
+
+Created an intern-facing guide for the next stage of the Goja backend DSL work: turning the proven backend/runtime/frontend bridge into a real browser-visible Vite app page. The guide explains the architecture from first principles, walks through the runtime, HTTP API, page JSON contract, event contract, frontend renderer, and `BackendDslPage`, then scopes the next implementation phases.
+
+This step also converts the vague next question—"when can we see a real UI app?"—into a concrete phased task plan. Phase A is intentionally small: add the missing Vite app entrypoint and mount `BackendDslPage` against the live Go server. Later phases cover debug surfaces, full flow expansion, host modules, session lifecycle, and auth ownership.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Create  a detailed analysis / design / implementation guide that is for a new intern, explaining all the parts of the system needed to understand what it is, with prose paragraphs and bullet point sand pseudocode and diagrams and api references and file references. It should be very clear and technical. Store in the ticket and the nupload to remarkable.
+
+
+This should also scope out / analyze the 2 - 3 - 4 - 5 parts as preparation for the future. 
+
+Then, add tasks and phases to get a real viewing page going, so we can test that our action based approach actually works in practice."
+
+**Assistant interpretation:** Write a long-form technical handoff guide in the HAIR-033 ticket that explains the whole backend-driven Goja DSL system and plans the next work needed to create a real live UI viewing page.
+
+**Inferred user intent:** Prepare an intern or future contributor to implement the live browser route safely, while preserving the architecture decisions and making the next phases explicit.
+
+**Commit (code):** N/A — documentation and task planning only.
+
+### What I did
+
+- Created `design-doc/04-real-ui-app-integration-guide-for-goja-backend-dsl.md` in the HAIR-033 ticket.
+- Documented the current architecture:
+  - Goja runtime,
+  - flow session,
+  - render transactions,
+  - page-version-scoped action refs,
+  - HTTP endpoints,
+  - frontend page DSL renderer,
+  - `BackendDslPage`,
+  - Vite proxy requirements.
+- Added diagrams, API references, pseudocode, file maps, validation commands, manual test recipes, and risk/mitigation tables.
+- Scoped the requested future parts:
+  - Phase C: expand the two-step flow into service/color/photos/budget/estimate/booking/confirm,
+  - Phase D: safe Goja host modules and domain-service integration,
+  - Phase E: session lifecycle and auth/ownership hardening.
+- Updated `tasks.md` with new phases:
+  - Phase A: real viewing page,
+  - Phase B: debuggability/review surface,
+  - Phase C: flow expansion,
+  - Phase D: host modules/domain integration,
+  - Phase E: session lifecycle/auth hardening.
+- Related the new guide to the main backend and frontend files using `docmgr doc relate`.
+- Uploaded the guide to reMarkable:
+
+```text
+/ai/2026/05/13/HAIR-033/HAIR_033_Real_UI_App_Integration_Guide.pdf
+```
+
+### Why
+
+The system now has enough moving parts that the next contributor needs a map before editing code. The real viewing page is small, but it sits on top of several important contracts: page JSON, action refs, event payloads, page versions, Goja callbacks, and frontend renderer dispatch. The guide makes those contracts explicit.
+
+### What worked
+
+- `docmgr doc add` created the new design-doc cleanly.
+- `docmgr validate frontmatter` passed for the new guide.
+- `remarquee upload bundle` successfully uploaded the PDF to reMarkable.
+- The phase plan now gives a direct path from current prototype to a live route and then to production-hardening work.
+
+### What didn't work
+
+- The first `docmgr doc relate` attempt used the doc path relative to the docmgr root and failed with:
+
+```text
+Error: expected exactly 1 doc for --doc "2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/04-real-ui-app-integration-guide-for-goja-backend-dsl.md", got 0
+```
+
+- Fixed by passing the absolute path to the document for `--doc`.
+
+### What I learned
+
+- For `docmgr validate frontmatter`, the path relative to the docmgr root works.
+- For `docmgr doc relate --doc`, the absolute document path is safer in this repository.
+- The live viewing page should be treated as a thin integration slice, not a full application-routing redesign.
+
+### What was tricky to build
+
+- The guide had to distinguish three similar surfaces: Storybook mocked backend flow, live HTTP curl tests, and the missing Vite app route. The important distinction is that Storybook proves the frontend contract, curl proves the backend contract, and the new route will prove the complete browser-to-Goja loop.
+- The requested "2 - 3 - 4 - 5 parts" mapped to the future scope from the previous explanation: full flow expansion, domain-service host modules, session lifecycle, and auth/ownership checks. The guide names those as later phases so Phase A remains small.
+
+### What warrants a second pair of eyes
+
+- Whether `/dsl-goja-demo`, `/intake-goja`, or `/intake?runtime=goja` should be the first live route name.
+- Whether the live demo should store session ids in memory only, local storage, or URL state during Phase A.
+- Whether host modules should be one `fringe/intake` module first or several smaller domain modules from the beginning.
+
+### What should be done in the future
+
+- Implement Phase A from the guide: add `web/index.html`, `web/src/main.tsx`, `web/src/App.tsx`, and `web/src/LiveDslDemoApp.tsx`.
+- Run the manual browser test recipe to verify React → Go HTTP → Goja callback → JSON response → React rerender.
+- Then proceed to Phase B debug UI before expanding the flow.
+
+### Code review instructions
+
+Review the documentation changes first:
+
+- `ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/04-real-ui-app-integration-guide-for-goja-backend-dsl.md`
+- `ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/tasks.md`
+- `ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/reference/01-diary.md`
+
+Validate with:
+
+```bash
+docmgr validate frontmatter --doc 2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/04-real-ui-app-integration-guide-for-goja-backend-dsl.md --suggest-fixes
+```
+
+The upload target is:
+
+```text
+/ai/2026/05/13/HAIR-033/HAIR_033_Real_UI_App_Integration_Guide.pdf
+```
+
+### Technical details
+
+The core implementation files described by the guide are:
+
+- `pkg/dslgoja/schema.go`
+- `pkg/dslgoja/runtime.go`
+- `pkg/dslgoja/modules_dsl.go`
+- `pkg/dslgoja/flows/intake.flow.js`
+- `pkg/server/handlers_dsl.go`
+- `pkg/server/http.go`
+- `web/src/page-dsl/schema.ts`
+- `web/src/page-dsl/render.tsx`
+- `web/src/page-dsl/backendClient.ts`
+- `web/src/page-dsl/BackendDslPage.tsx`
+- `web/vite.config.ts`

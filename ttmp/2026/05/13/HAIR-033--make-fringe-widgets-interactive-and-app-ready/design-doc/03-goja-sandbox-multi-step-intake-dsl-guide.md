@@ -1693,3 +1693,79 @@ State lifetime: whole flow session
 Action callback lifetime: current page version
 Old action behavior: stale/recover current page, never silently run
 ```
+
+---
+
+## Implementation Update: Backend Runtime and Frontend Bridge Completed Through First End-to-End Slice
+
+The first implementation slice described in this guide now exists in the repository. The implementation does not yet include production session persistence, user ownership checks, action pruning, or a full six-step intake flow, but it does implement the central architecture end to end.
+
+The current implemented path is:
+
+```text
+Goja intake.flow.js
+  -> pkg/dslgoja Runtime.StartFlow
+  -> JSON DslPage with opaque action refs
+  -> /api/dsl/flows/{flowId}/start
+  -> BackendDslPage fetches page
+  -> DslPageRenderer renders widgets
+  -> widget interaction calls backendDispatch
+  -> /api/dsl/flows/{sessionId}/events
+  -> FlowSession.Dispatch invokes registered Goja callback
+  -> callback mutates ctx.state and returns render(ctx)
+  -> backend returns next page JSON
+  -> BackendDslPage replaces current page
+```
+
+### Backend files added
+
+| File | Role |
+|---|---|
+| `pkg/dslgoja/schema.go` | Go structs for the JSON page/event contract. |
+| `pkg/dslgoja/runtime.go` | Goja runtime, flow session, render transaction, action registration, dispatch. |
+| `pkg/dslgoja/modules_dsl.go` | `require("fringe/dsl")` builder module installed into Goja. |
+| `pkg/dslgoja/flows/intake.flow.js` | Embedded two-step service/color intake prototype. |
+| `pkg/dslgoja/flows.go` | `go:embed` wrapper for the demo flow source. |
+| `pkg/server/handlers_dsl.go` | HTTP endpoints and in-memory flow store. |
+| `pkg/server/http.go` | Route registration for DSL endpoints. |
+
+### Frontend files added or changed
+
+| File | Role |
+|---|---|
+| `web/src/page-dsl/backendClient.ts` | Client functions for start/get/event endpoints. |
+| `web/src/page-dsl/BackendDslPage.tsx` | React container that owns backend page state and posts interactions. |
+| `web/src/page-dsl/render.tsx` | Renderer support for backend `props.actions` refs plus local fallback actions. |
+| `web/src/page-dsl/schema.ts` | Backend action-ref and dispatch types. |
+| `web/src/page-dsl/BackendDslPage.stories.tsx` | Storybook demo using a mocked backend-shaped client. |
+| `web/src/page-dsl/BackendDslPage.test.tsx` | Tests for renderer backend dispatch and BackendDslPage client integration. |
+
+### Current validation commands
+
+The implementation has been validated with:
+
+```bash
+go test ./... -count=1
+cd web && pnpm test -- --runInBand
+cd web && npx tsc --noEmit
+cd web && npx storybook build --test
+```
+
+At the time of this update, the focused web test run reports 5 test files and 19 passing tests. The Go test run covers all packages, including `pkg/dslgoja` and `pkg/server`.
+
+### What this slice proves
+
+This slice proves the core claim of the architecture: backend-hosted JavaScript can author a page, register callbacks, return JSON to the browser, and later receive browser interaction events that dispatch into the registered callbacks. The browser does not execute flow logic. It renders JSON and reports events.
+
+### What remains prototype-only
+
+The current implementation is still a first slice. These parts remain intentionally incomplete:
+
+- The flow store is in-memory and has no session expiry.
+- There are no user ownership checks around DSL sessions.
+- Retired actions and processed events are not pruned yet.
+- The embedded intake flow has two steps, not the full service/color/photos/budget/booking/confirm sequence.
+- The Storybook backend demo uses a mocked backend client; the real backend endpoints are tested by Go HTTP handler tests.
+- The frontend does not yet expose a production route for `BackendDslPage` because the current web package is primarily component/story focused.
+
+The next productionization pass should address those points in that order: session lifecycle, auth/ownership, cleanup/pruning, full flow steps, and route integration.
