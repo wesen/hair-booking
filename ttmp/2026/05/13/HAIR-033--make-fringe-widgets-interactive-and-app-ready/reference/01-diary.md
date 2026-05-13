@@ -2284,3 +2284,11 @@ google.protobuf.Value value = 8;
 ```
 
 This is the main reason the spike can coexist with the current hand-written DSL renderer.
+
+### Upload note
+
+After completing the Phase B protobuf slice, uploaded the updated routing/session/protobuf design note plus diary bundle to reMarkable:
+
+```text
+/ai/2026/05/13/HAIR-033/HAIR_033_Goja_DSL_Phase_B_Routing_Sessions_Protobuf_Update.pdf
+```
