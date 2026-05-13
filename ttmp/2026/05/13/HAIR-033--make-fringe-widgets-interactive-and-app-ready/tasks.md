@@ -9,5 +9,6 @@
 - [x] Implement interactive chips and multi-select patterns, including toggled chip sets
 - [x] Upgrade service, budget, time slot, day cell, photo tile, rating, segmented, and summary widgets with workable callbacks
 - [x] Add Storybook interaction examples and realistic app-state demos
-- [ ] Add or update tests for selection callbacks and state transitions
-- [ ] Update intern-facing implementation notes and reMarkable handoff if requested
+- [x] Add or update tests for selection callbacks and state transitions
+- [x] Update intern-facing implementation notes and reMarkable handoff if requested
+- [x] Design backend-driven DSL callback architecture and upload intern guide to reMarkable

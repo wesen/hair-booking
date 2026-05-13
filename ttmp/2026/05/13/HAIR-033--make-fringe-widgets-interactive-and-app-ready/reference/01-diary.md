@@ -567,3 +567,93 @@ Open Storybook and click Cut/Color/Extensions in:
 App Ready Widgets / Interactive Form Controls / Intake Selections
 Page DSL / Interactive Widgets / Interactive Intake
 ```
+
+---
+
+## Step 7: Design the backend-driven DSL callback architecture
+
+Stepped back from the browser-local DSL implementation and wrote a backend-driven architecture guide. The guide reframes the DSL as a server-owned page runtime: backend code builds page JSON, registers callbacks into a page-instance action registry, sends only opaque action references to the browser, and receives interaction events back from the frontend when users click/select/change controls.
+
+This design answers the key production question: how can backend-authored DSL callbacks be invoked later when a frontend interaction happens, without trying to serialize functions into JSON or trusting the browser to choose handler names?
+
+### Prompt Context
+
+**User prompt (verbatim):** "Let's take a step back:
+
+I want this DSL to run on the backend, and be able to register callbacks such that they will be called on later when said interaction happens in the frontend.
+
+So for example, if I have a select list, and there is a select list on changed, or just the navigation button at the bottom, I want the browser to trigger the backend, tell it exactly what button got pressed, and this will then lookup the handler that got registered for that page. how would that work?
+
+Create  a detailed analysis / design / implementation guide that is for a new intern, explaining all the parts of the system needed to understand what it is, with prose paragraphs and bullet point sand pseudocode and diagrams and api references and file references. It should be very clear and technical. Store in the ticket and the nupload to remarkable.
+
+
+Open with `md-view view ...` once you are done"
+
+**Assistant interpretation:** Write a detailed intern-facing design guide for a backend-driven DSL runtime where backend page construction registers callbacks, browser interactions post opaque action references back to the backend, and the backend dispatches the correct registered handler.
+
+**Inferred user intent:** Move from a frontend-local DSL proof-of-concept to a production server-driven UI design with clear callback registration, event dispatch, authorization, idempotency, and implementation steps.
+
+**Commit (code):** N/A — documentation/design step only
+
+### What I did
+
+- Created design doc `Backend Driven DSL Callback Architecture Guide` in HAIR-033.
+- Explained the target architecture:
+  - backend builder creates page instances,
+  - backend action registry stores callbacks/action handlers,
+  - browser receives opaque action ids,
+  - browser posts interaction events to backend,
+  - backend validates and dispatches the registered handler,
+  - backend returns the next page JSON/effects.
+- Included diagrams, API sketches, Go pseudocode, TypeScript pseudocode, persistence strategy, security rules, and an implementation plan.
+- Related the doc to current frontend DSL files and existing backend route/intake service files.
+
+### Why
+
+The current DSL runs entirely in frontend Storybook/local React state. The requested production model is backend authoritative: callbacks should be registered while backend code builds the page, and invoked later when the browser reports a specific interaction.
+
+### What worked
+
+- The existing `DslActionPayload` and renderer action bridge provided a useful stepping stone for describing the browser-to-backend event payload.
+- The existing Go `http.ServeMux` routing style gives a straightforward place to add `/api/dsl/...` endpoints.
+
+### What didn't work
+
+- N/A; this was a design/documentation step.
+
+### What I learned
+
+- The central abstraction should be `PageInstance`: page JSON, server state, action registry, owner/session, version, and expiry.
+- Production should prefer symbolic handler keys plus serializable bound args over in-memory Go closures, even if an in-memory closure runtime is useful for the first local prototype.
+
+### What was tricky to build
+
+- The design has to satisfy two competing goals: backend developer ergonomics should feel like registering callbacks, but the runtime cannot serialize callbacks to the browser. Opaque action ids solve this by giving the browser a safe token while keeping handler lookup server-side.
+
+### What warrants a second pair of eyes
+
+- Whether the first implementation should support only in-memory callbacks or start directly with symbolic handler keys and persisted page instances.
+- Whether page-version mismatches should reject events or allow automatic rebasing.
+- Whether action refs should be random ids stored server-side or signed tokens.
+
+### What should be done in the future
+
+- Implement the recommended first slice:
+  - `pkg/dsl/schema.go`,
+  - `pkg/dsl/runtime.go`,
+  - `pkg/server/handlers_dsl.go`,
+  - `web/src/page-dsl/BackendDslPage.tsx`,
+  - one backend-driven segmented control and footer-next proof.
+
+### Code review instructions
+
+Read:
+
+- `ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/02-backend-driven-dsl-callback-architecture-guide.md`
+
+Then compare against:
+
+- `web/src/page-dsl/schema.ts`
+- `web/src/page-dsl/render.tsx`
+- `pkg/server/http.go`
+

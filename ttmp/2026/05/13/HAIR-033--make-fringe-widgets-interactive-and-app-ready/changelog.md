@@ -77,3 +77,15 @@ Step 6: Made Cut/Color/Extensions segmented controls visibly stateful in app-rea
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/InteractiveWidgets.stories.tsx — Segmented control state wiring
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/InteractiveDsl.stories.tsx — DSL segmented action-to-state wiring
 
+
+## 2026-05-13
+
+Step 7: Wrote backend-driven DSL callback architecture guide explaining page instances, opaque action refs, backend handler registry, browser event dispatch, API contracts, persistence/security strategy, and implementation plan; uploaded guide+diary bundle to reMarkable at /ai/2026/05/13/HAIR-033. (upload: HAIR_033_Backend_Driven_DSL_Callback_Guide.pdf)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/http.go — Existing backend route style referenced by guide
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/02-backend-driven-dsl-callback-architecture-guide.md — Backend-driven DSL callback architecture guide
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — Current renderer action-routing model referenced by guide
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/schema.ts — Current frontend DSL schema referenced by guide
+
