@@ -150,7 +150,7 @@ export function ConfirmPage({
       </main>
 
       <footer style={{
-        padding: "12px 30px 28px",
+        padding: "12px 22px 28px",
         borderTop: `1px solid ${color.rule}`,
         display: "flex",
         gap: 10,

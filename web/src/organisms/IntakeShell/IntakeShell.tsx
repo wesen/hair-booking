@@ -153,7 +153,7 @@ export function IntakeShell({
       {/* ── Bottom CTA bar ──────────────────────────────────── */}
       {onNext && (
         <div style={{
-          padding: '16px 30px 28px',
+          padding: '16px 22px 28px',
           borderTop: `1px solid ${color.rule}`,
           display: 'flex',
           gap: 10,
