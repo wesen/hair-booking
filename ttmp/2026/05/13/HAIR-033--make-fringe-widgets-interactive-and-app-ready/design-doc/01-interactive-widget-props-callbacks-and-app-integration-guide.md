@@ -267,3 +267,48 @@ The pattern is:
 ```
 
 Use the group components in app pages instead of manually mapping leaf widgets unless the page needs custom layout behavior.
+
+## Implementation Note: Interactive Widgets in the DSL
+
+Implemented in commit `603b6cc`.
+
+The DSL now supports interactive widget/group nodes. The important contract is that JSON remains serializable: nodes contain action names, not functions. At runtime, `DslPageRenderer` resolves those action names through `context.actions` and sends payloads shaped like:
+
+```ts
+{
+  node: DslNode;
+  action: string;
+  value?: JsonValue;
+  meta?: unknown;
+}
+```
+
+Example DSL:
+
+```ts
+n.chipGroup(toneOptions, tones, {
+  action: "tonesChanged",
+  label: "Tone family",
+})
+```
+
+Example renderer context:
+
+```tsx
+<DslPageRenderer
+  page={dsl}
+  context={{
+    actions: {
+      tonesChanged: (payload) => {
+        setTones(Array.isArray(payload?.value) ? payload.value.map(String) : []);
+      },
+    },
+  }}
+/>
+```
+
+Interactive DSL stories live under:
+
+```text
+Page DSL / Interactive Widgets
+```

@@ -54,3 +54,16 @@ Step 4: Added reusable selection group components (ServiceOptionGroup, BudgetOpt
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/molecules/ServiceOption/ServiceOptionGroup.tsx — Service option group
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/molecules/TimeSlot/TimeSlotGroup.tsx — Time slot group
 
+
+## 2026-05-13
+
+Step 5: Wired interactive widgets into the DSL with group node kinds, named action payloads, interactive DSL Storybook pages, and tests. Verified pnpm test, typecheck, and Storybook build. (commit 603b6cc)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/InteractiveDsl.stories.tsx — Interactive DSL Storybook pages
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/InteractiveDsl.test.tsx — Interactive DSL action routing tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/builder.ts — DSL builder helpers for interactive group nodes
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — Renderer action routing for interactive widgets
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/schema.ts — DSL action payload and group node schema
+

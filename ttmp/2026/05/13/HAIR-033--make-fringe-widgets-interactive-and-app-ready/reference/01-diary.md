@@ -377,3 +377,118 @@ pnpm test -- --runInBand
 npx tsc --noEmit
 npx storybook build --test
 ```
+
+---
+
+## Step 5: Wire interactive widgets into the DSL renderer
+
+Extended the JSON DSL so it can render the new app-ready interactive widgets and route user changes back through named DSL actions. This is the bridge between the HAIR-032 declarative page system and the HAIR-033 interactive widget contracts.
+
+The new Storybook stories demonstrate real local app state driving DSL-rendered pages. When a user picks services, budgets, tones, ratings, days, times, or photo tiles, the renderer sends `{ node, action, value, meta }` payloads to `context.actions`, the story updates state, and the page is re-created as JSON with the new selected values.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, continue. I want interactive widgets with my dsl"
+
+**Assistant interpretation:** Integrate the interactive widget/group APIs into the declarative page DSL so DSL-authored pages are not static and can drive app state through named actions.
+
+**Inferred user intent:** Make the DSL useful for real app screens and experiments, not just static JSON-rendered layouts.
+
+**Commit (code):** 603b6cc — "HAIR-033 Step 4: Wire interactive widgets into DSL renderer"
+
+### What I did
+
+- Extended `web/src/page-dsl/schema.ts` with interactive group node kinds:
+  - `chipGroup`
+  - `serviceOptionGroup`
+  - `budgetOptionGroup`
+  - `timeSlotGroup`
+  - `dayPickerGrid`
+- Extended the DSL action model:
+  - actions now receive optional payloads with `node`, `action`, `value`, and `meta`.
+- Extended `web/src/page-dsl/builder.ts` with helpers:
+  - `n.chipGroup(...)`
+  - `n.serviceOptionGroup(...)`
+  - `n.budgetOptionGroup(...)`
+  - `n.timeSlotGroup(...)`
+  - `n.dayPickerGrid(...)`
+- Updated `web/src/page-dsl/render.tsx`:
+  - Renders the new group node kinds.
+  - Routes widget/group changes to named DSL actions.
+  - Updates leaf widgets to use `onSelect`, `onChange`, `onUpload`, and `onRemove` instead of only static `onClick` plumbing.
+- Added `web/src/page-dsl/InteractiveDsl.stories.tsx`:
+  - `Page DSL / Interactive Widgets / Interactive Intake`
+  - `Page DSL / Interactive Widgets / Interactive Booking`
+  - `Page DSL / Interactive Widgets / Interactive JSON Contract`
+- Added `web/src/page-dsl/InteractiveDsl.test.tsx`:
+  - Tests `chipGroup` action routing.
+  - Tests `serviceOptionGroup` action routing.
+  - Tests `photoTile` upload/remove action routing.
+- Verified:
+  - `cd web && pnpm test -- --runInBand`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && npx storybook build --test`
+
+### Why
+
+The user specifically asked for interactive widgets with the DSL. The DSL already emitted JSON and rendered pages, but it needed a runtime action bridge so JSON nodes could participate in app state. Named actions keep the JSON serializable while still allowing React state updates at render time.
+
+### What worked
+
+- The named action pattern from HAIR-032 scaled to widget value changes.
+- Group components made the renderer implementation compact.
+- Storybook can demonstrate stateful DSL pages without making the JSON itself non-serializable.
+
+### What didn't work
+
+- JSON cannot hold setter functions, so the DSL stories need to rebuild page JSON after each state change. This is expected, but important to understand.
+- The current payload type uses `unknown` for `meta`; a stricter per-node payload schema would be useful later.
+
+### What I learned
+
+- The right mental model is: DSL JSON describes the current UI state, and `context.actions` describes how runtime events produce the next state.
+- The DSL should prefer group nodes for real app screens because group nodes expose concise app-level value changes.
+
+### What was tricky to build
+
+- The renderer has to adapt JSON-safe action names into strongly interactive widget callbacks. For example, `photoTile` has two different action names (`onUpload`, `onRemove`) and both must route through the same generic DSL payload mechanism.
+- `key` handling from the previous DSL fix had to be preserved while adding more renderer branches.
+
+### What warrants a second pair of eyes
+
+- Whether `DslActionPayload.value` should be typed more narrowly per node kind.
+- Whether action names should live in `props.action` for all widgets, or whether upload/remove/edit should keep semantic prop names like `onUpload`, `onRemove`, `onEdit`.
+- Whether DSL group nodes should support uncontrolled defaults, or whether DSL pages should remain fully controlled by external app state.
+
+### What should be done in the future
+
+- Add DSL nodes for `LengthSilhouetteGroup` and `PhotoTileGrid` once those group components exist.
+- Add JSON snapshot tests for interactive DSL pages.
+- Consider a reducer helper that can consume DSL action payloads and update form state automatically.
+
+### Code review instructions
+
+Start with:
+
+- `web/src/page-dsl/schema.ts`
+- `web/src/page-dsl/builder.ts`
+- `web/src/page-dsl/render.tsx`
+- `web/src/page-dsl/InteractiveDsl.stories.tsx`
+- `web/src/page-dsl/InteractiveDsl.test.tsx`
+
+Validate with:
+
+```bash
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+npx storybook build --test
+```
+
+Open Storybook:
+
+```text
+Page DSL / Interactive Widgets / Interactive Intake
+Page DSL / Interactive Widgets / Interactive Booking
+Page DSL / Interactive Widgets / Interactive JSON Contract
+```
