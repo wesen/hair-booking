@@ -31,6 +31,8 @@ __section__("sweepOutput", {
     outDir: { type: "string", required: true, help: "Output directory" },
     writeMarkdown: { type: "bool", default: true, help: "Write compare.md" },
     failFast: { type: "bool", default: false, help: "Abort on first error" },
+    page: { type: "string", default: "", help: "Optional page filter (comma-separated, e.g. service,color)" },
+    section: { type: "string", default: "", help: "Optional section filter (comma-separated, e.g. screen,cta)" },
   },
 });
 
@@ -138,6 +140,19 @@ function buildRow(pageName, sectionName, result, spec, outDir) {
   };
 }
 
+function parseFilter(value) {
+  if (!value) return null;
+  const items = String(value).split(",").map(s => s.trim()).filter(Boolean);
+  if (items.length === 0) return null;
+  const set = {};
+  items.forEach(item => { set[item] = true; });
+  return set;
+}
+
+function matchesFilter(set, value) {
+  return !set || !!set[value];
+}
+
 function buildSummary(rows) {
   const counts = {};
   rows.forEach(r => { counts[r.classification] = (counts[r.classification] || 0) + 1; });
@@ -189,10 +204,13 @@ async function fromSpec(spec, sweepOutput) {
   const outDir = sweepOutput.outDir;
   const writeMd = sweepOutput.writeMarkdown !== false;
   const failFast = sweepOutput.failFast === true;
+  const pageFilter = parseFilter(sweepOutput.page || "");
+  const sectionFilter = parseFilter(sweepOutput.section || "");
 
   const rows = [];
 
   for (const [pageName, pageSpec] of pageEntries) {
+    if (!matchesFilter(pageFilter, pageName)) continue;
     const sectionEntries = Object.entries(pageSpec.sections || {});
     if (sectionEntries.length === 0) {
       console.warn("Page \"" + pageName + "\" has no sections, skipping");
@@ -200,6 +218,7 @@ async function fromSpec(spec, sweepOutput) {
     }
 
     for (const [sectionName, sectionSpec] of sectionEntries) {
+      if (!matchesFilter(sectionFilter, sectionName)) continue;
       const selector = sectionSpec.selector || sectionSpec.leftSelector || sectionSpec.rightSelector;
       if (!selector) {
         console.warn("Section \"" + pageName + "/" + sectionName + "\" has no selector");
@@ -295,10 +314,14 @@ async function rebuildSummary(spec, sweepOutput) {
   const specText = fs.readFileSync(spec.specFile, "utf8");
   const specObj = yaml.parse(specText);
   const outDir = sweepOutput.outDir;
+  const pageFilter = parseFilter(sweepOutput.page || "");
+  const sectionFilter = parseFilter(sweepOutput.section || "");
 
   const rows = [];
   for (const [pageName, pageSpec] of Object.entries(specObj.pages || {})) {
+    if (!matchesFilter(pageFilter, pageName)) continue;
     for (const sectionName of Object.keys(pageSpec.sections || {})) {
+      if (!matchesFilter(sectionFilter, sectionName)) continue;
       const comparePath = pathMod.join(outDir, pageName, "artifacts", sectionName, "compare.json");
       if (!fs.existsSync(comparePath)) {
         console.warn("Missing: " + comparePath);
