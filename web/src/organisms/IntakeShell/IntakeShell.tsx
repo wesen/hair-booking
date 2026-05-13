@@ -152,6 +152,7 @@ export function IntakeShell({
       </div>
 
       {/* ── Eyebrow + Title section ─────────────────────────── */}
+      {(eyebrow || title.trim()) && (
       <div data-component="IntakeShellHeading" data-dsl-shell-part="heading" data-section="page-heading" style={{ padding: '20px 22px 0' }}>
         {eyebrow && (
           <div style={{
@@ -173,9 +174,10 @@ export function IntakeShell({
           {title}
         </div>
       </div>
+      )}
 
       {/* ── Scrollable page content ─────────────────────────── */}
-      <div data-component="IntakeShellContent" data-dsl-shell-part="content" data-part="content" style={{ flex: 1, padding: '18px 22px 0' }}>
+      <div data-component="IntakeShellContent" data-dsl-shell-part="content" data-part="content" style={{ flex: 1, padding: '16px 24px 0' }}>
         {children}
       </div>
 

@@ -217,14 +217,85 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
         : (typeof rawValue === "string" ? rawValue : null);
 
       // Detect which molecule to use based on option shape:
-      // - Options with subtitle only → BudgetOption (label + description, supports columns)
-      // - Options with title only → TimeSlot (compact pill, supports columns)
-      // - Options with title + subtitle + badge → ServiceOption (full row)
+      // - Options with title + subtitle + badge → ServiceOption (full row, like service selection)
+      // - Options with title + subtitle, no badge → BudgetOption (full row with radio, like budget tiers)
+      // - Options with title only, columns > 1 → TimeSlot (compact pills in a grid)
       const hasBadges = options.some((opt) => str(opt as any, "badge", ""));
       const hasSubtitles = options.some((opt) => str(opt as any, "subtitle", ""));
 
-      if (columns > 1 && !hasBadges) {
-        // Compact grid layout: use BudgetOption for items with descriptions, TimeSlot for bare items
+      // Full-width rows with badges → ServiceOption
+      if (hasBadges) {
+        return (
+          <div key={key} {...common} style={style(props)}>
+            {options.map((opt, i) => {
+              const optTitle = str(opt as any, "title", "");
+              const optValue = str(opt as any, "value", optTitle);
+              const isSelected = isMulti
+                ? (currentValue as string[]).includes(optValue)
+                : currentValue === optValue;
+              return (
+                <ServiceOption
+                  key={i}
+                  value={optValue}
+                  name={optTitle}
+                  description={str(opt as any, "subtitle", "")}
+                  rate={str(opt as any, "badge", undefined as unknown as string) || undefined}
+                  selected={isSelected}
+                  disabled={bool(opt as any, "disabled")}
+                  onSelect={(v) => {
+                    if (isMulti) {
+                      const next = isSelected
+                        ? (currentValue as string[]).filter(x => x !== optValue)
+                        : [...(currentValue as string[]), optValue];
+                      dispatchAction(ctx, node, props, "change", "action", next);
+                    } else {
+                      dispatchAction(ctx, node, props, "change", "action", v);
+                    }
+                  }}
+                />
+              );
+            })}
+          </div>
+        );
+      }
+
+      // Full-width rows with subtitles, no badges → BudgetOption
+      if (hasSubtitles && columns <= 1) {
+        return (
+          <div key={key} {...common} style={style(props)}>
+            {options.map((opt, i) => {
+              const optTitle = str(opt as any, "title", "");
+              const optValue = str(opt as any, "value", optTitle);
+              const isSelected = isMulti
+                ? (currentValue as string[]).includes(optValue)
+                : currentValue === optValue;
+              return (
+                <BudgetOption
+                  key={i}
+                  value={optValue}
+                  label={optTitle}
+                  description={str(opt as any, "subtitle", "")}
+                  selected={isSelected}
+                  disabled={bool(opt as any, "disabled")}
+                  onSelect={(v) => {
+                    if (isMulti) {
+                      const next = isSelected
+                        ? (currentValue as string[]).filter(x => x !== optValue)
+                        : [...(currentValue as string[]), optValue];
+                      dispatchAction(ctx, node, props, "change", "action", next);
+                    } else {
+                      dispatchAction(ctx, node, props, "change", "action", v);
+                    }
+                  }}
+                />
+              );
+            })}
+          </div>
+        );
+      }
+
+      // Grid layout: BudgetOption for items with descriptions, TimeSlot for bare items
+      if (columns > 1) {
         if (hasSubtitles) {
           return (
             <div key={key} {...common} style={{ display: "grid", gridTemplateColumns: `repeat(${columns}, minmax(0, 1fr))`, gap, ...style(props) }}>
@@ -291,7 +362,7 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
         );
       }
 
-      // Full-width rows with badges → ServiceOption
+      // Fallback: bare items full-width → ServiceOption without badges
       return (
         <div key={key} {...common} style={style(props)}>
           {options.map((opt, i) => {
@@ -306,14 +377,13 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
                 value={optValue}
                 name={optTitle}
                 description={str(opt as any, "subtitle", "")}
-                rate={str(opt as any, "badge", undefined as unknown as string) || undefined}
                 selected={isSelected}
                 disabled={bool(opt as any, "disabled")}
                 onSelect={(v) => {
                   if (isMulti) {
                     const next = isSelected
-                      ? (currentValue as string[]).filter(x => x !== optValue)
-                      : [...(currentValue as string[]), optValue];
+                          ? (currentValue as string[]).filter(x => x !== optValue)
+                          : [...(currentValue as string[]), optValue];
                     dispatchAction(ctx, node, props, "change", "action", next);
                   } else {
                     dispatchAction(ctx, node, props, "change", "action", v);
@@ -397,15 +467,17 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
       );
     }
     case "stat": {
-      // No existing molecule — stat is a display-only hero number
+      // Hero number with optional mono label and serif subtitle
       const value = str(props, "value");
       const label = str(props, "label", undefined as unknown as string);
       const subtitle = str(props, "subtitle", undefined as unknown as string);
+      const size = str(props, "size", "lg");
+      const fontSize = size === "xl" ? 72 : size === "md" ? 36 : 56;
       return (
         <div key={key} {...common} style={{ ...style(props) }}>
-          {label && <div style={{ fontFamily: font.mono, fontSize: 10, letterSpacing: 1.8, textTransform: "uppercase", color: color.plumDeep, marginBottom: 8 }}>{label}</div>}
-          <div style={{ fontFamily: font.block, fontSize: 48, textTransform: "uppercase", color: color.ink, letterSpacing: -1, lineHeight: 0.9 }}>{value}</div>
-          {subtitle && <div style={{ fontFamily: font.serif, fontStyle: "italic", fontSize: 15, color: color.plumDeep, marginTop: 6 }}>{subtitle}</div>}
+          {label && <div style={{ fontFamily: font.mono, fontSize: 10, letterSpacing: 1.8, textTransform: "uppercase", fontWeight: 600, color: color.plumDeep, marginBottom: 8 }}>{label}</div>}
+          <div style={{ fontFamily: font.block, fontSize, textTransform: "uppercase", color: color.ink, letterSpacing: -0.5, lineHeight: 0.9 }}>{value}</div>
+          {subtitle && <div style={{ fontFamily: font.serif, fontStyle: "italic", fontSize: 16, color: color.softInk, marginTop: 8, lineHeight: 1.4 }}>{subtitle}</div>}
         </div>
       );
     }

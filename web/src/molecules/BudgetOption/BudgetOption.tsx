@@ -47,7 +47,7 @@ export function BudgetOption<TValue extends string = string>({
       style={{
         width: "100%",
         padding: "16px 18px",
-        marginBottom: 8,
+        marginBottom: 10,
         background: selected ? color.peachSoft : color.cream,
         border: "none",
         borderLeft: `3px solid ${selected ? color.plum : "transparent"}`,
@@ -61,10 +61,10 @@ export function BudgetOption<TValue extends string = string>({
       }}
     >
       <div style={{
-        width: 18,
-        height: 18,
+        width: 20,
+        height: 20,
         borderRadius: 999,
-        border: `2px solid ${selected ? color.plum : color.soft}`,
+        border: `2.5px solid ${selected ? color.plum : color.soft}`,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",

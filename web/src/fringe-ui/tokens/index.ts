@@ -8,6 +8,7 @@ export const color = {
   cream:     '#f6efe4',
   creamDeep: '#efe6d4',
   rule:      '#ebe7df',
+  ruleSoft:  '#f2eeea',
   soft:      '#9a958e',
   softInk:   '#5b5852',
   plum:      '#6b3a4a',

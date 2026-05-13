@@ -48,8 +48,8 @@ export function ServiceOption<TValue extends string = string>({
       }}
       style={{
         width: "100%",
-        padding: "14px 16px",
-        marginBottom: 8,
+        padding: "16px 18px",
+        marginBottom: 10,
         background: selected ? color.peachSoft : color.cream,
         border: "none",
         borderLeft: `3px solid ${selected ? color.plum : "transparent"}`,

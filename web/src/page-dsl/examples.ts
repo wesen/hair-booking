@@ -11,7 +11,7 @@ export const serviceDsl = page("dsl-service", "Service DSL")
       { value: "cut", label: "Cut" },
       { value: "color", label: "Color" },
       { value: "extensions", label: "Extensions" },
-    ], "color", { style: { marginBottom: 16 } }),
+    ], "color", { style: { marginBottom: 24 } }),
     n.selectableGroup([
       { value: "cut", title: "Cut", subtitle: "Trim · restyle · bangs", badge: "$80+" },
       { value: "color", title: "Color", subtitle: "Single process · gloss · root touch-up", badge: "$120+" },
@@ -74,27 +74,25 @@ export const photosDsl = page("dsl-photos", "Photos DSL")
 export const budgetDsl = page("dsl-budget", "Budget DSL")
   .intake({ step: 5, total: 7, eyebrow: "Chapter V · The Budget", title: "Comfortable range?", titleSize: 36 })
   .add(
-    n.text("Helps us match you to the right stylist. Tips not included.", { variant: "editorial", style: { marginBottom: 20 } }),
+    n.text("Helps us match you to the right stylist. Tips not included.", { variant: "editorial", style: { marginBottom: 28 } }),
     n.selectableGroup([
       { value: "under-150", title: "Under $150", subtitle: "Cut or single-service touch-up" },
       { value: "150-250", title: "$150 – $250", subtitle: "Partial color + cut" },
       { value: "250-400", title: "$250 – $400", subtitle: "Full color · highlights + cut" },
       { value: "400-plus", title: "$400+", subtitle: "Extensions · correction · balayage" },
-    ], "150-250", { mode: "single", columns: 2 }),
+    ], "150-250", { mode: "single" }),
   )
   .toJSON();
 
 export const estimateDsl = page("dsl-estimate", "Estimate DSL")
   .intake({ step: 6, total: 7, eyebrow: "Chapter VI · The Quote", title: "Your estimate" })
   .add(
-    n.stat("$245", { label: "ESTIMATED TOTAL", subtitle: "3 hours, 15 minutes" }),
-    n.spacer(16),
-    n.card({ accent: "plum" },
-      n.kvRow("Service", "Partial highlights + cut", { editable: true }),
-      n.kvRow("Color level", "Level 7 → Level 8", { editable: true }),
-      n.kvRow("Length", "Mid-back · no extensions", { editable: true }),
-      n.kvRow("Add-ons", "Olaplex bond treatment · $45"),
-    ),
+    n.masthead("$245", { eyebrow: "ESTIMATED TOTAL", right: "3h 15m", compact: true }),
+    n.spacer(24),
+    n.kvRow("Service", "Partial highlights + cut", { editable: true }),
+    n.kvRow("Color level", "Level 7 → Level 8", { editable: true }),
+    n.kvRow("Length", "Mid-back · no extensions", { editable: true }),
+    n.kvRow("Add-ons", "Olaplex bond treatment · $45"),
     n.spacer(20),
     n.note("Estimate only. Final cost depends on in-salon assessment of current color and condition.", { tone: "warn" }),
   )
@@ -125,19 +123,18 @@ export const bookingDsl = page("dsl-booking", "Booking DSL")
   .toJSON();
 
 export const confirmDsl = page("dsl-confirm", "Confirm DSL")
-  .bare()
+  .intake({ step: 9, total: 9, title: " " })
   .add(
-    n.stack({ gap: 14, style: { padding: 30 } },
-      n.stat("#4281", { label: "CONFIRMATION" }),
-      n.masthead("See you Tuesday.", { eyebrow: "You're booked.", right: "CONF #4281", accent: color.peach }),
-      n.text("A confirmation and prep notes are on their way.", { variant: "editorial" }),
-      n.kvRow("When", "TUE, JUN 18 · 2:00P"),
-      n.kvRow("With", "Nadia Rivera"),
-      n.kvRow("Service", "Partial highlights + cut"),
-      n.kvRow("Estimate", "$245 · 3h 15m"),
-      n.kvRow("Deposit", "$50 held"),
-      n.note("Deposit received. Cancellations inside 24h forfeit deposit.", { tone: "success" }),
-    ),
+    n.masthead("See you", { eyebrow: "You're booked.", accent: "Tuesday.", right: "CONF #4281", compact: true }),
+    n.spacer(28),
+    n.text("A confirmation and prep notes are on their way.", { variant: "editorial", style: { marginBottom: 24 } }),
+    n.kvRow("When", "TUE, JUN 18 · 2:00P"),
+    n.kvRow("With", "Nadia Rivera"),
+    n.kvRow("Service", "Partial highlights + cut"),
+    n.kvRow("Estimate", "$245 · 3h 15m"),
+    n.kvRow("Deposit", "$50 held"),
+    n.spacer(20),
+    n.note("Deposit received. Cancellations inside 24h forfeit deposit.", { tone: "success" }),
   )
   .toJSON();
 

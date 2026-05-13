@@ -11,8 +11,8 @@ interface SummaryRowProps {
 export function SummaryRow({ label, value, onEdit, style }: SummaryRowProps) {
   return (
     <div data-component="SummaryRow" style={{
-      padding: '14px 0',
-      borderTop: `1px solid ${color.rule}`,
+      padding: '16px 0',
+      borderTop: `1px solid ${color.ruleSoft}`,
       display: 'flex',
       alignItems: 'flex-end',
       justifyContent: 'space-between',

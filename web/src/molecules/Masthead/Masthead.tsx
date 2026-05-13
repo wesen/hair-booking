@@ -21,7 +21,7 @@ export function Masthead({
   return (
     <div data-component="Masthead" style={{
       background: color.peach,
-      padding: compact ? '18px 20px 20px' : '24px 24px 26px',
+      padding: compact ? '20px 22px 22px' : '24px 24px 26px',
       position: 'relative',
       ...style,
     }}>
