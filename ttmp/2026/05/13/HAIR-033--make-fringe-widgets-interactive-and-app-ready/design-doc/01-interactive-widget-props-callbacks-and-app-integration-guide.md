@@ -195,3 +195,43 @@ const [tones, setTones] = useState<string[]>(["dimensional"]);
 ```
 
 This should be used as the model for the next selectable components.
+
+## Implementation Note: Shared Interaction Metadata and Selectable Widgets
+
+Implemented in commit `85f548b`.
+
+The shared metadata lives in:
+
+```text
+web/src/fringe-ui/interactions.ts
+```
+
+The main type is:
+
+```ts
+interface SelectionChangeMeta<TValue extends string = string, TItem = unknown> {
+  value?: TValue;
+  label?: ReactNode;
+  item?: TItem;
+  action: SelectionAction;
+  source: InteractionSource;
+  previousValue?: TValue | TValue[] | number | null;
+}
+```
+
+The first upgraded widgets are:
+
+- `Segmented`: `onChange(value, meta)`
+- `RatingBar`: `interactive` + `onChange(value, meta)`
+- `ServiceOption`: `onSelect(value, meta)`
+- `BudgetOption`: `onSelect(value, meta)`
+- `TimeSlot`: `onSelect(value, meta)`
+- `DayCell`: `onSelect(value, meta)`
+- `LengthSilhouette`: `onSelect(value, meta)`
+- `PhotoTile`: `onUpload(value, meta)` and `onRemove(value, meta)`
+
+Storybook examples live under:
+
+```text
+App Ready Widgets / Interactive Form Controls
+```

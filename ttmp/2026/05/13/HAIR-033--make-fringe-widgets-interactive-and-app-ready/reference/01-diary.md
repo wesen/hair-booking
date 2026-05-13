@@ -183,3 +183,98 @@ Open Storybook:
 Atoms / Chip / Interactive — toggled tone chips
 Atoms / Chip / Interactive — single length selector
 ```
+
+---
+
+## Step 3: Standardize interactive callback contracts across selectable widgets
+
+Expanded the HAIR-033 interaction pattern beyond chips. The selectable widgets now expose value-oriented callback props with metadata, while preserving their visual APIs and existing simple `onClick` usages where needed.
+
+This turns the widget set into something closer to an app-ready form toolkit: segmented choices, ratings, service cards, budget cards, time slots, day cells, length silhouettes, and photo upload tiles can now report meaningful state transitions back to application code.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Continue implementing app-ready widget props/callbacks after the initial ChipGroup slice.
+
+**Inferred user intent:** Make the full set of widgets usable in real app flows, not just static Storybook displays.
+
+**Commit (code):** 85f548b — "HAIR-033 Step 2: Standardize interactive widget callbacks"
+
+### What I did
+
+- Added `web/src/fringe-ui/interactions.ts` with shared interaction metadata types.
+- Upgraded `Segmented` with typed options, disabled states, radio semantics, and `onChange(value, meta)`.
+- Upgraded `RatingBar` with optional interactive mode and `onChange(value, meta)`.
+- Upgraded selectable molecules with `value`, `disabled`, and `onSelect(value, meta)`:
+  - `ServiceOption`
+  - `BudgetOption`
+  - `TimeSlot`
+  - `DayCell`
+  - `LengthSilhouette`
+- Upgraded `PhotoTile` with upload/remove behavior:
+  - `onUpload(value, meta)` when empty.
+  - `onRemove(value, meta)` when filled.
+- Added `web/src/InteractiveWidgets.stories.tsx` with app-state demos:
+  - `Controlled intake selectors`
+  - `Booking and upload selectors`
+- Added `web/src/InteractiveWidgets.test.tsx` for callback payloads.
+- Verified:
+  - `cd web && pnpm test -- --runInBand`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && npx storybook build --test`
+
+### Why
+
+The component library needs a consistent way to move user choices into app state. This step standardizes the direction: widgets receive current value/selection state from the app, then emit next values with enough metadata for analytics, debugging, form reducers, or DSL action mapping.
+
+### What worked
+
+- The callback metadata shape from `ChipGroup` transferred cleanly to the other widgets.
+- App-state Storybook demos are now much more useful than static component samples.
+- Tests verify the key callback payloads without depending on visual styles.
+
+### What didn't work
+
+- The widgets still do not share higher-level group components beyond `ChipGroup`. For example, service options and budget options are still composed manually in stories.
+
+### What I learned
+
+- Some widgets should remain presentational by default but become interactive when callbacks are provided (`RatingBar` uses `interactive` for this reason).
+- Upload-style widgets need action names beyond select/deselect. `PhotoTile` uses `upload` and `remove`.
+
+### What was tricky to build
+
+- Several widgets previously rendered `div` elements with click handlers. Converting them to `button` improves accessibility but requires careful style reset (`border`, `textAlign`, `width`, `padding`) to preserve the existing visuals.
+- `PhotoTile` has two different semantic actions depending on state: empty means upload, filled means remove.
+
+### What warrants a second pair of eyes
+
+- Whether `onSelect` should deselect an already-selected single-select card or always emit `select`.
+- Whether `RatingBar` should use number-specific metadata instead of the shared string-oriented `SelectionChangeMeta`.
+- Whether `PhotoTile` should receive a real file upload callback signature now or later.
+
+### What should be done in the future
+
+- Add group helpers for service options, budget options, time slots, and day cells.
+- Update the DSL renderer to map JSON `value` and named actions into the richer callback props where useful.
+- Add keyboard-navigation tests for segmented/radio-like controls.
+
+### Code review instructions
+
+Start with:
+
+- `web/src/fringe-ui/interactions.ts`
+- `web/src/InteractiveWidgets.stories.tsx`
+- `web/src/InteractiveWidgets.test.tsx`
+- The upgraded widgets listed above.
+
+Validate with:
+
+```bash
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+npx storybook build --test
+```

@@ -26,3 +26,17 @@ Step 2: Implemented interactive Chip and ChipGroup controls with controlled/unco
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/atoms/Chip/ChipGroup.test.tsx — Chip and ChipGroup interaction tests
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/atoms/Chip/ChipGroup.tsx — Controlled/uncontrolled chip group
 
+
+## 2026-05-13
+
+Step 3: Standardized app-ready callback props across selectable widgets, added shared interaction metadata, app-state Storybook demos, and tests. Verified pnpm test, typecheck, and Storybook build. (commit 85f548b)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/InteractiveWidgets.stories.tsx — Interactive app-state Storybook demos
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/InteractiveWidgets.test.tsx — Callback behavior tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/atoms/RatingBar/RatingBar.tsx — Interactive rating callback upgrade
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/atoms/Segmented/Segmented.tsx — Segmented controlled callback upgrade
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/fringe-ui/interactions.ts — Shared interaction metadata types
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/molecules/PhotoTile/PhotoTile.tsx — Upload/remove callback upgrade
+
