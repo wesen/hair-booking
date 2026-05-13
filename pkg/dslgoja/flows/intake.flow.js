@@ -1,11 +1,11 @@
 const { page, n } = require("fringe/dsl");
-const user = require("host/user");
-const images = require("host/images");
+
+// ── Data ──────────────────────────────────────────────────────────────
 
 const serviceOptions = [
-  { value: "cut", name: "Cut", description: "Trim · restyle · bangs", rate: "$80+" },
-  { value: "highlights", name: "Highlights", description: "Partial · full · balayage", rate: "$180+" },
-  { value: "gloss", name: "Gloss refresh", description: "Tone · shine · maintenance", rate: "$120+" },
+  { value: "cut", title: "Cut", subtitle: "Trim · restyle · bangs", badge: "$80+" },
+  { value: "highlights", title: "Highlights", subtitle: "Partial · full · balayage", badge: "$180+" },
+  { value: "gloss", title: "Gloss refresh", subtitle: "Tone · shine · maintenance", badge: "$120+" },
 ];
 
 const toneOptions = [
@@ -17,28 +17,30 @@ const toneOptions = [
 ];
 
 const budgetOptions = [
-  { value: "under-200", label: "Under $200", description: "Refresh, trim, gloss, or maintenance." },
-  { value: "200-350", label: "$200–$350", description: "Most color refresh and partial highlight plans." },
-  { value: "350-plus", label: "$350+", description: "Transformations, extensions, and multi-step color." },
-  { value: "flexible", label: "Flexible", description: "Show me the best plan first." },
+  { value: "under-200", title: "Under $200", subtitle: "Refresh, trim, gloss, or maintenance." },
+  { value: "200-350", title: "$200–$350", subtitle: "Most color refresh and partial highlight plans." },
+  { value: "350-plus", title: "$350+", subtitle: "Transformations, extensions, and multi-step color." },
+  { value: "flexible", title: "Flexible", subtitle: "Show me the best plan first." },
 ];
 
 const dayOptions = [
-  { value: "2026-05-18", day: "18", label: "Mon 18", dot: true },
-  { value: "2026-05-19", day: "19", label: "Tue 19", dot: true },
-  { value: "2026-05-20", day: "20", label: "Wed 20" },
-  { value: "2026-05-21", day: "21", label: "Thu 21", dot: true },
-  { value: "2026-05-22", day: "22", label: "Fri 22" },
-  { value: "2026-05-23", day: "23", label: "Sat 23", disabled: true },
-  { value: "2026-05-24", day: "24", label: "Sun 24", disabled: true },
+  { value: "2026-06-18", day: "18", date: "2026-06-18", dot: true },
+  { value: "2026-06-19", day: "19", date: "2026-06-19", dot: true },
+  { value: "2026-06-20", day: "20", date: "2026-06-20" },
+  { value: "2026-06-21", day: "21", date: "2026-06-21", dot: true },
+  { value: "2026-06-22", day: "22", date: "2026-06-22" },
+  { value: "2026-06-23", day: "23", date: "2026-06-23", disabled: true },
+  { value: "2026-06-24", day: "24", date: "2026-06-24", disabled: true },
 ];
 
 const timeOptions = [
-  { value: "10:30", label: "10:30a" },
-  { value: "12:00", label: "12:00p" },
-  { value: "14:00", label: "2:00p" },
-  { value: "16:30", label: "4:30p" },
+  { value: "10:30", title: "10:30a" },
+  { value: "12:00", title: "12:00p" },
+  { value: "14:00", title: "2:00p" },
+  { value: "16:30", title: "4:30p" },
 ];
+
+// ── State ─────────────────────────────────────────────────────────────
 
 function initialState() {
   return {
@@ -47,16 +49,14 @@ function initialState() {
     service: "highlights",
     tones: ["dimensional"],
     damage: 2,
-    photos: {
-      front: false,
-      side: false,
-      back: false,
-    },
+    photos: { front: false, side: false, back: false },
     budget: "flexible",
-    day: "2026-05-19",
+    day: "2026-06-19",
     time: "12:00",
   };
 }
+
+// ── Router ────────────────────────────────────────────────────────────
 
 function goto(ctx, step) {
   ctx.state.step = step;
@@ -65,23 +65,18 @@ function goto(ctx, step) {
 
 function render(ctx) {
   switch (ctx.state.step) {
-    case "color":
-      return colorStep(ctx);
-    case "photos":
-      return photosStep(ctx);
-    case "budget":
-      return budgetStep(ctx);
-    case "estimate":
-      return estimateStep(ctx);
-    case "booking":
-      return bookingStep(ctx);
-    case "confirm":
-      return confirmStep(ctx);
+    case "color":    return colorStep(ctx);
+    case "photos":   return photosStep(ctx);
+    case "budget":   return budgetStep(ctx);
+    case "estimate": return estimateStep(ctx);
+    case "booking":  return bookingStep(ctx);
+    case "confirm":  return confirmStep(ctx);
     case "service":
-    default:
-      return serviceStep(ctx);
+    default:         return serviceStep(ctx);
   }
 }
+
+// ── Shell helper ─────────────────────────────────────────────────────
 
 function shell(ctx, config) {
   const actions = {};
@@ -89,18 +84,18 @@ function shell(ctx, config) {
   if (config.next) actions.next = ctx.action("next", function () { return goto(ctx, config.next); }, "next");
   if (config.skip) actions.skip = ctx.action("skip", function () { return goto(ctx, config.skip); }, "skip");
   return {
-    step: config.step,
-    total: 7,
-    eyebrow: config.eyebrow,
-    title: config.title,
+    step: config.step, total: 7,
+    eyebrow: config.eyebrow, title: config.title,
     nextLabel: config.nextLabel || "Keep going →",
     actions,
   };
 }
 
+// ── Helpers ──────────────────────────────────────────────────────────
+
 function selectedServiceName(ctx) {
-  const match = serviceOptions.find(function (item) { return item.value === ctx.state.service; });
-  return match ? match.name : "Highlights";
+  var match = serviceOptions.find(function (o) { return o.value === ctx.state.service; });
+  return match ? match.title : "Highlights";
 }
 
 function estimateRange(ctx) {
@@ -111,122 +106,84 @@ function estimateRange(ctx) {
 }
 
 function photoCount(ctx) {
-  return Object.keys(ctx.state.photos).filter(function (key) { return ctx.state.photos[key]; }).length;
+  return Object.keys(ctx.state.photos).filter(function (k) { return ctx.state.photos[k]; }).length;
 }
+
+function editAction(ctx, name, step) {
+  return { actions: { edit: ctx.action(name, function () { return goto(ctx, step); }, "edit") } };
+}
+
+// ── Step 1: Service ──────────────────────────────────────────────────
 
 function serviceStep(ctx) {
   return page("intake-service", "Service")
     .intake(shell(ctx, {
-      step: 1,
-      eyebrow: "Chapter I · The Ask",
-      title: "What brings you in?",
-      next: "color",
-      skip: "color",
+      step: 1, eyebrow: "Chapter I · The Ask", title: "What brings you in?",
+      next: "color", skip: "color",
     }))
     .add(
-      n.text("This page is authored by JavaScript running in Goja inside the Go backend.", {
-        variant: "editorial",
-        style: { marginBottom: 16 },
-      }).id("service-intro"),
+      n.text("Pick one to start — you can add more later.", { variant: "editorial", style: { marginBottom: 16 } }).id("service-intro"),
       n.segmented([
         { value: "cut", label: "Cut" },
         { value: "color", label: "Color" },
         { value: "extensions", label: "Extensions" },
       ], ctx.state.category, {
-        actions: {
-          change: ctx.action("setCategory", function (event) {
-            ctx.state.category = event.value;
-            return render(ctx);
-          }, "change"),
-        },
+        actions: { change: ctx.action("setCategory", function (event) { ctx.state.category = event.value; return render(ctx); }, "change") },
         style: { marginBottom: 16 },
       }).id("category-tabs"),
-      n.serviceOptionGroup(serviceOptions, ctx.state.service, {
-        actions: {
-          change: ctx.action("setService", function (event) {
-            ctx.state.service = event.value;
-            return render(ctx);
-          }, "change"),
-        },
+      n.selectableGroup(serviceOptions, ctx.state.service, {
+        mode: "single",
+        actions: { change: ctx.action("setService", function (event) { ctx.state.service = event.value; return render(ctx); }, "change") },
       }).id("service-options"),
     )
     .toJSON();
 }
 
+// ── Step 2: Color ────────────────────────────────────────────────────
+
 function colorStep(ctx) {
   return page("intake-color", "Color")
     .intake(shell(ctx, {
-      step: 2,
-      eyebrow: "Chapter II · The Color",
-      title: "Tune the plan",
-      back: "service",
-      next: "photos",
+      step: 2, eyebrow: "Chapter II · The Color", title: "Tune the plan",
+      back: "service", next: "photos",
     }))
     .add(
       n.chipGroup(toneOptions, ctx.state.tones, {
         label: "Tone family",
-        helperText: "These chips are backed by ctx.state.tones in the Goja flow session.",
-        actions: {
-          change: ctx.action("setTones", function (event) {
-            ctx.state.tones = event.value;
-            return render(ctx);
-          }, "change"),
-        },
+        helperText: "Select the tones you want for your color.",
+        actions: { change: ctx.action("setTones", function (event) { ctx.state.tones = event.value; return render(ctx); }, "change") },
       }).id("tone-chips"),
-      n.ratingBar(ctx.state.damage, {
-        label: "Damage",
-        interactive: true,
-        actions: {
-          change: ctx.action("setDamage", function (event) {
-            ctx.state.damage = Number(event.value);
-            return render(ctx);
-          }, "change"),
-        },
+      n.scale(ctx.state.damage, {
+        label: "Damage", max: 5, interactive: true,
+        actions: { change: ctx.action("setDamage", function (event) { ctx.state.damage = Number(event.value); return render(ctx); }, "change") },
         style: { marginTop: 14 },
       }).id("damage-rating"),
     )
     .toJSON();
 }
 
+// ── Step 3: Photos ───────────────────────────────────────────────────
+
 function photosStep(ctx) {
   function tile(key, label) {
-    const upload = images.createUploadIntent({ purpose: "intake-photo", slot: key });
-    const uploaded = images.list({ purpose: "intake-photo" }).filter(function (item) { return item.slot === key; })[0];
-    return n.photoTile(label, {
+    return n.uploadTile(label, {
       value: key,
-      filled: !!ctx.state.photos[key] || !!uploaded,
-      imageUrl: uploaded ? uploaded.url : undefined,
-      upload: upload,
+      filled: !!ctx.state.photos[key],
       actions: {
-        uploaded: ctx.action("uploadedPhoto:" + key, function (event) {
-          ctx.state.photos[key] = event.value || true;
-          return render(ctx);
-        }, "uploaded"),
-        upload: ctx.action("uploadPhoto:" + key, function () {
-          ctx.state.photos[key] = true;
-          return render(ctx);
-        }, "upload"),
-        remove: ctx.action("removePhoto:" + key, function () {
-          ctx.state.photos[key] = false;
-          return render(ctx);
-        }, "remove"),
+        upload: ctx.action("uploadPhoto:" + key, function () { ctx.state.photos[key] = true; return render(ctx); }, "upload"),
+        remove: ctx.action("removePhoto:" + key, function () { ctx.state.photos[key] = false; return render(ctx); }, "remove"),
       },
     }).id("photo-" + key);
   }
 
   return page("intake-photos", "Photos")
     .intake(shell(ctx, {
-      step: 3,
-      eyebrow: "Chapter III · References",
-      title: "Add a few photos",
-      back: "color",
-      next: "budget",
-      skip: "budget",
+      step: 3, eyebrow: "Chapter III · References", title: "Add a few photos",
+      back: "color", next: "budget", skip: "budget",
     }))
     .add(
       n.text("Upload or mark the angles that help the stylist understand your current hair and goal.", {
-        variant: "editorial",
-        style: { marginBottom: 16 },
+        variant: "editorial", style: { marginBottom: 16 },
       }).id("photos-intro"),
       n.grid(3, { gap: 10 },
         tile("front", "Front"),
@@ -238,118 +195,88 @@ function photosStep(ctx) {
     .toJSON();
 }
 
+// ── Step 4: Budget ────────────────────────────────────────────────────
+
 function budgetStep(ctx) {
   return page("intake-budget", "Budget")
     .intake(shell(ctx, {
-      step: 4,
-      eyebrow: "Chapter IV · Budget",
-      title: "Choose a comfort zone",
-      back: "photos",
-      next: "estimate",
+      step: 4, eyebrow: "Chapter IV · Budget", title: "Choose a comfort zone",
+      back: "photos", next: "estimate",
     }))
     .add(
       n.text("This does not lock you in. It helps us shape the recommendation before you book.", {
-        variant: "editorial",
-        style: { marginBottom: 16 },
+        variant: "editorial", style: { marginBottom: 16 },
       }).id("budget-intro"),
-      n.budgetOptionGroup(budgetOptions, ctx.state.budget, {
-        actions: {
-          change: ctx.action("setBudget", function (event) {
-            ctx.state.budget = event.value;
-            return render(ctx);
-          }, "change"),
-        },
+      n.selectableGroup(budgetOptions, ctx.state.budget, {
+        mode: "single", columns: 2,
+        actions: { change: ctx.action("setBudget", function (event) { ctx.state.budget = event.value; return render(ctx); }, "change") },
       }).id("budget-options"),
     )
     .toJSON();
 }
 
-function editAction(ctx, name, step) {
-  return {
-    actions: {
-      edit: ctx.action(name, function () { return goto(ctx, step); }, "edit"),
-    },
-  };
-}
+// ── Step 5: Estimate ─────────────────────────────────────────────────
 
 function estimateStep(ctx) {
   return page("intake-estimate", "Estimate")
     .intake(shell(ctx, {
-      step: 5,
-      eyebrow: "Chapter V · Preview",
-      title: "Your working estimate",
-      back: "budget",
-      next: "booking",
-      nextLabel: "Pick a time →",
+      step: 5, eyebrow: "Chapter V · Preview", title: "Your working estimate",
+      back: "budget", next: "booking", nextLabel: "Pick a time →",
     }))
     .add(
+      n.stat("$245", { label: "ESTIMATED · USD", subtitle: "Based on your selections." }).id("estimate-hero"),
       n.card({ accent: "#6b3a4a", style: { marginBottom: 14 } },
-        n.summaryRow("Service", selectedServiceName(ctx), editAction(ctx, "editEstimateService", "service")).id("estimate-service"),
-        n.summaryRow("Tone", (ctx.state.tones || []).join(", ") || "Not sure yet", editAction(ctx, "editEstimateColor", "color")).id("estimate-tones"),
-        n.summaryRow("Photos", String(photoCount(ctx)), editAction(ctx, "editEstimatePhotos", "photos")).id("estimate-photos"),
-        n.summaryRow("Budget", ctx.state.budget, editAction(ctx, "editEstimateBudget", "budget")).id("estimate-budget"),
-        n.summaryRow("Range", estimateRange(ctx)).id("estimate-range")
+        n.kvRow("Service", selectedServiceName(ctx), editAction(ctx, "editEstimateService", "service")).id("estimate-service"),
+        n.kvRow("Tone", (ctx.state.tones || []).join(", ") || "Not sure yet", editAction(ctx, "editEstimateColor", "color")).id("estimate-tones"),
+        n.kvRow("Photos", String(photoCount(ctx)), editAction(ctx, "editEstimatePhotos", "photos")).id("estimate-photos"),
+        n.kvRow("Budget", ctx.state.budget, editAction(ctx, "editEstimateBudget", "budget")).id("estimate-budget"),
+        n.kvRow("Range", estimateRange(ctx)).id("estimate-range")
       ).id("estimate-card"),
       n.note("Final pricing is confirmed after stylist review.", { tone: "info" }).id("estimate-note"),
     )
     .toJSON();
 }
 
+// ── Step 6: Booking ──────────────────────────────────────────────────
+
 function bookingStep(ctx) {
   return page("intake-booking", "Booking")
     .intake(shell(ctx, {
-      step: 6,
-      eyebrow: "Chapter VI · Calendar",
-      title: "Choose a time",
-      back: "estimate",
-      next: "confirm",
-      nextLabel: "Reserve →",
+      step: 6, eyebrow: "Chapter VI · Calendar", title: "Choose a time",
+      back: "estimate", next: "confirm", nextLabel: "Reserve →",
     }))
     .add(
-      n.dayPickerGrid(dayOptions, ctx.state.day, {
-        actions: {
-          change: ctx.action("setDay", function (event) {
-            ctx.state.day = event.value;
-            return render(ctx);
-          }, "change"),
-        },
+      n.calendarGrid(2026, 6, dayOptions, ctx.state.day, {
+        actions: { change: ctx.action("setDay", function (event) { ctx.state.day = event.value; return render(ctx); }, "change") },
         style: { marginBottom: 16 },
       }).id("booking-days"),
-      n.timeSlotGroup(timeOptions, ctx.state.time, {
-        columns: 2,
-        actions: {
-          change: ctx.action("setTime", function (event) {
-            ctx.state.time = event.value;
-            return render(ctx);
-          }, "change"),
-        },
+      n.selectableGroup(timeOptions, ctx.state.time, {
+        mode: "single", columns: 2,
+        actions: { change: ctx.action("setTime", function (event) { ctx.state.time = event.value; return render(ctx); }, "change") },
       }).id("booking-times"),
     )
     .toJSON();
 }
 
+// ── Step 7: Confirm ──────────────────────────────────────────────────
+
 function confirmStep(ctx) {
-  const day = dayOptions.find(function (item) { return item.value === ctx.state.day; });
-  const time = timeOptions.find(function (item) { return item.value === ctx.state.time; });
+  var day = dayOptions.find(function (item) { return item.value === ctx.state.day; });
+  var time = timeOptions.find(function (item) { return item.value === ctx.state.time; });
   return page("intake-confirm", "Confirm")
     .intake(shell(ctx, {
-      step: 7,
-      eyebrow: "Chapter VII · Done",
-      title: "Request received",
-      back: "booking",
-      next: "service",
-      nextLabel: "Start over",
+      step: 7, eyebrow: "Chapter VII · Done", title: "Request received",
+      back: "booking", next: "service", nextLabel: "Start over",
     }))
     .add(
       n.note("Your request is ready for stylist review. This prototype loops back to the first step instead of creating an appointment record.", {
-        tone: "success",
-        style: { marginBottom: 16 },
+        tone: "success", style: { marginBottom: 16 },
       }).id("confirm-success"),
       n.card({ accent: "#7a8f6b" },
-        n.summaryRow("Service", selectedServiceName(ctx), editAction(ctx, "editConfirmService", "service")).id("confirm-service"),
-        n.summaryRow("Estimate", estimateRange(ctx), editAction(ctx, "editConfirmEstimate", "estimate")).id("confirm-estimate"),
-        n.summaryRow("Date", day ? day.label : "TBD", editAction(ctx, "editConfirmBookingDay", "booking")).id("confirm-day"),
-        n.summaryRow("Time", time ? time.label : "TBD", editAction(ctx, "editConfirmBookingTime", "booking")).id("confirm-time")
+        n.kvRow("Service", selectedServiceName(ctx), editAction(ctx, "editConfirmService", "service")).id("confirm-service"),
+        n.kvRow("Estimate", estimateRange(ctx), editAction(ctx, "editConfirmEstimate", "estimate")).id("confirm-estimate"),
+        n.kvRow("Date", day ? day.day : "TBD", editAction(ctx, "editConfirmBookingDay", "booking")).id("confirm-day"),
+        n.kvRow("Time", time ? time.title : "TBD", editAction(ctx, "editConfirmBookingTime", "booking")).id("confirm-time")
       ).id("confirm-card"),
     )
     .toJSON();

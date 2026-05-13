@@ -164,23 +164,35 @@ const dslModuleSource = `
   }
 
   const n = {
+    // Layout
     text: (text, props) => node("text", Object.assign({ text }, props || {})),
     spacer: (height) => node("spacer", { height }),
     stack: (props, ...children) => node("stack", props || {}, children.map(toJSON)),
     grid: (columns, props, ...children) => node("grid", Object.assign({ columns }, props || {}), children.map(toJSON)),
+    // Display
     eyebrow: (children, props) => node("eyebrow", Object.assign({ children }, props || {})),
     button: (children, props) => node("button", Object.assign({ children }, props || {})),
-    chipGroup: (options, value, props) => node("chipGroup", Object.assign({ options, value }, props || {})),
     note: (children, props) => node("note", Object.assign({ children }, props || {})),
     card: (props, ...children) => node("card", props || {}, children.map(toJSON)),
-    ratingBar: (value, props) => node("ratingBar", Object.assign({ value }, props || {})),
+    rule: (props) => node("rule", props || {}),
+    progress: (value, props) => node("progress", Object.assign({ value }, props || {})),
+    masthead: (title, props) => node("masthead", Object.assign({ title }, props || {})),
+    // Selection
+    selectable: (title, props) => node("selectable", Object.assign({ title }, props || {})),
+    selectableGroup: (options, value, props) => node("selectableGroup", Object.assign({ options, value }, props || {})),
+    chip: (label, props) => node("chip", Object.assign({ label }, props || {})),
+    chipGroup: (options, value, props) => node("chipGroup", Object.assign({ options, value }, props || {})),
     segmented: (options, value, props) => node("segmented", Object.assign({ options, value }, props || {})),
-    serviceOptionGroup: (options, value, props) => node("serviceOptionGroup", Object.assign({ options, value }, props || {})),
-    budgetOptionGroup: (options, value, props) => node("budgetOptionGroup", Object.assign({ options, value }, props || {})),
-    timeSlotGroup: (options, value, props) => node("timeSlotGroup", Object.assign({ options, value }, props || {})),
-    dayPickerGrid: (days, value, props) => node("dayPickerGrid", Object.assign({ days, value }, props || {})),
-    photoTile: (label, props) => node("photoTile", Object.assign({ label }, props || {})),
-    summaryRow: (label, value, props) => node("summaryRow", Object.assign({ label, value }, props || {})),
+    // Input
+    scale: (value, props) => node("scale", Object.assign({ value }, props || {})),
+    uploadTile: (label, props) => node("uploadTile", Object.assign({ label }, props || {})),
+    // Data display
+    kvRow: (label, value, props) => node("kvRow", Object.assign({ label, value }, props || {})),
+    stat: (value, props) => node("stat", Object.assign({ value }, props || {})),
+    personCard: (name, props) => node("personCard", Object.assign({ name }, props || {})),
+    // Date/time
+    dayCell: (day, props) => node("dayCell", Object.assign({ day: String(day) }, props || {})),
+    calendarGrid: (year, month, days, value, props) => node("calendarGrid", Object.assign({ year, month, days, value: value || null }, props || {})),
   };
 
   return { page, n };

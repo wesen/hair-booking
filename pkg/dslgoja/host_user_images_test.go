@@ -37,7 +37,7 @@ func TestHostImagesModuleCreatesUploadIntent(t *testing.T) {
 		const images = require("host/images");
 		function render(ctx) {
 			const upload = images.createUploadIntent({ purpose: "intake-photo", slot: "front", maxBytes: 1024 });
-			return page("photos", "Photos").add(n.photoTile("Front", { upload }).id("photo-front"));
+			return page("photos", "Photos").add(n.uploadTile("Front", { value: "front", upload }).id("photo-front"));
 		}
 	`)
 	if err != nil {
