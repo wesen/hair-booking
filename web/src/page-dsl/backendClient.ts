@@ -24,14 +24,34 @@ interface ApiEnvelope<T> {
   error?: { code: string; message: string };
 }
 
+export class DslApiError extends Error {
+  readonly code?: string;
+  readonly status: number;
+
+  constructor(message: string, options: { code?: string; status: number }) {
+    super(message);
+    this.name = "DslApiError";
+    this.code = options.code;
+    this.status = options.status;
+  }
+}
+
 async function readEnvelope<T>(response: Response): Promise<T> {
-  const envelope = await response.json() as ApiEnvelope<T>;
+  let envelope: ApiEnvelope<T>;
+  try {
+    envelope = await response.json() as ApiEnvelope<T>;
+  } catch (err) {
+    throw new DslApiError(`DSL response was not valid JSON: ${err instanceof Error ? err.message : String(err)}`, {
+      status: response.status,
+    });
+  }
+
   if (!response.ok || envelope.error) {
     const message = envelope.error?.message || `DSL request failed with status ${response.status}`;
-    throw new Error(message);
+    throw new DslApiError(message, { code: envelope.error?.code, status: response.status });
   }
   if (!envelope.data) {
-    throw new Error("DSL response did not include data");
+    throw new DslApiError("DSL response did not include data", { status: response.status });
   }
   return envelope.data;
 }

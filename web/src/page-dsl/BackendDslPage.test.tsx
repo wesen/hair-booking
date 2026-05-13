@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { BackendDslPage, type BackendDslClient } from "./BackendDslPage";
+import { DslApiError } from "./backendClient";
 import { DslPageRenderer } from "./render";
 import type { DslPage } from "./schema";
 
@@ -118,5 +119,23 @@ describe("BackendDslPage", () => {
     await screen.findByText("Color step");
     expect(client.getDslFlow).toHaveBeenCalledWith("flow_existing");
     expect(client.startDslFlow).not.toHaveBeenCalled();
+  });
+
+  it("starts a replacement flow when a remembered session is gone", async () => {
+    const onSessionRecovered = vi.fn();
+    const client: BackendDslClient = {
+      startDslFlow: vi.fn(async () => ({ sessionId: "flow_new", pageVersion: 1, page: servicePage })),
+      getDslFlow: vi.fn(async () => {
+        throw new DslApiError("DSL session not found", { code: "dsl_session_not_found", status: 404 });
+      }),
+      postDslEvent: vi.fn(),
+    };
+
+    render(<BackendDslPage sessionId="flow_missing" client={client} onSessionRecovered={onSessionRecovered} />);
+
+    await screen.findByRole("radio", { name: "Color" });
+    expect(client.getDslFlow).toHaveBeenCalledWith("flow_missing");
+    expect(client.startDslFlow).toHaveBeenCalled();
+    expect(onSessionRecovered).toHaveBeenCalledWith("DSL session not found");
   });
 });

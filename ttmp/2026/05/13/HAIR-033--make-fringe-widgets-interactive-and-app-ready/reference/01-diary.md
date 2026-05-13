@@ -2035,3 +2035,124 @@ The guide specifically references:
 - `pkg/dslgoja/schema.go`
 - `pkg/dslgoja/runtime.go`
 - `pkg/dslgoja/flows/intake.flow.js`
+
+---
+
+## Step 22: Stabilize the live DSL route with URL sync, session resume, and stable render keys
+
+Implemented the first Phase B code slice for the live Goja DSL viewing page. The page now behaves more like an app: it resumes a remembered tab-scoped session, updates the URL when the backend page id changes, shows the last dispatched backend event, exposes current page JSON with a copy button, and renders backend effects more visibly in the debug panel.
+
+This step also addresses the observed DOM flashing risk by changing the DSL renderer to use backend-emitted `node.meta.id` values as React keys. The backend/flow author remains responsible for stable semantic ids; the frontend now uses those ids for reconciliation rather than relying on array indices.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead, build all the tasks, commit at appropriat eintervals, keep a diary as you work."
+
+**Assistant interpretation:** Implement the Phase B tasks from the newly written Q&A/design document, committing work in logical slices and recording diary entries.
+
+**Inferred user intent:** Move from planning to implementation for routing/session/debug/stability/protobuf follow-up work while keeping ticket documentation accurate.
+
+**Commit (code):** 74ebf17 — "HAIR-033 Step 22: Stabilize live DSL route state"
+
+### What I did
+
+- Updated `web/src/page-dsl/render.tsx`:
+  - added `nodeKey(node, index)`,
+  - uses `node.meta.id` as the React key when available,
+  - falls back to `${node.kind}:${index}` only when ids are missing.
+- Updated `web/src/page-dsl/backendClient.ts`:
+  - added `DslApiError` with `code` and `status`,
+  - preserved API error codes such as `dsl_session_not_found` for recovery decisions.
+- Updated `web/src/page-dsl/BackendDslPage.tsx`:
+  - added `onEventDispatch`,
+  - added `onSessionRecovered`,
+  - if an incoming remembered session id returns `dsl_session_not_found`, clears/reports recovery and starts a replacement flow.
+- Updated `web/src/LiveDslDemoApp.tsx`:
+  - reads/writes session id from tab-scoped `sessionStorage`,
+  - maps backend page ids to routes such as `/dsl-goja-demo/service` and `/dsl-goja-demo/color`,
+  - uses `replaceState` for initial/same-page state and `pushState` for backend page-id transitions,
+  - shows last backend event JSON,
+  - shows current page JSON with a copy button,
+  - renders backend effects/recovery messages in the debug panel.
+- Added a `BackendDslPage` test for missing remembered sessions.
+- Updated `tasks.md` to mark the non-protobuf Phase B tasks complete.
+
+### Why
+
+The live route proved the action loop, but it still behaved like a raw demo. These changes give it the first app-like behaviors needed for daily use and debugging: refresh recovery, URL/page alignment, stable DOM identity, and visible event/effect inspection.
+
+### What worked
+
+- Web tests now pass with 20 tests.
+- TypeScript typecheck passes.
+- Vite production build passes.
+- Storybook build passes.
+- Full Go tests still pass.
+
+### What didn't work
+
+- Playwright browser reuse failed in this turn with:
+
+```text
+Browser is already in use for /home/manuel/.cache/ms-playwright/mcp-chrome-profile, use --isolated to run multiple instances of the same browser
+```
+
+- I therefore relied on automated unit/type/build validation for this slice and left the already-running live tmux sessions available for manual browser reload.
+
+### What I learned
+
+- The right first URL policy is simple: `replaceState` for initial/same-page updates and `pushState` for page-id transitions. This avoids history spam for field changes while still recording major backend page transitions.
+- Keeping `DslApiError.code` available is useful because session recovery should be based on the API error code, not string matching the message.
+
+### What was tricky to build
+
+- Session recovery has two owners: `BackendDslPage` sees the API error, while `LiveDslDemoApp` owns browser storage. The solution was to add `onSessionRecovered` so the container can report recovery without knowing about `sessionStorage`.
+- URL sync must not push a new history entry for every field update. The implementation compares the previous backend page id and only pushes when the backend page id changes.
+
+### What warrants a second pair of eyes
+
+- Whether `pushState` on page-id transitions is the right demo behavior or whether we should use only `replaceState` until browser Back dispatch is designed.
+- Whether session ids should remain only in `sessionStorage` or also be optionally reflected in a debug query parameter.
+- Whether `BackendDslPage` should disable or debounce interactions while dispatching to reduce duplicate posts.
+
+### What should be done in the future
+
+- Implement the protobuf transport-contract spike.
+- Add browser smoke automation once Playwright/test infrastructure is settled.
+- Decide browser Back behavior explicitly before treating route sync as production behavior.
+
+### Code review instructions
+
+Start with:
+
+- `web/src/page-dsl/render.tsx`
+- `web/src/page-dsl/backendClient.ts`
+- `web/src/page-dsl/BackendDslPage.tsx`
+- `web/src/LiveDslDemoApp.tsx`
+- `web/src/page-dsl/BackendDslPage.test.tsx`
+
+Validate with:
+
+```bash
+go test ./... -count=1
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+pnpm build
+npx storybook build --test
+```
+
+### Technical details
+
+The new route policy maps:
+
+```text
+intake-service -> /dsl-goja-demo/service
+intake-color   -> /dsl-goja-demo/color
+```
+
+The new browser storage key is:
+
+```text
+fringe.dsl.fringe.intake.v1.sessionId
+```

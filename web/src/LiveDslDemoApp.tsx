@@ -1,14 +1,98 @@
-import { useMemo, useState } from "react";
-import { BackendDslPage, type DslFlowState } from "./page-dsl";
+import { useCallback, useMemo, useRef, useState } from "react";
+import { BackendDslPage, type DslFlowState, type DslInteractionEvent } from "./page-dsl";
 import { color, font, shadow } from "./fringe-ui/tokens";
 
+const FLOW_ID = "fringe.intake.v1";
+const SESSION_STORAGE_KEY = `fringe.dsl.${FLOW_ID}.sessionId`;
+
+const pageSlugById: Record<string, string> = {
+  "intake-service": "service",
+  "intake-color": "color",
+  "intake-photos": "photos",
+  "intake-budget": "budget",
+  "intake-estimate": "estimate",
+  "intake-booking": "booking",
+  "intake-confirm": "confirm",
+};
+
+function readStoredSessionId() {
+  try {
+    return window.sessionStorage.getItem(SESSION_STORAGE_KEY) || undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function writeStoredSessionId(sessionId: string) {
+  try {
+    window.sessionStorage.setItem(SESSION_STORAGE_KEY, sessionId);
+  } catch {
+    // sessionStorage can be unavailable in restrictive browser modes. The live
+    // demo still works without refresh recovery, so do not fail rendering.
+  }
+}
+
+function clearStoredSessionId() {
+  try {
+    window.sessionStorage.removeItem(SESSION_STORAGE_KEY);
+  } catch {
+    // Ignore storage cleanup failures for the same reason as writes.
+  }
+}
+
+function slugForPage(pageId: string) {
+  return pageSlugById[pageId] || pageId.replace(/^intake-/, "");
+}
+
+function routeForPage(pageId: string) {
+  return `/dsl-goja-demo/${slugForPage(pageId)}`;
+}
+
 export function LiveDslDemoApp() {
+  const [initialSessionId] = useState(() => readStoredSessionId());
   const [flowState, setFlowState] = useState<DslFlowState | null>(null);
-  const routeLabel = useMemo(() => {
-    const path = window.location.pathname;
-    if (path === "/" || path === "/dsl-goja-demo") return "/dsl-goja-demo";
-    return path;
+  const [lastEvent, setLastEvent] = useState<DslInteractionEvent | null>(null);
+  const [recoveryMessage, setRecoveryMessage] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const previousPageId = useRef<string | null>(null);
+
+  const handleStateChange = useCallback((nextState: DslFlowState) => {
+    setFlowState(nextState);
+    writeStoredSessionId(nextState.sessionId);
+
+    const nextPath = routeForPage(nextState.page.id);
+    const currentPath = window.location.pathname;
+    const previous = previousPageId.current;
+    const historyState = { sessionId: nextState.sessionId, pageVersion: nextState.pageVersion, pageId: nextState.page.id };
+
+    if (currentPath !== nextPath) {
+      if (previous && previous !== nextState.page.id) {
+        window.history.pushState(historyState, "", nextPath);
+      } else {
+        window.history.replaceState(historyState, "", nextPath);
+      }
+    }
+
+    previousPageId.current = nextState.page.id;
   }, []);
+
+  const handleSessionRecovered = useCallback((reason: string) => {
+    clearStoredSessionId();
+    setRecoveryMessage(`Previous session could not be resumed: ${reason}`);
+  }, []);
+
+  const currentJson = useMemo(() => JSON.stringify(flowState?.page ?? { status: "loading" }, null, 2), [flowState?.page]);
+  const routeLabel = flowState ? routeForPage(flowState.page.id) : window.location.pathname;
+
+  const copyCurrentJson = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(currentJson);
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1200);
+    } catch {
+      setCopied(false);
+    }
+  }, [currentJson]);
 
   return (
     <main
@@ -46,7 +130,13 @@ export function LiveDslDemoApp() {
             flex: "0 0 auto",
           }}
         >
-          <BackendDslPage flowId="fringe.intake.v1" onStateChange={setFlowState} />
+          <BackendDslPage
+            flowId={FLOW_ID}
+            sessionId={initialSessionId}
+            onStateChange={handleStateChange}
+            onEventDispatch={setLastEvent}
+            onSessionRecovered={handleSessionRecovered}
+          />
         </div>
 
         <aside
@@ -71,13 +161,18 @@ export function LiveDslDemoApp() {
             This page is the first real Vite app surface for the backend-driven DSL runtime. The phone frame renders JSON from the Go server, and widget clicks post opaque action ids back to Goja callbacks.
           </p>
 
+          {recoveryMessage ? <DebugNotice tone="warn" message={recoveryMessage} /> : null}
+          {flowState?.effects?.map((effect, index) => (
+            <DebugNotice key={`${effect.kind}:${index}`} tone={effect.tone === "danger" ? "danger" : effect.tone === "warn" ? "warn" : "info"} message={effect.message || effect.kind} />
+          ))}
+
           <dl style={{ display: "grid", gridTemplateColumns: "112px minmax(0, 1fr)", gap: "8px 12px", margin: "0 0 18px", fontFamily: font.mono, fontSize: 11 }}>
             <dt style={{ color: color.softInk }}>Route</dt>
             <dd style={{ margin: 0 }}>{routeLabel}</dd>
             <dt style={{ color: color.softInk }}>Flow</dt>
-            <dd style={{ margin: 0 }}>fringe.intake.v1</dd>
+            <dd style={{ margin: 0 }}>{FLOW_ID}</dd>
             <dt style={{ color: color.softInk }}>Session</dt>
-            <dd style={{ margin: 0, overflowWrap: "anywhere" }}>{flowState?.sessionId ?? "starting…"}</dd>
+            <dd style={{ margin: 0, overflowWrap: "anywhere" }}>{flowState?.sessionId ?? initialSessionId ?? "starting…"}</dd>
             <dt style={{ color: color.softInk }}>Version</dt>
             <dd style={{ margin: 0 }}>{flowState?.pageVersion ?? "—"}</dd>
             <dt style={{ color: color.softInk }}>Page</dt>
@@ -85,35 +180,73 @@ export function LiveDslDemoApp() {
           </dl>
 
           <div style={{ display: "grid", gap: 8, marginBottom: 18 }}>
-            <DebugStep done={!!flowState} label="Backend flow started through POST /api/dsl/flows/fringe.intake.v1/start" />
+            <DebugStep done={!!flowState} label="Backend flow started or resumed through /api/dsl/flows" />
             <DebugStep done={flowState?.page.id === "intake-color"} label="Shell action dispatched and color step returned" />
+            <DebugStep done={!!lastEvent} label="At least one backend interaction event was posted" />
             <DebugStep done={!!flowState?.effects?.length} label="Backend effects returned" muted />
           </div>
+
+          <details style={{ marginBottom: 12 }}>
+            <summary style={{ cursor: "pointer", fontFamily: font.mono, fontSize: 11, color: color.plum }}>
+              Last backend event
+            </summary>
+            <pre style={preStyle}>
+              {JSON.stringify(lastEvent ?? { status: "no event dispatched yet" }, null, 2)}
+            </pre>
+          </details>
 
           <details>
             <summary style={{ cursor: "pointer", fontFamily: font.mono, fontSize: 11, color: color.plum }}>
               Current page JSON
             </summary>
-            <pre
+            <button
+              type="button"
+              onClick={copyCurrentJson}
               style={{
-                maxHeight: 280,
-                overflow: "auto",
-                margin: "10px 0 0",
-                padding: 12,
-                borderRadius: 8,
-                background: color.ink,
-                color: color.cream,
+                marginTop: 10,
+                border: `1px solid ${color.plum}`,
+                background: copied ? color.sage : color.paper,
+                color: copied ? color.paper : color.plum,
+                borderRadius: 999,
+                padding: "6px 10px",
                 fontFamily: font.mono,
                 fontSize: 10,
-                lineHeight: 1.5,
+                cursor: "pointer",
               }}
             >
-              {JSON.stringify(flowState?.page ?? { status: "loading" }, null, 2)}
-            </pre>
+              {copied ? "Copied" : "Copy JSON"}
+            </button>
+            <pre style={preStyle}>{currentJson}</pre>
           </details>
         </aside>
       </section>
     </main>
+  );
+}
+
+const preStyle = {
+  maxHeight: 280,
+  overflow: "auto",
+  margin: "10px 0 0",
+  padding: 12,
+  borderRadius: 8,
+  background: color.ink,
+  color: color.cream,
+  fontFamily: font.mono,
+  fontSize: 10,
+  lineHeight: 1.5,
+} as const;
+
+function DebugNotice({ tone, message }: { tone: "info" | "warn" | "danger"; message: string }) {
+  const palette = tone === "danger"
+    ? { bg: "#fce4dd", fg: color.danger }
+    : tone === "warn"
+      ? { bg: "#fbefcf", fg: color.ochre }
+      : { bg: color.cream, fg: color.softInk };
+  return (
+    <div style={{ margin: "0 0 12px", padding: "8px 10px", borderRadius: 8, background: palette.bg, color: palette.fg, fontFamily: font.mono, fontSize: 10 }}>
+      {message}
+    </div>
   );
 }
 

@@ -254,3 +254,18 @@ Step 21: Added a design note answering routing, flow/session identity, multiple 
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/reference/01-diary.md — Diary step for routing/session/schema/event design answers
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/tasks.md — Phase B tasks expanded with routing/session/stable-key/protobuf work
 
+
+## 2026-05-13
+
+Step 22: Stabilized the live DSL route with node.meta.id React keys (commit 74ebf17), tab-scoped sessionStorage resume, missing-session recovery, URL/page sync, last-event debug JSON, copyable page JSON, and visible effects. Web tests/typecheck/build/Storybook and Go tests passed.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/reference/01-diary.md — Diary Step 22
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/tasks.md — Marks non-protobuf Phase B tasks complete
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/LiveDslDemoApp.tsx — SessionStorage resume
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/BackendDslPage.test.tsx — Tests missing remembered session recovery
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/BackendDslPage.tsx — Handles remembered missing sessions and reports dispatched events
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/backendClient.ts — Preserves DSL API error codes for session recovery
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — Uses stable node.meta.id keys for backend-rendered nodes
+

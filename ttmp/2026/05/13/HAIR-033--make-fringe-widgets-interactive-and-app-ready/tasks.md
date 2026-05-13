@@ -12,13 +12,13 @@
 
 ## Phase B — Debuggability, Routing, and Review Surface
 
-- [ ] Add optional debug UI for `sessionId`, `pageVersion`, `page.id`, effects, and the last backend event.
-- [ ] Add a copyable current-page JSON panel or developer-only details section.
-- [ ] Render stale-page and callback-error effects clearly in the live demo.
-- [ ] Update `DslPageRenderer` to use `node.meta.id` as React keys, with index fallback only when ids are missing.
-- [ ] Add tab-scoped `sessionStorage` resume for the live DSL demo and clear it if the backend returns `dsl_session_not_found`.
-- [ ] Add URL/page sync that maps backend `page.id` to route slugs such as `/dsl-goja-demo/service` and `/dsl-goja-demo/color`.
-- [ ] Decide whether page-id transitions should use `history.pushState` or `history.replaceState` during the demo phase.
+- [x] Add optional debug UI for `sessionId`, `pageVersion`, `page.id`, effects, and the last backend event.
+- [x] Add a copyable current-page JSON panel or developer-only details section.
+- [x] Render stale-page and callback-error effects clearly in the live demo.
+- [x] Update `DslPageRenderer` to use `node.meta.id` as React keys, with index fallback only when ids are missing.
+- [x] Add tab-scoped `sessionStorage` resume for the live DSL demo and clear it if the backend returns `dsl_session_not_found`.
+- [x] Add URL/page sync that maps backend `page.id` to route slugs such as `/dsl-goja-demo/service` and `/dsl-goja-demo/color`.
+- [x] Decide whether page-id transitions should use `history.pushState` or `history.replaceState` during the demo phase.
 - [ ] Add a small protobuf transport-contract spike using `google.protobuf.Struct` for dynamic node props.
 
 ## Phase C — Expand the Goja Intake Flow

@@ -140,8 +140,12 @@ function dataAttrs(node: DslNode) {
   };
 }
 
+function nodeKey(node: DslNode, index: number): Key {
+  return node.meta?.id || `${node.kind}:${index}`;
+}
+
 function renderChildren(children: DslNode[] | undefined, ctx: DslRenderContext | undefined) {
-  return (children || []).map((child, i) => renderNode(child, ctx, i));
+  return (children || []).map((child, i) => renderNode(child, ctx, nodeKey(child, i)));
 }
 
 export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): ReactNode {
@@ -221,7 +225,7 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
 }
 
 export function DslPageRenderer({ page, context }: { page: DslPage; context?: DslRenderContext }) {
-  const content = <>{page.nodes.map((node, i) => renderNode(node, context, i))}</>;
+  const content = <>{page.nodes.map((node, i) => renderNode(node, context, nodeKey(node, i)))}</>;
   if (page.shell.kind === "intake") {
     const props = page.shell.props || {};
     return (

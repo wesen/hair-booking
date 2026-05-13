@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { DslPageRenderer } from "./render";
-import { getDslFlow, postDslEvent, startDslFlow, type DslFlowState } from "./backendClient";
+import { DslApiError, getDslFlow, postDslEvent, startDslFlow, type DslFlowState, type DslInteractionEvent } from "./backendClient";
 import type { DslBackendEvent } from "./schema";
 import { color, font } from "../fringe-ui/tokens";
 
@@ -17,6 +17,8 @@ export interface BackendDslPageProps {
   sessionId?: string;
   client?: BackendDslClient;
   onStateChange?: (state: DslFlowState) => void;
+  onEventDispatch?: (event: DslInteractionEvent) => void;
+  onSessionRecovered?: (reason: string) => void;
 }
 
 export function BackendDslPage({
@@ -24,6 +26,8 @@ export function BackendDslPage({
   sessionId,
   client = defaultClient,
   onStateChange,
+  onEventDispatch,
+  onSessionRecovered,
 }: BackendDslPageProps) {
   const [state, setState] = useState<DslFlowState | null>(null);
   const [loading, setLoading] = useState(true);
@@ -35,25 +39,37 @@ export function BackendDslPage({
     setLoading(true);
     setError(null);
 
-    const promise = sessionId ? client.getDslFlow(sessionId) : client.startDslFlow(flowId);
-    promise
-      .then((nextState) => {
+    async function load() {
+      try {
+        let nextState: DslFlowState;
+        try {
+          nextState = sessionId ? await client.getDslFlow(sessionId) : await client.startDslFlow(flowId);
+        } catch (err) {
+          if (sessionId && err instanceof DslApiError && err.code === "dsl_session_not_found") {
+            onSessionRecovered?.(err.message);
+            nextState = await client.startDslFlow(flowId);
+          } else {
+            throw err;
+          }
+        }
+
         if (cancelled) return;
         setState(nextState);
         onStateChange?.(nextState);
-      })
-      .catch((err: unknown) => {
+      } catch (err: unknown) {
         if (cancelled) return;
         setError(err instanceof Error ? err.message : String(err));
-      })
-      .finally(() => {
+      } finally {
         if (!cancelled) setLoading(false);
-      });
+      }
+    }
+
+    void load();
 
     return () => {
       cancelled = true;
     };
-  }, [client, flowId, onStateChange, sessionId]);
+  }, [client, flowId, onSessionRecovered, onStateChange, sessionId]);
 
   const context = useMemo(() => ({
     backendDispatch: async (event: DslBackendEvent) => {
@@ -61,11 +77,13 @@ export function BackendDslPage({
       setDispatching(true);
       setError(null);
       try {
-        const nextState = await client.postDslEvent(state.sessionId, {
+        const interactionEvent: DslInteractionEvent = {
           ...event,
           eventId: crypto.randomUUID(),
           pageVersion: state.pageVersion,
-        });
+        };
+        onEventDispatch?.(interactionEvent);
+        const nextState = await client.postDslEvent(state.sessionId, interactionEvent);
         setState(nextState);
         onStateChange?.(nextState);
       } catch (err) {
@@ -74,7 +92,7 @@ export function BackendDslPage({
         setDispatching(false);
       }
     },
-  }), [client, onStateChange, state]);
+  }), [client, onEventDispatch, onStateChange, state]);
 
   if (loading) {
     return <BackendDslStatus label="Loading backend DSL flow…" />;
