@@ -109,3 +109,12 @@ Step 9: Updated Goja multi-step intake design with long-running per-flow VM reco
 
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/03-goja-sandbox-multi-step-intake-dsl-guide.md — Updated Goja VM/action lifecycle design
 
+
+## 2026-05-13
+
+Uploaded third Goja sandbox multi-step intake DSL guide to reMarkable at /ai/2026/05/13/HAIR-033. (upload: HAIR_033_Goja_Sandbox_Multi_Step_Intake_DSL_Guide.pdf)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/03-goja-sandbox-multi-step-intake-dsl-guide.md — Uploaded third Goja guide
+
