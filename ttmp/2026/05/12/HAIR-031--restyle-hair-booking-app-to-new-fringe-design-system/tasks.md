@@ -12,11 +12,11 @@
 ## TODO
 
 ### Phase 1: Scaffold web/ directory
-- [ ] Copy package.json, vite.config.ts, tsconfig.json from web.deprecated/
-- [ ] Copy src/stylist/store/ (RTK Query) to web/src/store/
-- [ ] Copy src/mock/ (MSW handlers) to web/src/mock/
-- [ ] Create fresh src/fringe-ui/tokens/ with updated FS values
-- [ ] Verify `pnpm install && pnpm typecheck && pnpm storybook` works
+- [x] Copy package.json, vite.config.ts, tsconfig.json from web.deprecated/
+- [x] Copy src/stylist/store/ (RTK Query) to web/src/store/
+- [x] Copy src/mock/ (MSW handlers) to web/src/mock/
+- [x] Create fresh src/fringe-ui/tokens/ with updated FS values
+- [x] Verify `pnpm install && pnpm typecheck && pnpm storybook` works
 
 ### Phase 2: Tokens + Atoms
 - [ ] Update token TS constants + CSS custom properties to match FS

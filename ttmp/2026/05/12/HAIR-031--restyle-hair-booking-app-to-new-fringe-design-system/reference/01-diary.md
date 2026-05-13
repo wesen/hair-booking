@@ -1022,58 +1022,95 @@ web/
 
 ---
 
-## Step 13: Restructure components into atoms/molecules/organisms (in progress)
+## Step 13: Restructure components into atoms/molecules/organisms
 
-The user specified: "one folder per widget, with tsx and stories.tsx and such" and "atoms/molecules/organisms". This is a departure from the flat `fringe-ui/primitives|chrome|salon-widgets|layout` structure. Each component gets its own folder containing the `.tsx` implementation, `.stories.tsx`, and eventually `index.ts` barrel, `styles.ts`, `types.ts`, and test files.
+Moved all components from the flat `fringe-ui/{primitives,chrome,salon-widgets,layout}` structure into an atomic design hierarchy: `atoms/` (15 leaf components), `molecules/` (8 compositions), `organisms/` (15 shells + pages). Each component gets its own folder with `.tsx` and `.stories.tsx`.
 
 ### Prompt Context
 
 **User prompt (verbatim):** "one folder per widget, with tsx and stories.tsx and such"
-
 **User prompt (verbatim):** "atoms/molecules/organisms"
 
-**Assistant interpretation:** Restructure the flat fringe-ui components into an atomic design hierarchy: atoms (leaf primitives like Button, Chip, Eyebrow), molecules (compositions like AppHeader, StylistCard, DayCell), organisms (shells and pages like IntakeShell, ServicePage). Each component lives in its own folder.
+**Assistant interpretation:** Restructure from the flat category folders (primitives, chrome, salon-widgets, layout) into atomic design layers where each widget has its own folder containing component + stories.
 
-**Inferred user intent:** Clean, scalable component architecture where each widget is self-contained and discoverable.
+**Inferred user intent:** Clean, scalable component architecture that makes each widget self-contained and discoverable.
+
+**Commit (code):** eec00ab — "HAIR-031 Step 13: Restructure into atoms/molecules/organisms"
 
 ### What I did
 
-1. Created folder structure under `web/src/`:
-   - `atoms/` — 15 folders: Button, Card, Chip, Eyebrow, IndexChip, Note, Progress, RatingBar, Rule, Segmented, TextField, Wordmark, StatusBar, HomeIndicator
-   - `molecules/` — 8 folders: AppHeader, TabBar, DayCell, Masthead, PhotoTile, Section, StylistCard, SummaryRow
-   - `organisms/` — 15 folders: IntakeShell, StepRail, ClientShell, StylistShell, ServicePage through ConfirmPage, WelcomePage, CareGuidePage
+1. Created folder structure:
+   - `web/src/atoms/` — 15 folders: Button, Card, Chip, Eyebrow, IndexChip, Note, Progress, RatingBar, Rule, Segmented, TextField, Wordmark, StatusBar, HomeIndicator
+   - `web/src/molecules/` — 8 folders: AppHeader, TabBar, DayCell, Masthead, PhotoTile, Section, StylistCard, SummaryRow
+   - `web/src/organisms/` — 15 folders: IntakeShell, StepRail, ClientShell, StylistShell, ServicePage through ConfirmPage, WelcomePage, CareGuidePage
 
-2. Removed the temporary flat `fringe-ui/` copies (primitives, chrome, etc.)
+2. Copied each component's `.tsx` + `.stories.tsx` from `web.deprecated/src/fringe-ui/` and `web.deprecated/src/fringe/pages/`
 
-3. About to copy each component's `.tsx` + `.stories.tsx` into its folder, fixing imports
+3. Fixed all import paths using `perl -pi`:
+   - `../../tokens` → `../../fringe-ui/tokens` (atoms, molecules)
+   - `../primitives/X` → `../../atoms/X/X` (molecules, organisms)
+   - `../chrome/X` → `../../molecules/X/X` or `../../atoms/X/X`
+   - `../../../fringe-ui/*` → `../../fringe-ui/*` or `../../atoms/*` or `../../molecules/*` (page organisms)
+   - `../../../stylist/store/` → `../../store/` (page organisms)
+
+4. Kept `fringe-ui/tokens/` in place — tokens aren't components and are shared across all layers
+
+5. Verified: `tsc --noEmit` clean, `storybook build --test` passes with all stories
+
+6. Updated docmgr tasks (checked 7–11) and changelog
 
 ### Why
 
-Atomic design (atoms → molecules → organisms) scales better than the flat category structure. One folder per widget makes it easy to find related files (component, stories, tests, styles) and supports future additions like `parts.ts` for CSS custom properties or `hooks.ts` for component-local logic.
+Atomic design (atoms → molecules → organisms) scales better than the flat category structure. One folder per widget makes it easy to find related files and supports future additions like `index.ts` barrel, `styles.ts`, `hooks.ts`, and test files.
 
 ### What worked
 
-- The categorization is clean: atoms are leaf nodes (no children), molecules compose atoms, organisms compose molecules+atoms
+- The `find ... -exec perl -pi` pattern for mass import path rewriting worked reliably once I got the escaping right
+- Storybook's glob pattern `../src/**/*.stories.@(ts|tsx)` automatically picks up stories from the new nested structure
+- Typecheck was clean after fixing all imports — no missing types or broken references
 
 ### What didn't work
 
-- N/A — still in progress
+- First attempt used `sed` for import path rewriting — the escaping of `../` in regex patterns was unreliable. `perl -pi -e` with single-quoted patterns worked much better.
+- First attempt at fixing page organism imports used a bash `for` loop with glob `web/src/organisms/*Page/*.tsx` — the glob didn't match because the curly-brace paths had issues. Using `find -exec` was more reliable.
+- CareGuidePage imported from a barrel `../../fringe-ui` (the old index.ts re-export). Had to split into individual imports from each atom folder.
+
+### What I learned
+
+- The category (atoms vs molecules vs organisms) was mostly straightforward: atoms are leaf nodes with no children, molecules compose atoms, organisms compose molecules+atoms. The edge cases were AppHeader (molecule, not organism, because it only wraps Wordmark + inline SVG) and IntakeShell (organism because it's a full screen layout).
+- StatusBar and HomeIndicator are pure chrome decoration atoms — they have no children and no dependencies beyond their props.
 
 ### What was tricky to build
 
-- Deciding whether AppHeader is a molecule or organism — it composes Wordmark (atom) + back button (inline), so it's a molecule. TabBar similarly composes multiple tab items, so it's a molecule.
-- StatusBar and HomeIndicator are pure chrome decoration with no children — atoms.
+- The import path rewriting required understanding the full depth chain: pages were at `src/fringe/pages/client-booking/` (3 levels deep from `src/`), so `../../../fringe-ui/tokens` resolved correctly in the old structure but needed `../../fringe-ui/tokens` in the new `src/organisms/PageName/` structure.
+- The `find -exec perl -pi` approach modifies files in-place — the perl pattern needs to handle all variants in one pass, or files get rewritten multiple times (which can cause issues if patterns overlap).
 
 ### What warrants a second pair of eyes
 
-- The molecule/organism boundary: IntakeShell is an organism because it's a full screen layout; StepRail is also an organism because it manages multi-step navigation state.
+- Verify Storybook at http://localhost:6006 shows all component stories correctly
+- Check that the molecule/organism boundary is correct (AppHeader = molecule, IntakeShell = organism)
 
 ### What should be done in the future
 
 - Add `index.ts` barrel exports for each component folder
 - Add `data-component` and `data-part` attributes for css-visual-diff targeting
-- Eventually add `styles.ts` or `parts.ts` for CSS custom properties per component
+- The pages (ServicePage, etc.) reference `consultationSlice` and RTK Query hooks — they'll need the Redux Provider wired in Storybook decorators
 
 ### Code review instructions
 
-- Folder structure: `find web/src/{atoms,molecules,organisms} -type d | sort`
+```bash
+cd web/
+npx tsc --noEmit           # clean
+npx storybook build --test  # passes
+# View at http://localhost:6006
+```
+
+```
+web/src/
+├── atoms/          # 15 leaf components (Button, Chip, Eyebrow, ...)
+├── molecules/      # 8 compositions (AppHeader, TabBar, StylistCard, ...)
+├── organisms/      # 15 shells + pages (IntakeShell, ServicePage, ...)
+├── fringe-ui/tokens/  # TS constants + CSS custom properties
+├── store/          # RTK Query (api, slices, types, data)
+└── mock/           # MSW handlers
+```

@@ -41,3 +41,14 @@ Step 11: Discovered undocumented css-visual-diff page.overlay() API (cvd.overlay
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/design-galley/visual-diff/userland/verbs/fringe-pages.js — 7 verbs (listTargets
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/12/HAIR-031--restyle-hair-booking-app-to-new-fringe-design-system/scripts/08-cssvd-annotated-all.sh — Script for css-visual-diff overlay generation
 
+
+## 2026-05-12
+
+Step 13: Restructured components into atoms/molecules/organisms with one folder per widget (15 atoms, 8 molecules, 15 organisms). All import paths fixed. tsc --noEmit clean, storybook build passes. (commit eec00ab)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/atoms/ — 15 atom folders (Button
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/molecules/ — 8 molecule folders (AppHeader
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/organisms/ — 15 organism folders (IntakeShell
+
