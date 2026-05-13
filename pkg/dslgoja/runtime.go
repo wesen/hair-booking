@@ -52,6 +52,12 @@ type FlowSession struct {
 	rt *Runtime
 }
 
+func (s *FlowSession) Snapshot() (int64, Page) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.Version, s.CurrentPage
+}
+
 type ActionRegistration struct {
 	ID       string
 	Name     string
@@ -86,10 +92,10 @@ func (rt *Runtime) StartFlow(ctx context.Context, flowID, source string) (*FlowS
 	flow := value.ToObject(vm)
 
 	session := &FlowSession{
-		ID:             "flow_" + uuid.NewString(),
-		FlowID:         flowID,
-		VM:             vm,
-		flow:           flow,
+		ID:              "flow_" + uuid.NewString(),
+		FlowID:          flowID,
+		VM:              vm,
+		flow:            flow,
 		CurrentActions:  map[string]ActionRegistration{},
 		RetiredActions:  map[string]RetiredActionInfo{},
 		ProcessedEvents: map[string]InteractionResult{},

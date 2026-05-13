@@ -86,6 +86,7 @@ type appHandler struct {
 	stylistService     *hairstylist.Service
 	localUploadsDir    string
 	stylistAuthorizer  *hairstylist.Authorizer
+	dslFlows           *dslFlowStore
 }
 
 type apiEnvelope struct {
@@ -203,6 +204,7 @@ func NewHandler(options HandlerOptions) http.Handler {
 		stylistService:     options.StylistService,
 		localUploadsDir:    options.LocalUploadsDir,
 		stylistAuthorizer:  hairstylist.NewAuthorizer(authSettings),
+		dslFlows:           newDSLFlowStore(),
 	}
 
 	mux := http.NewServeMux()
@@ -223,6 +225,9 @@ func NewHandler(options HandlerOptions) http.Handler {
 	mux.HandleFunc("POST /api/intake/{id}/photos", h.handleIntakePhoto)
 	mux.HandleFunc("GET /api/availability", h.handleAvailability)
 	mux.HandleFunc("POST /api/appointments", h.handleCreateAppointment)
+	mux.HandleFunc("POST /api/dsl/flows/{flowId}/start", h.handleDSLStartFlow)
+	mux.HandleFunc("GET /api/dsl/flows/{sessionId}", h.handleDSLGetFlow)
+	mux.HandleFunc("POST /api/dsl/flows/{sessionId}/events", h.handleDSLEvent)
 	mux.HandleFunc("GET /api/stylist/me", h.handleStylistMe)
 	mux.HandleFunc("GET /api/stylist/dashboard", h.handleStylistDashboard)
 	mux.HandleFunc("GET /api/stylist/intakes", h.handleStylistIntakes)
