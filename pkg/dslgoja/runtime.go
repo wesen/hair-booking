@@ -120,6 +120,57 @@ func (s *FlowSession) Render(ctx context.Context) (*InteractionResult, error) {
 	return s.renderLocked(ctx)
 }
 
+func (s *FlowSession) Dispatch(ctx context.Context, event InteractionEvent) (*InteractionResult, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if cached, ok := s.ProcessedEvents[event.EventID]; ok {
+		return &cached, nil
+	}
+	if event.PageVersion != s.Version {
+		return s.stalePageResult("This page was already updated."), nil
+	}
+	action, ok := s.CurrentActions[event.ActionID]
+	if !ok {
+		if _, retired := s.RetiredActions[event.ActionID]; retired {
+			return s.stalePageResult("This action is no longer active."), nil
+		}
+		return nil, fmt.Errorf("unknown action %q", event.ActionID)
+	}
+	if action.NodeID != "" && event.NodeID != "" && action.NodeID != event.NodeID {
+		return nil, fmt.Errorf("action %q belongs to node %q, got %q", action.ID, action.NodeID, event.NodeID)
+	}
+
+	tx := &renderTransaction{NextActions: map[string]ActionRegistration{}}
+	s.activeTx = tx
+	defer func() { s.activeTx = nil }()
+
+	jsEvent := s.VM.ToValue(interactionEventObject(event))
+	value, err := s.rt.callWithTimeout(ctx, s, action.Callback, goja.Undefined(), jsEvent)
+	if err != nil {
+		return s.errorResult(err), nil
+	}
+	page, err := exportPageValue(value)
+	if err != nil {
+		return s.errorResult(fmt.Errorf("export callback page: %w", err)), nil
+	}
+	if page.SchemaVersion == 0 {
+		page.SchemaVersion = 1
+	}
+	if page.Shell.Kind == "" {
+		page.Shell.Kind = "bare"
+	}
+	if page.Nodes == nil {
+		page.Nodes = []Node{}
+	}
+
+	result := s.commitRenderTransaction(tx, page, nil)
+	if event.EventID != "" {
+		s.ProcessedEvents[event.EventID] = *result
+	}
+	return result, nil
+}
+
 func (s *FlowSession) renderLocked(ctx context.Context) (*InteractionResult, error) {
 	render, ok := goja.AssertFunction(s.flow.Get("render"))
 	if !ok {
@@ -150,6 +201,32 @@ func (s *FlowSession) renderLocked(ctx context.Context) (*InteractionResult, err
 	}
 
 	return s.commitRenderTransaction(tx, page, nil), nil
+}
+
+func (s *FlowSession) stalePageResult(message string) *InteractionResult {
+	return &InteractionResult{
+		SessionID:   s.ID,
+		PageVersion: s.Version,
+		Page:        s.CurrentPage,
+		Effects: []Effect{{
+			Kind:    "toast",
+			Tone:    "info",
+			Message: message,
+		}},
+	}
+}
+
+func (s *FlowSession) errorResult(err error) *InteractionResult {
+	return &InteractionResult{
+		SessionID:   s.ID,
+		PageVersion: s.Version,
+		Page:        s.CurrentPage,
+		Effects: []Effect{{
+			Kind:    "toast",
+			Tone:    "danger",
+			Message: err.Error(),
+		}},
+	}
 }
 
 func (s *FlowSession) commitRenderTransaction(tx *renderTransaction, page Page, effects []Effect) *InteractionResult {
@@ -221,6 +298,20 @@ func (rt *Runtime) callWithTimeout(ctx context.Context, session *FlowSession, fn
 		return nil, err
 	}
 	return value, nil
+}
+
+func interactionEventObject(event InteractionEvent) map[string]any {
+	return map[string]any{
+		"eventId":     event.EventID,
+		"sessionId":   event.SessionID,
+		"pageVersion": event.PageVersion,
+		"nodeId":      event.NodeID,
+		"nodeKind":    event.NodeKind,
+		"actionId":    event.ActionID,
+		"event":       event.Event,
+		"value":       event.Value,
+		"meta":        event.Meta,
+	}
 }
 
 func exportPageValue(value goja.Value) (Page, error) {
