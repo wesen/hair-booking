@@ -45,6 +45,7 @@ export interface DslNode<P extends JsonObject = JsonObject> {
     dataComponent?: string;
     dataSection?: string;
     dataPart?: string;
+    region?: "main" | "context";
     note?: string;
   };
 }

@@ -1,5 +1,7 @@
 import type { CSSProperties, Key, ReactNode } from "react";
 import type { DslActionRef, DslNode, DslPage, DslRenderContext, JsonObject, JsonValue } from "./schema";
+import { AccentPanel } from "../molecules/AccentPanel/AccentPanel";
+import { TwoColumnLayout } from "../organisms/DesktopShell/TwoColumnLayout";
 import { IntakeShell } from "../organisms/IntakeShell/IntakeShell";
 import { DesktopShell } from "../organisms/DesktopShell/DesktopShell";
 import { Eyebrow } from "../atoms/Eyebrow/Eyebrow";
@@ -456,6 +458,41 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
   }
 }
 
+/**
+ * Partition DSL nodes into main content and context-panel content for desktop.
+ * Context-panel candidates: stat, personCard, kvRow (with meta.context=true), card with accent.
+ * Everything else goes to main.
+ */
+function partitionForDesktop(nodes: DslNode[]): { mainNodes: DslNode[]; contextNodes: DslNode[] } {
+  const CONTEXT_KINDS = new Set(["stat", "personCard"]);
+  const mainNodes: DslNode[] = [];
+  const contextNodes: DslNode[] = [];
+
+  for (const node of nodes) {
+    // Explicit meta.region = "context" always pulls to context panel
+    if (node.meta?.region === "context") {
+      contextNodes.push(node);
+      continue;
+    }
+    // Explicit meta.region = "main" always stays in main
+    if (node.meta?.region === "main") {
+      mainNodes.push(node);
+      continue;
+    }
+    // Automatic: stat and personCard go to context panel
+    if (CONTEXT_KINDS.has(node.kind)) {
+      contextNodes.push(node);
+      continue;
+    }
+    // kvRow nodes in a card get pulled to context if the card has no explicit region
+    // (We don't split card children — cards go to main unless meta.region = "context")
+    // Everything else is main content
+    mainNodes.push(node);
+  }
+
+  return { mainNodes, contextNodes };
+}
+
 export function DslPageRenderer({ page, context }: { page: DslPage; context?: DslRenderContext }) {
   const nodeKeys = page.nodes.map((node, i) => String(nodeKey(node, i)));
   dslDebug("DslPageRenderer render", { pageId: page.id, shellKind: page.shell.kind, nodeKeys, shellActions: page.shell.props?.actions });
@@ -491,6 +528,31 @@ export function DslPageRenderer({ page, context }: { page: DslPage; context?: Ds
       paper: color.paper, ink: color.ink, cream: color.cream,
     };
     const accentInk = inkMap[accentInkName] || color.paper;
+
+    // Desktop two-column partition: pull context nodes into right-side accent panel
+    const { mainNodes, contextNodes } = partitionForDesktop(page.nodes);
+    const mainContent = <>{mainNodes.map((node, i) => renderNode(node, context, nodeKey(node, i)))}</>;
+
+    if (contextNodes.length > 0) {
+      const contextContent = (
+        <AccentPanel accent={accent} accentInk={accentInk}>
+          {contextNodes.map((node, i) => renderNode(node, context, nodeKey(node, i)))}
+        </AccentPanel>
+      );
+      return (
+        <DesktopShell
+          step={num(props, "step", 1)}
+          total={num(props, "total", 9)}
+          accent={accent}
+          accentInk={accentInk}
+          activeNav={str(props, "activeNav", "Book")}
+          user={(props.user as any) || { name: "Mia", initial: "M" }}
+        >
+          <TwoColumnLayout leftWidth="1.15fr" rightWidth="1fr" gap={0} left={mainContent} right={contextContent} />
+        </DesktopShell>
+      );
+    }
+
     return (
       <DesktopShell
         step={num(props, "step", 1)}
@@ -500,7 +562,7 @@ export function DslPageRenderer({ page, context }: { page: DslPage; context?: Ds
         activeNav={str(props, "activeNav", "Book")}
         user={(props.user as any) || { name: "Mia", initial: "M" }}
       >
-        {content}
+        {mainContent}
       </DesktopShell>
     );
   }
