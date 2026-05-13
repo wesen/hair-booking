@@ -1,4 +1,4 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, Key, ReactNode } from "react";
 import type { DslNode, DslPage, DslRenderContext, JsonObject } from "./schema";
 import { IntakeShell } from "../organisms/IntakeShell/IntakeShell";
 import { Eyebrow } from "../atoms/Eyebrow/Eyebrow";
@@ -62,9 +62,9 @@ function renderChildren(children: DslNode[] | undefined, ctx: DslRenderContext |
   return (children || []).map((child, i) => renderNode(child, ctx, i));
 }
 
-export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: React.Key): ReactNode {
+export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): ReactNode {
   const props = node.props || {};
-  const common = { key, ...dataAttrs(node) };
+  const common = dataAttrs(node);
 
   switch (node.kind) {
     case "text": {
@@ -74,57 +74,57 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: React.Ke
         : variant === "h3"
           ? { fontFamily: font.block, fontSize: 20, textTransform: "uppercase", lineHeight: 1.05 }
           : { fontFamily: font.sans, fontSize: 14, lineHeight: 1.5, color: color.ink };
-      return <div {...common} style={{ ...base, ...style(props) }}>{str(props, "text")}</div>;
+      return <div key={key} {...common} style={{ ...base, ...style(props) }}>{str(props, "text")}</div>;
     }
     case "spacer":
-      return <div {...common} style={{ height: num(props, "height", 16), ...style(props) }} />;
+      return <div key={key} {...common} style={{ height: num(props, "height", 16), ...style(props) }} />;
     case "stack":
-      return <div {...common} style={{ display: "flex", flexDirection: "column", gap: num(props, "gap", 0), ...style(props) }}>{renderChildren(node.children, ctx)}</div>;
+      return <div key={key} {...common} style={{ display: "flex", flexDirection: "column", gap: num(props, "gap", 0), ...style(props) }}>{renderChildren(node.children, ctx)}</div>;
     case "grid": {
       const columns = props.columns || 1;
       const template = typeof columns === "number" ? `repeat(${columns}, 1fr)` : String(columns);
-      return <div {...common} style={{ display: "grid", gridTemplateColumns: template, gap: num(props, "gap", 8), ...style(props) }}>{renderChildren(node.children, ctx)}</div>;
+      return <div key={key} {...common} style={{ display: "grid", gridTemplateColumns: template, gap: num(props, "gap", 8), ...style(props) }}>{renderChildren(node.children, ctx)}</div>;
     }
     case "eyebrow":
-      return <Eyebrow {...common} color={str(props, "color", undefined as unknown as string)} style={style(props)}>{str(props, "children")}</Eyebrow>;
+      return <Eyebrow key={key} {...common} color={str(props, "color", undefined as unknown as string)} style={style(props)}>{str(props, "children")}</Eyebrow>;
     case "button":
-      return <Button {...common} variant={str(props, "variant", "primary") as any} size={str(props, "size", "md") as any} onClick={action(ctx, props)} style={style(props)}>{str(props, "children")}</Button>;
+      return <Button key={key} {...common} variant={str(props, "variant", "primary") as any} size={str(props, "size", "md") as any} onClick={action(ctx, props)} style={style(props)}>{str(props, "children")}</Button>;
     case "chip":
-      return <Chip {...common} selected={bool(props, "selected")} onClick={action(ctx, props)} shape={str(props, "shape", "pill") as any} style={style(props)}>{str(props, "children")}</Chip>;
+      return <Chip key={key} {...common} selected={bool(props, "selected")} onClick={action(ctx, props)} shape={str(props, "shape", "pill") as any} style={style(props)}>{str(props, "children")}</Chip>;
     case "note":
-      return <Note {...common} tone={str(props, "tone", "info") as any} style={style(props)}>{str(props, "children")}</Note>;
+      return <Note key={key} {...common} tone={str(props, "tone", "info") as any} style={style(props)}>{str(props, "children")}</Note>;
     case "card":
-      return <Card {...common} accent={str(props, "accent", undefined as unknown as string)} style={style(props)}>{renderChildren(node.children, ctx)}</Card>;
+      return <Card key={key} {...common} accent={str(props, "accent", undefined as unknown as string)} style={style(props)}>{renderChildren(node.children, ctx)}</Card>;
     case "rule":
-      return <Rule {...common} color={str(props, "color", undefined as unknown as string)} thick={bool(props, "thick")} />;
+      return <Rule key={key} {...common} color={str(props, "color", undefined as unknown as string)} thick={bool(props, "thick")} />;
     case "progress":
-      return <Progress {...common} value={num(props, "value")} max={num(props, "max", 100)} color={str(props, "color", undefined as unknown as string)} style={style(props)} />;
+      return <Progress key={key} {...common} value={num(props, "value")} max={num(props, "max", 100)} color={str(props, "color", undefined as unknown as string)} style={style(props)} />;
     case "ratingBar":
-      return <RatingBar {...common} value={num(props, "value")} max={num(props, "max", 5)} label={str(props, "label", undefined as unknown as string)} color={str(props, "color", undefined as unknown as string)} style={style(props)} />;
+      return <RatingBar key={key} {...common} value={num(props, "value")} max={num(props, "max", 5)} label={str(props, "label", undefined as unknown as string)} color={str(props, "color", undefined as unknown as string)} style={style(props)} />;
     case "segmented":
-      return <Segmented {...common} options={(props.options as any) || []} value={str(props, "value")} onChange={() => undefined} style={style(props)} />;
+      return <Segmented key={key} {...common} options={(props.options as any) || []} value={str(props, "value")} onChange={() => undefined} style={style(props)} />;
     case "serviceOption":
-      return <ServiceOption {...common} name={str(props, "name")} description={str(props, "description")} rate={str(props, "rate", undefined as unknown as string)} selected={bool(props, "selected")} onClick={action(ctx, props)} style={style(props)} />;
+      return <ServiceOption key={key} {...common} name={str(props, "name")} description={str(props, "description")} rate={str(props, "rate", undefined as unknown as string)} selected={bool(props, "selected")} onClick={action(ctx, props)} style={style(props)} />;
     case "budgetOption":
-      return <BudgetOption {...common} label={str(props, "label")} description={str(props, "description")} selected={bool(props, "selected")} onClick={action(ctx, props)} style={style(props)} />;
+      return <BudgetOption key={key} {...common} label={str(props, "label")} description={str(props, "description")} selected={bool(props, "selected")} onClick={action(ctx, props)} style={style(props)} />;
     case "timeSlot":
-      return <TimeSlot {...common} label={str(props, "label")} selected={bool(props, "selected")} disabled={bool(props, "disabled")} onClick={action(ctx, props)} style={style(props)} />;
+      return <TimeSlot key={key} {...common} label={str(props, "label")} selected={bool(props, "selected")} disabled={bool(props, "disabled")} onClick={action(ctx, props)} style={style(props)} />;
     case "colorLevelBar":
-      return <ColorLevelBar {...common} current={num(props, "current", 7)} target={num(props, "target", undefined as unknown as number)} style={style(props)} />;
+      return <ColorLevelBar key={key} {...common} current={num(props, "current", 7)} target={num(props, "target", undefined as unknown as number)} style={style(props)} />;
     case "lengthSilhouette":
-      return <LengthSilhouette {...common} label={str(props, "label")} selected={bool(props, "selected")} onClick={action(ctx, props)} style={style(props)} />;
+      return <LengthSilhouette key={key} {...common} label={str(props, "label")} selected={bool(props, "selected")} onClick={action(ctx, props)} style={style(props)} />;
     case "photoTile":
-      return <PhotoTile {...common} label={str(props, "label")} filled={bool(props, "filled")} style={style(props)} />;
+      return <PhotoTile key={key} {...common} label={str(props, "label")} filled={bool(props, "filled")} style={style(props)} />;
     case "summaryRow":
-      return <SummaryRow {...common} label={str(props, "label")} value={str(props, "value")} onEdit={action(ctx, props, "onEdit")} />;
+      return <SummaryRow key={key} {...common} label={str(props, "label")} value={str(props, "value")} onEdit={action(ctx, props, "onEdit")} />;
     case "stylistCard":
-      return <StylistCard {...common} name={str(props, "name")} role={str(props, "role")} rate={str(props, "rate", undefined as unknown as string)} available={str(props, "available", undefined as unknown as string)} style={style(props)} />;
+      return <StylistCard key={key} {...common} name={str(props, "name")} role={str(props, "role")} rate={str(props, "rate", undefined as unknown as string)} available={str(props, "available", undefined as unknown as string)} style={style(props)} />;
     case "masthead":
-      return <Masthead {...common} title={str(props, "title")} eyebrow={str(props, "eyebrow", undefined as unknown as string)} accent={str(props, "accent", undefined as unknown as string)} right={str(props, "right", undefined as unknown as string)} compact={bool(props, "compact")} />;
+      return <Masthead key={key} {...common} title={str(props, "title")} eyebrow={str(props, "eyebrow", undefined as unknown as string)} accent={str(props, "accent", undefined as unknown as string)} right={str(props, "right", undefined as unknown as string)} compact={bool(props, "compact")} />;
     case "dayCell":
-      return <DayCell {...common} day={str(props, "day")} selected={bool(props, "selected")} disabled={bool(props, "disabled")} dot={bool(props, "dot")} onClick={action(ctx, props)} />;
+      return <DayCell key={key} {...common} day={str(props, "day")} selected={bool(props, "selected")} disabled={bool(props, "disabled")} dot={bool(props, "dot")} onClick={action(ctx, props)} />;
     default:
-      return <pre {...common}>Unsupported DSL node: {(node as DslNode).kind}</pre>;
+      return <pre key={key} {...common}>Unsupported DSL node: {(node as DslNode).kind}</pre>;
   }
 }
 

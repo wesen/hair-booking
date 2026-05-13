@@ -218,3 +218,91 @@ Page DSL / Experimental Compositions / Photo Moodboard
 Page DSL / Experimental Compositions / Aftercare Plan
 Page DSL / Experimental Compositions / Experimental JSON index
 ```
+
+---
+
+## Step 3: Fix React key spreading warnings in the DSL renderer
+
+Fixed the React warning caused by including `key` inside the shared props object that was spread into JSX. The renderer now passes `key={key}` directly to each JSX element and keeps `common` limited to serializable data attributes.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Ok, let's commit and then create the next ticket, where we go over all the widgets and such we built today, and make them actually interactive / workable, with a decent set of props / callbacks so they can be built into a real app. For xampe, chosing a set of toggled chips.
+
+Also,it looks like there are some issues in the DSL:
+
+A props object containing a \"key\" prop is being spread into JSX:
+  let props = {key: someKey, data-dsl-kind: ..., data-dsl-id: ..., data-component: ..., data-section: ..., data-part: ..., style: ..., children: ...};
+  <div {...props} />
+React keys must be passed directly to JSX without using spread:
+  let props = {data-dsl-kind: ..., data-dsl-id: ..., data-component: ..., data-section: ..., data-part: ..., style: ..., children: ...};
+  <div key={someKey} {...props} /> <anonymous code>:1:145535
+A props object containing a \"key\" prop is being spread into JSX:
+  let props = {key: someKey, data-dsl-kind: ..., data-dsl-id: ..., data-component: ..., data-section: ..., data-part: ..., color: ..., style: ..., children: ...};
+  <Eyebrow {...props} />
+React keys must be passed directly to JSX without using spread:
+  let props = {data-dsl-kind: ..., data-dsl-id: ..., data-component: ..., data-section: ..., data-part: ..., color: ..., style: ..., children: ...};
+  <Eyebrow key={someKey} {...props} /> <anonymous code>:1:145535
+A props object containing a \"key\" prop is being spread into JSX:
+  let props = {key: someKey, data-dsl-kind: ..., data-dsl-id: ..., data-component: ..., data-section: ..., data-part: ..., label: ..., filled: ..., style: ...};
+  <PhotoTile {...props} />
+React keys must be passed directly to JSX without using spread:
+  let props = {data-dsl-kind: ..., data-dsl-id: ..., data-component: ..., data-section: ..., data-part: ..., label: ..., filled: ..., style: ...};
+  <PhotoTile key={someKey} {...props} /> <anonymous code>:1:145535"
+
+**Assistant interpretation:** First fix and commit the current DSL warning, then create the next docmgr ticket for making today's widgets interactive and app-ready.
+
+**Inferred user intent:** Keep the DSL clean while moving into the next implementation phase: production-grade widget behavior, props, callbacks, and state patterns.
+
+**Commit (code):** TBD — "HAIR-032 Step 3: Fix DSL renderer key handling"
+
+### What I did
+
+- Updated `web/src/page-dsl/render.tsx`.
+- Changed `common` from `{ key, ...dataAttrs(node) }` to only `dataAttrs(node)`.
+- Passed `key={key}` directly to every JSX element produced by `renderNode()`.
+- Replaced `React.Key` with imported `Key` type from React.
+- Verified:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && npx storybook build --test`
+
+### Why
+
+React treats `key` as a special reconciliation hint. It must be passed directly to JSX, not included in a props object that gets spread. The previous implementation worked visually but emitted warnings in Storybook/runtime.
+
+### What worked
+
+- The fix is localized to the renderer.
+- TypeScript and Storybook build still pass.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- The shared `common` pattern is still useful, but it must only contain ordinary props/data attributes. Special React props like `key` need explicit handling.
+
+### What was tricky to build
+
+- The renderer has many switch cases, so the mechanical fix had to be applied consistently across all node kinds rather than only the three warning examples.
+
+### What warrants a second pair of eyes
+
+- Review whether any other special React props (`ref`, etc.) could accidentally enter DSL props in the future.
+
+### What should be done in the future
+
+- Add a renderer smoke test that mounts each node kind and fails on console warnings.
+
+### Code review instructions
+
+Start with `web/src/page-dsl/render.tsx`, especially `renderNode()`.
+
+Validate with:
+
+```bash
+cd web
+npx tsc --noEmit
+npx storybook build --test
+```
