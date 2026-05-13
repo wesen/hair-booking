@@ -172,3 +172,107 @@ The architectural question of where viewport adaptation happens is genuinely har
 - Verify Storybook stories render correctly
 - Check that `render.tsx` DesktopShell case is correct
 - Verify schema.ts only has the `"desktop"` shell kind added (no extra node kinds)
+- Check that schema.ts has exactly the 24 UI-primitive kinds, no legacy domain kinds
+
+## Step 3: Clean cutover to UI-primitive node kinds
+
+Replaced all 13 domain-specific DSL node kinds with 6 generic UI primitives across the entire stack — TypeScript (schema, builder, renderer, examples, stories, tests) and Go (Goja runtime module, flow script, Go tests).
+
+### Prompt Context
+
+**User prompt (verbatim):** (see Step 1 — continuation of the desktop component system work)
+
+**Assistant interpretation:** Execute a clean cutover: remove all legacy node kinds, migrate everything to UI primitives, no backwards compatibility.
+
+**Inferred user intent:** Complete the DSL redesign by removing all domain-specific names so the DSL is purely UI-centric. The same JSON must work for both mobile and desktop — domain knowledge stays in the flow script data.
+
+**Commit (code):** e416b33 — "feat(dsl): clean cutover to UI-primitive node kinds"
+**Commit (goja):** c37518a — "feat(dslgoja): migrate Goja runtime to UI-primitive node kinds"
+
+### What I did
+
+**TypeScript (web/):**
+- Stripped `DslLegacyNodeKind` alias type from schema.ts
+- Removed all legacy builder methods (ratingBar, serviceOption, budgetOption, timeSlot, timeSlotGroup, colorLevelBar, lengthSilhouette, photoTile, summaryRow, stylistCard, dayPickerGrid, serviceOptionGroup, budgetOptionGroup) from builder.ts
+- Removed all legacy switch cases and component imports from render.tsx
+- Rewrote examples.ts with new primitives only
+- Rewrote experimental.ts with 5 new example pages (consultation dashboard, appointment planner, color lab, photo moodboard, aftercare plan)
+- Updated InteractiveDsl.stories.tsx to use new primitives (selectableGroup, scale, uploadTile, calendarGrid)
+- Updated BackendDslPage.stories.tsx: changed raw JSON kind strings from "serviceOptionGroup" → "selectableGroup", "ratingBar" → "scale"
+- Updated InteractiveDsl.test.tsx: rewrote all 3 tests for new primitives
+
+**Go (pkg/dslgoja/):**
+- Replaced 8 legacy `n.*` helpers in modules_dsl.go with new primitives: selectable, selectableGroup, scale, kvRow, stat, uploadTile, personCard, calendarGrid; added rule, progress, masthead, chip, dayCell
+- Rewrote intake.flow.js from scratch using new primitives — all 7 steps (service → color → photos → budget → estimate → booking → confirm)
+- Updated host_user_images_test.go: photoTile → uploadTile
+
+### Why
+
+The DSL was still carrying 13 domain-specific node kinds that encoded hair-salon concepts (serviceOption, budgetOption, stylistCard, etc.). These violate the UI-primitive design principle: the DSL should describe UX affordances (what the user can do), not domain concepts. The same JSON must render meaningfully on both mobile and desktop — domain knowledge belongs in the flow script's data, not in the node kind names.
+
+### What worked
+
+- The mapping was mechanical and unambiguous: ratingBar→scale, serviceOption→selectable, photoTile→uploadTile, etc.
+- The Go side compiled and tested clean on first try after the module source rewrite
+- TypeScript typecheck passed clean after all 8 files were updated
+- All 25 frontend tests pass
+- All Go tests pass
+
+### What didn't work
+
+- The uploadTile test initially failed because the action dispatch model changed — the old test called `onUpload` via `context.actions.upload`, but the new primitive uses `context.backendDispatch` for upload events. Fixed by restructuring the test to match actual render behavior.
+- The BackendDslPage.stories.tsx had raw JSON objects (not builder calls) with old kind strings — easy to miss since they don't go through the builder type system.
+
+### What I learned
+
+- When doing a clean cutover, search for old names everywhere — not just in builder calls but also in raw JSON literals, test matchers, and Go test strings.
+- The Goja module source is a single JS string constant in Go — changes there don't get TypeScript protection. Must run Go tests to verify.
+- The new primitives are actually more expressive: `selectableGroup` with `mode: "single"` replaces both `serviceOptionGroup` and `budgetOptionGroup` (which were identical except for field names). `scale` replaces both `ratingBar` and `colorLevelBar`.
+
+### What was tricky to build
+
+- The intake.flow.js rewrite needed care: the old script used domain-specific field names (`name`, `description`, `rate`) while the new selectableGroup expects (`title`, `subtitle`, `badge`). The data arrays had to be re-mapped.
+- The estimateStep now uses `stat` for the hero price and `kvRow` for each line item, which is cleaner than the old `summaryRow` pattern.
+
+### What warrants a second pair of eyes
+
+- The intake.flow.js rewrite is a complete replacement — verify all 7 steps produce correct JSON
+- The render.tsx inline styles for new primitives (selectable, selectableGroup, scale, kvRow, stat, uploadTile, personCard, calendarGrid) are placeholders — they should eventually use design tokens and existing molecule components
+- The `calendarGrid` renderer in render.tsx is hand-inlined — it should probably use a proper DayCell molecule
+
+### What should be done in the future
+
+- Wire new primitives to existing molecule components instead of inline styles (selectable → ServiceOption/SelectableCard, scale → ScaleInput, etc.)
+- Implement `partitionForDesktop()` in render.tsx for two-column desktop composition
+- Add Storybook stories for each new primitive
+- Run css-visual-diff against desktop design specs
+
+### Code review instructions
+
+- `git diff e416b33~1..e416b33` — all 8 TypeScript files changed
+- `git diff c37518a~1..c37518a` — 3 Go/JS files changed
+- Verify `npx tsc --noEmit` passes in web/
+- Verify `go test ./pkg/dslgoja/... -count=1` passes
+- Verify `npx vitest run` passes in web/
+
+### Technical details
+
+**Old → New mapping:**
+- ratingBar → scale (value, max, label, interactive)
+- serviceOptionGroup → selectableGroup (options, value, mode: "single")
+- budgetOptionGroup → selectableGroup (options, value, mode: "single", columns: 2)
+- timeSlotGroup → selectableGroup (options, value, mode: "single", columns: 4)
+- colorLevelBar → scale (value, max, variant: "swatches")
+- lengthSilhouette → selectable (title, value)
+- photoTile → uploadTile (label, value, filled)
+- summaryRow → kvRow (label, value)
+- stylistCard → personCard (name, role, badge)
+- dayPickerGrid → calendarGrid (year, month, days, value)
+- serviceOption → selectable (title, value, badge)
+- budgetOption → selectable (title, value)
+- timeSlot → selectable (title, value)
+
+**New primitives added to schema:**
+- selectable, selectableGroup, scale, kvRow, stat, uploadTile, personCard, calendarGrid
+
+**Schema total kinds (24):** text, spacer, stack, grid, eyebrow, button, note, card, rule, progress, masthead, chip, chipGroup, segmented, selectable, selectableGroup, scale, uploadTile, kvRow, stat, personCard, dayCell, calendarGrid
