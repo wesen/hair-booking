@@ -26,6 +26,7 @@ import { Masthead } from "../molecules/Masthead/Masthead";
 import { DayCell } from "../molecules/DayCell/DayCell";
 import { DayPickerGrid } from "../molecules/DayCell/DayPickerGrid";
 import { color, font } from "../fringe-ui/tokens";
+import { dslDebug } from "./debug";
 
 function str(props: JsonObject | undefined, key: string, fallback = "") {
   const value = props?.[key];
@@ -225,6 +226,8 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
 }
 
 export function DslPageRenderer({ page, context }: { page: DslPage; context?: DslRenderContext }) {
+  const nodeKeys = page.nodes.map((node, i) => String(nodeKey(node, i)));
+  dslDebug("DslPageRenderer render", { pageId: page.id, shellKind: page.shell.kind, nodeKeys, shellActions: page.shell.props?.actions });
   const content = <>{page.nodes.map((node, i) => renderNode(node, context, nodeKey(node, i)))}</>;
   if (page.shell.kind === "intake") {
     const props = page.shell.props || {};

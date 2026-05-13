@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { DslPageRenderer } from "./render";
 import { DslApiError, getDslFlow, postDslEvent, startDslFlow, type DslFlowState, type DslInteractionEvent } from "./backendClient";
+import { dslDebug } from "./debug";
 import type { DslBackendEvent } from "./schema";
 import { color, font } from "../fringe-ui/tokens";
 
@@ -40,12 +41,14 @@ export function BackendDslPage({
     setError(null);
 
     async function load() {
+      dslDebug("BackendDslPage load:start", { flowId, sessionId });
       try {
         let nextState: DslFlowState;
         try {
           nextState = sessionId ? await client.getDslFlow(sessionId) : await client.startDslFlow(flowId);
         } catch (err) {
           if (sessionId && err instanceof DslApiError && err.code === "dsl_session_not_found") {
+            dslDebug("BackendDslPage load:recover-missing-session", { sessionId, reason: err.message });
             onSessionRecovered?.(err.message);
             nextState = await client.startDslFlow(flowId);
           } else {
@@ -53,10 +56,12 @@ export function BackendDslPage({
           }
         }
 
+        dslDebug("BackendDslPage load:success", { sessionId: nextState.sessionId, pageVersion: nextState.pageVersion, pageId: nextState.page.id });
         if (cancelled) return;
         setState(nextState);
         onStateChange?.(nextState);
       } catch (err: unknown) {
+        dslDebug("BackendDslPage load:error", err);
         if (cancelled) return;
         setError(err instanceof Error ? err.message : String(err));
       } finally {
@@ -82,11 +87,14 @@ export function BackendDslPage({
           eventId: crypto.randomUUID(),
           pageVersion: state.pageVersion,
         };
+        dslDebug("BackendDslPage dispatch:start", interactionEvent);
         onEventDispatch?.(interactionEvent);
         const nextState = await client.postDslEvent(state.sessionId, interactionEvent);
+        dslDebug("BackendDslPage dispatch:success", { eventId: interactionEvent.eventId, fromPageVersion: interactionEvent.pageVersion, toPageVersion: nextState.pageVersion, pageId: nextState.page.id, effects: nextState.effects });
         setState(nextState);
         onStateChange?.(nextState);
       } catch (err) {
+        dslDebug("BackendDslPage dispatch:error", err);
         setError(err instanceof Error ? err.message : String(err));
       } finally {
         setDispatching(false);

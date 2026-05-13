@@ -21,6 +21,16 @@
 - [x] Decide whether page-id transitions should use `history.pushState` or `history.replaceState` during the demo phase.
 - [x] Add a small protobuf transport-contract spike using `google.protobuf.Struct` for dynamic node props.
 
+## Phase B2 — Refresh Blanking and Stable Rendering Debug Instrumentation
+
+- [x] Add a gated DSL debug helper controlled by `?debugDsl` or `localStorage.fringe.dsl.debug=1`.
+- [x] Add stable `data-component` / `data-dsl-*` selectors to `IntakeShell` shell, content, CTA, skip, next, and home-indicator DOM.
+- [x] Add debug logs for `BackendDslPage` load and dispatch lifecycle.
+- [x] Add debug logs for `DslPageRenderer` page id, shell kind, and node keys.
+- [x] Add gated `IntakeShell` mount/unmount/render logs.
+- [x] Add optional footer DOM identity tracing controlled by `localStorage.fringe.dsl.traceDom=1`.
+- [x] Validate tests/typecheck/build and document how to enable/disable the logs.
+
 ## Phase C — Expand the Goja Intake Flow
 
 - [x] Extend `pkg/dslgoja/flows/intake.flow.js` from two steps to service → color → photos → budget → estimate → booking → confirm.

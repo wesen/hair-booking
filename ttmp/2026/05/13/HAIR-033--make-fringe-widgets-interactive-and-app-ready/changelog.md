@@ -337,3 +337,17 @@ Step 26: Added a textbook-style debugging guide for refresh blanking, footer fla
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/BackendDslPage.tsx — Discussed loading/dispatch state instrumentation
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — Discussed stable node keys and render logging
 
+
+## 2026-05-13
+
+Step 27: Added gated rendering debug instrumentation (commit 0d66781), stable IntakeShell selectors, BackendDslPage/renderer/shell debug logs, and optional footer DOM identity tracing. Validated Go/web tests, typecheck, and Vite build.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/reference/01-diary.md — Diary Step 27
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/tasks.md — Phase B2 tasks added and completed
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/organisms/IntakeShell/IntakeShell.tsx — Stable shell selectors and mount/render/DOM identity traces
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/BackendDslPage.tsx — Load/dispatch lifecycle debug logs
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/debug.ts — New gated DSL debug helper
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — Page render debug logs with node keys
+

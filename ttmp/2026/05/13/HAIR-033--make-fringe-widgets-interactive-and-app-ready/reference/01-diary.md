@@ -2650,3 +2650,117 @@ The guide recommends instrumenting:
 - `web/src/page-dsl/BackendDslPage.tsx`
 - `web/src/page-dsl/render.tsx`
 - `web/src/organisms/IntakeShell/IntakeShell.tsx`
+
+---
+
+## Step 27: Add gated rendering debug instrumentation
+
+Implemented the refresh-blanking debug instrumentation described in the Step 26 guide. The live DSL UI now has stable shell/footer selectors and debug-gated logs for backend load/dispatch, DSL page rendering, shell mount/unmount/render, and optional footer DOM identity tracing.
+
+The instrumentation is intentionally gated so normal use stays quiet. Enable it with `?debugDsl` or `localStorage.fringe.dsl.debug=1`; enable footer DOM identity checks with `localStorage.fringe.dsl.traceDom=1` as well.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead, add tasks, then work on them, commit at appropriate intervals"
+
+**Assistant interpretation:** Add task items for the rendering-debug work, implement them, validate, and commit.
+
+**Inferred user intent:** Move from the debugging guide to practical instrumentation that can identify whether footer flashing is remounting, DOM replacement, overlay/layout repaint, or expected refresh loading.
+
+**Commit (code):** 0d66781 — "HAIR-033 Step 27: Add DSL rendering debug instrumentation"
+
+### What I did
+
+- Added Phase B2 tasks to `tasks.md` and marked them complete after implementation.
+- Added `web/src/page-dsl/debug.ts` with:
+  - `dslDebugEnabled()`
+  - `dslDomTraceEnabled()`
+  - `dslDebug(...)`
+  - `dslMeasure(...)`
+- Added `BackendDslPage` debug logs for:
+  - load start,
+  - missing-session recovery,
+  - load success/error,
+  - dispatch start/success/error.
+- Added `DslPageRenderer` debug logs for:
+  - `page.id`,
+  - shell kind,
+  - node keys,
+  - shell actions.
+- Added stable shell selectors to `IntakeShell`:
+  - `data-dsl-shell="intake"`,
+  - `IntakeShellStatusBar`,
+  - `IntakeShellHeader`,
+  - `IntakeShellBack`,
+  - `IntakeShellProgress`,
+  - `IntakeShellHeading`,
+  - `IntakeShellContent`,
+  - `IntakeShellCTA`,
+  - `IntakeShellSkip`,
+  - `IntakeShellNext`,
+  - `IntakeShellHomeIndicator`.
+- Added gated `IntakeShell` mount/unmount/render logs.
+- Added optional `IntakeShellNext` DOM identity tracing behind `fringe.dsl.traceDom=1`.
+
+### Why
+
+We need evidence before changing rendering behavior. These logs and selectors let us answer whether the footer is remounting, whether the next button DOM node is being replaced, whether a backend dispatch triggers a page change, and whether the perceived flash correlates with load, dispatch, shell render, or overlay/effects.
+
+### What worked
+
+Validation passed:
+
+```bash
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+pnpm build
+cd ..
+go test ./... -count=1
+```
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- The debug hook should be quiet by default. The console signal is only useful if it can be enabled for a specific investigation and then disabled without code changes.
+
+### What was tricky to build
+
+- The footer identity trace needs `useLayoutEffect` and a ref to compare the current next-button element with the previous render's element. This tells us whether React preserved or replaced the actual DOM node.
+
+### What warrants a second pair of eyes
+
+- Whether `dslMeasure` is needed now or should be removed until actively used.
+- Whether the bottom dispatch overlay should be moved into the debug panel in the next slice.
+
+### What should be done in the future
+
+- Reproduce the flashing with `?debugDsl` and inspect mount/unmount plus next-button identity logs.
+- If DOM identity is stable, investigate overlay/layout/focus repaint.
+- If DOM identity changes, split/memoize the CTA or inspect parent conditional rendering.
+
+### Code review instructions
+
+Review:
+
+- `web/src/page-dsl/debug.ts`
+- `web/src/page-dsl/BackendDslPage.tsx`
+- `web/src/page-dsl/render.tsx`
+- `web/src/organisms/IntakeShell/IntakeShell.tsx`
+
+Enable logs:
+
+```js
+localStorage.setItem("fringe.dsl.debug", "1")
+localStorage.setItem("fringe.dsl.traceDom", "1")
+```
+
+Disable logs:
+
+```js
+localStorage.removeItem("fringe.dsl.debug")
+localStorage.removeItem("fringe.dsl.traceDom")
+```

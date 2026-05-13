@@ -1,5 +1,7 @@
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import type { ReactNode, CSSProperties } from 'react';
 import { color, font, type as typeToken } from '../../fringe-ui/tokens';
+import { dslDebug, dslDomTraceEnabled } from '../../page-dsl/debug';
 
 interface IntakeShellProps {
   step: number;
@@ -39,8 +41,31 @@ export function IntakeShell({
   onSkip,
   onBack,
 }: IntakeShellProps) {
+  const instance = useRef(Math.random().toString(36).slice(2));
+  const nextButtonRef = useRef<HTMLButtonElement | null>(null);
+  const previousNextButton = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    dslDebug('IntakeShell mounted', { instance: instance.current });
+    return () => dslDebug('IntakeShell unmounted', { instance: instance.current });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!dslDomTraceEnabled()) return;
+    const current = nextButtonRef.current;
+    dslDebug('IntakeShell next-button identity', {
+      instance: instance.current,
+      sameAsPreviousRender: previousNextButton.current === current,
+      label: nextLabel,
+      element: current,
+    });
+    previousNextButton.current = current;
+  });
+
+  dslDebug('IntakeShell render', { instance: instance.current, step, total, title, nextLabel, hasNext: !!onNext, hasSkip: !!onSkip, hasBack: !!onBack });
+
   return (
-    <div data-component="IntakeShell" style={{
+    <div data-component="IntakeShell" data-dsl-shell="intake" style={{
       height: '100%',
       background: color.paper,
       display: 'flex',
@@ -49,7 +74,7 @@ export function IntakeShell({
       ...style,
     }}>
       {/* ── Status Bar ──────────────────────────────────────── */}
-      <div style={{
+      <div data-component="IntakeShellStatusBar" data-dsl-shell-part="status" style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -76,13 +101,15 @@ export function IntakeShell({
       </div>
 
       {/* ── App Header: back · wordmark · step counter ─────── */}
-      <div style={{
+      <div data-component="IntakeShellHeader" data-dsl-shell-part="header" style={{
         padding: '6px 22px 0',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
       }}>
         <button
+          data-component="IntakeShellBack"
+          data-dsl-action="back"
           onClick={onBack}
           style={{
             background: 'transparent',
@@ -120,12 +147,12 @@ export function IntakeShell({
       </div>
 
       {/* ── Progress bar ────────────────────────────────────── */}
-      <div style={{ height: 3, background: color.rule, width: '100%', marginTop: 8 }}>
+      <div data-component="IntakeShellProgress" data-dsl-shell-part="progress" style={{ height: 3, background: color.rule, width: '100%', marginTop: 8 }}>
         <div style={{ height: 3, background: color.plum, width: `${(step / total) * 100}%` }} />
       </div>
 
       {/* ── Eyebrow + Title section ─────────────────────────── */}
-      <div data-section="page-heading" style={{ padding: '20px 22px 0' }}>
+      <div data-component="IntakeShellHeading" data-dsl-shell-part="heading" data-section="page-heading" style={{ padding: '20px 22px 0' }}>
         {eyebrow && (
           <div style={{
             ...typeToken.eyebrow,
@@ -148,13 +175,13 @@ export function IntakeShell({
       </div>
 
       {/* ── Scrollable page content ─────────────────────────── */}
-      <div data-component="IntakeShell" data-part="content" style={{ flex: 1, padding: '18px 22px 0' }}>
+      <div data-component="IntakeShellContent" data-dsl-shell-part="content" data-part="content" style={{ flex: 1, padding: '18px 22px 0' }}>
         {children}
       </div>
 
       {/* ── Bottom CTA bar ──────────────────────────────────── */}
       {onNext && (
-        <div style={{
+        <div data-component="IntakeShellCTA" data-dsl-shell-part="cta" style={{
           padding: '10px 22px 20px',
           borderTop: `1px solid ${color.rule}`,
           display: 'flex',
@@ -162,6 +189,8 @@ export function IntakeShell({
           background: color.paper,
         }} data-section="intake-cta">
           <button
+            data-component="IntakeShellSkip"
+            data-dsl-action="skip"
             onClick={onSkip}
             style={{
               fontFamily: font.block,
@@ -182,6 +211,9 @@ export function IntakeShell({
             Skip
           </button>
           <button
+            ref={nextButtonRef}
+            data-component="IntakeShellNext"
+            data-dsl-action="next"
             onClick={onNext}
             style={{
               fontFamily: font.block,
@@ -205,7 +237,7 @@ export function IntakeShell({
       )}
 
       {/* ── Home indicator ──────────────────────────────────── */}
-      <div style={{
+      <div data-component="IntakeShellHomeIndicator" data-dsl-shell-part="home-indicator" style={{
         position: 'absolute',
         bottom: 6,
         left: 0,
