@@ -13,8 +13,8 @@ import { useGetAvailabilityQuery } from "../../store/api/bookingApi";
 import { useCreateAppointmentMutation } from "../../store/api/bookingApi";
 import type { CreateAppointmentRequestDto } from "../../store/api/types";
 
-const MONTH_DAYS = Array.from({ length: 35 }, (_, i) => i + 1);
-const DOT_DAYS = [14, 17, 19, 23, 24, 26, 30];
+const MONTH_DAYS = Array.from({ length: 28 }, (_, i) => i + 1);
+const DOT_DAYS = [14, 17, 18, 19, 23];
 const TIMES = ["10:30a", "12:00p", "2:00p", "4:30p"];
 
 interface BookingPageProps {
@@ -58,7 +58,7 @@ export function BookingPage({ intakeId, serviceId, stylist, onNext, onBack }: Bo
       title="When suits you?"
       onNext={handleSubmit}
       onBack={onBack}
-      nextLabel={isLoading ? "Booking…" : "Hold this slot →"}
+      nextLabel={isLoading ? "Booking…" : "Keep going →"}
     >
       <StylistCard
         name={stylist.name}

@@ -40,7 +40,7 @@ export function EstimatePage({
       title="Your estimate"
       onNext={onNext}
       onBack={onBack}
-      nextLabel="Continue to booking →"
+      nextLabel="Keep going →"
     >
       <Masthead
         eyebrow="ESTIMATED TOTAL"

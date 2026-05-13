@@ -93,7 +93,7 @@ export function ExtensionsPage({ onNext, onBack }: ExtensionsPageProps) {
                 cursor: "pointer",
               }}
             >
-              <svg viewBox="0 0 40 120" style={{ flex: 1, width: "100%", maxHeight: 100 }}>
+              <svg viewBox="0 0 40 120" style={{ flex: 1, width: "100%" }}>
                 <circle cx="20" cy="14" r="10" fill={color.plum}/>
                 <path d={`M8 24 Q 20 ${24 + l.h * 0.8} 32 24`} stroke={color.plum} strokeWidth="3" fill="none"/>
                 <path d={`M10 24 L 8 ${24 + l.h}`} stroke={color.plum} strokeWidth="2" fill="none"/>
