@@ -1175,3 +1175,90 @@ Validate with:
 ```bash
 go test ./pkg/dslgoja -count=1
 ```
+
+---
+
+## Step 14: Add the embedded two-step Goja intake flow prototype
+
+Added the first real flow script: an embedded `intake.flow.js` that runs inside Goja and uses `require("fringe/dsl")`. The prototype has two steps, `service` and `color`, and registers callbacks for shell navigation plus interactive widgets.
+
+This is not yet wired to HTTP or browser event dispatch, but it proves the script shape we want: JavaScript flow state, page rendering by step, DSL widget construction, and action registration for future dispatch.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 10)
+
+**Assistant interpretation:** Continue the detailed HAIR-033 implementation task list with the two-step intake flow prototype.
+
+**Inferred user intent:** Make the Goja DSL concrete by showing what an actual multi-step intake script looks like in the repo.
+
+**Commit (code):** 553d115 — "HAIR-033 Step 14: Add Goja intake flow prototype"
+
+### What I did
+
+- Added `pkg/dslgoja/flows/intake.flow.js`:
+  - `initialState()` returns JSON-serializable flow state.
+  - `render(ctx)` switches on `ctx.state.step`.
+  - `serviceStep(ctx)` renders:
+    - text intro,
+    - segmented Cut/Color/Extensions tabs,
+    - service option group,
+    - shell next/skip actions.
+  - `colorStep(ctx)` renders:
+    - tone chip group,
+    - interactive damage rating bar,
+    - shell back/next actions.
+- Added `pkg/dslgoja/flows.go` with embedded `DemoIntakeFlowSource`.
+- Added `pkg/dslgoja/intake_flow_test.go`:
+  - verifies the demo flow starts on the service page,
+  - verifies the color page can render after setting `ctx.state.step = "color"`.
+- Adjusted `ctx.action` registration to look up the active render transaction from the session, rather than closing over the initial transaction. This prepares the runtime for callbacks that call `render(ctx)` later during event dispatch.
+- Ran:
+
+```bash
+go test ./pkg/dslgoja -count=1
+```
+
+### Why
+
+A design is much easier to validate when there is a real script in the repository. The two-step flow demonstrates how Goja-hosted JS should author a backend-driven intake wizard.
+
+### What worked
+
+- The `fringe/dsl` builder is expressive enough for the first two intake steps.
+- Embedding the flow source with `go:embed` gives tests and future HTTP endpoints a stable demo flow.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- Callback-triggered re-renders require `ctx.action` to register against the currently active render transaction. A closure over an old transaction would make future dispatch register actions into the wrong action map.
+
+### What was tricky to build
+
+- The current runtime still lacks event dispatch, so tests render the color step by mutating state directly. Full callback invocation will be covered by the dispatch task.
+
+### What warrants a second pair of eyes
+
+- Whether `colorStep` next should go to a future photos step or loop back to service in the prototype. It currently loops for minimal two-step testing.
+
+### What should be done in the future
+
+- Task 15: implement event dispatch into registered Goja callbacks so the service/color prototype can actually advance via action ids.
+
+### Code review instructions
+
+Start with:
+
+- `pkg/dslgoja/flows/intake.flow.js`
+- `pkg/dslgoja/flows.go`
+- `pkg/dslgoja/intake_flow_test.go`
+- the `ctx.action` change in `pkg/dslgoja/runtime.go`
+
+Validate with:
+
+```bash
+go test ./pkg/dslgoja -count=1
+```

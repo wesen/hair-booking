@@ -16,7 +16,7 @@
 - [x] Implement a minimal Goja flow runtime that can start a flow, load a JS script, create JSON state, render the first page, and expose ctx.action
 - [x] Implement page-version-scoped action registry with CurrentActions, RetiredActions, ProcessedEvents, and render transactions
 - [x] Expose a fringe/dsl-style JavaScript builder module inside Goja for page(), intake(), and core node helpers
-- [ ] Create a two-step intake.flow.js prototype with service and color steps using segmented, serviceOptionGroup, chipGroup, ratingBar, and footer navigation
+- [x] Create a two-step intake.flow.js prototype with service and color steps using segmented, serviceOptionGroup, chipGroup, ratingBar, and footer navigation
 - [ ] Implement event dispatch into registered Goja callbacks with per-session locking, timeout/interrupt, idempotency, stale-page recovery, and node/action validation
 - [ ] Add Go tests covering start flow, action registration, segmented change, next navigation, stale action rejection/recovery, and duplicate event idempotency
 - [ ] Add HTTP endpoints for starting a DSL flow, fetching the current page, and posting interaction events

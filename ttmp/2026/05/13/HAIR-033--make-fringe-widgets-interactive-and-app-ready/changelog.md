@@ -160,3 +160,15 @@ Step 13: Exposed a minimal require('fringe/dsl') builder module inside Goja, wir
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/modules_dsl_test.go — Goja DSL module tests
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/runtime.go — Runtime installs DSL module before loading flow source
 
+
+## 2026-05-13
+
+Step 14: Added embedded two-step Goja intake.flow.js prototype using require('fringe/dsl'), with service/color steps and tests. Verified go test ./pkg/dslgoja -count=1. (commit 553d115)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/flows.go — Embedded demo flow source
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/flows/intake.flow.js — Two-step Goja intake flow prototype
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/intake_flow_test.go — Demo flow rendering tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/runtime.go — Active render transaction lookup for ctx.action
+
