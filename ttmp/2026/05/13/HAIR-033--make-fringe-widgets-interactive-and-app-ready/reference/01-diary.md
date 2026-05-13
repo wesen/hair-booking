@@ -1079,3 +1079,99 @@ Validate with:
 ```bash
 go test ./pkg/dslgoja -count=1
 ```
+
+---
+
+## Step 13: Expose the `fringe/dsl` JavaScript builder module in Goja
+
+Added the first host-provided JavaScript module for flow scripts: `require("fringe/dsl")`. This lets Goja scripts author pages with an ergonomic builder API instead of hand-writing raw JSON objects. The module mirrors the frontend builder style closely enough for the first backend-driven intake prototype.
+
+Flow scripts can now write `const { page, n } = require("fringe/dsl")`, build pages with `.intake(...).add(...)`, and use node helpers such as `n.segmented(...)`, `n.chipGroup(...)`, and `n.serviceOptionGroup(...)`.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 10)
+
+**Assistant interpretation:** Continue the HAIR-033 implementation checklist with the next task: exposing a DSL builder API inside the Goja sandbox.
+
+**Inferred user intent:** Make backend-hosted JavaScript flow scripts feel like the frontend DSL, rather than requiring verbose raw JSON.
+
+**Commit (code):** 8bffef1 — "HAIR-033 Step 13: Expose fringe DSL module in Goja"
+
+### What I did
+
+- Added `pkg/dslgoja/modules_dsl.go`.
+- Implemented `installDSLModule(vm)`.
+- Added a minimal CommonJS-like `require(name)` function.
+- Registered `require("fringe/dsl")` with exports:
+  - `page(id, title)`
+  - `n.text(...)`
+  - `n.spacer(...)`
+  - `n.stack(...)`
+  - `n.grid(...)`
+  - `n.eyebrow(...)`
+  - `n.button(...)`
+  - `n.chipGroup(...)`
+  - `n.note(...)`
+  - `n.card(...)`
+  - `n.ratingBar(...)`
+  - `n.segmented(...)`
+  - `n.serviceOptionGroup(...)`
+  - `n.budgetOptionGroup(...)`
+  - `n.timeSlotGroup(...)`
+  - `n.dayPickerGrid(...)`
+  - `n.photoTile(...)`
+  - `n.summaryRow(...)`
+- Updated `StartFlow(...)` to install the module before loading flow source.
+- Added `pkg/dslgoja/modules_dsl_test.go`:
+  - verifies a flow script can require `fringe/dsl`, build an intake page, embed action refs, and export frontend-compatible JSON.
+  - verifies unknown modules fail clearly.
+- Ran:
+
+```bash
+go test ./pkg/dslgoja -count=1
+```
+
+### Why
+
+The design target is JavaScript in Goja, but the authoring experience should still be a DSL. Providing `fringe/dsl` inside the sandbox makes flow scripts concise and close to the TypeScript examples we already built.
+
+### What worked
+
+- A pure-JavaScript module loaded into Goja is enough for the first builder layer.
+- The builder emits JSON that marshals into the Go `Page` struct and should be renderable by the frontend.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- We do not need a full module system yet. A small allow-listed `require(...)` implementation is sufficient for `fringe/dsl` and can later be extended to host modules such as `fringe/intake`.
+
+### What was tricky to build
+
+- The builder must deep-clone via JSON before returning `toJSON()` output so that flow scripts do not accidentally leak methods/functions into the page contract.
+
+### What warrants a second pair of eyes
+
+- Whether the builder helper list should exactly mirror the frontend builder now or remain minimal until the runtime stabilizes.
+- Whether `require(...)` should support module caching/objects per runtime in a more formal Go-side registry.
+
+### What should be done in the future
+
+- Task 14: create a real two-step `intake.flow.js` prototype using `require("fringe/dsl")`.
+
+### Code review instructions
+
+Start with:
+
+- `pkg/dslgoja/modules_dsl.go`
+- `pkg/dslgoja/modules_dsl_test.go`
+- `pkg/dslgoja/runtime.go`
+
+Validate with:
+
+```bash
+go test ./pkg/dslgoja -count=1
+```

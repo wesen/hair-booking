@@ -149,3 +149,14 @@ Step 12: Added page-version-scoped action lifecycle and render transactions to t
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/action_lifecycle_test.go — Action retirement and failed-render rollback tests
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/runtime.go — Render transaction and action lifecycle implementation
 
+
+## 2026-05-13
+
+Step 13: Exposed a minimal require('fringe/dsl') builder module inside Goja, wired runtime installation, and added tests for builder-produced pages and unknown module failures. Verified go test ./pkg/dslgoja -count=1. (commit 8bffef1)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/modules_dsl.go — Goja fringe/dsl module implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/modules_dsl_test.go — Goja DSL module tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/runtime.go — Runtime installs DSL module before loading flow source
+
