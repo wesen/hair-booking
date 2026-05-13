@@ -1635,3 +1635,79 @@ history     12.33% tune-required
 color       11.81% tune-required
 confirm      9.85% review
 ```
+
+---
+
+## Step 23: Apply service review notes and add service sub-comparisons
+
+Used the exported review-site feedback for `service / screen` as the next tuning target. The human review notes identified three issues: the CTA buttons were too thin and their text too small, the React heading font was too small, and the list items were too large. I applied targeted changes and added narrower comparison sections so future review can inspect heading, content/cards, and CTA independently.
+
+### Prompt Context
+
+**User prompt (verbatim):** "YOu can use `PINOCCHIO_PROFILE=gpt-5-low pinocchio code professional --images img1,img2,img3         
+\"question\"` to sak questions from a VLM (one or more images, for example for before / after). They   
+don't have any memory so make sure to include the necessary context and history.    
+
+Keep a diary as you work"
+
+**Assistant interpretation:** Use the review-export image plus left/right comparison artifacts with pinocchio, preserve the review context in the prompt, apply service-page fixes, add better comparison sections, and keep the diary updated.
+
+**Inferred user intent:** Turn human review notes into concrete CSS/component changes and make the comparison site granular enough for iterative feedback.
+
+**Commit (code):** 1e51d44 — "HAIR-031 Step 23: Apply service review notes and add service sub-comparisons"
+
+### What I did
+
+- Ran pinocchio with three images: service target, service React, and the review screenshot containing pin-drop notes.
+- Added `data-section="page-heading"` and `data-section="intake-cta"` in `IntakeShell`.
+- Added a `data-section="service-content"` wrapper in `ServicePage`.
+- Added service-specific comparison sections to `fringe-intake.yaml`: `heading`, `content`, `first-card`, `selected-card`, and `cta`.
+- Added a `titleSize` prop to `IntakeShell` so ServicePage can use a larger 40px heading while BudgetPage stays at 36px to avoid wrapping.
+- Tuned ServicePage cards: reduced vertical padding and title size because the human note said list items were too large.
+- Tuned CTA buttons: taller 62px buttons and larger CTA font to address the human note that the buttons were too thin and text too small.
+- Re-ran the sweep and restarted the review site.
+
+### Why
+
+The whole-screen diff alone did not localize whether the remaining 19% mismatch came from the heading, list, or footer. Adding sub-comparisons makes the review site much more actionable.
+
+### What worked
+
+- `service/first-card` is now in the `review` band at 8.35%.
+- The full service screen is stable at ~19%, but the new sections reveal the actual hotspots: heading (21.19%), content (21.26%), selected-card (14.02%), CTA (12.63%).
+- VLM follow-up on the new section artifacts suggested precise next tweaks: heading to 44px, CTA buttons to 66px, primary text to 20px, heavier tracking/weight.
+
+### What didn't work
+
+- The first `content` sub-comparison targeted `service-content`, which was only the React wrapper around the inner content and not the same bounds as the prototype's scrollable content. I corrected it to compare the prototype content container against `[data-part="content"]`, and added narrower card comparisons for true card-level evidence.
+
+### What I learned
+
+- Granular sections are more useful than whole-page comparisons for review feedback. A whole page can remain 19% changed even when individual card comparisons are close; section-level artifacts show where the mismatch actually lives.
+- VLM feedback is useful, but direct artifact bounds are the ground truth. I used `compare.json` bounds to spot selector mismatches.
+
+### What was tricky to build
+
+- Prototype selectors are still positional because the standalone prototype does not have component-level `data-section` attributes. For service I used `nth-child()` selectors against the known prototype DOM and stable `data-section` selectors on React.
+
+### What warrants a second pair of eyes
+
+- Review the new `service/heading`, `service/cta`, `service/first-card`, and `service/selected-card` cards in the comparison site.
+- Decide whether the next service pass should follow the VLM's suggested heavier/larger heading and CTA typography.
+
+### What should be done in the future
+
+- Apply the VLM follow-up tweaks for heading and CTA.
+- Add similar sub-comparisons for the highest remaining pages: PhotosPage, LengthPage, and EstimatePage.
+
+### Code review instructions
+
+Open http://127.0.0.1:18098 and inspect:
+
+```text
+service / heading
+service / content
+service / first-card
+service / selected-card
+service / cta
+```
