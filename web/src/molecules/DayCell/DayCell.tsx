@@ -1,41 +1,63 @@
-import type { CSSProperties } from 'react';
-import { color } from '../../fringe-ui/tokens';
+import type { CSSProperties } from "react";
+import { color } from "../../fringe-ui/tokens";
+import type { SelectionChangeMeta } from "../../fringe-ui/interactions";
 
-interface DayCellProps {
-  day: string;
+export interface DayCellProps<TValue extends string = string> {
+  value?: TValue;
+  day: string | number;
   selected?: boolean;
   disabled?: boolean;
+  disabledReason?: string;
   onClick?: () => void;
+  onSelect?: (value: TValue, meta: SelectionChangeMeta<TValue>) => void;
   dot?: boolean;
   style?: CSSProperties;
 }
 
-export function DayCell({ day, selected, disabled, onClick, dot, style }: DayCellProps) {
+export function DayCell<TValue extends string = string>({ value, day, selected, disabled, disabledReason, onClick, onSelect, dot, style }: DayCellProps<TValue>) {
+  const dayLabel = String(day);
+  const optionValue = (value ?? dayLabel) as TValue;
+
   return (
-    <button data-component="DayCell"
-      onClick={onClick}
+    <button
+      data-component="DayCell"
+      data-part={selected ? "selected" : disabled ? "disabled" : undefined}
+      type="button"
+      aria-pressed={selected}
+      aria-label={disabledReason ? `${dayLabel} (${disabledReason})` : dayLabel}
+      onClick={() => {
+        if (disabled) return;
+        onClick?.();
+        onSelect?.(optionValue, {
+          value: optionValue,
+          label: dayLabel,
+          previousValue: selected ? optionValue : null,
+          action: selected ? "deselect" : "select",
+          source: "pointer",
+        });
+      }}
       disabled={disabled}
       style={{
-        aspectRatio: '1/1',
-        background: selected ? color.plum : 'transparent',
+        aspectRatio: "1/1",
+        background: selected ? color.plum : "transparent",
         border: `1px solid ${selected ? color.plum : color.rule}`,
         color: selected ? color.paper : disabled ? color.soft : color.ink,
         fontFamily: '"Anton", Impact, sans-serif',
         fontSize: 16,
-        cursor: disabled ? 'default' : 'pointer',
-        position: 'relative',
+        cursor: disabled ? "not-allowed" : "pointer",
+        position: "relative",
         opacity: disabled ? 0.35 : 1,
         padding: 0,
         ...style,
       }}
     >
-      {day}
+      {dayLabel}
       {dot && (
-        <div data-component="DayCell" style={{
-          position: 'absolute',
+        <div data-part="dot" style={{
+          position: "absolute",
           bottom: 4,
-          left: '50%',
-          transform: 'translateX(-50%)',
+          left: "50%",
+          transform: "translateX(-50%)",
           width: 4,
           height: 4,
           borderRadius: 2,

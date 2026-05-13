@@ -1,47 +1,73 @@
-import type { CSSProperties } from 'react';
-import { color, type as typeToken } from '../../fringe-ui/tokens';
+import type { CSSProperties } from "react";
+import { color, type as typeToken } from "../../fringe-ui/tokens";
+import type { SelectionChangeMeta } from "../../fringe-ui/interactions";
 
-interface BudgetOptionProps {
+export interface BudgetOptionProps<TValue extends string = string> {
+  value?: TValue;
   label: string;
   description: string;
   selected?: boolean;
+  disabled?: boolean;
   onClick?: () => void;
+  onSelect?: (value: TValue, meta: SelectionChangeMeta<TValue>) => void;
   style?: CSSProperties;
 }
 
-export function BudgetOption({
+export function BudgetOption<TValue extends string = string>({
+  value,
   label,
   description,
   selected = false,
+  disabled = false,
   onClick,
+  onSelect,
   style,
-}: BudgetOptionProps) {
+}: BudgetOptionProps<TValue>) {
+  const optionValue = (value ?? label) as TValue;
+  const interactive = Boolean(onClick || onSelect) && !disabled;
+
   return (
-    <div
+    <button
       data-component="BudgetOption"
-      data-part={selected ? 'selected' : undefined}
-      onClick={onClick}
+      data-part={selected ? "selected" : disabled ? "disabled" : undefined}
+      type="button"
+      aria-pressed={selected}
+      disabled={disabled}
+      onClick={() => {
+        if (disabled) return;
+        onClick?.();
+        onSelect?.(optionValue, {
+          value: optionValue,
+          label,
+          previousValue: selected ? optionValue : null,
+          action: selected ? "deselect" : "select",
+          source: "pointer",
+        });
+      }}
       style={{
-        padding: '16px 18px',
+        width: "100%",
+        padding: "16px 18px",
         marginBottom: 8,
         background: selected ? color.peachSoft : color.cream,
-        borderLeft: `3px solid ${selected ? color.plum : 'transparent'}`,
-        display: 'flex',
-        alignItems: 'center',
+        border: "none",
+        borderLeft: `3px solid ${selected ? color.plum : "transparent"}`,
+        display: "flex",
+        alignItems: "center",
         gap: 14,
-        cursor: onClick ? 'pointer' : 'default',
+        cursor: interactive ? "pointer" : disabled ? "not-allowed" : "default",
+        opacity: disabled ? 0.55 : 1,
+        textAlign: "left",
         ...style,
       }}
     >
-      {/* Radio indicator */}
       <div style={{
         width: 18,
         height: 18,
         borderRadius: 999,
         border: `2px solid ${selected ? color.plum : color.soft}`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
         flexShrink: 0,
       }}>
         {selected && (
@@ -52,6 +78,6 @@ export function BudgetOption({
         <div style={{ ...typeToken.h3, fontSize: 19 }}>{label}</div>
         <div style={{ ...typeToken.bodySm, color: color.softInk, marginTop: 2 }}>{description}</div>
       </div>
-    </div>
+    </button>
   );
 }

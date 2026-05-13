@@ -1,13 +1,10 @@
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 import { color, font, radius } from "../../fringe-ui/tokens";
+import type { SelectionChangeMeta } from "../../fringe-ui/interactions";
 
 export type ChipShape = "pill" | "square";
 
-export type ChipChangeMeta<TValue extends string = string> = {
-  value?: TValue;
-  label?: ReactNode;
-  action: "select" | "deselect" | "toggle";
-  source: "pointer" | "keyboard" | "programmatic";
+export type ChipChangeMeta<TValue extends string = string> = SelectionChangeMeta<TValue> & {
   event?: React.MouseEvent<HTMLButtonElement> | React.KeyboardEvent<HTMLButtonElement>;
 };
 

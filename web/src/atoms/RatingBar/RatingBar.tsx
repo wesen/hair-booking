@@ -1,11 +1,14 @@
-import type { CSSProperties } from 'react';
-import { color } from '../../fringe-ui/tokens';
+import type { CSSProperties } from "react";
+import { color } from "../../fringe-ui/tokens";
+import type { SelectionChangeMeta } from "../../fringe-ui/interactions";
 
-interface RatingBarProps {
+export interface RatingBarProps {
   value: number;
   max?: number;
   color?: string;
   label?: string;
+  interactive?: boolean;
+  onChange?: (value: number, meta: SelectionChangeMeta<string>) => void;
   style?: CSSProperties;
 }
 
@@ -14,6 +17,8 @@ export function RatingBar({
   max = 5,
   color: barColor,
   label,
+  interactive = false,
+  onChange,
   style,
 }: RatingBarProps) {
   const fill = barColor ?? (
@@ -23,9 +28,9 @@ export function RatingBar({
   );
 
   return (
-    <div data-component="RatingBar" style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '6px 0', ...style }}>
+    <div data-component="RatingBar" style={{ display: "flex", alignItems: "center", gap: 10, padding: "6px 0", ...style }}>
       {label && (
-        <div data-component="RatingBar" style={{
+        <div data-part="label" style={{
           fontFamily: '"Anton", Impact, sans-serif',
           fontSize: 14,
           color: color.ink,
@@ -35,25 +40,59 @@ export function RatingBar({
           {label}
         </div>
       )}
-      <div data-component="RatingBar" style={{ display: 'flex', gap: 3, flex: 1 }}>
-        {Array.from({ length: max }).map((_, i) => (
-          <div data-component="RatingBar"
-            key={i}
-            style={{
-              flex: 1,
-              height: 8,
-              background: i < value ? fill : color.rule,
-              borderRadius: 2,
-            }}
-          />
-        ))}
+      <div data-part="track" role={interactive ? "radiogroup" : undefined} aria-label={interactive ? label : undefined} style={{ display: "flex", gap: 3, flex: 1 }}>
+        {Array.from({ length: max }).map((_, i) => {
+          const nextValue = i + 1;
+          const filled = i < value;
+          if (!interactive) {
+            return (
+              <div
+                data-part="segment"
+                key={nextValue}
+                style={{
+                  flex: 1,
+                  height: 8,
+                  background: filled ? fill : color.rule,
+                  borderRadius: 2,
+                }}
+              />
+            );
+          }
+
+          return (
+            <button
+              data-part="segment"
+              key={nextValue}
+              type="button"
+              role="radio"
+              aria-label={`${nextValue}`}
+              aria-checked={value === nextValue}
+              onClick={() => onChange?.(nextValue, {
+                value: String(nextValue),
+                label: `${nextValue}/${max}`,
+                previousValue: value,
+                action: "select",
+                source: "pointer",
+              })}
+              style={{
+                flex: 1,
+                height: 14,
+                background: filled ? fill : color.rule,
+                borderRadius: 2,
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+              }}
+            />
+          );
+        })}
       </div>
-      <div data-component="RatingBar" style={{
+      <div data-part="value" style={{
         fontFamily: '"JetBrains Mono", monospace',
         fontSize: 11,
         color: color.soft,
         width: 22,
-        textAlign: 'right',
+        textAlign: "right",
       }}>
         {value}/{max}
       </div>

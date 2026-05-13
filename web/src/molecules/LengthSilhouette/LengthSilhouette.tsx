@@ -1,52 +1,74 @@
-import type { CSSProperties } from 'react';
-import { color, type as typeToken } from '../../fringe-ui/tokens';
+import type { CSSProperties } from "react";
+import { color, type as typeToken } from "../../fringe-ui/tokens";
+import type { SelectionChangeMeta } from "../../fringe-ui/interactions";
 
-interface LengthSilhouetteProps {
+export interface LengthSilhouetteProps<TValue extends string = string> {
+  value?: TValue;
   label: string;
   selected?: boolean;
+  disabled?: boolean;
   onClick?: () => void;
+  onSelect?: (value: TValue, meta: SelectionChangeMeta<TValue>) => void;
   style?: CSSProperties;
 }
 
-// Height ratios for each hair length silhouette (maps to SVG path height)
 const HEIGHT_MAP: Record<string, number> = {
-  'Pixie': 30,
-  'Bob': 52,
-  'Shoulder': 72,
-  'Mid-back': 100,
-  'Waist': 120,
+  "Pixie": 30,
+  "Bob": 52,
+  "Shoulder": 72,
+  "Mid-back": 100,
+  "Waist": 120,
 };
 
-export function LengthSilhouette({
+export function LengthSilhouette<TValue extends string = string>({
+  value,
   label,
   selected = false,
+  disabled = false,
   onClick,
+  onSelect,
   style,
-}: LengthSilhouetteProps) {
+}: LengthSilhouetteProps<TValue>) {
   const h = HEIGHT_MAP[label] ?? 72;
+  const optionValue = (value ?? label) as TValue;
+  const interactive = Boolean(onClick || onSelect) && !disabled;
 
   return (
-    <div
+    <button
       data-component="LengthSilhouette"
-      data-part={selected ? 'selected' : undefined}
-      onClick={onClick}
+      data-part={selected ? "selected" : disabled ? "disabled" : undefined}
+      type="button"
+      aria-pressed={selected}
+      disabled={disabled}
+      onClick={() => {
+        if (disabled) return;
+        onClick?.();
+        onSelect?.(optionValue, {
+          value: optionValue,
+          label,
+          previousValue: selected ? optionValue : null,
+          action: selected ? "deselect" : "select",
+          source: "pointer",
+        });
+      }}
       style={{
         background: selected ? color.peachSoft : color.cream,
         border: selected
           ? `1.5px solid ${color.plum}`
           : `1px solid ${color.rule}`,
         padding: 10,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
         gap: 8,
         minHeight: 150,
-        justifyContent: 'flex-end',
-        cursor: onClick ? 'pointer' : 'default',
+        justifyContent: "flex-end",
+        cursor: interactive ? "pointer" : disabled ? "not-allowed" : "default",
+        opacity: disabled ? 0.55 : 1,
         ...style,
       }}
     >
-      <svg viewBox="0 0 40 120" style={{ flex: 1, width: '100%' }}>
+      <svg viewBox="0 0 40 120" style={{ flex: 1, width: "100%" }} aria-hidden="true">
         <circle cx="20" cy="14" r="10" fill={selected ? color.plum : color.soft} />
         <path
           d={`M8 24 Q 20 ${24 + h * 0.8} 32 24`}
@@ -74,6 +96,6 @@ export function LengthSilhouette({
       }}>
         {label}
       </div>
-    </div>
+    </button>
   );
 }
