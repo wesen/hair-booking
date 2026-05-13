@@ -39,7 +39,7 @@ export function IntakeShell({
 }: IntakeShellProps) {
   return (
     <div data-component="IntakeShell" style={{
-      minHeight: '100vh',
+      height: '100%',
       background: color.paper,
       display: 'flex',
       flexDirection: 'column',
@@ -153,50 +153,30 @@ export function IntakeShell({
       {/* ── Bottom CTA bar ──────────────────────────────────── */}
       {onNext && (
         <div style={{
-          padding: '16px 22px 28px',
+          padding: '16px 30px 28px',
           borderTop: `1px solid ${color.rule}`,
           display: 'flex',
           gap: 10,
           background: color.paper,
         }}>
-          {onSkip && (
-            <button
-              onClick={onSkip}
-              style={{
-                fontFamily: font.block,
-                fontSize: 14,
-                letterSpacing: 1,
-                textTransform: 'uppercase',
-                padding: '12px 16px',
-                border: `1px solid ${color.rule}`,
-                background: 'transparent',
-                color: color.soft,
-                cursor: 'pointer',
-                borderRadius: 6,
-              }}
-            >
-              Skip
-            </button>
-          )}
-          {onBack && !onSkip && (
-            <button
-              onClick={onBack}
-              style={{
-                fontFamily: font.block,
-                fontSize: 14,
-                letterSpacing: 1,
-                textTransform: 'uppercase',
-                padding: '12px 16px',
-                border: `1px solid ${color.rule}`,
-                background: 'transparent',
-                color: color.ink,
-                cursor: 'pointer',
-                borderRadius: 6,
-              }}
-            >
-              ← Back
-            </button>
-          )}
+          <button
+            onClick={onSkip}
+            style={{
+              fontFamily: font.block,
+              fontSize: 14,
+              letterSpacing: 1,
+              textTransform: 'uppercase',
+              width: 75,
+              padding: '12px 0',
+              border: `1px solid ${color.ink}`,
+              background: 'transparent',
+              color: color.ink,
+              cursor: onSkip ? 'pointer' : 'default',
+              borderRadius: 0,
+            }}
+          >
+            Skip
+          </button>
           <button
             onClick={onNext}
             style={{
@@ -210,7 +190,7 @@ export function IntakeShell({
               color: color.paper,
               cursor: 'pointer',
               flex: 1,
-              borderRadius: 6,
+              borderRadius: 0,
             }}
           >
             {nextLabel}

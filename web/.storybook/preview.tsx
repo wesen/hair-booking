@@ -25,29 +25,21 @@ const phoneFrame: Decorator<ReactRenderer> = (Story, { parameters }) => {
       background: "#f6efe4",
       padding: 24,
     }}>
-      <div style={{
-        width: 390,
-        height: 844,
-        borderRadius: 48,
-        overflow: "hidden",
-        border: "8px solid #1a1a1a",
-        boxShadow: "0 24px 60px rgba(17,17,17,0.14)",
-        background: "#ffffff",
-        position: "relative",
-        flexShrink: 0,
-      }}>
-        {/* Dynamic Island notch */}
-        <div style={{
-          position: "absolute",
-          top: 12,
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: 110,
-          height: 32,
-          borderRadius: 20,
-          background: "#000",
-          zIndex: 100,
-        }} />
+      <div
+        data-component="StoryPhoneFrame"
+        style={{
+          width: 390,
+          height: 844,
+          boxSizing: "border-box",
+          borderRadius: 48,
+          overflow: "hidden",
+          border: "8px solid #1a1a1a",
+          boxShadow: "0 24px 60px rgba(17,17,17,0.14)",
+          background: "#ffffff",
+          position: "relative",
+          flexShrink: 0,
+        }}
+      >
         <Story />
       </div>
     </div>

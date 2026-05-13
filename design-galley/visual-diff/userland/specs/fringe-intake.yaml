@@ -14,8 +14,8 @@ name: fringe-intake
 variant: mobile
 
 viewport:
-  width: 390
-  height: 844
+  width: 500
+  height: 920
 
 defaults:
   waitMs: 3000
@@ -70,7 +70,7 @@ pages:
     sections:
       screen:
         leftSelector: '[data-page="service"]'
-        rightSelector: '[data-component="IntakeShell"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
 
   color:
     leftUrl: http://localhost:7071/standalone/mobile/02-color.html
@@ -78,7 +78,7 @@ pages:
     sections:
       screen:
         leftSelector: '[data-page="color"]'
-        rightSelector: '[data-component="IntakeShell"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
 
   length:
     leftUrl: http://localhost:7071/standalone/mobile/03-length.html
@@ -86,7 +86,7 @@ pages:
     sections:
       screen:
         leftSelector: '[data-page="length"]'
-        rightSelector: '[data-component="IntakeShell"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
 
   photos:
     leftUrl: http://localhost:7071/standalone/mobile/04-photos.html
@@ -94,7 +94,7 @@ pages:
     sections:
       screen:
         leftSelector: '[data-page="photos"]'
-        rightSelector: '[data-component="IntakeShell"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
 
   history:
     leftUrl: http://localhost:7071/standalone/mobile/05-history.html
@@ -102,7 +102,7 @@ pages:
     sections:
       screen:
         leftSelector: '[data-page="history"]'
-        rightSelector: '[data-component="IntakeShell"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
 
   budget:
     leftUrl: http://localhost:7071/standalone/mobile/06-budget.html
@@ -110,7 +110,7 @@ pages:
     sections:
       screen:
         leftSelector: '[data-page="budget"]'
-        rightSelector: '[data-component="IntakeShell"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
 
   estimate:
     leftUrl: http://localhost:7071/standalone/mobile/07-estimate.html
@@ -118,7 +118,7 @@ pages:
     sections:
       screen:
         leftSelector: '[data-page="estimate"]'
-        rightSelector: '[data-component="IntakeShell"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
 
   booking:
     leftUrl: http://localhost:7071/standalone/mobile/08-booking.html
@@ -126,7 +126,7 @@ pages:
     sections:
       screen:
         leftSelector: '[data-page="booking"]'
-        rightSelector: '[data-component="IntakeShell"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
 
   confirm:
     leftUrl: http://localhost:7071/standalone/mobile/09-confirm.html
@@ -134,4 +134,4 @@ pages:
     sections:
       screen:
         leftSelector: '[data-page="confirm"]'
-        rightSelector: '[data-component="IntakeShell"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
