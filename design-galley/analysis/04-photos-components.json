@@ -1,0 +1,244 @@
+[
+  {
+    "name": "StatusBar",
+    "type": "chrome",
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 44
+    },
+    "description": "System status indicators (time, signal, battery)."
+  },
+  {
+    "name": "AppHeader",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 44,
+      "width": 390,
+      "height": 64
+    },
+    "description": "Top app bar with back navigation, brand title, and step count."
+  },
+  {
+    "name": "BackButton",
+    "type": "atom",
+    "bounds": {
+      "x": 16,
+      "y": 60,
+      "width": 24,
+      "height": 24
+    },
+    "description": "Chevron icon to go back."
+  },
+  {
+    "name": "BrandTitle",
+    "type": "atom",
+    "bounds": {
+      "x": 145,
+      "y": 58,
+      "width": 100,
+      "height": 28
+    },
+    "description": "Centered app name \u2018FRINGE\u2019."
+  },
+  {
+    "name": "StepCounter",
+    "type": "atom",
+    "bounds": {
+      "x": 318,
+      "y": 58,
+      "width": 56,
+      "height": 24
+    },
+    "description": "Current step indicator \u201804 / 09\u2019."
+  },
+  {
+    "name": "ProgressBar",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 100,
+      "width": 342,
+      "height": 4
+    },
+    "description": "Thin step progress line under header."
+  },
+  {
+    "name": "SectionKicker",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 112,
+      "width": 342,
+      "height": 22
+    },
+    "description": "Eyebrow text \u2018Chapter IV \u2022 The Reference\u2019."
+  },
+  {
+    "name": "PageTitle",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 138,
+      "width": 342,
+      "height": 76
+    },
+    "description": "Hero heading \u2018THREE ANGLES, PLEASE.\u2019"
+  },
+  {
+    "name": "Subtitle",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 216,
+      "width": 342,
+      "height": 48
+    },
+    "description": "Instructional copy about front, side, back in natural light."
+  },
+  {
+    "name": "AngleUploadGrid",
+    "type": "organism",
+    "bounds": {
+      "x": 24,
+      "y": 296,
+      "width": 342,
+      "height": 116
+    },
+    "description": "Three required photo placeholders in a row (front, side, back)."
+  },
+  {
+    "name": "AngleTileFront",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 296,
+      "width": 110,
+      "height": 110
+    },
+    "description": "Upload tile labeled \u2018Front\u2019 with dashed border and check."
+  },
+  {
+    "name": "AngleTileSide",
+    "type": "molecule",
+    "bounds": {
+      "x": 150,
+      "y": 296,
+      "width": 110,
+      "height": 110
+    },
+    "description": "Upload tile labeled \u2018Side\u2019 with dashed border and check."
+  },
+  {
+    "name": "AngleTileBack",
+    "type": "molecule",
+    "bounds": {
+      "x": 276,
+      "y": 296,
+      "width": 110,
+      "height": 110
+    },
+    "description": "Upload tile labeled \u2018Back\u2019 in inactive state."
+  },
+  {
+    "name": "InspirationHeader",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 424,
+      "width": 342,
+      "height": 24
+    },
+    "description": "Section label \u2018Inspiration (optional \u00b7 up to 4)\u2019."
+  },
+  {
+    "name": "InspirationGrid",
+    "type": "organism",
+    "bounds": {
+      "x": 24,
+      "y": 456,
+      "width": 342,
+      "height": 116
+    },
+    "description": "Row of four smaller inspiration photo tiles."
+  },
+  {
+    "name": "InspirationTileSelected1",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 456,
+      "width": 78,
+      "height": 78
+    },
+    "description": "Selected inspiration tile with checkmark."
+  },
+  {
+    "name": "InspirationTileSelected2",
+    "type": "molecule",
+    "bounds": {
+      "x": 118,
+      "y": 456,
+      "width": 78,
+      "height": 78
+    },
+    "description": "Selected inspiration tile with checkmark."
+  },
+  {
+    "name": "InspirationTileEmpty1",
+    "type": "molecule",
+    "bounds": {
+      "x": 212,
+      "y": 456,
+      "width": 78,
+      "height": 78
+    },
+    "description": "Empty inspiration placeholder with plus icon."
+  },
+  {
+    "name": "InspirationTileEmpty2",
+    "type": "molecule",
+    "bounds": {
+      "x": 306,
+      "y": 456,
+      "width": 78,
+      "height": 78
+    },
+    "description": "Empty inspiration placeholder with plus icon."
+  },
+  {
+    "name": "CTABar",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 700,
+      "width": 390,
+      "height": 120
+    },
+    "description": "Sticky action area with secondary and primary buttons."
+  },
+  {
+    "name": "SkipButton",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 716,
+      "width": 120,
+      "height": 56
+    },
+    "description": "Secondary outlined button labeled \u2018Skip\u2019."
+  },
+  {
+    "name": "PrimaryButton",
+    "type": "molecule",
+    "bounds": {
+      "x": 160,
+      "y": 716,
+      "width": 206,
+      "height": 56
+    },
+    "description": "Primary filled button labeled \u2018Keep Going \u2192\u2019."
+  }
+]

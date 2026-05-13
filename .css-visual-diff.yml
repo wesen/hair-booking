@@ -1,0 +1,4 @@
+verbs:
+  repositories:
+    - name: fringe
+      path: ./design-galley/visual-diff/userland/verbs

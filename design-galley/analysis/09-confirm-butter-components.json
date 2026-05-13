@@ -1,0 +1,244 @@
+[
+  {
+    "name": "TopNavBar",
+    "type": "chrome",
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 72
+    },
+    "description": "Global header with brand, primary navigation, and account area."
+  },
+  {
+    "name": "BrandLogo",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 20,
+      "width": 90,
+      "height": 32
+    },
+    "description": "Fringe wordmark acting as home link."
+  },
+  {
+    "name": "PrimaryNavLinks",
+    "type": "molecule",
+    "bounds": {
+      "x": 180,
+      "y": 20,
+      "width": 320,
+      "height": 32
+    },
+    "description": "Top-level navigation links: Services, Book, Stylists, Journal."
+  },
+  {
+    "name": "AccountChip",
+    "type": "molecule",
+    "bounds": {
+      "x": 1210,
+      "y": 16,
+      "width": 206,
+      "height": 40
+    },
+    "description": "User greeting and circular avatar button."
+  },
+  {
+    "name": "LeftStepperSidebar",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 72,
+      "width": 260,
+      "height": 828
+    },
+    "description": "Vertical intake progress sidebar listing 9 steps with current step highlighted."
+  },
+  {
+    "name": "StepperHeader",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 92,
+      "width": 212,
+      "height": 24
+    },
+    "description": "Label 'Intake \u2013 9 Steps'."
+  },
+  {
+    "name": "StepperList",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 124,
+      "width": 212,
+      "height": 720
+    },
+    "description": "Ordered list of steps with bullets and separators; '09 Confirm' selected."
+  },
+  {
+    "name": "ContentViewport",
+    "type": "chrome",
+    "bounds": {
+      "x": 260,
+      "y": 72,
+      "width": 1180,
+      "height": 828
+    },
+    "description": "Scrollable main content region to the right of the stepper."
+  },
+  {
+    "name": "ConfirmationPosterPanel",
+    "type": "organism",
+    "bounds": {
+      "x": 300,
+      "y": 92,
+      "width": 560,
+      "height": 760
+    },
+    "description": "Large butter-yellow confirmation poster with headline typography."
+  },
+  {
+    "name": "PosterMetaLabel",
+    "type": "atom",
+    "bounds": {
+      "x": 320,
+      "y": 116,
+      "width": 220,
+      "height": 20
+    },
+    "description": "Small label 'Confirmation \u2022 #4281'."
+  },
+  {
+    "name": "PosterHeadline",
+    "type": "molecule",
+    "bounds": {
+      "x": 320,
+      "y": 156,
+      "width": 520,
+      "height": 380
+    },
+    "description": "Hero message 'SEE YOU Tuesday.' with mixed weights and large scale."
+  },
+  {
+    "name": "PosterFooterNote",
+    "type": "atom",
+    "bounds": {
+      "x": 320,
+      "y": 708,
+      "width": 520,
+      "height": 40
+    },
+    "description": "Small copy confirming that prep notes are on their way."
+  },
+  {
+    "name": "AppointmentDetailsPanel",
+    "type": "organism",
+    "bounds": {
+      "x": 880,
+      "y": 92,
+      "width": 540,
+      "height": 760
+    },
+    "description": "Right column with appointment summary, alert, actions, and prep list."
+  },
+  {
+    "name": "AppointmentSectionHeader",
+    "type": "atom",
+    "bounds": {
+      "x": 900,
+      "y": 116,
+      "width": 500,
+      "height": 24
+    },
+    "description": "Section title 'Your Appointment'."
+  },
+  {
+    "name": "AppointmentDetailsList",
+    "type": "molecule",
+    "bounds": {
+      "x": 900,
+      "y": 150,
+      "width": 500,
+      "height": 320
+    },
+    "description": "Stacked detail rows (When, With, Service, Estimate, Deposit, Location) with dividers and emphasis on values."
+  },
+  {
+    "name": "DepositAlert",
+    "type": "molecule",
+    "bounds": {
+      "x": 900,
+      "y": 500,
+      "width": 500,
+      "height": 56
+    },
+    "description": "Subtle green confirmation banner about deposit and cancellation policy."
+  },
+  {
+    "name": "PrimaryActionsGroup",
+    "type": "molecule",
+    "bounds": {
+      "x": 900,
+      "y": 570,
+      "width": 500,
+      "height": 60
+    },
+    "description": "Row of primary action controls."
+  },
+  {
+    "name": "AddToCalendarButton",
+    "type": "atom",
+    "bounds": {
+      "x": 900,
+      "y": 580,
+      "width": 200,
+      "height": 44
+    },
+    "description": "Primary outlined button 'Add to Calendar'."
+  },
+  {
+    "name": "MessageStylistButton",
+    "type": "atom",
+    "bounds": {
+      "x": 1110,
+      "y": 580,
+      "width": 200,
+      "height": 44
+    },
+    "description": "Secondary outlined button 'Message Nadia'."
+  },
+  {
+    "name": "CancelLink",
+    "type": "atom",
+    "bounds": {
+      "x": 1330,
+      "y": 590,
+      "width": 70,
+      "height": 24
+    },
+    "description": "Muted text link 'Cancel'."
+  },
+  {
+    "name": "PrepForAppointmentSection",
+    "type": "organism",
+    "bounds": {
+      "x": 900,
+      "y": 640,
+      "width": 500,
+      "height": 180
+    },
+    "description": "Subsection with header 'Prep for Tuesday' and ordered prep tips list."
+  },
+  {
+    "name": "Scrollbar",
+    "type": "chrome",
+    "bounds": {
+      "x": 1426,
+      "y": 76,
+      "width": 6,
+      "height": 820
+    },
+    "description": "Page scrollbar for the main content viewport."
+  }
+]

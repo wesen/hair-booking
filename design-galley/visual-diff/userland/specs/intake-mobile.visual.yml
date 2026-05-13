@@ -1,0 +1,95 @@
+schemaVersion: fringe.visual-suite.v1
+name: intake-mobile
+defaults:
+  prototypeBase: http://localhost:7071
+  viewport:
+    width: 390
+    height: 844
+  waitMs: 2000
+  threshold: 30
+  inspect: rich
+  variant: mobile
+policy:
+  bands:
+    - name: accepted
+      maxChangedPercent: 0.5
+    - name: review
+      maxChangedPercent: 10
+    - name: tune-required
+      maxChangedPercent: 30
+    - name: major-mismatch
+      maxChangedPercent: 100
+acceptedDifferences: {}
+targets:
+  - page: service
+    variant: mobile
+    priority: tune-first
+    prototypePath: /standalone/mobile/01-service.html
+    sections:
+      - name: full-screen
+        original: '[data-screen-label="01 · Service"]'
+        react: '[data-page="service"]'
+  - page: color
+    variant: mobile
+    priority: tune-first
+    prototypePath: /standalone/mobile/02-color.html
+    sections:
+      - name: full-screen
+        original: '[data-screen-label="02 · Color"]'
+        react: '[data-page="color"]'
+  - page: length
+    variant: mobile
+    priority: tune-first
+    prototypePath: /standalone/mobile/03-length.html
+    sections:
+      - name: full-screen
+        original: '[data-screen-label="03 · Length"]'
+        react: '[data-page="length"]'
+  - page: photos
+    variant: mobile
+    priority: tune-first
+    prototypePath: /standalone/mobile/04-photos.html
+    sections:
+      - name: full-screen
+        original: '[data-screen-label="04 · Photos"]'
+        react: '[data-page="photos"]'
+  - page: history
+    variant: mobile
+    priority: tune-first
+    prototypePath: /standalone/mobile/05-history.html
+    sections:
+      - name: full-screen
+        original: '[data-screen-label="05 · History"]'
+        react: '[data-page="history"]'
+  - page: budget
+    variant: mobile
+    priority: tune-first
+    prototypePath: /standalone/mobile/06-budget.html
+    sections:
+      - name: full-screen
+        original: '[data-screen-label="06 · Budget"]'
+        react: '[data-page="budget"]'
+  - page: estimate
+    variant: mobile
+    priority: tune-first
+    prototypePath: /standalone/mobile/07-estimate.html
+    sections:
+      - name: full-screen
+        original: '[data-screen-label="07 · Estimate"]'
+        react: '[data-page="estimate"]'
+  - page: booking
+    variant: mobile
+    priority: tune-first
+    prototypePath: /standalone/mobile/08-booking.html
+    sections:
+      - name: full-screen
+        original: '[data-screen-label="08 · Booking"]'
+        react: '[data-page="booking"]'
+  - page: confirm
+    variant: mobile
+    priority: tune-first
+    prototypePath: /standalone/mobile/09-confirm.html
+    sections:
+      - name: full-screen
+        original: '[data-screen-label="09 · Confirm"]'
+        react: '[data-page="confirm"]'
