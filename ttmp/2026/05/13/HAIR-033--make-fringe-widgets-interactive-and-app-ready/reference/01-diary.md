@@ -1782,7 +1782,7 @@ This proves the action-based approach in a real browser page. A click on the Rea
 
 **Inferred user intent:** Move from documentation and Storybook/curl validation to a real clickable UI surface that exercises the live action-dispatch loop.
 
-**Commit (code):** 52dfccf — "HAIR-033 Step 20: Add live Goja DSL viewing page"
+**Commit (code):** 54e3e1a — "HAIR-033 Step 20: Add live Goja DSL viewing page"
 
 ### What I did
 

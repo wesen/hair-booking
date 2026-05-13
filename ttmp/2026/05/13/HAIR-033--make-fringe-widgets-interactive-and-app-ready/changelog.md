@@ -230,7 +230,7 @@ Step 19: Added an intern-facing real UI app integration guide for the Goja backe
 
 ## 2026-05-13
 
-Step 20: Implemented the live Vite viewing page for the Goja backend DSL (commit 52dfccf). Added web/index.html, main.tsx, App.tsx, LiveDslDemoApp.tsx, configurable Vite backend proxy, and ignored tsbuildinfo. Verified Go tests, web tests, typecheck, Vite build, Storybook build, and a live browser path against backend port 19080.
+Step 20: Implemented the live Vite viewing page for the Goja backend DSL (commit 54e3e1a). Added web/index.html, main.tsx, App.tsx, LiveDslDemoApp.tsx, configurable Vite backend proxy, and ignored tsbuildinfo. Verified Go tests, web tests, typecheck, Vite build, Storybook build, and a live browser path against backend port 19080.
 
 ### Related Files
 
