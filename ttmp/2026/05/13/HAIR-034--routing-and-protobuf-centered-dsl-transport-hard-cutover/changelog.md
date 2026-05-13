@@ -39,3 +39,14 @@ Step 3: Restarted devctl backend/web and smoke-tested direct protobuf JSON FlowS
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-034--routing-and-protobuf-centered-dsl-transport-hard-cutover/reference/01-diary.md — Live smoke record
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-034--routing-and-protobuf-centered-dsl-transport-hard-cutover/tasks.md — Marked devctl restart complete
 
+
+## 2026-05-13
+
+Step 4: Fixed value-less edit events (commit dc9f01e) under protobuf JSON by omitting undefined optional value/meta fields before fromJson(InteractionEventSchema); added TS contract coverage and validated Go/web tests.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-034--routing-and-protobuf-centered-dsl-transport-hard-cutover/reference/01-diary.md — Diary Step 4
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/ProtobufContract.test.ts — Covers value-less interaction events
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/backendClient.ts — Omits undefined optional protobuf JSON fields for edit/next/back/skip events
+

@@ -91,8 +91,27 @@ export async function getDslFlow(sessionId: string): Promise<DslFlowState> {
   return readFlowState(response);
 }
 
+function interactionEventJson(sessionId: string, event: DslInteractionEvent): ProtoJsonValue {
+  const json: Record<string, unknown> = {
+    eventId: event.eventId,
+    sessionId,
+    pageVersion: event.pageVersion,
+    nodeId: event.nodeId,
+    nodeKind: event.nodeKind,
+    actionId: event.actionId,
+    event: event.event,
+  };
+  if (event.value !== undefined) {
+    json.value = event.value;
+  }
+  if (event.meta !== undefined) {
+    json.meta = event.meta;
+  }
+  return json as ProtoJsonValue;
+}
+
 export async function postDslEvent(sessionId: string, event: DslInteractionEvent): Promise<DslFlowState> {
-  const protoEvent = fromJson(InteractionEventSchema, { ...event, sessionId } as ProtoJsonValue);
+  const protoEvent = fromJson(InteractionEventSchema, interactionEventJson(sessionId, event));
   const response = await fetch(`/api/dsl/flows/${encodeURIComponent(sessionId)}/events`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },

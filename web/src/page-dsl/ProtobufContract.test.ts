@@ -56,6 +56,25 @@ describe("DSL protobuf JSON contract", () => {
     expect(page.nodes[0]?.props?.value).toBe("color");
   });
 
+  it("encodes interaction events without undefined optional value fields", () => {
+    const event = fromJson(InteractionEventSchema, {
+      eventId: "evt_edit",
+      pageVersion: 5,
+      nodeId: "estimate-service",
+      nodeKind: "summaryRow",
+      actionId: "act_edit",
+      event: "edit",
+    });
+
+    expect(toJson(InteractionEventSchema, event)).toMatchObject({
+      eventId: "evt_edit",
+      pageVersion: 5,
+      nodeId: "estimate-service",
+      event: "edit",
+    });
+    expect(toJson(InteractionEventSchema, event)).not.toHaveProperty("value");
+  });
+
   it("decodes interaction events with JSON values", () => {
     const event = fromJson(InteractionEventSchema, {
       eventId: "evt_1",

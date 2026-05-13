@@ -282,3 +282,114 @@ No code changed in this step. Confirm live state with:
 curl -sS -X POST http://127.0.0.1:19080/api/dsl/flows/fringe.intake.v1/start | jq '{sessionId,pageVersion,pageId:.page.id,hasData:has("data")}'
 curl -sS -o /tmp/hair034-web.html -w 'web:%{http_code}\n' http://127.0.0.1:5175/dsl-goja-demo
 ```
+
+
+---
+
+## Step 4: Omit undefined protobuf Value fields for value-less edit events
+
+Fixed a frontend protobuf JSON encoding bug discovered while clicking `edit` links. Edit events do not carry a `value`, but the frontend client passed `value: undefined` into `fromJson(InteractionEventSchema, ...)`. The protobuf JSON decoder rejects `undefined` for `google.protobuf.Value`; the correct representation is to omit the field entirely.
+
+The event encoder now builds a protobuf JSON object explicitly and only includes optional `value` and `meta` fields when they are actually defined. This preserves value-bearing events such as segmented/chip changes while allowing value-less `edit`, `next`, `back`, and `skip` actions to encode cleanly.
+
+### Prompt Context
+
+**User prompt (verbatim):** "debug.ts:14:11
+[dsl] IntakeShell next-button identity 
+Object { instance: "opu8s1tzlhp", sameAsPreviousRender: true, label: "Pick a time →", element: button }
+debug.ts:14:11
+[dsl] BackendDslPage dispatch:error Error: cannot decode message google.protobuf.Value from JSON undefined
+    valueFromJson from-json.js:598
+    tryWktFromJson from-json.js:444
+    readMessage from-json.js:118
+    readMessageField from-json.js:228
+    readField2 from-json.js:167
+    readMessage from-json.js:139
+    fromJson from-json.js:55
+    postDslEvent backendClient.ts:95
+    backendDispatch BackendDslPage.tsx:92
+    dispatchAction render.tsx:84
+    onEdit render.tsx:214
+    React 13
+    <anonymous> main.tsx:9
+debug.ts:14:11
+[dsl] DslPageRenderer render 
+Object { pageId: "intake-estimate", shellKind: "intake", nodeKeys: (2) […], shellActions: {…} }
+
+when i click edit"
+
+**Assistant interpretation:** Clicking an edit link triggers a value-less backend event, and the new protobuf client encoding incorrectly serializes the absent value as `undefined`.
+
+**Inferred user intent:** Fix edit-link dispatch under the protobuf hard cutover so value-less actions work.
+
+**Commit (code):** dc9f01e — "HAIR-034 Step 4: Omit undefined protobuf event values"
+
+### What I did
+
+- Updated `web/src/page-dsl/backendClient.ts` with `interactionEventJson(...)`.
+- The helper constructs the protobuf JSON event explicitly.
+- It only includes `value` if `event.value !== undefined`.
+- It only includes `meta` if `event.meta !== undefined`.
+- Added a TypeScript protobuf contract test for value-less interaction events.
+
+### Why
+
+`google.protobuf.Value` represents a JSON value, but `undefined` is not valid JSON. Omitted optional fields are valid; `undefined` fields are not.
+
+### What worked
+
+Validation passed:
+
+```bash
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+pnpm build
+cd ..
+go test ./... -count=1
+```
+
+Frontend tests now include 24 passing tests.
+
+### What didn't work
+
+- Before this patch, `fromJson(InteractionEventSchema, { value: undefined })` failed with:
+
+```text
+cannot decode message google.protobuf.Value from JSON undefined
+```
+
+### What I learned
+
+- The protobuf hard cutover requires a stricter JSON boundary than the previous `JSON.stringify` path. The client must omit absent optional fields instead of carrying JavaScript `undefined` into protobuf decoding.
+
+### What was tricky to build
+
+- The application-level `JsonValue` type and the protobuf library's `JsonValue` type are distinct. The cleanest boundary is to construct a simple record and cast only once to `ProtoJsonValue` at the protobuf call site.
+
+### What warrants a second pair of eyes
+
+- Whether the frontend should also deep-strip `undefined` from `meta` objects if future metadata contains nested optional properties.
+
+### What should be done in the future
+
+- Restart the web service and retest estimate/confirm edit links in the browser.
+- If another protobuf JSON error appears, inspect whether it is another JavaScript-only value crossing the protobuf boundary.
+
+### Code review instructions
+
+Review:
+
+- `web/src/page-dsl/backendClient.ts`
+- `web/src/page-dsl/ProtobufContract.test.ts`
+
+Validate with:
+
+```bash
+cd web
+pnpm test -- --runInBand
+npx tsc --noEmit
+pnpm build
+cd ..
+go test ./... -count=1
+```
