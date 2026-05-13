@@ -37,3 +37,12 @@ Completed intern-facing DSL guide, related implementation files, and uploaded gu
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-032--declarative-page-builder-dsl-for-fringe-intake-pages/design-doc/01-fringe-page-builder-dsl-analysis-design-and-implementation-guide.md — Intern-facing guide
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-032--declarative-page-builder-dsl-for-fringe-intake-pages/reference/01-diary.md — Implementation diary
 
+
+## 2026-05-13
+
+Step 3: Fixed DSL renderer React key warnings by passing key directly instead of spreading it through common props. Verified typecheck and Storybook build. (commit 0aead34)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — Renderer key handling fix
+
