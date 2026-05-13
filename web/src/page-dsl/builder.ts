@@ -81,6 +81,11 @@ export class DslPageBuilder {
     return this;
   }
 
+  shell(shell: DslPage["shell"]) {
+    this.page.shell = shell;
+    return this;
+  }
+
   meta(meta: NonNullable<DslPage["meta"]>) {
     this.page.meta = { ...(this.page.meta || {}), ...meta };
     return this;
