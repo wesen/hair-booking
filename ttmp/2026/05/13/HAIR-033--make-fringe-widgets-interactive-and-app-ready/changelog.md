@@ -243,3 +243,14 @@ Step 20: Implemented the live Vite viewing page for the Goja backend DSL (commit
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/main.tsx — React bootstrap for the live app without StrictMode duplicate backend flow starts
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/vite.config.ts — Configurable backend proxy with HAIR_BOOKING_BACKEND_URL
 
+
+## 2026-05-13
+
+Step 21: Added a design note answering routing, flow/session identity, multiple tabs, protobuf schema sharing, DOM flashing/stable ids, and event/pageVersion semantics. Updated Phase B tasks and uploaded the note to reMarkable.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/05-routing-sessions-events-schema-and-rerendering-questions-for-goja-dsl.md — New detailed Q&A design note
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/reference/01-diary.md — Diary step for routing/session/schema/event design answers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/tasks.md — Phase B tasks expanded with routing/session/stable-key/protobuf work
+

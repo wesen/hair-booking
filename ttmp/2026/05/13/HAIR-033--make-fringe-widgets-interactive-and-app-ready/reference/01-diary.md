@@ -1921,3 +1921,117 @@ POST /api/dsl/flows/{sessionId}/events => 200
 POST /api/dsl/flows/{sessionId}/events => 200
 POST /api/dsl/flows/{sessionId}/events => 200
 ```
+
+---
+
+## Step 21: Answer routing, session, multi-tab, protobuf, rerendering, and event semantics questions
+
+Created a dedicated design note answering the follow-up architecture questions raised after the live Goja DSL viewing page was working. The note explains the current behavior, the recommended next behavior, and the tradeoffs around URL updates, flow/session identity, multiple tabs, protobuf code generation, DOM flashing, stable IDs, and event semantics.
+
+This step turns the open design questions into concrete next tasks. The most important recommendations are to keep route ownership in the app shell, use tab-scoped `sessionStorage` before `localStorage`, use backend ownership checks before production, adopt protobuf in stages for the stable transport contract, and make `DslPageRenderer` use `node.meta.id` as React keys.
+
+### Prompt Context
+
+**User prompt (verbatim):** "questions:
+
+- how are we going to deal with routes / updating the url as we move along
+- how are we handling flow-id / session-id right now? cookie? memory? local storage? what would be the best?
+- what happens if we have multiple tabs open to the same page?
+- should we use protobuf to share the definitions between backend and frontend, and then codegen the go and ts types out of it?
+- how can we deal with flashing DOM when we rerender the page (for example i see the bottom buttons flashing). Can we insert stable IDs when we render? or hopefully stable ids? is that something we need to address on the frontend only? or backend?
+- what's an "event" and what is eventId and pageVersion for?
+
+ans wer all those questions in detail in a new document that you store in the ticket and upload to remarkable. They should give in depth answers for someone like me who doesn't know very much about the codebase"
+
+**Assistant interpretation:** Write a new HAIR-033 ticket document that answers the architecture/design questions in detail and uploads it to reMarkable.
+
+**Inferred user intent:** Understand the newly working live DSL app well enough to make the next design decisions around routing, persistence, schema sharing, rerendering polish, and event semantics.
+
+**Commit (code):** N/A — documentation and task planning only.
+
+### What I did
+
+- Created `design-doc/05-routing-sessions-events-schema-and-rerendering-questions-for-goja-dsl.md`.
+- Answered each question in depth:
+  - route and URL update ownership,
+  - current and recommended `flowId`/`sessionId` storage,
+  - multiple-tab behavior,
+  - protobuf pros/cons and staged adoption plan,
+  - DOM flashing and stable ids,
+  - event, `eventId`, and `pageVersion` semantics.
+- Added diagrams, tables, pseudocode, API/field explanations, and recommended next tasks.
+- Related the new doc to the main backend/runtime/frontend files with `docmgr doc relate`.
+- Updated Phase B tasks to include:
+  - stable React keys from `node.meta.id`,
+  - sessionStorage resume,
+  - URL/page sync,
+  - history push/replace decision,
+  - protobuf transport-contract spike.
+- Uploaded the new guide to reMarkable:
+
+```text
+/ai/2026/05/13/HAIR-033/HAIR_033_Goja_DSL_Routing_Sessions_Events_Schema_Questions.pdf
+```
+
+### Why
+
+The live page exposed the next layer of design questions. These are not incidental details: routing, session identity, multi-tab behavior, schema generation, stable DOM identity, and event semantics determine whether the backend-driven UI feels like a real app rather than a demo.
+
+### What worked
+
+- `docmgr validate frontmatter` passed for the new document.
+- `docmgr doc relate` successfully linked the document to the relevant code files.
+- `remarquee upload bundle` successfully uploaded the PDF to reMarkable.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- The next highest-value implementation change is probably stable React keys from `node.meta.id`, because it directly addresses observed DOM flashing and uses ids that the backend flow already emits.
+- `sessionStorage` is a better immediate fit than `localStorage` because the live DSL flow should behave as one session per tab unless we intentionally build shared-session coordination.
+
+### What was tricky to build
+
+- The multi-tab answer needed to distinguish correctness from synchronization. The backend already prevents stale actions from mutating state, but that does not automatically make two tabs visually synchronized. Synchronization would need a frontend policy such as refetch-on-stale or `BroadcastChannel`.
+- The protobuf answer needed to avoid overcommitting. Protobuf is useful for the stable transport contract, but the DSL's dynamic widget `props` are still evolving. The recommended compromise is protobuf envelopes with `google.protobuf.Struct` props first.
+
+### What warrants a second pair of eyes
+
+- Whether the first URL sync should use `replaceState` only or `pushState` for page-id transitions.
+- Whether the production app should expose session ids in the URL at all or only use tab storage plus backend current-session lookup.
+- Whether to use `uint32`, `uint64`, or string for protobuf `page_version` given TypeScript int64 handling.
+
+### What should be done in the future
+
+- Implement the Phase B tasks now listed in `tasks.md`.
+- Start with stable renderer keys and sessionStorage resume.
+- Then add URL/page sync and a protobuf transport-contract spike.
+
+### Code review instructions
+
+Review:
+
+- `ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/05-routing-sessions-events-schema-and-rerendering-questions-for-goja-dsl.md`
+- `ttmp/2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/tasks.md`
+
+Validate:
+
+```bash
+docmgr validate frontmatter --doc 2026/05/13/HAIR-033--make-fringe-widgets-interactive-and-app-ready/design-doc/05-routing-sessions-events-schema-and-rerendering-questions-for-goja-dsl.md --suggest-fixes
+```
+
+### Technical details
+
+The guide specifically references:
+
+- `web/src/LiveDslDemoApp.tsx`
+- `web/src/page-dsl/BackendDslPage.tsx`
+- `web/src/page-dsl/backendClient.ts`
+- `web/src/page-dsl/render.tsx`
+- `web/src/page-dsl/schema.ts`
+- `pkg/server/handlers_dsl.go`
+- `pkg/dslgoja/schema.go`
+- `pkg/dslgoja/runtime.go`
+- `pkg/dslgoja/flows/intake.flow.js`
