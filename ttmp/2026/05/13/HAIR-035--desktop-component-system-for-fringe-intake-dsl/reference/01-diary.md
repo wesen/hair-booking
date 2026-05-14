@@ -719,3 +719,84 @@ The user wants to validate the "same JSON, different density" promise end-to-end
 **Command:** `devctl restart hair-booking-backend`
 **Pages verified:** service, color, photos, budget, estimate, booking, confirm
 **Console errors:** 0 (only 1 stale session 404 from initial load)
+
+## Step 9: Viewport toggle, configurable step labels, full walkthrough
+
+Added an interactive viewport toggle to the Goja demo so users can switch between desktop and mobile views at any viewport width. Also made DesktopShell step labels configurable and did a full 7-step visual walkthrough with VLM scoring.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead."
+
+**Assistant interpretation:** Implement the next steps identified in the diary: viewport toggle, configurable step labels, desktop stories for all steps.
+
+**Inferred user intent:** Continue improving the responsive demo based on previously identified next steps.
+
+**Commit (code):** 3b56a57 — viewport toggle + configurable step labels
+**Commit (refactor):** 0323c1e — remove localStorage persistence per user feedback
+
+### What I did
+
+- Added `useIsDesktop()` hook returning `{ isDesktop, pref, cyclePref, resetPref }`
+- `ViewModeIndicator`: clickable badge that toggles between desktop/mobile, with "auto" reset
+- Preference is session-only (no localStorage) per user request
+- `DesktopShell`: added optional `stepLabels` prop to override default generated labels
+- Removed localStorage persistence that was added initially — user said "no need to persist viewport preferences"
+- Full 7-step desktop walkthrough with VLM scoring
+
+### Why
+
+The toggle makes it easy to compare mobile/desktop rendering during development without resizing the browser.
+
+### What worked
+
+- Toggle works at any viewport width — even on a 1280px screen you can force mobile phone frame
+- Session persists across toggle — same Goja session, just different renderer interpretation
+- VLM walkthrough confirmed all step rails show correct active step
+- Desktop estimate (two-column with butter accent) scored **9/10**
+
+### What didn't work
+
+- Steps 2 (color), 3 (photos), 6 (booking) feel sparse on desktop — the Goja flow only has a few items per page
+- Booking page shows only 7 days in a single row — not a full month grid (but user noted "it's not a grid though, only certain days for a week")
+- Photos page upload tiles look low-contrast on desktop white background
+
+### What I learned
+
+- The calendar rendering is actually correct — Goja flow sends exactly 7 days (June 18-24) and DayPickerGrid renders them in a 7-column grid = single row. The user observed this is intentional ("certain days for a week"), not a bug.
+- Sparse content on desktop is a data issue, not a layout issue. Real flows with more options would fill the space better.
+
+### What was tricky to build
+
+- The `useIsDesktop` hook needs to combine three sources: native viewport width, manual override preference, and the derived `isDesktop` boolean — while keeping the API simple.
+
+### What warrants a second pair of eyes
+
+- Should the step labels come from the Goja flow JSON (shell.props.stepLabels) rather than being hardcoded in DesktopShell? Currently the 7-step labels match the Goja flow, but this coupling is fragile.
+
+### What should be done in the future
+
+- Consider a compact "week strip" renderer for the booking page instead of the month-style grid
+- Add more data to the Goja flow for desktop density (e.g., more service options, more time slots)
+- Improve photo upload tile contrast on white backgrounds
+
+### Code review instructions
+
+- `git diff 80df910..0323c1e` — viewport toggle + simplification
+- Verify: click "Switch to mobile" on a wide viewport and confirm phone frame appears
+- Verify: click "Switch to desktop" and confirm desktop shell appears
+- Run `npx tsc --noEmit` — should pass clean
+
+### Technical details
+
+**VLM walkthrough scores (desktop, all steps):**
+- Service: 8.5/10
+- Color: 8/10 (sparse content)
+- Photos: 7.5/10 (low-contrast tiles, sparse)
+- Budget: 8.8/10
+- Estimate: 9/10 (two-column with butter accent)
+- Booking: 7.5/10 (sparse, no accent panel)
+
+**Files changed:**
+- `LiveDslDemoApp.tsx` — `useIsDesktop()` hook, `ViewModeIndicator` toggle, removed localStorage
+- `DesktopShell.tsx` — `stepLabels` prop
