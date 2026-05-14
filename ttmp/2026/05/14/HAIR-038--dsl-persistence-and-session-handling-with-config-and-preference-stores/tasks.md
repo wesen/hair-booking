@@ -12,9 +12,9 @@
 - [x] Phase 1: Register pre-provisioned Goja database modules configDb and stateDb with configure disabled
 - [x] Phase 1: Add QueryOnlyDB wrapper so configDb rejects exec and non-read SQL
 - [x] Phase 1: Add runtime tests proving configDb is read-only and stateDb is read-write
-- [ ] Phase 2: Add FlowSession StateJSON/StateMap helpers for durable JSON-safe ctx.state snapshots
-- [ ] Phase 2: Persist state_json/current page/version after DSL start and every event dispatch
-- [ ] Phase 2: Add server tests proving state_json changes after user choices
+- [x] Phase 2: Add FlowSession StateJSON/StateMap helpers for durable JSON-safe ctx.state snapshots
+- [x] Phase 2: Persist state_json/current page/version after DSL start and every event dispatch
+- [x] Phase 2: Add server tests proving state_json changes after user choices
 - [ ] Phase 3: Add Runtime.ResumeFlow to rebuild a Goja VM from persisted state JSON and regenerate actions
 - [ ] Phase 3: Hydrate missing in-memory DSL sessions from stateDb in GET/event/upload handlers
 - [ ] Phase 3: Add restart-style server tests for session recovery and fresh action ids

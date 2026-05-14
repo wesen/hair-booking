@@ -36,3 +36,15 @@ Phase 1: Added configDb/stateDb RuntimeHost plumbing, registered pre-provisioned
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/modules_dsl.go — configDb/stateDb module registration
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl.go — dslFlowStore config/state DB wiring
 
+
+## 2026-05-14
+
+Phase 2: Persist real Goja ctx.state snapshots into dsl_flow_sessions.state_json after start and event dispatch, with server test coverage.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/runtime.go — StateJSON helper for durable state snapshots
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl.go — Persists session snapshot after dispatch
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_test.go — State persistence regression test
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_uploads.go — recordDSLFlowSession writes state_json
+

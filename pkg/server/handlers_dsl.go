@@ -136,6 +136,10 @@ func (h *appHandler) handleDSLEvent(w http.ResponseWriter, r *http.Request) {
 		writeDSLProtoError(w, http.StatusBadRequest, "dsl_dispatch_failed", err.Error())
 		return
 	}
+	if err := h.recordDSLFlowSession(r, session, result); err != nil {
+		writeDSLProtoError(w, http.StatusInternalServerError, "dsl_session_record_failed", err.Error())
+		return
+	}
 	state, err := dslgoja.FlowStateFromResult(result)
 	if err != nil {
 		writeDSLProtoError(w, http.StatusInternalServerError, "dsl_proto_conversion_failed", err.Error())

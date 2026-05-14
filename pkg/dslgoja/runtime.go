@@ -62,6 +62,19 @@ func (s *FlowSession) Snapshot() (int64, Page) {
 	return s.Version, s.CurrentPage
 }
 
+func (s *FlowSession) StateJSON() ([]byte, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.stateJSONLocked()
+}
+
+func (s *FlowSession) stateJSONLocked() ([]byte, error) {
+	if s.state == nil || goja.IsUndefined(s.state) || goja.IsNull(s.state) {
+		return []byte("{}"), nil
+	}
+	return json.Marshal(s.state.Export())
+}
+
 type ActionRegistration struct {
 	ID       string
 	Name     string

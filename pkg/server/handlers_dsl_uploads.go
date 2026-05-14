@@ -60,14 +60,19 @@ func (h *appHandler) recordDSLFlowSession(r *http.Request, session *dslgoja.Flow
 	if h.dslFlows == nil || h.dslFlows.stateDB == nil || session == nil || result == nil {
 		return nil
 	}
-	_, err := h.dslFlows.stateDB.ExecContext(r.Context(), `INSERT INTO dsl_flow_sessions(id, flow_id, user_id, status, current_page_id, current_page_version, state_json)
-VALUES (?, ?, ?, 'active', ?, ?, '{}')
-ON CONFLICT(id) DO UPDATE SET current_page_id = excluded.current_page_id, current_page_version = excluded.current_page_version, updated_at = datetime('now')`,
+	stateJSON, err := session.StateJSON()
+	if err != nil {
+		return err
+	}
+	_, err = h.dslFlows.stateDB.ExecContext(r.Context(), `INSERT INTO dsl_flow_sessions(id, flow_id, user_id, status, current_page_id, current_page_version, state_json)
+VALUES (?, ?, ?, 'active', ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET current_page_id = excluded.current_page_id, current_page_version = excluded.current_page_version, state_json = excluded.state_json, updated_at = datetime('now')`,
 		session.ID,
 		session.FlowID,
 		h.dslUserSnapshot(r).ID,
 		result.Page.ID,
 		result.PageVersion,
+		string(stateJSON),
 	)
 	return err
 }

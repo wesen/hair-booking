@@ -312,3 +312,64 @@ The server wiring was also updated to carry config/state database dependencies s
 ### Technical details
 - Focused validation command:
   - `go test ./pkg/dslgoja ./pkg/server -count=1`
+
+## Step 5: Persist real ctx.state snapshots after start and dispatch
+
+This step implemented the first durable session-state slice. The runtime can now export the Goja `ctx.state` value as JSON, and the server writes that JSON into `dsl_flow_sessions.state_json` when a flow starts and after each successful event dispatch.
+
+This does not yet hydrate missing in-memory sessions after a backend restart. It creates the durable record that hydration will consume in the next phase.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Continue implementing HAIR-038 phases in order after the configDb/stateDb plumbing commit.
+
+**Inferred user intent:** The user wants incremental code changes that move the DSL from in-memory state toward durable sessions, with tests and commits at each stable boundary.
+
+**Commit (code):** pending at time of diary entry.
+
+### What I did
+- Added `FlowSession.StateJSON()` in `pkg/dslgoja/runtime.go`.
+- Updated `recordDSLFlowSession(...)` to serialize and persist real `ctx.state` instead of writing `'{}'`.
+- Updated `handleDSLEvent(...)` to persist the session snapshot after dispatch.
+- Added `TestDSLFlowPersistsStateJSONOnStartAndDispatch` in `pkg/server/handlers_dsl_test.go`.
+- Checked tasks 10-12.
+
+### Why
+- Durable hydration requires a persisted state snapshot before it can recreate a Goja VM.
+- `dsl_flow_sessions.state_json` already existed in the schema, so this phase uses the existing table before adding more schema.
+- Persisting after every dispatch ensures current choices are not only in the VM heap.
+
+### What worked
+- The server test proves that start writes initial state such as `category: "color"`.
+- The server test proves that dispatching a category change updates `state_json` to `category: "extensions"` and advances the persisted page version.
+- `go test ./pkg/dslgoja ./pkg/server -count=1` passed.
+
+### What didn't work
+- No code failure remained after formatting and focused tests.
+- Hydration is not implemented yet, so backend restart recovery is still future work.
+
+### What I learned
+- `goja.Value.Export()` is sufficient for the current JSON-safe flow state.
+- Persisting the state from server handlers keeps runtime responsibilities narrow: the runtime exports state; the server decides when and where to persist it.
+
+### What was tricky to build
+- The main ordering issue is when to persist after dispatch. Persisting before protobuf conversion records the state even if later conversion would fail; persisting after conversion would avoid that but duplicate conversion work. The current implementation persists after a successful `Dispatch` return and before converting the result to `FlowState`, matching the existing start-flow ordering.
+
+### What warrants a second pair of eyes
+- Review whether failed callback results that return danger effects should persist mutated state or whether persistence should be limited to successful page exports without danger effects.
+- Review whether `StateJSON()` should enforce stricter JSON validation or normalize unsupported values explicitly.
+
+### What should be done in the future
+- Implement Phase 3: `Runtime.ResumeFlow(...)` and server hydration from `state_json`.
+- Add tests for non-JSON `ctx.state` values if flow authors start using richer host objects.
+
+### Code review instructions
+- Start in `pkg/dslgoja/runtime.go` at `StateJSON()`.
+- Then inspect `pkg/server/handlers_dsl_uploads.go` at `recordDSLFlowSession(...)` and `pkg/server/handlers_dsl.go` at `handleDSLEvent(...)`.
+- Validate with `go test ./pkg/dslgoja ./pkg/server -count=1`.
+
+### Technical details
+- Focused validation command:
+  - `go test ./pkg/dslgoja ./pkg/server -count=1`
