@@ -15,7 +15,7 @@ const (
 	StorageModeLocal       = "local"
 	StorageModeS3          = "s3"
 	DefaultStorageLocalDir = "./var/uploads"
-	DefaultPublicBaseURL   = "http://127.0.0.1:8080"
+	DefaultPublicBaseURL   = ""
 	DefaultAutoMigrate     = true
 )
 
@@ -55,7 +55,7 @@ func NewSection() (schema.Section, error) {
 			fields.New(
 				"public-base-url",
 				fields.TypeString,
-				fields.WithHelp("Base URL used to build public upload URLs"),
+				fields.WithHelp("Base URL for public upload URLs (empty = relative /uploads/... URLs)"),
 				fields.WithDefault(envOr("HAIR_BOOKING_PUBLIC_BASE_URL", DefaultPublicBaseURL)),
 			),
 			fields.New(
