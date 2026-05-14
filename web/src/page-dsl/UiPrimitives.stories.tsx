@@ -145,16 +145,24 @@ const calendarGridDsl: DslPage = page("calendar-grid", "calendarGrid: Date Picke
 // ── Desktop two-column partition ───────────────────────────────────
 
 const desktopPartitionDsl: DslPage = page("desktop-partition", "Desktop Partition")
-  .shell({ kind: "desktop", props: { step: 5, total: 7, accent: "butter", accentInk: "ink", activeNav: "Book" } })
+  .shell({ kind: "desktop", props: { step: 7, total: 9, accent: "butter", accentInk: "ink", activeNav: "Book" } })
   .add(
-    n.text("On desktop, stat and personCard auto-pull into the right-side accent panel.", { variant: "editorial", style: { marginBottom: 16 } }),
-    n.kvRow("Service", "Highlights"),
-    n.kvRow("Tone", "Dimensional"),
-    n.kvRow("Budget", "Flexible"),
-    n.kvRow("Range", "$220–$420"),
-    // These two will auto-partition to the context panel
-    n.stat("$245", { label: "ESTIMATED · USD", subtitle: "Based on your selections." }),
-    n.personCard("Nadia Rivera", { role: "Senior colorist", badge: "Best match" }),
+    // Left column: heading + summary rows
+    n.eyebrow("Chapter VII · The Quote", { style: { marginBottom: 10 } }),
+    n.text("Your\nestimate.", { variant: "h3", style: { fontSize: 84, lineHeight: 0.9, letterSpacing: -1.5, fontFamily: '"Anton", Impact, sans-serif', textTransform: "uppercase", color: '#111111', marginBottom: 8 } }),
+    n.text("Based on what you've shared. Final number depends on an in-chair look.", { variant: "editorial", style: { fontSize: 22, maxWidth: 440, marginTop: 14, marginBottom: 48 } }),
+    n.kvRow("Service", "Partial highlights + cut", { editable: true }),
+    n.kvRow("Color level", "Level 7 → Level 8", { editable: true }),
+    n.kvRow("Length", "Mid-back · no extensions", { editable: true }),
+    n.kvRow("Add-ons", "Olaplex bond treatment · $45"),
+    n.spacer(32),
+    n.note("Color corrections or unexpected length may adjust the final quote in-salon.", { tone: "warn" }),
+    // These auto-partition to the context panel
+    n.stat("$245", { label: "ESTIMATED · USD", subtitle: "3 hours, 15 minutes.", size: "display" }),
+    // Explicitly place tier rows in context panel
+    n.kvRow("LOW", "$220").region("context"),
+    n.kvRow("LIKELY", "$245").region("context"),
+    n.kvRow("HIGH", "$285").region("context"),
   )
   .toJSON() as DslPage;
 

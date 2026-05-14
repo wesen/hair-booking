@@ -29,6 +29,7 @@ export function AccentPanel({
         justifyContent: "space-between",
         minHeight: 680,
         color: accentInk,
+        // Override SummaryRow styles via CSS custom properties
         ...style,
       }}
     >

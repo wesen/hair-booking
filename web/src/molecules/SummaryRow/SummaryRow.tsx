@@ -5,14 +5,19 @@ interface SummaryRowProps {
   label: string;
   value: string;
   onEdit?: () => void;
+  /** When true, use ink-colored dividers and values (for use on colored accent panels) */
+  accent?: boolean;
   style?: CSSProperties;
 }
 
-export function SummaryRow({ label, value, onEdit, style }: SummaryRowProps) {
+export function SummaryRow({ label, value, onEdit, accent, style }: SummaryRowProps) {
+  const dividerColor = accent ? 'rgba(17,17,17,0.25)' : color.ruleSoft;
+  const labelColor = accent ? 'rgba(17,17,17,0.6)' : color.soft;
+  const editColor = accent ? 'rgba(17,17,17,0.7)' : color.plum;
   return (
     <div data-component="SummaryRow" style={{
       padding: '16px 0',
-      borderTop: `1px solid ${color.ruleSoft}`,
+      borderTop: `1px solid ${dividerColor}`,
       display: 'flex',
       alignItems: 'flex-end',
       justifyContent: 'space-between',
@@ -26,7 +31,7 @@ export function SummaryRow({ label, value, onEdit, style }: SummaryRowProps) {
           letterSpacing: 1.8,
           textTransform: 'uppercase',
           fontWeight: 600,
-          color: color.soft,
+          color: labelColor,
           marginBottom: 4,
         }}>
           {label}
@@ -36,19 +41,20 @@ export function SummaryRow({ label, value, onEdit, style }: SummaryRowProps) {
           fontSize: 18,
           letterSpacing: 0.3,
           textTransform: 'uppercase',
-          color: color.ink,
+          color: accent ? 'rgba(17,17,17,0.85)' : color.ink,
+          textAlign: accent ? 'right' : 'left',
         }}>
           {value}
         </div>
       </div>
-      {onEdit && (
+      {onEdit && !accent && (
         <div data-component="SummaryRow"
           onClick={onEdit}
           style={{
             fontFamily: font.serif,
             fontStyle: 'italic',
             fontSize: 14,
-            color: color.plum,
+            color: editColor,
             cursor: 'pointer',
           }}
         >

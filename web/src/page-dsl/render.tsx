@@ -186,7 +186,7 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
     case "progress":
       return <Progress key={key} {...common} value={num(props, "value")} max={num(props, "max", 100)} color={str(props, "color", undefined as unknown as string)} style={style(props)} />;
     case "masthead":
-      return <Masthead key={key} {...common} title={str(props, "title")} eyebrow={str(props, "eyebrow", undefined as unknown as string)} accent={str(props, "accent", undefined as unknown as string)} right={str(props, "right", undefined as unknown as string)} compact={bool(props, "compact")} />;
+      return <Masthead key={key} {...common} title={str(props, "title")} eyebrow={str(props, "eyebrow", undefined as unknown as string)} accent={str(props, "accent", undefined as unknown as string)} right={str(props, "right", undefined as unknown as string)} compact={bool(props, "compact")} display={bool(props, "display")} style={style(props)} />;
 
     // ── Selection primitives ───────────────────────────────
     case "selectable": {
@@ -455,13 +455,15 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
     case "kvRow": {
       // Use SummaryRow molecule
       const editable = bool(props, "editable") || !!actionRef(props, "edit");
+      const inContext = node.meta?.region === "context";
       return (
         <SummaryRow
           key={key}
           {...common}
           label={str(props, "label")}
           value={str(props, "value")}
-          onEdit={editable ? () => dispatchAction(ctx, node, props, "edit", "onEdit") : undefined}
+          onEdit={editable && !inContext ? () => dispatchAction(ctx, node, props, "edit", "onEdit") : undefined}
+          accent={inContext}
           style={style(props)}
         />
       );
@@ -472,12 +474,15 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
       const label = str(props, "label", undefined as unknown as string);
       const subtitle = str(props, "subtitle", undefined as unknown as string);
       const size = str(props, "size", "lg");
-      const fontSize = size === "xl" ? 72 : size === "md" ? 36 : 56;
+      const fontSize = size === "display" ? 180 : size === "xl" ? 72 : size === "md" ? 36 : 56;
+      const labelSize = size === "display" ? 12 : 10;
+      const subtitleSize = size === "display" ? 22 : 16;
+      const tracking = size === "display" ? -6 : -0.5;
       return (
         <div key={key} {...common} style={{ ...style(props) }}>
-          {label && <div style={{ fontFamily: font.mono, fontSize: 10, letterSpacing: 1.8, textTransform: "uppercase", fontWeight: 600, color: color.plumDeep, marginBottom: 8 }}>{label}</div>}
-          <div style={{ fontFamily: font.block, fontSize, textTransform: "uppercase", color: color.ink, letterSpacing: -0.5, lineHeight: 0.9 }}>{value}</div>
-          {subtitle && <div style={{ fontFamily: font.serif, fontStyle: "italic", fontSize: 16, color: color.softInk, marginTop: 8, lineHeight: 1.4 }}>{subtitle}</div>}
+          {label && <div style={{ fontFamily: font.mono, fontSize: labelSize, letterSpacing: 1.8, textTransform: "uppercase", fontWeight: 600, color: color.plumDeep, marginBottom: size === "display" ? 14 : 8 }}>{label}</div>}
+          <div style={{ fontFamily: font.block, fontSize, textTransform: "uppercase", color: color.ink, letterSpacing: tracking, lineHeight: size === "display" ? 0.82 : 0.9 }}>{value}</div>
+          {subtitle && <div style={{ fontFamily: font.serif, fontStyle: "italic", fontSize: subtitleSize, color: color.softInk, marginTop: size === "display" ? 12 : 8, lineHeight: 1.4 }}>{subtitle}</div>}
         </div>
       );
     }
@@ -622,7 +627,9 @@ export function DslPageRenderer({ page, context }: { page: DslPage; context?: Ds
           activeNav={str(props, "activeNav", "Book")}
           user={(props.user as any) || { name: "Mia", initial: "M" }}
         >
-          <TwoColumnLayout leftWidth="1.15fr" rightWidth="1fr" gap={0} left={mainContent} right={contextContent} />
+          <div data-component="DesktopContent" style={{ padding: "48px 56px" }}>
+            <TwoColumnLayout leftWidth="1.15fr" rightWidth="1fr" gap={32} left={mainContent} right={contextContent} />
+          </div>
         </DesktopShell>
       );
     }
@@ -636,7 +643,9 @@ export function DslPageRenderer({ page, context }: { page: DslPage; context?: Ds
         activeNav={str(props, "activeNav", "Book")}
         user={(props.user as any) || { name: "Mia", initial: "M" }}
       >
-        {mainContent}
+        <div data-component="DesktopContent" style={{ padding: "48px 56px" }}>
+          {mainContent}
+        </div>
       </DesktopShell>
     );
   }
