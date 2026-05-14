@@ -691,3 +691,55 @@ This completes the initially planned HAIR-038 implementation task list. The impl
 ### Technical details
 - Focused validation command:
   - `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1`
+
+## Step 11: Run full validation and publish updated guide
+
+After completing the implementation task list, I ran the full Go test suite to catch cross-package regressions beyond the focused DSL packages. The full suite passed.
+
+The design guide changed during implementation, especially around operational cleanup and the concrete configDb/stateDb implementation, so I re-uploaded the updated guide to reMarkable using the same HAIR-038 destination.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Validate the completed implementation set, update the diary, and keep the published guide current.
+
+**Inferred user intent:** The user wants a reviewable endpoint with tests and documentation synchronized.
+
+**Commit (code):** pending at time of diary entry.
+
+### What I did
+- Ran `go test ./... -count=1`.
+- Confirmed all Go packages passed.
+- Re-uploaded the updated design guide to reMarkable.
+
+### Why
+- The implementation touched command wiring, server handlers, runtime internals, embedded SQL, and tests, so full-suite validation is appropriate before handing off.
+- The reMarkable copy should match the final ticket guide, not the earlier pre-implementation version.
+
+### What worked
+- Full validation passed:
+  - `go test ./... -count=1`
+- The upload command completed successfully.
+
+### What didn't work
+- N/A
+
+### What I learned
+- The focused package tests were representative, but full-suite validation is still useful after command/server option changes.
+
+### What was tricky to build
+- N/A for validation; the tricky implementation details are captured in Steps 4-10.
+
+### What warrants a second pair of eyes
+- Review the remaining follow-ups even though the task list is complete: existing SQLite migrations, signed anonymous owner cookies, and whether cleanup should run automatically.
+
+### What should be done in the future
+- Decide whether to close HAIR-038 or create follow-up tickets for migration/anonymous-owner hardening.
+
+### Code review instructions
+- Start from the commit sequence for HAIR-038 phases and then run `go test ./... -count=1`.
+
+### Technical details
+- Full validation command:
+  - `go test ./... -count=1`
