@@ -442,3 +442,72 @@ Hydration deliberately regenerates action ids. The durable state is the JSON sta
 ### Technical details
 - Focused validation command:
   - `go test ./pkg/dslgoja ./pkg/server -count=1`
+
+## Step 7: Add a seeded configDb and move intake content behind configDb helpers
+
+This step added the first read-only configuration database path. The config database has its own schema and seed data for the current Fringe intake flow. The server opens this database on startup and passes it into the DSL runtime as `configDb`.
+
+The intake flow still keeps fallback constants so tests and developer setups without `configDb` continue to run, but the actual page helper functions now try `configDb` first for services, tones, budgets, availability days, time slots, and price ranges.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Continue implementing the HAIR-038 phases after session hydration by adding the read-only config database slice.
+
+**Inferred user intent:** The user wants site/app content to move out of hard-coded flow arrays and into pre-provisioned database data without introducing app-specific Go host modules.
+
+**Commit (code):** pending at time of diary entry.
+
+### What I did
+- Added `pkg/dslhost/config_schema.sql` with versioned config tables and seed data matching the current intake arrays.
+- Added `dslhost.DefaultConfigSQLitePath` and `OpenConfigDB(...)`.
+- Updated schema embedding to include all SQL files.
+- Added config DB provisioning tests in `pkg/dslhost/db_test.go`.
+- Added serve flags:
+  - `--dsl-config-sqlite-path`
+  - `--dsl-config-sqlite-migrate`
+- Updated `serve` to open config DB and pass it to `server.NewHTTPServer`.
+- Updated `pkg/dslgoja/flows/intake.flow.js` to optionally require `configDb` and use config-backed helper functions.
+- Added a server test that mutates seeded config DB content and verifies the live DSL page reads service options from `configDb`.
+- Checked task 16.
+
+### Why
+- The corrected design requires app content to come from a generic read-only DB object, not a service-specific Go module.
+- The existing flow arrays are a good seed source for the first config schema.
+- Keeping fallback constants avoids breaking no-configDB test setups while the runtime transition is in progress.
+
+### What worked
+- `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1` passed.
+- The live flow can read service options from the seeded config DB through `configDb`.
+- The runtime remains app-agnostic: app-specific SQL lives in JavaScript helper functions.
+
+### What didn't work
+- Config version pinning is not fully persisted on `dsl_flow_sessions` yet. `ctx.state.configVersionId` is present, but the state schema does not yet have a dedicated `config_version_id` column.
+- The config DB is enforced as read-only from JavaScript by the `configDb` wrapper, but the Go startup connection is still writable for provisioning/seed updates.
+
+### What I learned
+- Moving content behind JavaScript helpers is a low-risk migration path: the flow can prefer `configDb` while retaining fallback constants.
+- SQLite integer booleans need normalization in JavaScript before they are passed into renderer props such as `dot` and `disabled`.
+
+### What was tricky to build
+- The main tricky detail was preserving generic runtime boundaries. The schema is sample-app specific, but the Go runtime only knows that it is opening and exposing `configDb`. The appointment-specific assumptions remain in seed data and JavaScript helper SQL.
+- Another tricky detail was `configDb.query(sql, args)`: the go-go-goja database module flattens JavaScript array arguments, so helpers can pass `[configVersion, category]` as one argument list.
+
+### What warrants a second pair of eyes
+- Review whether `OpenConfigDB` should reopen SQLite in read-only filesystem mode after provisioning.
+- Review whether fallback constants should remain long-term or whether production should fail fast when `configDb` is absent.
+- Review the config schema naming before adding more app types.
+
+### What should be done in the future
+- Implement task 17: persist `config_version_id` explicitly on DSL sessions and add deterministic rerender tests.
+- Decide whether config seed data belongs in SQL, JSON fixtures, or an admin import path.
+
+### Code review instructions
+- Start with `pkg/dslhost/config_schema.sql` and `pkg/dslhost/db.go`.
+- Then inspect the `configDb` helper functions near the top of `pkg/dslgoja/flows/intake.flow.js`.
+- Validate with `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1`.
+
+### Technical details
+- Focused validation command:
+  - `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1`

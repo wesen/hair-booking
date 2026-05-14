@@ -13,8 +13,9 @@ import (
 )
 
 const DefaultSQLitePath = "./var/fringe-dsl.sqlite"
+const DefaultConfigSQLitePath = "./var/fringe-dsl-config.sqlite"
 
-//go:embed schema.sql
+//go:embed *.sql
 var schemaFS embed.FS
 
 type DBOptions struct {
@@ -28,9 +29,17 @@ type DBHost struct {
 }
 
 func OpenDB(ctx context.Context, opts DBOptions) (*DBHost, error) {
+	return openDB(ctx, opts, DefaultSQLitePath, ProvisionSchema)
+}
+
+func OpenConfigDB(ctx context.Context, opts DBOptions) (*DBHost, error) {
+	return openDB(ctx, opts, DefaultConfigSQLitePath, ProvisionConfigSchema)
+}
+
+func openDB(ctx context.Context, opts DBOptions, defaultPath string, provision func(context.Context, *sql.DB) error) (*DBHost, error) {
 	path := strings.TrimSpace(opts.Path)
 	if path == "" {
-		path = DefaultSQLitePath
+		path = defaultPath
 	}
 
 	if path != ":memory:" {
@@ -47,14 +56,14 @@ func OpenDB(ctx context.Context, opts DBOptions) (*DBHost, error) {
 		return nil, fmt.Errorf("open DSL SQLite database: %w", err)
 	}
 	host := &DBHost{DB: db, Path: path}
-	if err := host.configure(ctx, opts.Migrate); err != nil {
+	if err := host.configure(ctx, opts.Migrate, provision); err != nil {
 		_ = host.Close()
 		return nil, err
 	}
 	return host, nil
 }
 
-func (h *DBHost) configure(ctx context.Context, migrate bool) error {
+func (h *DBHost) configure(ctx context.Context, migrate bool, provision func(context.Context, *sql.DB) error) error {
 	if h == nil || h.DB == nil {
 		return fmt.Errorf("DSL SQLite host is nil")
 	}
@@ -73,8 +82,8 @@ func (h *DBHost) configure(ctx context.Context, migrate bool) error {
 	if err := h.DB.PingContext(ctx); err != nil {
 		return fmt.Errorf("ping DSL SQLite database: %w", err)
 	}
-	if migrate {
-		if err := ProvisionSchema(ctx, h.DB); err != nil {
+	if migrate && provision != nil {
+		if err := provision(ctx, h.DB); err != nil {
 			return err
 		}
 	}
@@ -82,15 +91,23 @@ func (h *DBHost) configure(ctx context.Context, migrate bool) error {
 }
 
 func ProvisionSchema(ctx context.Context, db *sql.DB) error {
+	return provisionEmbeddedSchema(ctx, db, "schema.sql", "DSL schema")
+}
+
+func ProvisionConfigSchema(ctx context.Context, db *sql.DB) error {
+	return provisionEmbeddedSchema(ctx, db, "config_schema.sql", "DSL config schema")
+}
+
+func provisionEmbeddedSchema(ctx context.Context, db *sql.DB, filename, label string) error {
 	if db == nil {
-		return fmt.Errorf("provision DSL schema: database is nil")
+		return fmt.Errorf("provision %s: database is nil", label)
 	}
-	schema, err := schemaFS.ReadFile("schema.sql")
+	schema, err := schemaFS.ReadFile(filename)
 	if err != nil {
-		return fmt.Errorf("read embedded DSL schema: %w", err)
+		return fmt.Errorf("read embedded %s: %w", label, err)
 	}
 	if _, err := db.ExecContext(ctx, string(schema)); err != nil {
-		return fmt.Errorf("provision DSL schema: %w", err)
+		return fmt.Errorf("provision %s: %w", label, err)
 	}
 	return nil
 }

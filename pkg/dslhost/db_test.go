@@ -53,3 +53,25 @@ func TestProvisionSchemaIsIdempotent(t *testing.T) {
 		t.Fatalf("ProvisionSchema second run: %v", err)
 	}
 }
+
+func TestOpenConfigDBMigratesAndSeedsSchema(t *testing.T) {
+	host, err := OpenConfigDB(context.Background(), DBOptions{Path: filepath.Join(t.TempDir(), "config.sqlite"), Migrate: true})
+	if err != nil {
+		t.Fatalf("OpenConfigDB: %v", err)
+	}
+	defer func() { _ = host.Close() }()
+
+	for _, table := range []string{"dsl_config_versions", "dsl_service_options", "dsl_tone_options", "dsl_budget_options", "dsl_availability_days", "dsl_time_slots"} {
+		var name string
+		if err := host.DB.QueryRow(`SELECT name FROM sqlite_master WHERE type = 'table' AND name = ?`, table).Scan(&name); err != nil {
+			t.Fatalf("table %s not found: %v", table, err)
+		}
+	}
+	var serviceCount int
+	if err := host.DB.QueryRow(`SELECT count(*) FROM dsl_service_options WHERE config_version_id = 'cfg_default'`).Scan(&serviceCount); err != nil {
+		t.Fatalf("query service seed: %v", err)
+	}
+	if serviceCount != 3 {
+		t.Fatalf("service seed count = %d", serviceCount)
+	}
+}

@@ -31,10 +31,12 @@ type ServeCommand struct {
 }
 
 type ServeSettings struct {
-	ListenHost       string `glazed:"listen-host"`
-	ListenPort       int    `glazed:"listen-port"`
-	DSLSQLitePath    string `glazed:"dsl-sqlite-path"`
-	DSLSQLiteMigrate bool   `glazed:"dsl-sqlite-migrate"`
+	ListenHost             string `glazed:"listen-host"`
+	ListenPort             int    `glazed:"listen-port"`
+	DSLSQLitePath          string `glazed:"dsl-sqlite-path"`
+	DSLSQLiteMigrate       bool   `glazed:"dsl-sqlite-migrate"`
+	DSLConfigSQLitePath    string `glazed:"dsl-config-sqlite-path"`
+	DSLConfigSQLiteMigrate bool   `glazed:"dsl-config-sqlite-migrate"`
 }
 
 var _ cmds.BareCommand = &ServeCommand{}
@@ -65,7 +67,19 @@ func NewServeCommand(version string) (*ServeCommand, error) {
 			fields.New(
 				"dsl-sqlite-migrate",
 				fields.TypeBool,
-				fields.WithHelp("Provision or migrate the Goja DSL SQLite schema on startup"),
+				fields.WithHelp("Provision or migrate the Goja DSL state SQLite schema on startup"),
+				fields.WithDefault(true),
+			),
+			fields.New(
+				"dsl-config-sqlite-path",
+				fields.TypeString,
+				fields.WithHelp("SQLite database path used for read-only Goja DSL configDb content"),
+				fields.WithDefault(dslhost.DefaultConfigSQLitePath),
+			),
+			fields.New(
+				"dsl-config-sqlite-migrate",
+				fields.TypeBool,
+				fields.WithHelp("Provision or migrate the Goja DSL configDb schema and seed content on startup"),
 				fields.WithDefault(true),
 			),
 		),
@@ -148,6 +162,12 @@ func (c *ServeCommand) Run(ctx context.Context, parsedValues *values.Values) err
 	}
 	defer func() { _ = dslDB.Close() }()
 
+	dslConfigDB, err := dslhost.OpenConfigDB(ctx, dslhost.DBOptions{Path: settings.DSLConfigSQLitePath, Migrate: settings.DSLConfigSQLiteMigrate})
+	if err != nil {
+		return pkgerrors.Wrap(err, "failed to open DSL config SQLite database")
+	}
+	defer func() { _ = dslConfigDB.Close() }()
+
 	var blobStore hairstorage.BlobStore
 	switch backendSettings.StorageMode {
 	case hairconfig.StorageModeLocal:
@@ -175,6 +195,8 @@ func (c *ServeCommand) Run(ctx context.Context, parsedValues *values.Values) err
 		DSLDB:               dslDB.DB,
 		DSLStateSQLitePath:  dslDB.Path,
 		DSLStateDB:          dslDB.DB,
+		DSLConfigSQLitePath: dslConfigDB.Path,
+		DSLConfigDB:         dslConfigDB.DB,
 	})
 	if err != nil {
 		return pkgerrors.Wrap(err, "failed to create http server")
@@ -197,6 +219,8 @@ func (c *ServeCommand) Run(ctx context.Context, parsedValues *values.Values) err
 		Str("frontend_dev_proxy_url", backendSettings.FrontendDevProxyURL).
 		Str("dsl_sqlite_path", dslDB.Path).
 		Bool("dsl_sqlite_migrate", settings.DSLSQLiteMigrate).
+		Str("dsl_config_sqlite_path", dslConfigDB.Path).
+		Bool("dsl_config_sqlite_migrate", settings.DSLConfigSQLiteMigrate).
 		Str("issuer", authSettings.OIDCIssuerURL).
 		Str("client_id", authSettings.OIDCClientID).
 		Msg("Starting hair-booking server")

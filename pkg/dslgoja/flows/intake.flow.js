@@ -1,6 +1,9 @@
 const { page, n } = require("fringe/dsl");
 const images = require("host/images");
 
+var configDb = null;
+try { configDb = require("configDb"); } catch (e) { configDb = null; }
+
 // ── Data ──────────────────────────────────────────────────────────────
 
 const serviceOptions = [
@@ -41,6 +44,75 @@ const timeOptions = [
   { value: "16:30", title: "4:30p" },
 ];
 
+function queryConfig(sql, args, fallback) {
+  if (!configDb) return fallback;
+  try {
+    return configDb.query(sql, args || []);
+  } catch (e) {
+    return fallback;
+  }
+}
+
+function configVersion(ctx) {
+  if (ctx.state.configVersionId) return ctx.state.configVersionId;
+  var rows = queryConfig(
+    "SELECT id FROM dsl_config_versions WHERE status = ? ORDER BY activated_at DESC LIMIT 1",
+    ["active"],
+    []
+  );
+  ctx.state.configVersionId = rows.length ? rows[0].id : "cfg_default";
+  return ctx.state.configVersionId;
+}
+
+function configuredServiceOptions(ctx) {
+  return queryConfig(
+    "SELECT value, title, subtitle, badge FROM dsl_service_options WHERE config_version_id = ? AND category = ? AND enabled = 1 ORDER BY sort_order",
+    [configVersion(ctx), ctx.state.category],
+    serviceOptions
+  );
+}
+
+function configuredToneOptions(ctx) {
+  return queryConfig(
+    "SELECT value, label FROM dsl_tone_options WHERE config_version_id = ? AND enabled = 1 ORDER BY sort_order",
+    [configVersion(ctx)],
+    toneOptions
+  );
+}
+
+function configuredBudgetOptions(ctx) {
+  return queryConfig(
+    "SELECT value, title, subtitle FROM dsl_budget_options WHERE config_version_id = ? AND enabled = 1 ORDER BY sort_order",
+    [configVersion(ctx)],
+    budgetOptions
+  );
+}
+
+function configuredDayOptions(ctx) {
+  var rows = queryConfig(
+    "SELECT value, day, date, dot, disabled FROM dsl_availability_days WHERE config_version_id = ? ORDER BY sort_order",
+    [configVersion(ctx)],
+    dayOptions
+  );
+  return rows.map(function (row) {
+    return {
+      value: row.value,
+      day: row.day,
+      date: row.date,
+      dot: row.dot === true || Number(row.dot) === 1,
+      disabled: row.disabled === true || Number(row.disabled) === 1,
+    };
+  });
+}
+
+function configuredTimeOptions(ctx) {
+  return queryConfig(
+    "SELECT value, title FROM dsl_time_slots WHERE config_version_id = ? AND enabled = 1 ORDER BY sort_order",
+    [configVersion(ctx)],
+    timeOptions
+  );
+}
+
 // ── Step definitions (used by shell helper for desktop rail navigation) ──
 
 const stepDefs = [
@@ -58,6 +130,7 @@ const stepDefs = [
 function initialState() {
   return {
     step: "service",
+    configVersionId: "cfg_default",
     category: "color",
     service: "highlights",
     tones: ["dimensional"],
@@ -122,11 +195,30 @@ function shell(ctx, config) {
 // ── Helpers ──────────────────────────────────────────────────────────
 
 function selectedServiceName(ctx) {
-  var match = serviceOptions.find(function (o) { return o.value === ctx.state.service; });
+  var match = configuredServiceOptions(ctx).find(function (o) { return o.value === ctx.state.service; });
   return match ? match.title : "Highlights";
 }
 
 function estimateRange(ctx) {
+  var version = configVersion(ctx);
+  var rows = queryConfig(
+    "SELECT label FROM dsl_price_ranges WHERE config_version_id = ? AND budget_value = ? ORDER BY id LIMIT 1",
+    [version, ctx.state.budget],
+    []
+  );
+  if (rows.length) return rows[0].label;
+  rows = queryConfig(
+    "SELECT label FROM dsl_price_ranges WHERE config_version_id = ? AND service_value = ? AND budget_value IS NULL ORDER BY id LIMIT 1",
+    [version, ctx.state.service],
+    []
+  );
+  if (rows.length) return rows[0].label;
+  rows = queryConfig(
+    "SELECT label FROM dsl_price_ranges WHERE config_version_id = ? AND service_value IS NULL AND budget_value IS NULL ORDER BY id LIMIT 1",
+    [version],
+    []
+  );
+  if (rows.length) return rows[0].label;
   if (ctx.state.budget === "under-200") return "$120–$190";
   if (ctx.state.budget === "200-350") return "$220–$340";
   if (ctx.state.budget === "350-plus") return "$360–$520";
@@ -169,13 +261,13 @@ function stepSummary(ctx) {
     rows.push(n.kvRow("Budget", ctx.state.budget).id("ctx-budget").region("context"));
   }
   if (ctx.state.day) {
-    var day = dayOptions.find(function (d) { return d.value === ctx.state.day; });
+    var day = configuredDayOptions(ctx).find(function (d) { return d.value === ctx.state.day; });
     if (day) {
       rows.push(n.kvRow("Date", "June " + day.day).id("ctx-day").region("context"));
     }
   }
   if (ctx.state.time) {
-    var time = timeOptions.find(function (t) { return t.value === ctx.state.time; });
+    var time = configuredTimeOptions(ctx).find(function (t) { return t.value === ctx.state.time; });
     if (time) {
       rows.push(n.kvRow("Time", time.title).id("ctx-time").region("context"));
     }
@@ -213,7 +305,7 @@ function serviceStep(ctx) {
         actions: { change: ctx.action("setCategory", function (event) { ctx.state.category = event.value; return render(ctx); }, "change") },
         style: { marginBottom: 16 },
       }).id("category-tabs"),
-      n.selectableGroup(serviceOptions, ctx.state.service, {
+      n.selectableGroup(configuredServiceOptions(ctx), ctx.state.service, {
         mode: "single",
         actions: { change: ctx.action("setService", function (event) { ctx.state.service = event.value; return render(ctx); }, "change") },
       }).id("service-options"),
@@ -232,7 +324,7 @@ function colorStep(ctx) {
       back: "service", next: "photos",
     }))
     .add(
-      n.chipGroup(toneOptions, ctx.state.tones, {
+      n.chipGroup(configuredToneOptions(ctx), ctx.state.tones, {
         label: "Tone family",
         helperText: "Select the tones you want for your color.",
         actions: { change: ctx.action("setTones", function (event) { ctx.state.tones = event.value; return render(ctx); }, "change") },
@@ -308,7 +400,7 @@ function budgetStep(ctx) {
       n.text("This does not lock you in. It helps us shape the recommendation before you book.", {
         variant: "editorial", style: { marginBottom: 16 },
       }).id("budget-intro"),
-      n.selectableGroup(budgetOptions, ctx.state.budget, {
+      n.selectableGroup(configuredBudgetOptions(ctx), ctx.state.budget, {
         mode: "single",
         actions: { change: ctx.action("setBudget", function (event) { ctx.state.budget = event.value; return render(ctx); }, "change") },
       }).id("budget-options"),
@@ -352,13 +444,13 @@ function bookingStep(ctx) {
       back: "estimate", next: "confirm", nextLabel: "Reserve →",
     }))
     .add(
-      n.calendarGrid(2026, 6, dayOptions, ctx.state.day, {
+      n.calendarGrid(2026, 6, configuredDayOptions(ctx), ctx.state.day, {
         showWeekdays: true,
         monthLabel: "June 2026",
         actions: { change: ctx.action("setDay", function (event) { ctx.state.day = event.value; return render(ctx); }, "change") },
         style: { marginBottom: 16 },
       }).id("booking-days"),
-      n.selectableGroup(timeOptions, ctx.state.time, {
+      n.selectableGroup(configuredTimeOptions(ctx), ctx.state.time, {
         mode: "single", columns: 2,
         actions: { change: ctx.action("setTime", function (event) { ctx.state.time = event.value; return render(ctx); }, "change") },
       }).id("booking-times"),
@@ -373,8 +465,8 @@ function bookingStep(ctx) {
 // ── Step 7: Confirm ──────────────────────────────────────────────────
 
 function confirmStep(ctx) {
-  var day = dayOptions.find(function (item) { return item.value === ctx.state.day; });
-  var time = timeOptions.find(function (item) { return item.value === ctx.state.time; });
+  var day = configuredDayOptions(ctx).find(function (item) { return item.value === ctx.state.day; });
+  var time = configuredTimeOptions(ctx).find(function (item) { return item.value === ctx.state.time; });
   return page("intake-confirm", "Confirm")
     .intake(shell(ctx, {
       step: 7, stepId: "confirm", eyebrow: "Chapter VII · Done", title: "Request received",

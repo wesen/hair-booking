@@ -59,3 +59,14 @@ Phase 3: Added Runtime.ResumeFlow and stateDb-backed session hydration for missi
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl.go — Hydration-aware get/event handlers
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_test.go — Restart-style hydration coverage
 
+
+## 2026-05-14
+
+Phase 4 slice: Added seeded configDb schema/opening path and moved intake content lookups behind configDb-backed JavaScript helpers with fallback constants.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/cmd/hair-booking/cmds/serve.go — configDb CLI flags and startup opening
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/flows/intake.flow.js — configDb-backed content helper functions
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslhost/config_schema.sql — Versioned configDb schema and seed data
+

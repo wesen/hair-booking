@@ -175,6 +175,34 @@ func TestDSLGetHydratesPersistedSessionWithFreshActions(t *testing.T) {
 	}
 }
 
+func TestDSLFlowReadsServiceOptionsFromConfigDB(t *testing.T) {
+	stateHost, err := dslhost.OpenDB(context.Background(), dslhost.DBOptions{Path: filepath.Join(t.TempDir(), "state.sqlite"), Migrate: true})
+	if err != nil {
+		t.Fatalf("OpenDB: %v", err)
+	}
+	defer func() { _ = stateHost.Close() }()
+	configHost, err := dslhost.OpenConfigDB(context.Background(), dslhost.DBOptions{Path: filepath.Join(t.TempDir(), "config.sqlite"), Migrate: true})
+	if err != nil {
+		t.Fatalf("OpenConfigDB: %v", err)
+	}
+	defer func() { _ = configHost.Close() }()
+	if _, err := configHost.DB.Exec(`UPDATE dsl_service_options SET title = 'Color Consult' WHERE value = 'cut'`); err != nil {
+		t.Fatalf("update config seed: %v", err)
+	}
+
+	handler := NewHandler(HandlerOptions{Version: "test", DSLStateDB: stateHost.DB, DSLStateSQLitePath: stateHost.Path, DSLConfigDB: configHost.DB, DSLConfigSQLitePath: configHost.Path})
+	startData := startDSLFlow(t, handler)
+	page := startData["page"].(map[string]any)
+	options := findNodeOptions(t, page, "service-options")
+	if len(options) == 0 {
+		t.Fatalf("service options empty")
+	}
+	first := options[0].(map[string]any)
+	if first["title"] != "Color Consult" {
+		t.Fatalf("first service title = %#v", first["title"])
+	}
+}
+
 func startAndSetCategory(t *testing.T, handler http.Handler, value string) (map[string]any, map[string]any) {
 	t.Helper()
 	startData := startDSLFlow(t, handler)
@@ -259,4 +287,21 @@ func findNodeValue(t *testing.T, page map[string]any, nodeID string) string {
 	}
 	t.Fatalf("node %s not found", nodeID)
 	return ""
+}
+
+func findNodeOptions(t *testing.T, page map[string]any, nodeID string) []any {
+	t.Helper()
+	nodes := page["nodes"].([]any)
+	for _, raw := range nodes {
+		node := raw.(map[string]any)
+		meta, _ := node["meta"].(map[string]any)
+		if meta["id"] != nodeID {
+			continue
+		}
+		props := node["props"].(map[string]any)
+		options, _ := props["options"].([]any)
+		return options
+	}
+	t.Fatalf("node %s not found", nodeID)
+	return nil
 }

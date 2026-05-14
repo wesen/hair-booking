@@ -13,12 +13,15 @@ DocType: design-doc
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: cmd/hair-booking/cmds/serve.go
+      Note: Serve command opens and passes configDb to the DSL runtime
     - Path: pkg/dslgoja/db_modules.go
       Note: QueryOnlyDB wrapper enforces configDb read-only behavior
     - Path: pkg/dslgoja/flows/intake.flow.js
       Note: |-
         Current flow script with hard-coded service, tone, budget, day, and time options plus ctx.state choices
         Current hard-coded sample-app content and ctx.state mutation patterns to replace with configDb/stateDb reads and durable state snapshots
+        Intake flow reads service/budget/day/time/range content through configDb-backed helpers with fallback constants
     - Path: pkg/dslgoja/host.go
       Note: |-
         Current RuntimeHost dependency injection point for DB/blob host resources
@@ -38,8 +41,14 @@ RelatedFiles:
         ResumeFlow rebuilds a Goja VM from persisted state JSON and regenerates actions
     - Path: pkg/dslgoja/user.go
       Note: ResumeFlowOptions carries session id
+    - Path: pkg/dslhost/config_schema.sql
+      Note: Seeded read-only configDb schema for current intake content
     - Path: pkg/dslhost/db.go
-      Note: Current SQLite opening/provisioning package to split or extend for read-only config and read-write state stores
+      Note: |-
+        Current SQLite opening/provisioning package to split or extend for read-only config and read-write state stores
+        OpenConfigDB provisions configDb schema separately from state DB
+    - Path: pkg/dslhost/db_test.go
+      Note: Tests configDb schema provisioning and seed data
     - Path: pkg/dslhost/schema.sql
       Note: |-
         Current RW DSL schema foundation for flow sessions, drafts, uploads, and audit events
@@ -55,6 +64,7 @@ RelatedFiles:
       Note: |-
         Server test covers state_json persistence after start and dispatch
         Restart-style hydration test verifies persisted state and fresh action ids
+        Tests live DSL flow reading service options from configDb
     - Path: pkg/server/handlers_dsl_uploads.go
       Note: |-
         Current DSL user snapshot, flow-session row persistence, and upload metadata persistence
@@ -76,6 +86,7 @@ LastUpdated: 2026-05-14T00:00:00Z
 WhatFor: Use this guide to implement HAIR-038 persistence and session handling without rediscovering the Goja DSL architecture.
 WhenToUse: Read before changing DSL session storage, ctx.state persistence, Goja database modules, configDb/stateDb provisioning, session recovery, or DSL database schema.
 ---
+
 
 
 
