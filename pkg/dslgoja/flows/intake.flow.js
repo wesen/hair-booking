@@ -40,6 +40,18 @@ const timeOptions = [
   { value: "16:30", title: "4:30p" },
 ];
 
+// ── Step definitions (used by shell helper for desktop rail navigation) ──
+
+const stepDefs = [
+  { id: "service", label: "01 Service" },
+  { id: "color", label: "02 Color" },
+  { id: "photos", label: "03 Photos" },
+  { id: "budget", label: "04 Budget" },
+  { id: "estimate", label: "05 Estimate" },
+  { id: "booking", label: "06 Booking" },
+  { id: "confirm", label: "07 Confirm" },
+];
+
 // ── State ─────────────────────────────────────────────────────────────
 
 function initialState() {
@@ -83,11 +95,26 @@ function shell(ctx, config) {
   if (config.back) actions.back = ctx.action("back", function () { return goto(ctx, config.back); }, "back");
   if (config.next) actions.next = ctx.action("next", function () { return goto(ctx, config.next); }, "next");
   if (config.skip) actions.skip = ctx.action("skip", function () { return goto(ctx, config.skip); }, "skip");
+
+  // Build step rail items with goto actions for desktop navigation
+  var steps = stepDefs.map(function (def, index) {
+    return {
+      id: def.id,
+      label: def.label,
+      index: index + 1,
+      current: def.id === config.stepId,
+      disabled: false,
+      actions: {
+        select: ctx.action("goto:" + def.id, function () { return goto(ctx, def.id); }, "goto"),
+      },
+    };
+  });
+
   return {
-    step: config.step, total: 7,
+    step: config.step, total: 7, stepId: config.stepId,
     eyebrow: config.eyebrow, title: config.title,
     nextLabel: config.nextLabel || "Keep going →",
-    actions,
+    actions, steps,
   };
 }
 
@@ -172,7 +199,7 @@ function contextNodes(ctx) {
 function serviceStep(ctx) {
   return page("intake-service", "Service")
     .intake(shell(ctx, {
-      step: 1, eyebrow: "Chapter I · The Ask", title: "What brings you in?",
+      step: 1, stepId: "service", eyebrow: "Chapter I · The Ask", title: "What brings you in?",
       next: "color", skip: "color",
     }))
     .add(
@@ -200,7 +227,7 @@ function serviceStep(ctx) {
 function colorStep(ctx) {
   return page("intake-color", "Color")
     .intake(shell(ctx, {
-      step: 2, eyebrow: "Chapter II · The Color", title: "Tune the plan",
+      step: 2, stepId: "color", eyebrow: "Chapter II · The Color", title: "Tune the plan",
       back: "service", next: "photos",
     }))
     .add(
@@ -237,7 +264,7 @@ function photosStep(ctx) {
 
   return page("intake-photos", "Photos")
     .intake(shell(ctx, {
-      step: 3, eyebrow: "Chapter III · References", title: "Add a few photos",
+      step: 3, stepId: "photos", eyebrow: "Chapter III · References", title: "Add a few photos",
       back: "color", next: "budget", skip: "budget",
     }))
     .add(
@@ -262,7 +289,7 @@ function photosStep(ctx) {
 function budgetStep(ctx) {
   return page("intake-budget", "Budget")
     .intake(shell(ctx, {
-      step: 4, eyebrow: "Chapter IV · Budget", title: "Choose a comfort zone",
+      step: 4, stepId: "budget", eyebrow: "Chapter IV · Budget", title: "Choose a comfort zone",
       back: "photos", next: "estimate",
     }))
     .add(
@@ -285,7 +312,7 @@ function budgetStep(ctx) {
 function estimateStep(ctx) {
   return page("intake-estimate", "Estimate")
     .intake(shell(ctx, {
-      step: 5, eyebrow: "Chapter V · Preview", title: "Your working estimate",
+      step: 5, stepId: "estimate", eyebrow: "Chapter V · Preview", title: "Your working estimate",
       back: "budget", next: "booking", nextLabel: "Pick a time →",
     }))
     .add(
@@ -309,7 +336,7 @@ function estimateStep(ctx) {
 function bookingStep(ctx) {
   return page("intake-booking", "Booking")
     .intake(shell(ctx, {
-      step: 6, eyebrow: "Chapter VI · Calendar", title: "Choose a time",
+      step: 6, stepId: "booking", eyebrow: "Chapter VI · Calendar", title: "Choose a time",
       back: "estimate", next: "confirm", nextLabel: "Reserve →",
     }))
     .add(
@@ -338,7 +365,7 @@ function confirmStep(ctx) {
   var time = timeOptions.find(function (item) { return item.value === ctx.state.time; });
   return page("intake-confirm", "Confirm")
     .intake(shell(ctx, {
-      step: 7, eyebrow: "Chapter VII · Done", title: "Request received",
+      step: 7, stepId: "confirm", eyebrow: "Chapter VII · Done", title: "Request received",
       back: "booking", next: "service", nextLabel: "Start over",
     }))
     .add(
