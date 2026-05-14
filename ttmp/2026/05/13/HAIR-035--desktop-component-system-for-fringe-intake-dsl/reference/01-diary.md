@@ -476,3 +476,92 @@ The DSL pages were structurally correct but visually cramped. The original hand-
 - Length: 9/10
 - Photos: 8.3/10
 - Booking: 8.5/10
+
+## Step 6: Desktop rhythm, display scale, and accent panel polish
+
+Iteratively refined the desktop two-column layout to match the gold-standard hand-crafted DesktopShell stories. Key improvements: page padding (48/56px), display-scale stat (180px), accent panel tier rows with ink-colored dividers and right-aligned values, proper column proportions (1.15fr/1fr with 32px gap).
+
+### Prompt Context
+
+**User prompt (verbatim):** "move to desktop rhythm polish, try to capture the iframe of storybook to avoid distraction from the storybook chrome"
+
+**Assistant interpretation:** Switch focus to desktop visual polish. Capture screenshots from the Storybook iframe URL (no chrome) and iterate on desktop rhythm, spacing, and typography using VLM design reviews.
+
+**Inferred user intent:** Close the visual quality gap between DSL-rendered desktop pages and hand-crafted DesktopShell stories, using clean iframe screenshots for more accurate VLM analysis.
+
+**Commit (code):** 132c9a5 — "fix(desktop): rhythm, display scale, and accent panel polish"
+
+### What I did
+
+**Desktop page padding:** Added `<div data-component="DesktopContent" style={{ padding: "48px 56px" }}>` wrapper around desktop content in render.tsx. Previously content went straight into DesktopShell with no padding.
+
+**Column gap:** TwoColumnLayout gap changed from 0→32px. The DSL desktop render had columns butting against each other.
+
+**Masthead display mode:** Added `display` prop to Masthead molecule — when true: 180px font, -6 tracking, 0.82 line-height, larger padding (56/48px), larger eyebrow (12px). Used for accent panel hero numbers.
+
+**Stat display size:** Added "display" option to stat `size` prop: 180px, -6 tracking, 0.82 leading, 22px subtitle. Scales: display=180, xl=72, lg=56, md=36.
+
+**SummaryRow accent mode:** Added `accent` prop for use on colored accent panels — ink-colored dividers (rgba 0.25), right-aligned values, hidden edit links, softer label colors. The DSL render detects `meta.region === "context"` and passes `accent={true}`.
+
+**Desktop partition story restructured:** Replaced placeholder content with proper estimate matching the gold standard: 84px block heading, editorial subtitle, SummaryRows with edit links, warn note, display stat, tier rows (LOW $220, LIKELY $245, HIGH $285) via region("context"). Removed personCard from accent panel.
+
+**Clean iframe screenshots:** Discovered that navigating to `http://localhost:6006/iframe.html?id=...` renders just the story content without Storybook chrome. This dramatically improved VLM analysis quality.
+
+### Why
+
+The desktop DSL pages had no page-level padding, no display-scale typography, and the accent panel had sparse content with left-aligned values. The hand-crafted gold standard uses 48-56px padding, 180px display numbers, 84px headings, and right-aligned tier rows with ink-colored dividers. The DSL pages needed to match this density and scale.
+
+### What worked
+
+- **Clean iframe captures** — the VLM analysis was significantly more accurate without Storybook sidebar/dropdown chrome. This is the way to do visual reviews going forward.
+- **region-based accent detection** — checking `meta.region === "context"` in the kvRow render to toggle `accent` mode is clean and doesn't require a separate render context.
+- **The "display" Masthead prop** — keeping one component with two modes (compact mobile / display desktop) is simpler than creating a new DisplayStat component.
+- **VLM scored the desktop estimate 9/10** vs gold standard after these changes.
+
+### What didn't work
+
+- Initially tried to modify SummaryRow colors through CSS inheritance from AccentPanel. But SummaryRow uses hardcoded color constants. Adding an explicit `accent` prop was cleaner.
+- The partitionForDesktop auto-pulling personCard into the accent panel was wrong for the estimate page. Removed personCard from the story. The auto-pull heuristic may need refinement.
+
+### What I learned
+
+- Desktop visual polish is mostly about padding and typography scale — the components themselves are fine, it's the container spacing that was wrong.
+- The `iframe.html` URL pattern in Storybook is the key to clean visual reviews. Full Storybook chrome confuses VLM analysis.
+- Display typography (180px numbers) needs very tight letter-spacing (-6) to look good. Default block font at that size would be too wide.
+
+### What was tricky to build
+
+- The SummaryRow accent mode required balancing multiple color concerns: dividers, labels, values, and edit links all had different treatments. The accent panel has ink-colored text on a butter background, so all colors needed to be semi-transparent ink variants.
+- The desktop render path needed a content wrapper div — but it had to not break the single-column (no context nodes) case.
+
+### What warrants a second pair of eyes
+
+- The `meta.region === "context"` check for accent mode — is this the right signal, or should we use a more explicit render context?
+- The partitionForDesktop auto-pull heuristic still pulls personCard into accent panels, which was wrong for estimate. Should the heuristic be step-context-aware?
+
+### What should be done in the future
+
+- Add desktop stories for all 8 pages (not just estimate and region)
+- Make the explicit region story interactive (selection updates context panel)
+- Add css-visual-diff specs for desktop pages
+- Consider a sticky accent panel that scrolls with the left column
+
+### Code review instructions
+
+- `git diff 7283d26..132c9a5` — covers desktop rhythm + mobile polish
+- Verify `npx tsc --noEmit` passes
+- Run `npx storybook` and check "Page DSL/UI Primitives" → Desktop Partition + Desktop Explicit Region
+- Compare against "Organisms/DesktopShell" → Full Estimate — Two Column
+
+### Technical details
+
+**Files changed:**
+- `molecules/Masthead/Masthead.tsx` — added display prop
+- `molecules/SummaryRow/SummaryRow.tsx` — added accent prop
+- `molecules/AccentPanel/AccentPanel.tsx` — minor cleanup
+- `page-dsl/render.tsx` — desktop content padding, stat display size, kvRow accent detection
+- `page-dsl/UiPrimitives.stories.tsx` — restructured desktop partition story
+
+**VLM design review scores:**
+- Desktop estimate: 9/10 vs gold standard
+- Desktop explicit region (sage): 8/10
