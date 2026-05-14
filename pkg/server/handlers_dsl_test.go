@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	dslv1 "github.com/go-go-golems/hair-booking/gen/proto/fringe/dsl/v1"
+	hairauth "github.com/go-go-golems/hair-booking/pkg/auth"
 	"github.com/go-go-golems/hair-booking/pkg/dslhost"
 	"google.golang.org/protobuf/encoding/protojson"
 )
@@ -180,6 +181,39 @@ func TestDSLGetHydratesPersistedSessionWithFreshActions(t *testing.T) {
 	newActionID := findActionIDInPage(t, hydratedPage, "category-tabs", "change")
 	if newActionID == oldActionID {
 		t.Fatalf("hydrated action id reused old action id %q", newActionID)
+	}
+}
+
+func TestDSLHydrationRejectsWrongUserAndExpiredSessions(t *testing.T) {
+	dbHost, err := dslhost.OpenDB(context.Background(), dslhost.DBOptions{Path: filepath.Join(t.TempDir(), "dsl.sqlite"), Migrate: true})
+	if err != nil {
+		t.Fatalf("OpenDB: %v", err)
+	}
+	defer func() { _ = dbHost.Close() }()
+
+	alice := &hairauth.Settings{Mode: hairauth.AuthModeDev, DevUserID: "alice"}
+	bob := &hairauth.Settings{Mode: hairauth.AuthModeDev, DevUserID: "bob"}
+	firstHandler := NewHandler(HandlerOptions{Version: "test", AuthSettings: alice, DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
+	startData := startDSLFlow(t, firstHandler)
+	sessionID := startData["sessionId"].(string)
+
+	wrongUserHandler := NewHandler(HandlerOptions{Version: "test", AuthSettings: bob, DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
+	wrongReq := httptest.NewRequest(http.MethodGet, "/api/dsl/flows/"+sessionID, nil)
+	wrongRec := httptest.NewRecorder()
+	wrongUserHandler.ServeHTTP(wrongRec, wrongReq)
+	if wrongRec.Code != http.StatusNotFound {
+		t.Fatalf("wrong user get status = %d body=%s", wrongRec.Code, wrongRec.Body.String())
+	}
+
+	if _, err := dbHost.DB.Exec(`UPDATE dsl_flow_sessions SET expires_at = datetime('now', '-1 hour') WHERE id = ?`, sessionID); err != nil {
+		t.Fatalf("expire session: %v", err)
+	}
+	expiredHandler := NewHandler(HandlerOptions{Version: "test", AuthSettings: alice, DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
+	expiredReq := httptest.NewRequest(http.MethodGet, "/api/dsl/flows/"+sessionID, nil)
+	expiredRec := httptest.NewRecorder()
+	expiredHandler.ServeHTTP(expiredRec, expiredReq)
+	if expiredRec.Code != http.StatusNotFound {
+		t.Fatalf("expired get status = %d body=%s", expiredRec.Code, expiredRec.Body.String())
 	}
 }
 

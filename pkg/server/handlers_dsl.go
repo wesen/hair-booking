@@ -65,7 +65,11 @@ func (s *dslFlowStore) getOrHydrate(r *http.Request, sessionID string, user dslg
 
 	var flowID, stateJSON string
 	var pageVersion int64
-	err := s.stateDB.QueryRowContext(r.Context(), `SELECT flow_id, current_page_version, state_json FROM dsl_flow_sessions WHERE id = ? AND status = 'active'`, sessionID).Scan(&flowID, &pageVersion, &stateJSON)
+	var ownerUserID sql.NullString
+	err := s.stateDB.QueryRowContext(r.Context(), `SELECT flow_id, current_page_version, state_json, user_id FROM dsl_flow_sessions WHERE id = ? AND status = 'active' AND (expires_at IS NULL OR expires_at > datetime('now'))`, sessionID).Scan(&flowID, &pageVersion, &stateJSON, &ownerUserID)
+	if err == nil && ownerUserID.Valid && ownerUserID.String != "" && ownerUserID.String != user.ID {
+		return nil, nil, false, nil
+	}
 	if err == sql.ErrNoRows {
 		return nil, nil, false, nil
 	}

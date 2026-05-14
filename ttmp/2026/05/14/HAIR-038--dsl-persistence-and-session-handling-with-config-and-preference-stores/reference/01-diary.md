@@ -572,3 +572,65 @@ The flow currently initializes `ctx.state.configVersionId` to `cfg_default`, and
   - `pkg/dslhost/schema.sql:1:1: expected 'package', found PRAGMA`
 - Successful validation command:
   - `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1`
+
+## Step 9: Add first ownership and expiry hardening
+
+This step added the first server-side guardrails around persisted session hydration. Hydration now only restores active, unexpired sessions, and it rejects a persisted session when the stored `user_id` does not match the current request's user snapshot.
+
+This is not the full anonymous-owner-cookie design from the guide, but it closes the obvious authenticated/dev-user mismatch case and adds expiry data to the session row.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Continue into Phase 5 hardening after config version persistence.
+
+**Inferred user intent:** The user wants persisted sessions to become safer before they are treated as durable application state.
+
+**Commit (code):** pending at time of diary entry.
+
+### What I did
+- Added `expires_at` to `dsl_flow_sessions`.
+- Updated session persistence to set a default `expires_at = datetime('now', '+24 hours')` on insert.
+- Updated hydration to query only `status = 'active'` sessions whose expiry is null or in the future.
+- Updated hydration to compare persisted `user_id` with the current request `UserSnapshot.ID`.
+- Added server tests for wrong-user and expired-session hydration rejection.
+- Checked task 18.
+
+### Why
+- Once sessions can be hydrated from a database, session ownership and expiry become part of the security model.
+- The browser's `sessionStorage` value is only a pointer; the backend must decide whether that pointer is still valid for the current requester.
+
+### What worked
+- `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1` passed.
+- A session started by dev user `alice` returns 404 when dev user `bob` tries to hydrate it.
+- An expired session returns 404 even for the original dev user.
+
+### What didn't work
+- This does not yet implement signed anonymous owner cookies.
+- This does not yet implement a cleanup job or command to mark/delete expired sessions.
+
+### What I learned
+- The current dev auth mode is useful for ownership tests because each handler can be constructed with a different `DevUserID`.
+- Expiry can be enforced in the hydration SQL predicate before the runtime does any Goja work.
+
+### What was tricky to build
+- The tricky part is distinguishing "not found" from "not allowed" without leaking session existence. The implementation returns the same not-found behavior for wrong user and expired sessions.
+
+### What warrants a second pair of eyes
+- Review whether wrong-user access should return 404 or a protobuf `dsl_session_forbidden` error.
+- Review whether default expiry should be 24 hours, shorter, or configurable.
+- Review migration strategy for existing SQLite files that lack `expires_at`.
+
+### What should be done in the future
+- Implement signed anonymous owner cookies before relying on anonymous durable sessions.
+- Add cleanup/audit tooling for expired sessions and stale uploads.
+
+### Code review instructions
+- Inspect `getOrHydrate` in `pkg/server/handlers_dsl.go`.
+- Inspect the new wrong-user/expired-session test in `pkg/server/handlers_dsl_test.go`.
+- Validate with `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1`.
+
+### Technical details
+- Focused validation command:
+  - `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1`

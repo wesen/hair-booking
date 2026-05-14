@@ -81,3 +81,14 @@ Phase 4: Added config_version_id to DSL session rows and persist it from ctx.sta
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_test.go — config version persistence assertions
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_uploads.go — config version extraction during session persistence
 
+
+## 2026-05-14
+
+Phase 5 slice: Added expires_at and hydration checks for active, unexpired, same-user DSL sessions, with wrong-user and expired-session tests.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslhost/schema.sql — expires_at column
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl.go — Hydration ownership/expiry checks
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_test.go — Wrong-user and expired-session tests
+

@@ -66,9 +66,9 @@ func (h *appHandler) recordDSLFlowSession(r *http.Request, session *dslgoja.Flow
 		return err
 	}
 	configVersionID := configVersionFromStateJSON(stateJSON)
-	_, err = h.dslFlows.stateDB.ExecContext(r.Context(), `INSERT INTO dsl_flow_sessions(id, flow_id, user_id, status, current_page_id, current_page_version, config_version_id, state_json)
-VALUES (?, ?, ?, 'active', ?, ?, ?, ?)
-ON CONFLICT(id) DO UPDATE SET current_page_id = excluded.current_page_id, current_page_version = excluded.current_page_version, config_version_id = excluded.config_version_id, state_json = excluded.state_json, updated_at = datetime('now')`,
+	_, err = h.dslFlows.stateDB.ExecContext(r.Context(), `INSERT INTO dsl_flow_sessions(id, flow_id, user_id, status, current_page_id, current_page_version, config_version_id, state_json, expires_at)
+VALUES (?, ?, ?, 'active', ?, ?, ?, ?, datetime('now', '+24 hours'))
+ON CONFLICT(id) DO UPDATE SET current_page_id = excluded.current_page_id, current_page_version = excluded.current_page_version, config_version_id = excluded.config_version_id, state_json = excluded.state_json, expires_at = COALESCE(dsl_flow_sessions.expires_at, excluded.expires_at), updated_at = datetime('now')`,
 		session.ID,
 		session.FlowID,
 		h.dslUserSnapshot(r).ID,

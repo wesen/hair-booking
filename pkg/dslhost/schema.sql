@@ -10,7 +10,8 @@ CREATE TABLE IF NOT EXISTS dsl_flow_sessions (
   config_version_id TEXT,
   state_json TEXT NOT NULL DEFAULT '{}',
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  expires_at TEXT
 );
 
 CREATE INDEX IF NOT EXISTS idx_dsl_flow_sessions_flow_status

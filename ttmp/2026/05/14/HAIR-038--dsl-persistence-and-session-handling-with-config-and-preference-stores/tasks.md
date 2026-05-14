@@ -20,5 +20,5 @@
 - [x] Phase 3: Add restart-style server tests for session recovery and fresh action ids
 - [x] Phase 4: Add configDb schema/seed path for app content and migrate intake.flow.js constants behind configDb helpers
 - [x] Phase 4: Add config version pinning on DSL sessions and tests for deterministic rerendering
-- [ ] Phase 5: Add ownership/expiry hardening for persisted sessions and uploads
+- [x] Phase 5: Add ownership/expiry hardening for persisted sessions and uploads
 - [ ] Phase 5: Add cleanup/audit tests and operational notes for expired sessions

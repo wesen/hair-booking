@@ -54,6 +54,7 @@ RelatedFiles:
         Current RW DSL schema foundation for flow sessions, drafts, uploads, and audit events
         Current read-write DSL SQLite schema foundation for sessions
         dsl_flow_sessions now has config_version_id for pinned config version
+        dsl_flow_sessions expires_at supports session expiry hardening
     - Path: pkg/server/handlers_dsl.go
       Note: |-
         Current start/get/event HTTP handlers and in-memory dslFlowStore
@@ -61,18 +62,21 @@ RelatedFiles:
         dslFlowStore now carries configDB/stateDB and passes both into RuntimeHost
         Event dispatch now persists updated session snapshots
         getOrHydrate restores missing in-memory sessions from stateDB for GET/event paths
+        Hydration enforces user ownership and active unexpired sessions
     - Path: pkg/server/handlers_dsl_test.go
       Note: |-
         Server test covers state_json persistence after start and dispatch
         Restart-style hydration test verifies persisted state and fresh action ids
         Tests live DSL flow reading service options from configDb
         Tests config_version_id persistence after start and dispatch
+        Tests wrong-user and expired-session hydration rejection
     - Path: pkg/server/handlers_dsl_uploads.go
       Note: |-
         Current DSL user snapshot, flow-session row persistence, and upload metadata persistence
         recordDSLFlowSession now stores real state_json
         Upload handler uses hydration path before checking upload intents
         Session persistence extracts configVersionId from ctx.state into config_version_id
+        Session persistence sets default expiry
     - Path: pkg/server/http.go
       Note: Server options and handler wiring split config/state database dependencies
     - Path: proto/fringe/dsl/v1/dsl.proto
@@ -89,6 +93,7 @@ LastUpdated: 2026-05-14T00:00:00Z
 WhatFor: Use this guide to implement HAIR-038 persistence and session handling without rediscovering the Goja DSL architecture.
 WhenToUse: Read before changing DSL session storage, ctx.state persistence, Goja database modules, configDb/stateDb provisioning, session recovery, or DSL database schema.
 ---
+
 
 
 
