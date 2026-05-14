@@ -1,9 +1,10 @@
-import { useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { BackendDslPage, type DslFlowState, type DslInteractionEvent } from "./page-dsl";
 import { color, font, shadow } from "./fringe-ui/tokens";
 
 const FLOW_ID = "fringe.intake.v1";
 const SESSION_STORAGE_KEY = `fringe.dsl.${FLOW_ID}.sessionId`;
+const DESKTOP_BREAKPOINT = 1080;
 
 const pageSlugById: Record<string, string> = {
   "intake-service": "service",
@@ -27,8 +28,7 @@ function writeStoredSessionId(sessionId: string) {
   try {
     window.sessionStorage.setItem(SESSION_STORAGE_KEY, sessionId);
   } catch {
-    // sessionStorage can be unavailable in restrictive browser modes. The live
-    // demo still works without refresh recovery, so do not fail rendering.
+    // sessionStorage can be unavailable in restrictive browser modes.
   }
 }
 
@@ -36,7 +36,7 @@ function clearStoredSessionId() {
   try {
     window.sessionStorage.removeItem(SESSION_STORAGE_KEY);
   } catch {
-    // Ignore storage cleanup failures for the same reason as writes.
+    // Ignore storage cleanup failures.
   }
 }
 
@@ -48,13 +48,26 @@ function routeForPage(pageId: string) {
   return `/dsl-goja-demo/${slugForPage(pageId)}`;
 }
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT}px)`).matches);
+  useEffect(() => {
+    const mq = window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT}px)`);
+    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, []);
+  return isDesktop;
+}
+
 export function LiveDslDemoApp() {
   const [initialSessionId] = useState(() => readStoredSessionId());
   const [flowState, setFlowState] = useState<DslFlowState | null>(null);
   const [lastEvent, setLastEvent] = useState<DslInteractionEvent | null>(null);
   const [recoveryMessage, setRecoveryMessage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [debugOpen, setDebugOpen] = useState(false);
   const previousPageId = useRef<string | null>(null);
+  const isDesktop = useIsDesktop();
 
   const handleStateChange = useCallback((nextState: DslFlowState) => {
     setFlowState(nextState);
@@ -94,6 +107,135 @@ export function LiveDslDemoApp() {
     }
   }, [currentJson]);
 
+  // ── Desktop layout ──────────────────────────────────────────
+  if (isDesktop) {
+    return (
+      <div
+        data-component="LiveDslDemoApp"
+        style={{ height: "100vh", display: "flex", background: color.paper, fontFamily: font.sans }}
+      >
+        {/* Main content: full-width DSL renderer in desktop mode */}
+        <div style={{ flex: 1, overflow: "auto" }}>
+          <BackendDslPage
+            flowId={FLOW_ID}
+            sessionId={initialSessionId}
+            onStateChange={handleStateChange}
+            onEventDispatch={setLastEvent}
+            onSessionRecovered={handleSessionRecovered}
+            forceDesktop
+          />
+        </div>
+
+        {/* Debug panel toggle button */}
+        <button
+          type="button"
+          data-component="DebugPanelToggle"
+          onClick={() => setDebugOpen((o) => !o)}
+          style={{
+            position: "fixed",
+            right: debugOpen ? 380 : 16,
+            top: 16,
+            zIndex: 100,
+            width: 36,
+            height: 36,
+            borderRadius: "50%",
+            border: `1px solid ${color.rule}`,
+            background: color.paper,
+            boxShadow: shadow.md,
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontFamily: font.mono,
+            fontSize: 14,
+            color: color.softInk,
+            transition: "right 0.2s ease",
+          }}
+          aria-label={debugOpen ? "Close debug panel" : "Open debug panel"}
+        >
+          {debugOpen ? "×" : "⟩"}
+        </button>
+
+        {/* Debug drawer (slides in from right) */}
+        <div
+          data-component="LiveDslDebugPanel"
+          style={{
+            width: debugOpen ? 380 : 0,
+            overflow: "hidden",
+            borderLeft: debugOpen ? `1px solid ${color.rule}` : "none",
+            background: "rgba(255,255,255,0.94)",
+            boxShadow: debugOpen ? shadow.lg : "none",
+            transition: "width 0.2s ease, border-color 0.2s ease",
+            flexShrink: 0,
+          }}
+        >
+          <div style={{ width: 380, padding: 24, height: "100%", overflow: "auto" }}>
+            <p style={{ margin: "0 0 8px", fontFamily: font.mono, fontSize: 11, letterSpacing: 1.4, textTransform: "uppercase", color: color.plum }}>
+              Desktop mode · live backend DSL
+            </p>
+            <h1 style={{ margin: "0 0 12px", fontFamily: font.block, fontSize: 32, lineHeight: 0.92, letterSpacing: 0.3, textTransform: "uppercase" }}>
+              Goja drives the page
+            </h1>
+            <p style={{ margin: "0 0 18px", fontFamily: font.serif, fontSize: 17, lineHeight: 1.35, fontStyle: "italic", color: color.softInk }}>
+              Same JSON, different density. Wide viewport shows the desktop shell with two-column layout and accent panel. Narrow viewport shows the mobile intake shell.
+            </p>
+
+            <ViewModeIndicator forceDesktop />
+
+            {recoveryMessage ? <DebugNotice tone="warn" message={recoveryMessage} /> : null}
+            {flowState?.effects?.map((effect, index) => (
+              <DebugNotice key={`${effect.kind}:${index}`} tone={effect.tone === "danger" ? "danger" : effect.tone === "warn" ? "warn" : "info"} message={effect.message || effect.kind} />
+            ))}
+
+            <dl style={{ display: "grid", gridTemplateColumns: "100px minmax(0, 1fr)", gap: "8px 12px", margin: "0 0 18px", fontFamily: font.mono, fontSize: 11 }}>
+              <dt style={{ color: color.softInk }}>Route</dt>
+              <dd style={{ margin: 0 }}>{routeLabel}</dd>
+              <dt style={{ color: color.softInk }}>Shell</dt>
+              <dd style={{ margin: 0, color: color.plum }}>desktop (forced)</dd>
+              <dt style={{ color: color.softInk }}>Session</dt>
+              <dd style={{ margin: 0, overflowWrap: "anywhere" }}>{flowState?.sessionId ?? initialSessionId ?? "starting…"}</dd>
+              <dt style={{ color: color.softInk }}>Version</dt>
+              <dd style={{ margin: 0 }}>{flowState?.pageVersion ?? "—"}</dd>
+              <dt style={{ color: color.softInk }}>Page</dt>
+              <dd style={{ margin: 0 }}>{flowState?.page.id ?? "loading"}</dd>
+            </dl>
+
+            <div style={{ display: "grid", gap: 8, marginBottom: 18 }}>
+              <DebugStep done={!!flowState} label="Backend flow started or resumed" />
+              <DebugStep done={!!lastEvent} label="At least one interaction event posted" />
+              <DebugStep done={!!flowState?.effects?.length} label="Backend effects returned" muted />
+            </div>
+
+            <details style={{ marginBottom: 12 }}>
+              <summary style={{ cursor: "pointer", fontFamily: font.mono, fontSize: 11, color: color.plum }}>
+                Current page JSON
+              </summary>
+              <button
+                type="button"
+                onClick={copyCurrentJson}
+                style={{
+                  marginTop: 10,
+                  border: `1px solid ${color.plum}`,
+                  background: copied ? color.sage : color.paper,
+                  color: copied ? color.paper : color.plum,
+                  borderRadius: 999,
+                  padding: "6px 10px",
+                  fontFamily: font.mono,
+                  fontSize: 10,
+                  cursor: "pointer",
+                }}
+              >
+                {copied ? "Copied" : "Copy JSON"}
+              </button>
+              <pre style={preStyle}>{currentJson}</pre>
+            </details>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Mobile layout (phone frame + side panel) ──────────────
   return (
     <main
       data-component="LiveDslDemoApp"
@@ -151,6 +293,8 @@ export function LiveDslDemoApp() {
             flex: "1 1 300px",
           }}
         >
+          <ViewModeIndicator />
+
           <p style={{ margin: "0 0 8px", fontFamily: font.mono, fontSize: 11, letterSpacing: 1.4, textTransform: "uppercase", color: color.plum }}>
             Live backend DSL route
           </p>
@@ -221,6 +365,29 @@ export function LiveDslDemoApp() {
         </aside>
       </section>
     </main>
+  );
+}
+
+/** Small badge showing current view mode (mobile/desktop) */
+function ViewModeIndicator({ forceDesktop }: { forceDesktop?: boolean }) {
+  return (
+    <div style={{
+      display: "inline-flex",
+      alignItems: "center",
+      gap: 8,
+      marginBottom: 16,
+      padding: "6px 12px",
+      borderRadius: 999,
+      background: forceDesktop ? color.plum : color.creamDeep,
+      color: forceDesktop ? color.paper : color.plum,
+      fontFamily: font.mono,
+      fontSize: 10,
+      letterSpacing: 1.2,
+      textTransform: "uppercase",
+    }}>
+      <span aria-hidden="true" style={{ fontSize: 13 }}>{forceDesktop ? "🖥" : "📱"}</span>
+      {forceDesktop ? "Desktop view" : "Mobile view"}
+    </div>
   );
 }
 

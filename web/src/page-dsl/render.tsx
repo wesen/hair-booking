@@ -572,11 +572,19 @@ function partitionForDesktop(nodes: DslNode[]): { mainNodes: DslNode[]; contextN
   return { mainNodes, contextNodes };
 }
 
-export function DslPageRenderer({ page, context }: { page: DslPage; context?: DslRenderContext }) {
+export interface DslPageRendererProps {
+  page: DslPage;
+  context?: DslRenderContext;
+  /** When true, override shell.kind "intake" → render as desktop two-column layout */
+  forceDesktop?: boolean;
+}
+
+export function DslPageRenderer({ page, context, forceDesktop }: DslPageRendererProps) {
   const nodeKeys = page.nodes.map((node, i) => String(nodeKey(node, i)));
-  dslDebug("DslPageRenderer render", { pageId: page.id, shellKind: page.shell.kind, nodeKeys, shellActions: page.shell.props?.actions });
+  const effectiveKind = forceDesktop && page.shell.kind === "intake" ? "desktop" : page.shell.kind;
+  dslDebug("DslPageRenderer render", { pageId: page.id, shellKind: page.shell.kind, effectiveKind, forceDesktop, nodeKeys, shellActions: page.shell.props?.actions });
   const content = <>{page.nodes.map((node, i) => renderNode(node, context, nodeKey(node, i)))}</>;
-  if (page.shell.kind === "intake") {
+  if (effectiveKind === "intake") {
     const props = page.shell.props || {};
     return (
       <IntakeShell
@@ -594,9 +602,11 @@ export function DslPageRenderer({ page, context }: { page: DslPage; context?: Ds
       </IntakeShell>
     );
   }
-  if (page.shell.kind === "desktop") {
+  if (effectiveKind === "desktop") {
     const props = page.shell.props || {};
-    const accentName = str(props, "accent", "plum");
+    // When forceDesktop, infer desktop accent from page title/step for visual variety
+    const stepNum = num(page.shell.props || {}, "step", 1);
+    const accentName = str(props, "accent", stepNum >= 5 ? "butter" : "plum");
     const accentMap: Record<string, string> = {
       plum: color.plum, butter: color.butter, sage: color.sage,
       peach: color.peach, coral: color.coral, ochre: color.ochre,
@@ -608,9 +618,87 @@ export function DslPageRenderer({ page, context }: { page: DslPage; context?: Ds
     };
     const accentInk = inkMap[accentInkName] || color.paper;
 
+    // Desktop navigation bar (mirrors IntakeShell's bottom CTA)
+    const nextLabel = str(props, "nextLabel", "Keep going →");
+    const hasBack = !!actionRef(props, "back");
+    const hasNext = !!actionRef(props, "next");
+    const hasSkip = !!actionRef(props, "skip");
+    const desktopNavBar = (hasNext || hasBack || hasSkip) ? (
+      <div data-component="DesktopNavBar" style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "flex-end",
+        gap: 12,
+        padding: "18px 56px",
+        borderTop: `1px solid ${color.rule}`,
+        background: color.paper,
+      }}>
+        {hasSkip && (
+          <button type="button" onClick={() => dispatchShellAction(context, props, "skip", "onSkip")} style={{
+            border: "none",
+            background: "transparent",
+            fontFamily: font.mono,
+            fontSize: 11,
+            letterSpacing: 1.2,
+            textTransform: "uppercase",
+            color: color.softInk,
+            cursor: "pointer",
+            padding: "8px 16px",
+          }}>Skip</button>
+        )}
+        {hasBack && (
+          <button type="button" onClick={() => dispatchShellAction(context, props, "back", "onBack")} style={{
+            border: `1px solid ${color.ink}`,
+            background: "transparent",
+            fontFamily: font.mono,
+            fontSize: 11,
+            letterSpacing: 1.2,
+            textTransform: "uppercase",
+            color: color.ink,
+            cursor: "pointer",
+            padding: "10px 24px",
+            borderRadius: 999,
+          }}>Back</button>
+        )}
+        {hasNext && (
+          <button type="button" onClick={() => dispatchShellAction(context, props, "next", "onNext")} style={{
+            border: "none",
+            background: color.ink,
+            fontFamily: font.mono,
+            fontSize: 11,
+            letterSpacing: 1.2,
+            textTransform: "uppercase",
+            color: color.paper,
+            cursor: "pointer",
+            padding: "10px 28px",
+            borderRadius: 999,
+          }}>{nextLabel}</button>
+        )}
+      </div>
+    ) : null;
+
     // Desktop two-column partition: pull context nodes into right-side accent panel
     const { mainNodes, contextNodes } = partitionForDesktop(page.nodes);
     const mainContent = <>{mainNodes.map((node, i) => renderNode(node, context, nodeKey(node, i)))}</>;
+
+    // Shared shell wrapper with navbar
+    const renderDesktopContent = (inner: ReactNode) => (
+      <DesktopShell
+        step={stepNum - 1}
+        total={num(props, "total", 7)}
+        accent={accent}
+        accentInk={accentInk}
+        activeNav={str(props, "activeNav", "Book")}
+        user={(props.user as any) || { name: "Mia", initial: "M" }}
+      >
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
+          <div data-component="DesktopContent" style={{ flex: 1, overflow: "auto", padding: "48px 56px" }}>
+            {inner}
+          </div>
+          {desktopNavBar}
+        </div>
+      </DesktopShell>
+    );
 
     if (contextNodes.length > 0) {
       const contextContent = (
@@ -618,36 +706,12 @@ export function DslPageRenderer({ page, context }: { page: DslPage; context?: Ds
           {contextNodes.map((node, i) => renderNode(node, context, nodeKey(node, i)))}
         </AccentPanel>
       );
-      return (
-        <DesktopShell
-          step={num(props, "step", 1)}
-          total={num(props, "total", 9)}
-          accent={accent}
-          accentInk={accentInk}
-          activeNav={str(props, "activeNav", "Book")}
-          user={(props.user as any) || { name: "Mia", initial: "M" }}
-        >
-          <div data-component="DesktopContent" style={{ padding: "48px 56px" }}>
-            <TwoColumnLayout leftWidth="1.15fr" rightWidth="1fr" gap={32} left={mainContent} right={contextContent} />
-          </div>
-        </DesktopShell>
+      return renderDesktopContent(
+        <TwoColumnLayout leftWidth="1.15fr" rightWidth="1fr" gap={32} left={mainContent} right={contextContent} />
       );
     }
 
-    return (
-      <DesktopShell
-        step={num(props, "step", 1)}
-        total={num(props, "total", 9)}
-        accent={accent}
-        accentInk={accentInk}
-        activeNav={str(props, "activeNav", "Book")}
-        user={(props.user as any) || { name: "Mia", initial: "M" }}
-      >
-        <div data-component="DesktopContent" style={{ padding: "48px 56px" }}>
-          {mainContent}
-        </div>
-      </DesktopShell>
-    );
+    return renderDesktopContent(mainContent);
   }
   return <div data-component="DslBarePage" data-page={page.id}>{content}</div>;
 }

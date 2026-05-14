@@ -20,6 +20,8 @@ export interface BackendDslPageProps {
   onStateChange?: (state: DslFlowState) => void;
   onEventDispatch?: (event: DslInteractionEvent) => void;
   onSessionRecovered?: (reason: string) => void;
+  /** When true, render with desktop shell instead of mobile intake shell */
+  forceDesktop?: boolean;
 }
 
 export function BackendDslPage({
@@ -29,6 +31,7 @@ export function BackendDslPage({
   onStateChange,
   onEventDispatch,
   onSessionRecovered,
+  forceDesktop = false,
 }: BackendDslPageProps) {
   const [state, setState] = useState<DslFlowState | null>(null);
   const [loading, setLoading] = useState(true);
@@ -116,7 +119,7 @@ export function BackendDslPage({
 
   return (
     <div data-component="BackendDslPage" data-dispatching={dispatching || undefined} style={{ height: "100%", position: "relative" }}>
-      <DslPageRenderer page={state.page} context={context} />
+      <DslPageRenderer page={state.page} context={context} forceDesktop={forceDesktop} />
       {(error || state.effects?.length) ? (
         <div
           data-component="BackendDslPageStatus"

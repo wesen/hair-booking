@@ -25,13 +25,11 @@ export interface DesktopShellProps {
 const defaultSteps = [
   "01 Service",
   "02 Color",
-  "03 Length",
-  "04 Photos",
-  "05 History",
-  "06 Budget",
-  "07 Estimate",
-  "08 Booking",
-  "09 Confirm",
+  "03 Photos",
+  "04 Budget",
+  "05 Estimate",
+  "06 Booking",
+  "07 Confirm",
 ];
 
 export function DesktopShell({
