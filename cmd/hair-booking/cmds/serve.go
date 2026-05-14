@@ -151,7 +151,7 @@ func (c *ServeCommand) Run(ctx context.Context, parsedValues *values.Values) err
 	var blobStore hairstorage.BlobStore
 	switch backendSettings.StorageMode {
 	case hairconfig.StorageModeLocal:
-		blobStore = hairstorage.NewLocalStore(backendSettings.StorageLocalDir, backendSettings.PublicBaseURL)
+		blobStore = hairstorage.NewLocalStore(backendSettings.StorageLocalDir)
 	case hairconfig.StorageModeS3:
 		return errors.New("s3 storage mode is not implemented yet")
 	default:
