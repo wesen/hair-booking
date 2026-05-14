@@ -244,3 +244,71 @@ I updated the guide to remove the recommendation for semantic Go host modules su
 ### Technical details
 - Corrected design guide path:
   - `ttmp/2026/05/14/HAIR-038--dsl-persistence-and-session-handling-with-config-and-preference-stores/design-doc/01-dsl-persistence-and-session-handling-guide.md`
+
+## Step 4: Implement Phase 1 configDb/stateDb module plumbing
+
+This step converted the corrected HAIR-038 design into the first implementation slice. The runtime now understands two explicit database roles: a read-only `configDb` object for pre-provisioned app content and a read-write `stateDb` object for session/user data. The old `db` module remains as a transitional alias to `stateDb` so existing HAIR-036 tests and flow code do not break while new code moves to explicit names.
+
+The server wiring was also updated to carry config/state database dependencies separately. The command still opens only the existing DSL SQLite database for now and passes it as the state DB; adding a real config DB path and seed schema is a later phase.
+
+### Prompt Context
+
+**User prompt (verbatim):** "add a detailed list of tasks and phases to the ticket (phases only if necessary), then implement them one by one, committing at appropriate intervals, and keeping a detailed diary"
+
+**Assistant interpretation:** Expand HAIR-038 tasks into implementation phases, start implementing them in order, commit at sensible boundaries, and continue the diary.
+
+**Inferred user intent:** The user wants the persistence/session design to become actual code incrementally, with enough task and diary bookkeeping that parallel work remains reviewable.
+
+**Commit (code):** pending at time of diary entry.
+
+### What I did
+- Added detailed phased tasks to `tasks.md`.
+- Checked tasks 5-9 after completing the Phase 1 slice.
+- Extended `dslgoja.RuntimeHost` with `ConfigDB`, `ConfigDBPath`, `StateDB`, and `StateDBPath` while preserving `DB`/`DBPath` as a legacy state DB alias.
+- Added `pkg/dslgoja/db_modules.go` with a `queryOnlyDB` wrapper.
+- Registered `require("configDb")` when a config DB is present.
+- Registered `require("stateDb")` when a state DB is present.
+- Kept `require("db")` as a transitional alias to the effective state DB.
+- Split server-side DSL flow store wiring into config/state database dependencies.
+- Updated upload/session metadata code to use `stateDB` instead of the old `db` field.
+- Added runtime tests proving `configDb` can query but rejects `exec` and non-read queries, while `stateDb` can write.
+
+### Why
+- The user clarified that the runtime should provide generic database objects rather than app-specific host modules.
+- Phase 1 had to create the host plumbing before state snapshots or hydration could be implemented safely.
+- The legacy `db` alias avoids breaking HAIR-036 behavior while new HAIR-038 code moves to `stateDb`.
+
+### What worked
+- `go test ./pkg/dslgoja ./pkg/server -count=1` passed.
+- Existing `require("db")` behavior still works through the state DB alias.
+- `configDb` read-only enforcement is covered in Goja runtime tests.
+
+### What didn't work
+- No code failure remained after formatting and package tests.
+- A full `go test ./...` has not yet been run for this step; the focused packages passed.
+
+### What I learned
+- The go-go-goja database module is flexible enough to register multiple names with different preconfigured `QueryExecer` implementations.
+- A wrapper that implements `Query` and `Exec` is enough to make `configDb` read-only from the JavaScript API, even though the underlying SQLite connection may still be writable by Go provisioning code.
+
+### What was tricky to build
+- The main compatibility issue was preserving old `RuntimeHost.DB` behavior while adding explicit `StateDB`. The solution was to add `EffectiveStateDB()` and register both `stateDb` and legacy `db` against the same underlying connection.
+- The server already used a single `DSLDB` field. The solution was to add explicit `DSLConfigDB` and `DSLStateDB` fields, then fall back to the old `DSLDB` when no explicit state DB is provided.
+
+### What warrants a second pair of eyes
+- Review whether `looksLikeReadOnlySQL` should allow SQLite `PRAGMA` reads or remain strict to only `SELECT`/`WITH`.
+- Review whether the legacy `db` alias should be removed in a later hard cutover once `stateDb` is adopted everywhere.
+
+### What should be done in the future
+- Implement Phase 2: durable `ctx.state` export and persistence into `dsl_flow_sessions.state_json` after start and dispatch.
+- Add full test-suite validation before merging all phases.
+
+### Code review instructions
+- Start with `pkg/dslgoja/modules_dsl.go` and `pkg/dslgoja/db_modules.go`.
+- Then inspect `pkg/dslgoja/host.go` for the compatibility shape.
+- Finally inspect `pkg/server/handlers_dsl.go` and `pkg/server/http.go` for server dependency threading.
+- Validate with `go test ./pkg/dslgoja ./pkg/server -count=1`.
+
+### Technical details
+- Focused validation command:
+  - `go test ./pkg/dslgoja ./pkg/server -count=1`

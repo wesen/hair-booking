@@ -44,6 +44,10 @@ type ServerOptions struct {
 	DSLSQLitePath       string
 	DSLSQLiteMigrate    bool
 	DSLDB               *sql.DB
+	DSLConfigSQLitePath string
+	DSLStateSQLitePath  string
+	DSLConfigDB         *sql.DB
+	DSLStateDB          *sql.DB
 }
 
 type HandlerOptions struct {
@@ -65,6 +69,10 @@ type HandlerOptions struct {
 	DSLSQLitePath       string
 	DSLSQLiteMigrate    bool
 	DSLDB               *sql.DB
+	DSLConfigSQLitePath string
+	DSLStateSQLitePath  string
+	DSLConfigDB         *sql.DB
+	DSLStateDB          *sql.DB
 }
 
 type infoResponse struct {
@@ -81,21 +89,23 @@ type infoResponse struct {
 }
 
 type appHandler struct {
-	version            string
-	startedAt          time.Time
-	authSettings       *hairauth.Settings
-	sessionManager     *hairauth.SessionManager
-	database           *hairdb.DB
-	appointmentService *hairappointments.Service
-	clientService      *hairclients.Service
-	catalogService     *hairservices.Service
-	intakeService      *hairintake.Service
-	stylistService     *hairstylist.Service
-	localUploadsDir    string
-	stylistAuthorizer  *hairstylist.Authorizer
-	dslFlows           *dslFlowStore
-	dslSQLitePath      string
-	dslSQLiteMigrate   bool
+	version             string
+	startedAt           time.Time
+	authSettings        *hairauth.Settings
+	sessionManager      *hairauth.SessionManager
+	database            *hairdb.DB
+	appointmentService  *hairappointments.Service
+	clientService       *hairclients.Service
+	catalogService      *hairservices.Service
+	intakeService       *hairintake.Service
+	stylistService      *hairstylist.Service
+	localUploadsDir     string
+	stylistAuthorizer   *hairstylist.Authorizer
+	dslFlows            *dslFlowStore
+	dslSQLitePath       string
+	dslSQLiteMigrate    bool
+	dslConfigSQLitePath string
+	dslStateSQLitePath  string
 }
 
 type apiEnvelope struct {
@@ -187,6 +197,10 @@ func NewHTTPServer(ctx context.Context, options ServerOptions) (*http.Server, er
 			DSLSQLitePath:       options.DSLSQLitePath,
 			DSLSQLiteMigrate:    options.DSLSQLiteMigrate,
 			DSLDB:               options.DSLDB,
+			DSLConfigSQLitePath: options.DSLConfigSQLitePath,
+			DSLStateSQLitePath:  options.DSLStateSQLitePath,
+			DSLConfigDB:         options.DSLConfigDB,
+			DSLStateDB:          options.DSLStateDB,
 		}),
 		ReadHeaderTimeout: 10 * time.Second,
 	}, nil
@@ -203,22 +217,33 @@ func NewHandler(options HandlerOptions) http.Handler {
 		publicFS = web.PublicFS
 	}
 
+	stateDB := options.DSLStateDB
+	statePath := options.DSLStateSQLitePath
+	if stateDB == nil {
+		stateDB = options.DSLDB
+	}
+	if statePath == "" {
+		statePath = options.DSLSQLitePath
+	}
+
 	h := &appHandler{
-		version:            options.Version,
-		startedAt:          options.StartedAt,
-		authSettings:       authSettings,
-		sessionManager:     options.SessionManager,
-		database:           options.Database,
-		appointmentService: options.AppointmentService,
-		clientService:      options.ClientService,
-		catalogService:     options.CatalogService,
-		intakeService:      options.IntakeService,
-		stylistService:     options.StylistService,
-		localUploadsDir:    options.LocalUploadsDir,
-		stylistAuthorizer:  hairstylist.NewAuthorizer(authSettings),
-		dslFlows:           newDSLFlowStore(options.DSLDB, options.DSLSQLitePath, options.Storage),
-		dslSQLitePath:      options.DSLSQLitePath,
-		dslSQLiteMigrate:   options.DSLSQLiteMigrate,
+		version:             options.Version,
+		startedAt:           options.StartedAt,
+		authSettings:        authSettings,
+		sessionManager:      options.SessionManager,
+		database:            options.Database,
+		appointmentService:  options.AppointmentService,
+		clientService:       options.ClientService,
+		catalogService:      options.CatalogService,
+		intakeService:       options.IntakeService,
+		stylistService:      options.StylistService,
+		localUploadsDir:     options.LocalUploadsDir,
+		stylistAuthorizer:   hairstylist.NewAuthorizer(authSettings),
+		dslFlows:            newDSLFlowStore(options.DSLConfigDB, stateDB, options.DSLConfigSQLitePath, statePath, options.Storage),
+		dslSQLitePath:       statePath,
+		dslSQLiteMigrate:    options.DSLSQLiteMigrate,
+		dslConfigSQLitePath: options.DSLConfigSQLitePath,
+		dslStateSQLitePath:  statePath,
 	}
 
 	mux := http.NewServeMux()

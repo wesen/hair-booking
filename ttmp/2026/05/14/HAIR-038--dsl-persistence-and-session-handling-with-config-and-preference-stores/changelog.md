@@ -24,3 +24,15 @@ Updated HAIR-038 design to replace app-specific host/config and host/preferences
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/14/HAIR-038--dsl-persistence-and-session-handling-with-config-and-preference-stores/design-doc/01-dsl-persistence-and-session-handling-guide.md — Corrected design guide centered on configDb/stateDb
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/14/HAIR-038--dsl-persistence-and-session-handling-with-config-and-preference-stores/reference/01-diary.md — Diary Step 3 records user correction and rationale
 
+
+## 2026-05-14
+
+Phase 1: Added configDb/stateDb RuntimeHost plumbing, registered pre-provisioned Goja database modules, preserved db as a stateDb alias, and tested configDb read-only behavior.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/db_modules.go — configDb read-only QueryExecer wrapper
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/host.go — RuntimeHost config/state DB split
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/modules_dsl.go — configDb/stateDb module registration
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl.go — dslFlowStore config/state DB wiring
+

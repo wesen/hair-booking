@@ -16,20 +16,27 @@ import (
 type dslFlowStore struct {
 	mu        sync.RWMutex
 	runtime   *dslgoja.Runtime
-	db        *sql.DB
+	configDB  *sql.DB
+	stateDB   *sql.DB
 	blobStore storage.BlobStore
 	sessions  map[string]*dslgoja.FlowSession
 }
 
-func newDSLFlowStore(db *sql.DB, dbPath string, blobStore storage.BlobStore) *dslFlowStore {
+func newDSLFlowStore(configDB, stateDB *sql.DB, configDBPath, stateDBPath string, blobStore storage.BlobStore) *dslFlowStore {
 	runtime := dslgoja.NewRuntime(dslgoja.WithHost(dslgoja.RuntimeHost{
-		DB:        db,
-		DBPath:    dbPath,
+		ConfigDB:     configDB,
+		ConfigDBPath: configDBPath,
+		StateDB:      stateDB,
+		StateDBPath:  stateDBPath,
+		// Transitional legacy alias for existing require("db") callers.
+		DB:        stateDB,
+		DBPath:    stateDBPath,
 		BlobStore: blobStore,
 	}))
 	return &dslFlowStore{
 		runtime:   runtime,
-		db:        db,
+		configDB:  configDB,
+		stateDB:   stateDB,
 		blobStore: blobStore,
 		sessions:  map[string]*dslgoja.FlowSession{},
 	}

@@ -13,10 +13,28 @@ func (rt *Runtime) installModules(vm *goja.Runtime, session *FlowSession) error 
 	registry.RegisterNativeModule("fringe/dsl", loadFringeDSLModule)
 	registry.RegisterNativeModule("host/user", loadUserModule(session))
 	registry.RegisterNativeModule("host/images", loadImagesModule(session))
-	if rt.host.HasDB() {
+	if rt.host.HasConfigDB() {
+		configModule := databasemod.New(
+			databasemod.WithName("configDb"),
+			databasemod.WithPreconfiguredDB(newQueryOnlyDB(rt.host.ConfigDB)),
+			databasemod.WithConfigureEnabled(false),
+		)
+		registry.RegisterNativeModule(configModule.Name(), configModule.Loader)
+	}
+	if rt.host.HasStateDB() {
+		stateDB := rt.host.EffectiveStateDB()
+		stateModule := databasemod.New(
+			databasemod.WithName("stateDb"),
+			databasemod.WithPreconfiguredDB(stateDB),
+			databasemod.WithConfigureEnabled(false),
+		)
+		registry.RegisterNativeModule(stateModule.Name(), stateModule.Loader)
+
+		// Transitional alias for HAIR-036 callers/tests. New HAIR-038 code should
+		// require("stateDb") explicitly.
 		dbModule := databasemod.New(
 			databasemod.WithName("db"),
-			databasemod.WithPreconfiguredDB(rt.host.DB),
+			databasemod.WithPreconfiguredDB(stateDB),
 			databasemod.WithConfigureEnabled(false),
 		)
 		registry.RegisterNativeModule(dbModule.Name(), dbModule.Loader)

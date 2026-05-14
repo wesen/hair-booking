@@ -173,6 +173,8 @@ func (c *ServeCommand) Run(ctx context.Context, parsedValues *values.Values) err
 		DSLSQLitePath:       dslDB.Path,
 		DSLSQLiteMigrate:    settings.DSLSQLiteMigrate,
 		DSLDB:               dslDB.DB,
+		DSLStateSQLitePath:  dslDB.Path,
+		DSLStateDB:          dslDB.DB,
 	})
 	if err != nil {
 		return pkgerrors.Wrap(err, "failed to create http server")

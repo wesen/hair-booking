@@ -57,10 +57,10 @@ func (h *appHandler) dslUserSnapshot(r *http.Request) dslgoja.UserSnapshot {
 }
 
 func (h *appHandler) recordDSLFlowSession(r *http.Request, session *dslgoja.FlowSession, result *dslgoja.InteractionResult) error {
-	if h.dslFlows == nil || h.dslFlows.db == nil || session == nil || result == nil {
+	if h.dslFlows == nil || h.dslFlows.stateDB == nil || session == nil || result == nil {
 		return nil
 	}
-	_, err := h.dslFlows.db.ExecContext(r.Context(), `INSERT INTO dsl_flow_sessions(id, flow_id, user_id, status, current_page_id, current_page_version, state_json)
+	_, err := h.dslFlows.stateDB.ExecContext(r.Context(), `INSERT INTO dsl_flow_sessions(id, flow_id, user_id, status, current_page_id, current_page_version, state_json)
 VALUES (?, ?, ?, 'active', ?, ?, '{}')
 ON CONFLICT(id) DO UPDATE SET current_page_id = excluded.current_page_id, current_page_version = excluded.current_page_version, updated_at = datetime('now')`,
 		session.ID,
@@ -156,10 +156,10 @@ func (h *appHandler) handleDSLUpload(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *appHandler) recordDSLUpload(r *http.Request, image dslgoja.UploadedImage) error {
-	if h.dslFlows.db == nil {
+	if h.dslFlows.stateDB == nil {
 		return nil
 	}
-	_, err := h.dslFlows.db.ExecContext(r.Context(), `INSERT INTO dsl_uploads(id, session_id, user_id, purpose, slot, original_filename, content_type, size_bytes, storage_key, public_url, status)
+	_, err := h.dslFlows.stateDB.ExecContext(r.Context(), `INSERT INTO dsl_uploads(id, session_id, user_id, purpose, slot, original_filename, content_type, size_bytes, storage_key, public_url, status)
 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'stored')`,
 		image.UploadID,
 		image.SessionID,

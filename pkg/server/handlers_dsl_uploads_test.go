@@ -38,7 +38,7 @@ func TestHandleDSLUploadStoresBlobAndMetadata(t *testing.T) {
 	defer func() { _ = dbHost.Close() }()
 
 	store := &dslUploadFakeBlobStore{}
-	h := &appHandler{dslFlows: newDSLFlowStore(dbHost.DB, dbHost.Path, store)}
+	h := &appHandler{dslFlows: newDSLFlowStore(nil, dbHost.DB, "", dbHost.Path, store)}
 	session, result, err := h.dslFlows.runtime.StartFlow(context.Background(), "test.flow", `
 		const { page } = require("fringe/dsl");
 		const images = require("host/images");

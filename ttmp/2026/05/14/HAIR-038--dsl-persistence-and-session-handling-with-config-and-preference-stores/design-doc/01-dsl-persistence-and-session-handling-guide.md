@@ -13,16 +13,23 @@ DocType: design-doc
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: pkg/dslgoja/db_modules.go
+      Note: QueryOnlyDB wrapper enforces configDb read-only behavior
     - Path: pkg/dslgoja/flows/intake.flow.js
       Note: |-
         Current flow script with hard-coded service, tone, budget, day, and time options plus ctx.state choices
         Current hard-coded sample-app content and ctx.state mutation patterns to replace with configDb/stateDb reads and durable state snapshots
     - Path: pkg/dslgoja/host.go
-      Note: Current RuntimeHost dependency injection point for DB/blob host resources
+      Note: |-
+        Current RuntimeHost dependency injection point for DB/blob host resources
+        RuntimeHost now exposes explicit ConfigDB and StateDB fields while preserving legacy DB alias
+    - Path: pkg/dslgoja/host_modules_test.go
+      Note: Tests configDb read-only and stateDb read-write behavior
     - Path: pkg/dslgoja/modules_dsl.go
       Note: |-
         Current Goja module registration boundary where pre-provisioned configDb and stateDb modules should be installed
         Current Goja module installation point for future read-only and read-write database objects
+        Registers pre-provisioned configDb and stateDb Goja database modules
     - Path: pkg/dslgoja/runtime.go
       Note: |-
         Current FlowSession lifecycle, ctx.state, action registry, render transaction, and dispatch semantics
@@ -37,8 +44,11 @@ RelatedFiles:
       Note: |-
         Current start/get/event HTTP handlers and in-memory dslFlowStore
         Current start/get/event endpoints and in-memory session store that HAIR-038 must hydrate from DB
+        dslFlowStore now carries configDB/stateDB and passes both into RuntimeHost
     - Path: pkg/server/handlers_dsl_uploads.go
       Note: Current DSL user snapshot, flow-session row persistence, and upload metadata persistence
+    - Path: pkg/server/http.go
+      Note: Server options and handler wiring split config/state database dependencies
     - Path: proto/fringe/dsl/v1/dsl.proto
       Note: Current protobuf transport envelopes for FlowState, InteractionEvent, and DslError
     - Path: web/src/LiveDslDemoApp.tsx
@@ -53,6 +63,7 @@ LastUpdated: 2026-05-14T00:00:00Z
 WhatFor: Use this guide to implement HAIR-038 persistence and session handling without rediscovering the Goja DSL architecture.
 WhenToUse: Read before changing DSL session storage, ctx.state persistence, Goja database modules, configDb/stateDb provisioning, session recovery, or DSL database schema.
 ---
+
 
 
 # DSL Persistence and Session Handling Guide
