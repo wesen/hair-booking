@@ -812,3 +812,70 @@ The live smoke proved the end-to-end path: the server starts with `configDb` and
 - Successful live smoke DB assertion:
   - `SELECT current_page_version, config_version_id, json_extract(state_json, '$.category') FROM dsl_flow_sessions WHERE id='<session>';`
   - output: `2|cfg_default|extensions`
+
+## Step 13: Remove intake.flow.js config fallbacks and retest
+
+The user clarified that `intake.flow.js` should not silently fall back when `configDb` is missing or incomplete. If the pre-provisioned configuration database is unavailable, the flow should fail. This step removed the fallback constants and try/catch behavior from the flow and updated tests to provide a real seeded config DB wherever the demo intake flow is expected to run.
+
+The final live smoke intentionally changed a service title directly in the config SQLite database before starting the flow. The returned page showed the changed title, proving that we were looking at `configDb` content rather than hard-coded fallback arrays.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Remove the fallbacs in intake.flow.js. If it fails, it fails!"
+
+**Assistant interpretation:** Remove fallback constants and fallback behavior from the Goja intake flow so `configDb` is mandatory.
+
+**Inferred user intent:** The user wants failures to surface immediately when configuration is missing, rather than masking deployment/configuration errors with stale hard-coded data.
+
+**Commit (code):** pending at time of diary entry.
+
+### What I did
+- Changed `intake.flow.js` to require `configDb` directly.
+- Removed hard-coded option arrays for services, tones, budgets, days, and times.
+- Removed `queryConfig(..., fallback)` behavior and catch/return-fallback handling.
+- Changed `estimateRange(ctx)` to throw if no configured range is found.
+- Added/updated tests so DemoIntakeFlowSource receives a seeded config DB when it is expected to run.
+- Added an explicit test that DemoIntakeFlowSource fails without `configDb`.
+- Updated server DSL tests to provision config DBs explicitly through a test helper.
+- Ran full Go tests.
+- Ran a live serve/curl/SQLite smoke that mutated `config.sqlite` and verified the returned service title came from config DB.
+
+### Why
+- Silent fallbacks make it unclear whether the runtime is exercising real configDb behavior.
+- Failing fast is safer for configuration-driven apps: missing config should be visible in tests and deployment.
+
+### What worked
+- `go test ./... -count=1` passed.
+- Live no-fallback smoke returned `serviceTitle: "Config DB Cut"` after the config DB row was updated.
+- The same live smoke persisted `2|cfg_default|extensions` in the state DB after dispatch.
+
+### What didn't work
+- Before updating tests, many dslgoja/server tests failed with `GoError: Invalid module` because they started the demo intake flow without providing `configDb`. That was the expected failure mode after removing fallbacks.
+- The tests were fixed by adding seeded config DB helpers for tests that intentionally run `DemoIntakeFlowSource`.
+
+### What I learned
+- Removing fallbacks made the tests more honest: callers must explicitly provide config DB if they use the real intake flow.
+- Updating a config row before start is a strong smoke-test proof that the rendered DSL page is reading from config DB.
+
+### What was tricky to build
+- The tricky part was separating generic runtime tests that should not need config DB from demo-flow tests that now require it. The solution was a `newRuntimeWithConfigDB(t)` helper in `pkg/dslgoja` tests and `newTestDSLHandler(t, options)` in server tests.
+
+### What warrants a second pair of eyes
+- Review whether `initialState()` should still set `configVersionId: "cfg_default"` or whether the first render should always query the active version from config DB.
+- Review whether all production entry points now guarantee config DB provisioning before starting `fringe.intake.v1`.
+
+### What should be done in the future
+- Consider adding a tracked smoke script that mutates config DB and asserts the rendered page reflects it.
+
+### Code review instructions
+- Start with `pkg/dslgoja/flows/intake.flow.js` and confirm `configDb` is required directly and no fallback option arrays remain.
+- Then inspect `pkg/dslgoja/test_helpers_test.go` and `pkg/server/handlers_dsl_test.go` for explicit seeded config DB setup.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+- Full validation command:
+  - `go test ./... -count=1`
+- Live smoke assertion:
+  - Updated config row: `UPDATE dsl_service_options SET title='Config DB Cut' WHERE value='cut';`
+  - Returned page value: `serviceTitle = "Config DB Cut"`
+  - Persisted state row: `2|cfg_default|extensions`

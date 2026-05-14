@@ -29,7 +29,7 @@ func segmentedValue(t *testing.T, page Page, nodeID string) string {
 }
 
 func TestDispatchInvokesGojaCallbackAndCommitsNextPage(t *testing.T) {
-	rt := NewRuntime()
+	rt := newRuntimeWithConfigDB(t)
 	session, _, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
 	if err != nil {
 		t.Fatalf("StartFlow: %v", err)
@@ -60,7 +60,7 @@ func TestDispatchInvokesGojaCallbackAndCommitsNextPage(t *testing.T) {
 }
 
 func TestDispatchNavigationActionMovesToColorStep(t *testing.T) {
-	rt := NewRuntime()
+	rt := newRuntimeWithConfigDB(t)
 	session, _, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
 	if err != nil {
 		t.Fatalf("StartFlow: %v", err)
@@ -83,7 +83,7 @@ func TestDispatchNavigationActionMovesToColorStep(t *testing.T) {
 }
 
 func TestDispatchStaleActionReturnsCurrentPage(t *testing.T) {
-	rt := NewRuntime()
+	rt := newRuntimeWithConfigDB(t)
 	session, _, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
 	if err != nil {
 		t.Fatalf("StartFlow: %v", err)
@@ -121,7 +121,7 @@ func TestDispatchStaleActionReturnsCurrentPage(t *testing.T) {
 }
 
 func TestDispatchDuplicateEventReturnsCachedResult(t *testing.T) {
-	rt := NewRuntime()
+	rt := newRuntimeWithConfigDB(t)
 	session, _, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
 	if err != nil {
 		t.Fatalf("StartFlow: %v", err)

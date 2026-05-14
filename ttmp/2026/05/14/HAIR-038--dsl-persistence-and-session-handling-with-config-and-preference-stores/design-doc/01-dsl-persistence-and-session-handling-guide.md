@@ -22,6 +22,7 @@ RelatedFiles:
         Current flow script with hard-coded service, tone, budget, day, and time options plus ctx.state choices
         Current hard-coded sample-app content and ctx.state mutation patterns to replace with configDb/stateDb reads and durable state snapshots
         Intake flow reads service/budget/day/time/range content through configDb-backed helpers with fallback constants
+        ConfigDb is now mandatory; fallback arrays were removed
     - Path: pkg/dslgoja/host.go
       Note: |-
         Current RuntimeHost dependency injection point for DB/blob host resources
@@ -39,6 +40,8 @@ RelatedFiles:
         Current FlowSession lifecycle
         StateJSON helper exports durable JSON-safe ctx.state snapshots
         ResumeFlow rebuilds a Goja VM from persisted state JSON and regenerates actions
+    - Path: pkg/dslgoja/test_helpers_test.go
+      Note: Test helper provisions seeded configDb for demo flow tests
     - Path: pkg/dslgoja/user.go
       Note: ResumeFlowOptions carries session id
     - Path: pkg/dslhost/config_schema.sql
@@ -72,6 +75,7 @@ RelatedFiles:
         Tests config_version_id persistence after start and dispatch
         Tests wrong-user and expired-session hydration rejection
         Cleanup test verifies expired sessions are marked without touching active sessions
+        Server DSL tests explicitly pass configDb when starting real intake flow
     - Path: pkg/server/handlers_dsl_uploads.go
       Note: |-
         Current DSL user snapshot, flow-session row persistence, and upload metadata persistence
@@ -95,6 +99,7 @@ LastUpdated: 2026-05-14T00:00:00Z
 WhatFor: Use this guide to implement HAIR-038 persistence and session handling without rediscovering the Goja DSL architecture.
 WhenToUse: Read before changing DSL session storage, ctx.state persistence, Goja database modules, configDb/stateDb provisioning, session recovery, or DSL database schema.
 ---
+
 
 
 

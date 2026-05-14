@@ -5,8 +5,16 @@ import (
 	"testing"
 )
 
-func TestDemoIntakeFlowStartsOnServiceStep(t *testing.T) {
+func TestDemoIntakeFlowRequiresConfigDB(t *testing.T) {
 	rt := NewRuntime()
+	_, _, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
+	if err == nil {
+		t.Fatalf("expected DemoIntakeFlowSource to fail without configDb")
+	}
+}
+
+func TestDemoIntakeFlowStartsOnServiceStep(t *testing.T) {
+	rt := newRuntimeWithConfigDB(t)
 	session, result, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
 	if err != nil {
 		t.Fatalf("StartFlow: %v", err)
@@ -35,7 +43,7 @@ func TestDemoIntakeFlowStartsOnServiceStep(t *testing.T) {
 }
 
 func TestDemoIntakeFlowCanStartOnColorStepFromState(t *testing.T) {
-	rt := NewRuntime()
+	rt := newRuntimeWithConfigDB(t)
 	session, _, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
 	if err != nil {
 		t.Fatalf("StartFlow: %v", err)
@@ -69,74 +77,73 @@ func TestDemoIntakeFlowCanStartOnColorStepFromState(t *testing.T) {
 }
 
 func TestDemoIntakeFlowShellStepsIncludeNavigationActions(t *testing.T) {
-	 rt := NewRuntime()
-	 session, result, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
-	 if err != nil {
-		 t.Fatalf("StartFlow: %v", err)
-	 }
-	 shellProps := result.Page.Shell.Props
-	 if shellProps == nil {
-		 t.Fatal("shell props is nil")
-	 }
-	 stepsRaw, ok := shellProps["steps"]
-	 if !ok {
-		 t.Fatal("shell.props.steps missing")
-	 }
-	 steps, ok := stepsRaw.([]any)
-	 if !ok {
-		 t.Fatalf("shell.props.steps type = %T", stepsRaw)
-	 }
-	 if len(steps) != 7 {
-		 t.Fatalf("steps count = %d, want 7", len(steps))
-	 }
-	 // First step should be current, have a goto action
-	 step0, _ := steps[0].(map[string]any)
-	 if step0["current"] != true {
-		 t.Fatalf("step[0].current = %v, want true", step0["current"])
-	 }
-	 if step0["id"] != "service" {
-		 t.Fatalf("step[0].id = %v", step0["id"])
-	 }
-	 // Check every step has actions.select
-	 for i, s := range steps {
-		 sm, _ := s.(map[string]any)
-		 actions, _ := sm["actions"].(map[string]any)
-		 if actions == nil || actions["select"] == nil {
-			 t.Fatalf("step[%d].actions.select missing", i)
-		 }
-	 }
-	 // Dispatch goto:budget action → page should become intake-budget
-	 actionID, _ := steps[3].(map[string]any)["actions"].(map[string]any)["select"].(map[string]any)["id"].(string)
-	 if actionID == "" {
-		 t.Fatal("step[3] (budget) has no action id")
-	 }
+	rt := newRuntimeWithConfigDB(t)
+	session, result, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
+	if err != nil {
+		t.Fatalf("StartFlow: %v", err)
+	}
+	shellProps := result.Page.Shell.Props
+	if shellProps == nil {
+		t.Fatal("shell props is nil")
+	}
+	stepsRaw, ok := shellProps["steps"]
+	if !ok {
+		t.Fatal("shell.props.steps missing")
+	}
+	steps, ok := stepsRaw.([]any)
+	if !ok {
+		t.Fatalf("shell.props.steps type = %T", stepsRaw)
+	}
+	if len(steps) != 7 {
+		t.Fatalf("steps count = %d, want 7", len(steps))
+	}
+	// First step should be current, have a goto action
+	step0, _ := steps[0].(map[string]any)
+	if step0["current"] != true {
+		t.Fatalf("step[0].current = %v, want true", step0["current"])
+	}
+	if step0["id"] != "service" {
+		t.Fatalf("step[0].id = %v", step0["id"])
+	}
+	// Check every step has actions.select
+	for i, s := range steps {
+		sm, _ := s.(map[string]any)
+		actions, _ := sm["actions"].(map[string]any)
+		if actions == nil || actions["select"] == nil {
+			t.Fatalf("step[%d].actions.select missing", i)
+		}
+	}
+	// Dispatch goto:budget action → page should become intake-budget
+	actionID, _ := steps[3].(map[string]any)["actions"].(map[string]any)["select"].(map[string]any)["id"].(string)
+	if actionID == "" {
+		t.Fatal("step[3] (budget) has no action id")
+	}
 
-	 dispatchResult, err := session.Dispatch(context.Background(), InteractionEvent{
-		 EventID:   "test-1",
-		 PageVersion: result.PageVersion,
-		 NodeID:    "shell.step.budget",
-		 NodeKind:  "intakeShell",
-		 ActionID:  actionID,
-		 Event:     "goto",
-		 Value:     "budget",
-	 })
-	 if err != nil {
-		 t.Fatalf("dispatch goto:budget: %v", err)
-	 }
-	 if dispatchResult.Page.ID != "intake-budget" {
-		 t.Fatalf("after goto:budget, page id = %q, want intake-budget", dispatchResult.Page.ID)
-	 }
-	 // Verify step 4 (budget) is now current in shell.steps
-	 dispatchSteps, _ := dispatchResult.Page.Shell.Props["steps"].([]any)
-	 budgetStep, _ := dispatchSteps[3].(map[string]any)
-	 if budgetStep["current"] != true {
-		 t.Fatalf("after goto:budget, step[3].current = %v, want true", budgetStep["current"])
-	 }
+	dispatchResult, err := session.Dispatch(context.Background(), InteractionEvent{
+		EventID:     "test-1",
+		PageVersion: result.PageVersion,
+		NodeID:      "shell.step.budget",
+		NodeKind:    "intakeShell",
+		ActionID:    actionID,
+		Event:       "goto",
+		Value:       "budget",
+	})
+	if err != nil {
+		t.Fatalf("dispatch goto:budget: %v", err)
+	}
+	if dispatchResult.Page.ID != "intake-budget" {
+		t.Fatalf("after goto:budget, page id = %q, want intake-budget", dispatchResult.Page.ID)
+	}
+	// Verify step 4 (budget) is now current in shell.steps
+	dispatchSteps, _ := dispatchResult.Page.Shell.Props["steps"].([]any)
+	budgetStep, _ := dispatchSteps[3].(map[string]any)
+	if budgetStep["current"] != true {
+		t.Fatalf("after goto:budget, step[3].current = %v, want true", budgetStep["current"])
+	}
 }
 
-
 func TestDemoIntakeFlowPhotosStepCreatesUploadIntents(t *testing.T) {
-	rt := NewRuntime()
+	rt := newRuntimeWithConfigDB(t)
 	session, _, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
 	if err != nil {
 		t.Fatalf("StartFlow: %v", err)

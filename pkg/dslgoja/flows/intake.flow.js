@@ -1,98 +1,49 @@
 const { page, n } = require("fringe/dsl");
 const images = require("host/images");
+const configDb = require("configDb");
 
-var configDb = null;
-try { configDb = require("configDb"); } catch (e) { configDb = null; }
+// ── Config helpers ───────────────────────────────────────────────────
 
-// ── Data ──────────────────────────────────────────────────────────────
-
-const serviceOptions = [
-  { value: "cut", title: "Cut", subtitle: "Trim · restyle · bangs", badge: "$80+" },
-  { value: "highlights", title: "Highlights", subtitle: "Partial · full · balayage", badge: "$180+" },
-  { value: "gloss", title: "Gloss refresh", subtitle: "Tone · shine · maintenance", badge: "$120+" },
-];
-
-const toneOptions = [
-  { value: "neutral", label: "Neutral" },
-  { value: "warm", label: "Warm" },
-  { value: "cool", label: "Cool" },
-  { value: "dimensional", label: "Dimensional" },
-  { value: "low-maintenance", label: "Low upkeep" },
-];
-
-const budgetOptions = [
-  { value: "under-200", title: "Under $200", subtitle: "Refresh, trim, gloss, or maintenance." },
-  { value: "200-350", title: "$200–$350", subtitle: "Most color refresh and partial highlight plans." },
-  { value: "350-plus", title: "$350+", subtitle: "Transformations, extensions, and multi-step color." },
-  { value: "flexible", title: "Flexible", subtitle: "Show me the best plan first." },
-];
-
-const dayOptions = [
-  { value: "2026-06-18", day: "18", date: "2026-06-18", dot: true },
-  { value: "2026-06-19", day: "19", date: "2026-06-19", dot: true },
-  { value: "2026-06-20", day: "20", date: "2026-06-20" },
-  { value: "2026-06-21", day: "21", date: "2026-06-21", dot: true },
-  { value: "2026-06-22", day: "22", date: "2026-06-22" },
-  { value: "2026-06-23", day: "23", date: "2026-06-23", disabled: true },
-  { value: "2026-06-24", day: "24", date: "2026-06-24", disabled: true },
-];
-
-const timeOptions = [
-  { value: "10:30", title: "10:30a" },
-  { value: "12:00", title: "12:00p" },
-  { value: "14:00", title: "2:00p" },
-  { value: "16:30", title: "4:30p" },
-];
-
-function queryConfig(sql, args, fallback) {
-  if (!configDb) return fallback;
-  try {
-    return configDb.query(sql, args || []);
-  } catch (e) {
-    return fallback;
-  }
+function queryConfig(sql, args) {
+  return configDb.query(sql, args || []);
 }
 
 function configVersion(ctx) {
   if (ctx.state.configVersionId) return ctx.state.configVersionId;
   var rows = queryConfig(
     "SELECT id FROM dsl_config_versions WHERE status = ? ORDER BY activated_at DESC LIMIT 1",
-    ["active"],
-    []
+    ["active"]
   );
-  ctx.state.configVersionId = rows.length ? rows[0].id : "cfg_default";
+  if (!rows.length) throw new Error("configDb has no active dsl_config_versions row");
+  ctx.state.configVersionId = rows[0].id;
   return ctx.state.configVersionId;
 }
 
 function configuredServiceOptions(ctx) {
   return queryConfig(
     "SELECT value, title, subtitle, badge FROM dsl_service_options WHERE config_version_id = ? AND category = ? AND enabled = 1 ORDER BY sort_order",
-    [configVersion(ctx), ctx.state.category],
-    serviceOptions
+    [configVersion(ctx), ctx.state.category]
   );
 }
 
 function configuredToneOptions(ctx) {
   return queryConfig(
     "SELECT value, label FROM dsl_tone_options WHERE config_version_id = ? AND enabled = 1 ORDER BY sort_order",
-    [configVersion(ctx)],
-    toneOptions
+    [configVersion(ctx)]
   );
 }
 
 function configuredBudgetOptions(ctx) {
   return queryConfig(
     "SELECT value, title, subtitle FROM dsl_budget_options WHERE config_version_id = ? AND enabled = 1 ORDER BY sort_order",
-    [configVersion(ctx)],
-    budgetOptions
+    [configVersion(ctx)]
   );
 }
 
 function configuredDayOptions(ctx) {
   var rows = queryConfig(
     "SELECT value, day, date, dot, disabled FROM dsl_availability_days WHERE config_version_id = ? ORDER BY sort_order",
-    [configVersion(ctx)],
-    dayOptions
+    [configVersion(ctx)]
   );
   return rows.map(function (row) {
     return {
@@ -108,8 +59,7 @@ function configuredDayOptions(ctx) {
 function configuredTimeOptions(ctx) {
   return queryConfig(
     "SELECT value, title FROM dsl_time_slots WHERE config_version_id = ? AND enabled = 1 ORDER BY sort_order",
-    [configVersion(ctx)],
-    timeOptions
+    [configVersion(ctx)]
   );
 }
 
@@ -203,26 +153,20 @@ function estimateRange(ctx) {
   var version = configVersion(ctx);
   var rows = queryConfig(
     "SELECT label FROM dsl_price_ranges WHERE config_version_id = ? AND budget_value = ? ORDER BY id LIMIT 1",
-    [version, ctx.state.budget],
-    []
+    [version, ctx.state.budget]
   );
   if (rows.length) return rows[0].label;
   rows = queryConfig(
     "SELECT label FROM dsl_price_ranges WHERE config_version_id = ? AND service_value = ? AND budget_value IS NULL ORDER BY id LIMIT 1",
-    [version, ctx.state.service],
-    []
+    [version, ctx.state.service]
   );
   if (rows.length) return rows[0].label;
   rows = queryConfig(
     "SELECT label FROM dsl_price_ranges WHERE config_version_id = ? AND service_value IS NULL AND budget_value IS NULL ORDER BY id LIMIT 1",
-    [version],
-    []
+    [version]
   );
   if (rows.length) return rows[0].label;
-  if (ctx.state.budget === "under-200") return "$120–$190";
-  if (ctx.state.budget === "200-350") return "$220–$340";
-  if (ctx.state.budget === "350-plus") return "$360–$520";
-  return ctx.state.service === "cut" ? "$80–$160" : "$220–$420";
+  throw new Error("configDb has no price range for service=" + ctx.state.service + " budget=" + ctx.state.budget);
 }
 
 function photoCount(ctx) {

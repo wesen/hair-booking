@@ -121,3 +121,14 @@ Validation: full go test ./... passed and live serve/curl smoke verified configD
 
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/14/HAIR-038--dsl-persistence-and-session-handling-with-config-and-preference-stores/reference/01-diary.md — Step 12 records automated and live smoke validation
 
+
+## 2026-05-14
+
+Removed intake.flow.js config fallbacks; DemoIntakeFlowSource now requires configDb. Full tests passed and live smoke proved rendered service title came from mutated configDb row.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/flows/intake.flow.js — Removed fallback constants and direct configDb requirement
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/test_helpers_test.go — Seeded config DB helper for demo-flow tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_test.go — Server DSL tests now provision configDb explicitly
+

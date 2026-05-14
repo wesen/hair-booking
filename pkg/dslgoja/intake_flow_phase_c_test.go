@@ -51,7 +51,7 @@ func assertNodeIDs(t *testing.T, page Page) {
 }
 
 func TestDemoIntakeFlowPhaseCNavigationAndStableIDs(t *testing.T) {
-	rt := NewRuntime()
+	rt := newRuntimeWithConfigDB(t)
 	session, result, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
 	if err != nil {
 		t.Fatalf("StartFlow: %v", err)
@@ -77,7 +77,7 @@ func TestDemoIntakeFlowPhaseCNavigationAndStableIDs(t *testing.T) {
 }
 
 func TestDemoIntakeFlowSummaryEditActionsNavigateToSourceSteps(t *testing.T) {
-	rt := NewRuntime()
+	rt := newRuntimeWithConfigDB(t)
 	session, _, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
 	if err != nil {
 		t.Fatalf("StartFlow: %v", err)
@@ -106,7 +106,7 @@ func TestDemoIntakeFlowSummaryEditActionsNavigateToSourceSteps(t *testing.T) {
 }
 
 func TestDemoIntakeFlowPhaseCRepresentativeUpdates(t *testing.T) {
-	rt := NewRuntime()
+	rt := newRuntimeWithConfigDB(t)
 	session, _, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
 	if err != nil {
 		t.Fatalf("StartFlow: %v", err)

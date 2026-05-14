@@ -16,7 +16,7 @@ import (
 )
 
 func TestDSLFlowEndpointsStartGetAndDispatch(t *testing.T) {
-	handler := NewHandler(HandlerOptions{Version: "test"})
+	handler := newTestDSLHandler(t, HandlerOptions{Version: "test"})
 
 	startReq := httptest.NewRequest(http.MethodPost, "/api/dsl/flows/fringe.intake.v1/start", nil)
 	startRec := httptest.NewRecorder()
@@ -99,7 +99,7 @@ func TestDSLFlowPersistsStateJSONOnStartAndDispatch(t *testing.T) {
 	}
 	defer func() { _ = dbHost.Close() }()
 
-	handler := NewHandler(HandlerOptions{Version: "test", DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
+	handler := newTestDSLHandler(t, HandlerOptions{Version: "test", DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
 	startData := startDSLFlow(t, handler)
 	sessionID := startData["sessionId"].(string)
 	pageVersion := int64(startData["pageVersion"].(float64))
@@ -153,14 +153,14 @@ func TestDSLGetHydratesPersistedSessionWithFreshActions(t *testing.T) {
 	}
 	defer func() { _ = dbHost.Close() }()
 
-	firstHandler := NewHandler(HandlerOptions{Version: "test", DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
+	firstHandler := newTestDSLHandler(t, HandlerOptions{Version: "test", DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
 	startData, eventData := startAndSetCategory(t, firstHandler, "extensions")
 	sessionID := startData["sessionId"].(string)
 	eventPageVersion := int64(eventData["pageVersion"].(float64))
 	eventPage := eventData["page"].(map[string]any)
 	oldActionID := findActionIDInPage(t, eventPage, "category-tabs", "change")
 
-	secondHandler := NewHandler(HandlerOptions{Version: "test", DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
+	secondHandler := newTestDSLHandler(t, HandlerOptions{Version: "test", DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
 	getReq := httptest.NewRequest(http.MethodGet, "/api/dsl/flows/"+sessionID, nil)
 	getRec := httptest.NewRecorder()
 	secondHandler.ServeHTTP(getRec, getReq)
@@ -193,11 +193,11 @@ func TestDSLHydrationRejectsWrongUserAndExpiredSessions(t *testing.T) {
 
 	alice := &hairauth.Settings{Mode: hairauth.AuthModeDev, DevUserID: "alice"}
 	bob := &hairauth.Settings{Mode: hairauth.AuthModeDev, DevUserID: "bob"}
-	firstHandler := NewHandler(HandlerOptions{Version: "test", AuthSettings: alice, DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
+	firstHandler := newTestDSLHandler(t, HandlerOptions{Version: "test", AuthSettings: alice, DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
 	startData := startDSLFlow(t, firstHandler)
 	sessionID := startData["sessionId"].(string)
 
-	wrongUserHandler := NewHandler(HandlerOptions{Version: "test", AuthSettings: bob, DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
+	wrongUserHandler := newTestDSLHandler(t, HandlerOptions{Version: "test", AuthSettings: bob, DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
 	wrongReq := httptest.NewRequest(http.MethodGet, "/api/dsl/flows/"+sessionID, nil)
 	wrongRec := httptest.NewRecorder()
 	wrongUserHandler.ServeHTTP(wrongRec, wrongReq)
@@ -208,7 +208,7 @@ func TestDSLHydrationRejectsWrongUserAndExpiredSessions(t *testing.T) {
 	if _, err := dbHost.DB.Exec(`UPDATE dsl_flow_sessions SET expires_at = datetime('now', '-1 hour') WHERE id = ?`, sessionID); err != nil {
 		t.Fatalf("expire session: %v", err)
 	}
-	expiredHandler := NewHandler(HandlerOptions{Version: "test", AuthSettings: alice, DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
+	expiredHandler := newTestDSLHandler(t, HandlerOptions{Version: "test", AuthSettings: alice, DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
 	expiredReq := httptest.NewRequest(http.MethodGet, "/api/dsl/flows/"+sessionID, nil)
 	expiredRec := httptest.NewRecorder()
 	expiredHandler.ServeHTTP(expiredRec, expiredReq)
@@ -277,6 +277,20 @@ func TestDSLFlowReadsServiceOptionsFromConfigDB(t *testing.T) {
 	if first["title"] != "Color Consult" {
 		t.Fatalf("first service title = %#v", first["title"])
 	}
+}
+
+func newTestDSLHandler(t *testing.T, options HandlerOptions) http.Handler {
+	t.Helper()
+	if options.DSLConfigDB == nil {
+		configHost, err := dslhost.OpenConfigDB(context.Background(), dslhost.DBOptions{Path: filepath.Join(t.TempDir(), "config.sqlite"), Migrate: true})
+		if err != nil {
+			t.Fatalf("OpenConfigDB: %v", err)
+		}
+		t.Cleanup(func() { _ = configHost.Close() })
+		options.DSLConfigDB = configHost.DB
+		options.DSLConfigSQLitePath = configHost.Path
+	}
+	return NewHandler(options)
 }
 
 func startAndSetCategory(t *testing.T, handler http.Handler, value string) (map[string]any, map[string]any) {

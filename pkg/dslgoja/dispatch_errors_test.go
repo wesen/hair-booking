@@ -18,7 +18,7 @@ function render(ctx) {
 `
 
 func TestDispatchUnknownActionReturnsError(t *testing.T) {
-	rt := NewRuntime()
+	rt := newRuntimeWithConfigDB(t)
 	session, _, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
 	if err != nil {
 		t.Fatalf("StartFlow: %v", err)
