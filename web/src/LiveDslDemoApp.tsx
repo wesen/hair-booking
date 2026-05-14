@@ -48,15 +48,45 @@ function routeForPage(pageId: string) {
   return `/dsl-goja-demo/${slugForPage(pageId)}`;
 }
 
+const VIEW_PREF_KEY = "fringe.dsl.viewPref";
+
+type ViewPref = "auto" | "mobile" | "desktop";
+
+function readViewPref(): ViewPref {
+  try {
+    const v = window.localStorage.getItem(VIEW_PREF_KEY);
+    if (v === "mobile" || v === "desktop") return v;
+  } catch { /* ignore */ }
+  return "auto";
+}
+
+function writeViewPref(pref: ViewPref) {
+  try { window.localStorage.setItem(VIEW_PREF_KEY, pref); } catch { /* ignore */ }
+}
+
 function useIsDesktop() {
-  const [isDesktop, setIsDesktop] = useState(() => window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT}px)`).matches);
+  const [pref, setPref] = useState<ViewPref>(readViewPref);
+  const [nativeDesktop, setNativeDesktop] = useState(() => window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT}px)`).matches);
+
   useEffect(() => {
     const mq = window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT}px)`);
-    const handler = (e: MediaQueryListEvent) => setIsDesktop(e.matches);
+    const handler = (e: MediaQueryListEvent) => setNativeDesktop(e.matches);
     mq.addEventListener("change", handler);
     return () => mq.removeEventListener("change", handler);
   }, []);
-  return isDesktop;
+
+  const isDesktop = pref === "desktop" ? true : pref === "mobile" ? false : nativeDesktop;
+  const cyclePref = useCallback(() => {
+    const next = isDesktop ? "mobile" : "desktop";
+    setPref(next);
+    writeViewPref(next);
+  }, [isDesktop]);
+  const resetPref = useCallback(() => {
+    setPref("auto");
+    writeViewPref("auto");
+  }, []);
+
+  return { isDesktop, pref, cyclePref, resetPref };
 }
 
 export function LiveDslDemoApp() {
@@ -67,7 +97,7 @@ export function LiveDslDemoApp() {
   const [copied, setCopied] = useState(false);
   const [debugOpen, setDebugOpen] = useState(false);
   const previousPageId = useRef<string | null>(null);
-  const isDesktop = useIsDesktop();
+  const { isDesktop, pref, cyclePref, resetPref } = useIsDesktop();
 
   const handleStateChange = useCallback((nextState: DslFlowState) => {
     setFlowState(nextState);
@@ -180,7 +210,7 @@ export function LiveDslDemoApp() {
               Same JSON, different density. Wide viewport shows the desktop shell with two-column layout and accent panel. Narrow viewport shows the mobile intake shell.
             </p>
 
-            <ViewModeIndicator forceDesktop />
+            <ViewModeIndicator isDesktop={isDesktop} pref={pref} onToggle={cyclePref} onReset={resetPref} />
 
             {recoveryMessage ? <DebugNotice tone="warn" message={recoveryMessage} /> : null}
             {flowState?.effects?.map((effect, index) => (
@@ -293,7 +323,7 @@ export function LiveDslDemoApp() {
             flex: "1 1 300px",
           }}
         >
-          <ViewModeIndicator />
+          <ViewModeIndicator isDesktop={isDesktop} pref={pref} onToggle={cyclePref} onReset={resetPref} />
 
           <p style={{ margin: "0 0 8px", fontFamily: font.mono, fontSize: 11, letterSpacing: 1.4, textTransform: "uppercase", color: color.plum }}>
             Live backend DSL route
@@ -368,25 +398,70 @@ export function LiveDslDemoApp() {
   );
 }
 
-/** Small badge showing current view mode (mobile/desktop) */
-function ViewModeIndicator({ forceDesktop }: { forceDesktop?: boolean }) {
+/** Clickable badge showing + toggling current view mode */
+function ViewModeIndicator({ isDesktop, pref, onToggle, onReset }: {
+  isDesktop: boolean;
+  pref: ViewPref;
+  onToggle: () => void;
+  onReset: () => void;
+}) {
+  const label = isDesktop ? "Desktop view" : "Mobile view";
+  const icon = isDesktop ? "🖥" : "📱";
+  const toggleLabel = isDesktop ? "Switch to mobile" : "Switch to desktop";
   return (
-    <div style={{
-      display: "inline-flex",
-      alignItems: "center",
-      gap: 8,
-      marginBottom: 16,
-      padding: "6px 12px",
-      borderRadius: 999,
-      background: forceDesktop ? color.plum : color.creamDeep,
-      color: forceDesktop ? color.paper : color.plum,
-      fontFamily: font.mono,
-      fontSize: 10,
-      letterSpacing: 1.2,
-      textTransform: "uppercase",
-    }}>
-      <span aria-hidden="true" style={{ fontSize: 13 }}>{forceDesktop ? "🖥" : "📱"}</span>
-      {forceDesktop ? "Desktop view" : "Mobile view"}
+    <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, flexWrap: "wrap" }}>
+      <div
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "6px 12px",
+          borderRadius: 999,
+          background: isDesktop ? color.plum : color.creamDeep,
+          color: isDesktop ? color.paper : color.plum,
+          fontFamily: font.mono,
+          fontSize: 10,
+          letterSpacing: 1.2,
+          textTransform: "uppercase",
+        }}
+      >
+        <span aria-hidden="true" style={{ fontSize: 13 }}>{icon}</span>
+        {label}
+      </div>
+      <button
+        type="button"
+        onClick={onToggle}
+        title={toggleLabel}
+        style={{
+          border: `1px solid ${color.rule}`,
+          background: color.paper,
+          borderRadius: 999,
+          padding: "5px 10px",
+          fontFamily: font.mono,
+          fontSize: 10,
+          letterSpacing: 1,
+          textTransform: "uppercase",
+          color: color.softInk,
+          cursor: "pointer",
+        }}
+      >{toggleLabel}</button>
+      {pref !== "auto" && (
+        <button
+          type="button"
+          onClick={onReset}
+          title="Reset to auto"
+          style={{
+            border: "none",
+            background: "transparent",
+            fontFamily: font.mono,
+            fontSize: 10,
+            color: color.soft,
+            cursor: "pointer",
+            padding: "4px 6px",
+            textDecoration: "underline",
+          }}
+        >auto</button>
+      )}
     </div>
   );
 }

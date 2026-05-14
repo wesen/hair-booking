@@ -8,6 +8,8 @@ export interface DesktopShellProps {
   step: number;
   /** Total number of steps */
   total: number;
+  /** Step labels (overrides default generated labels) */
+  stepLabels?: string[];
   /** Accent color token value (e.g. color.butter, color.sage) */
   accent?: string;
   /** Accent ink color (text on accent backgrounds) */
@@ -35,6 +37,7 @@ const defaultSteps = [
 export function DesktopShell({
   step,
   total,
+  stepLabels,
   accent = color.plum,
   accentInk = color.paper,
   activeNav = "Book",
@@ -42,7 +45,7 @@ export function DesktopShell({
   children,
   style,
 }: DesktopShellProps) {
-  const steps = defaultSteps.slice(0, total);
+  const steps = stepLabels?.slice(0, total) || defaultSteps.slice(0, total);
 
   return (
     <div
