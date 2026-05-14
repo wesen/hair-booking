@@ -521,6 +521,8 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
           onChange={(value) => dispatchAction(ctx, node, props, "change", "action", value)}
           columns={num(props, "columns", 7)}
           gap={num(props, "gap", 4)}
+          showWeekdays={bool(props, "showWeekdays", true)}
+          monthLabel={str(props, "monthLabel", undefined as unknown as string) || undefined}
           style={style(props)}
         />
       );
