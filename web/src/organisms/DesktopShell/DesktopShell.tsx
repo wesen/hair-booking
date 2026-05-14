@@ -1,14 +1,18 @@
 import type { CSSProperties, ReactNode } from "react";
 import { color, font } from "../../fringe-ui/tokens";
 import { TopNav } from "../../molecules/TopNav/TopNav";
-import { DesktopStepRail } from "../../molecules/DesktopStepRail/DesktopStepRail";
+import { DesktopStepRail, type DesktopStepRailItem } from "../../molecules/DesktopStepRail/DesktopStepRail";
 
 export interface DesktopShellProps {
   /** Current step index (0-based) for StepRail highlighting */
   step: number;
   /** Total number of steps */
   total: number;
-  /** Step labels (overrides default generated labels) */
+  /** Step items with IDs and labels (overrides default generated labels) */
+  stepItems?: DesktopStepRailItem[];
+  /** Called when a non-disabled, non-current step is clicked */
+  onStepSelect?: (step: DesktopStepRailItem, index: number) => void;
+  /** Step labels (fallback if stepItems not provided) */
   stepLabels?: string[];
   /** Accent color token value (e.g. color.butter, color.sage) */
   accent?: string;
@@ -37,6 +41,8 @@ const defaultSteps = [
 export function DesktopShell({
   step,
   total,
+  stepItems,
+  onStepSelect,
   stepLabels,
   accent = color.plum,
   accentInk = color.paper,
@@ -45,7 +51,11 @@ export function DesktopShell({
   children,
   style,
 }: DesktopShellProps) {
-  const steps = stepLabels?.slice(0, total) || defaultSteps.slice(0, total);
+  const defaultItems: DesktopStepRailItem[] = defaultSteps.slice(0, total).map((label, i) => ({
+    id: label.toLowerCase().replace(/\s+/g, "-"),
+    label,
+  }));
+  const items = stepItems?.slice(0, total) || defaultItems;
 
   return (
     <div
@@ -66,7 +76,7 @@ export function DesktopShell({
 
       {/* Body: step rail + content */}
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-        <DesktopStepRail steps={steps} current={step} accent={accent} />
+        <DesktopStepRail steps={items} current={step} accent={accent} onStepSelect={onStepSelect} />
         <div
           data-component="DesktopShellContent"
           style={{ flex: 1, overflow: "auto" }}

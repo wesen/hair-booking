@@ -4,6 +4,7 @@ import { AccentPanel } from "../molecules/AccentPanel/AccentPanel";
 import { TwoColumnLayout } from "../organisms/DesktopShell/TwoColumnLayout";
 import { IntakeShell } from "../organisms/IntakeShell/IntakeShell";
 import { DesktopShell } from "../organisms/DesktopShell/DesktopShell";
+import type { DesktopStepRailItem } from "../molecules/DesktopStepRail/DesktopStepRail";
 import { Eyebrow } from "../atoms/Eyebrow/Eyebrow";
 import { Button } from "../atoms/Button/Button";
 import { Chip } from "../atoms/Chip/Chip";
@@ -542,6 +543,20 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
  * Context-panel candidates: stat, personCard, kvRow (with meta.context=true), card with accent.
  * Everything else goes to main.
  */
+/** Parse shell.props.steps into DesktopStepRailItem[] for the step rail. */
+function parseShellSteps(props: JsonObject | undefined): DesktopStepRailItem[] {
+  const raw = props?.steps;
+  if (!Array.isArray(raw)) return [];
+  return raw.map((s): DesktopStepRailItem => {
+    const obj = (s && typeof s === "object" && !Array.isArray(s)) ? s as Record<string, unknown> : {};
+    return {
+      id: typeof obj.id === "string" ? obj.id : String(obj.label || ""),
+      label: typeof obj.label === "string" ? obj.label : "",
+      disabled: typeof obj.disabled === "boolean" ? obj.disabled : false,
+    };
+  });
+}
+
 function partitionForDesktop(nodes: DslNode[]): { mainNodes: DslNode[]; contextNodes: DslNode[] } {
   const CONTEXT_KINDS = new Set(["stat", "personCard"]);
   const mainNodes: DslNode[] = [];
@@ -681,11 +696,36 @@ export function DslPageRenderer({ page, context, forceDesktop }: DslPageRenderer
     const { mainNodes, contextNodes } = partitionForDesktop(page.nodes);
     const mainContent = <>{mainNodes.map((node, i) => renderNode(node, context, nodeKey(node, i)))}</>;
 
+    // Parse step items with actions for clickable navigation
+    const shellSteps = parseShellSteps(props);
+    const shellStepActions = (() => {
+      const raw = props?.steps;
+      if (!Array.isArray(raw)) return [];
+      return raw.map((s) => {
+        const obj = (s && typeof s === "object" && !Array.isArray(s)) ? s as Record<string, unknown> : {};
+        const actions = obj.actions as Record<string, unknown> | undefined;
+        const select = actions?.select as Record<string, unknown> | undefined;
+        return select ? { id: typeof select.id === "string" ? select.id : "", event: typeof select.event === "string" ? select.event : "goto" } : null;
+      });
+    })();
+
     // Shared shell wrapper with navbar
     const renderDesktopContent = (inner: ReactNode) => (
       <DesktopShell
         step={stepNum - 1}
         total={num(props, "total", 7)}
+        stepItems={shellSteps.length > 0 ? shellSteps : undefined}
+        onStepSelect={shellStepActions.some(a => a !== null) ? (step, index) => {
+          const actionRef = shellStepActions[index];
+          if (!actionRef || !actionRef.id) return;
+          void context?.backendDispatch?.({
+            nodeId: `shell.step.${step.id}`,
+            nodeKind: "intakeShell",
+            actionId: actionRef.id,
+            event: actionRef.event,
+            value: step.id,
+          });
+        } : undefined}
         accent={accent}
         accentInk={accentInk}
         activeNav={str(props, "activeNav", "Book")}
