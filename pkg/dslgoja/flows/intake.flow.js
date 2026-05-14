@@ -113,6 +113,60 @@ function editAction(ctx, name, step) {
   return { actions: { edit: ctx.action(name, function () { return goto(ctx, step); }, "edit") } };
 }
 
+// ── Context panel helpers ────────────────────────────────────────────
+// These nodes get .region("context") so the desktop renderer pulls them
+// into the right-side accent panel. On mobile they just stack below main content.
+
+function stylistContext() {
+  return n.personCard("Mia Rodriguez", {
+    role: "Senior colorist · 8 yrs",
+    badge: "$180/hr",
+    available: "Next: Jun 18",
+  }).id("stylist-context").region("context");
+}
+
+/** Living summary that grows as the user progresses through the flow. */
+function stepSummary(ctx) {
+  var rows = [];
+  if (ctx.state.service) {
+    rows.push(n.kvRow("Service", selectedServiceName(ctx)).id("ctx-service").region("context"));
+  }
+  if (ctx.state.tones && ctx.state.tones.length) {
+    rows.push(n.kvRow("Tones", ctx.state.tones.join(", ")).id("ctx-tones").region("context"));
+  }
+  if (photoCount(ctx)) {
+    rows.push(n.kvRow("Photos", String(photoCount(ctx)) + " angles").id("ctx-photos").region("context"));
+  }
+  if (ctx.state.budget) {
+    rows.push(n.kvRow("Budget", ctx.state.budget).id("ctx-budget").region("context"));
+  }
+  if (ctx.state.day) {
+    var day = dayOptions.find(function (d) { return d.value === ctx.state.day; });
+    if (day) {
+      rows.push(n.kvRow("Date", "June " + day.day).id("ctx-day").region("context"));
+    }
+  }
+  if (ctx.state.time) {
+    var time = timeOptions.find(function (t) { return t.value === ctx.state.time; });
+    if (time) {
+      rows.push(n.kvRow("Time", time.title).id("ctx-time").region("context"));
+    }
+  }
+  // Wrap in a card so they render as a summary block
+  if (rows.length > 0) {
+    return n.card({ accent: "#6b3a4a" }, ...rows).id("step-summary").region("context");
+  }
+  return null;
+}
+
+/** Nodes to append to every step for the desktop context panel. */
+function contextNodes(ctx) {
+  var nodes = [stylistContext()];
+  var summary = stepSummary(ctx);
+  if (summary) nodes.push(summary);
+  return nodes;
+}
+
 // ── Step 1: Service ──────────────────────────────────────────────────
 
 function serviceStep(ctx) {
@@ -135,6 +189,8 @@ function serviceStep(ctx) {
         mode: "single",
         actions: { change: ctx.action("setService", function (event) { ctx.state.service = event.value; return render(ctx); }, "change") },
       }).id("service-options"),
+      // Context panel (desktop: right column accent panel)
+      stylistContext(),
     )
     .toJSON();
 }
@@ -158,6 +214,9 @@ function colorStep(ctx) {
         actions: { change: ctx.action("setDamage", function (event) { ctx.state.damage = Number(event.value); return render(ctx); }, "change") },
         style: { marginTop: 14 },
       }).id("damage-rating"),
+      // Context panel
+      stylistContext(),
+      stepSummary(ctx),
     )
     .toJSON();
 }
@@ -191,6 +250,9 @@ function photosStep(ctx) {
         tile("back", "Back")
       ).id("photo-grid"),
       n.note(photoCount(ctx) + " photo angles selected", { tone: "info", style: { marginTop: 14 } }).id("photo-count"),
+      // Context panel
+      stylistContext(),
+      stepSummary(ctx),
     )
     .toJSON();
 }
@@ -208,9 +270,12 @@ function budgetStep(ctx) {
         variant: "editorial", style: { marginBottom: 16 },
       }).id("budget-intro"),
       n.selectableGroup(budgetOptions, ctx.state.budget, {
-        mode: "single", columns: 2,
+        mode: "single",
         actions: { change: ctx.action("setBudget", function (event) { ctx.state.budget = event.value; return render(ctx); }, "change") },
       }).id("budget-options"),
+      // Context panel
+      stylistContext(),
+      stepSummary(ctx),
     )
     .toJSON();
 }
@@ -224,7 +289,7 @@ function estimateStep(ctx) {
       back: "budget", next: "booking", nextLabel: "Pick a time →",
     }))
     .add(
-      n.stat("$245", { label: "ESTIMATED · USD", subtitle: "Based on your selections." }).id("estimate-hero"),
+      n.stat("$245", { label: "ESTIMATED · USD", subtitle: "Based on your selections." }).region("context").id("estimate-hero"),
       n.card({ accent: "#6b3a4a", style: { marginBottom: 14 } },
         n.kvRow("Service", selectedServiceName(ctx), editAction(ctx, "editEstimateService", "service")).id("estimate-service"),
         n.kvRow("Tone", (ctx.state.tones || []).join(", ") || "Not sure yet", editAction(ctx, "editEstimateColor", "color")).id("estimate-tones"),
@@ -233,6 +298,8 @@ function estimateStep(ctx) {
         n.kvRow("Range", estimateRange(ctx)).id("estimate-range")
       ).id("estimate-card"),
       n.note("Final pricing is confirmed after stylist review.", { tone: "info" }).id("estimate-note"),
+      // Context panel: stylist card (stat already pulled by partitionForDesktop)
+      stylistContext(),
     )
     .toJSON();
 }
@@ -247,6 +314,8 @@ function bookingStep(ctx) {
     }))
     .add(
       n.calendarGrid(2026, 6, dayOptions, ctx.state.day, {
+        showWeekdays: true,
+        monthLabel: "June 2026",
         actions: { change: ctx.action("setDay", function (event) { ctx.state.day = event.value; return render(ctx); }, "change") },
         style: { marginBottom: 16 },
       }).id("booking-days"),
@@ -254,6 +323,10 @@ function bookingStep(ctx) {
         mode: "single", columns: 2,
         actions: { change: ctx.action("setTime", function (event) { ctx.state.time = event.value; return render(ctx); }, "change") },
       }).id("booking-times"),
+      // Context panel: estimate range + stylist + summary
+      n.stat(estimateRange(ctx), { label: "ESTIMATED RANGE" }).region("context").id("booking-range"),
+      stylistContext(),
+      stepSummary(ctx),
     )
     .toJSON();
 }
@@ -278,6 +351,9 @@ function confirmStep(ctx) {
         n.kvRow("Date", day ? day.day : "TBD", editAction(ctx, "editConfirmBookingDay", "booking")).id("confirm-day"),
         n.kvRow("Time", time ? time.title : "TBD", editAction(ctx, "editConfirmBookingTime", "booking")).id("confirm-time")
       ).id("confirm-card"),
+      // Context panel: stylist + estimate
+      stylistContext(),
+      n.stat(estimateRange(ctx), { label: "ESTIMATED RANGE" }).region("context").id("confirm-range"),
     )
     .toJSON();
 }

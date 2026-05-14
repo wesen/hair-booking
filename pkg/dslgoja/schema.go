@@ -30,6 +30,7 @@ type NodeMeta struct {
 	DataComponent string `json:"dataComponent,omitempty"`
 	DataSection   string `json:"dataSection,omitempty"`
 	DataPart      string `json:"dataPart,omitempty"`
+	Region        string `json:"region,omitempty"`
 	Note          string `json:"note,omitempty"`
 }
 

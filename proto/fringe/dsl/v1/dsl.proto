@@ -38,6 +38,7 @@ message NodeMeta {
   string data_section = 4;
   string data_part = 5;
   string note = 6;
+  string region = 7;
 }
 
 // ActionRef is the opaque browser-visible reference to a backend callback.

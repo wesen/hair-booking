@@ -17,7 +17,7 @@ func TestDemoIntakeFlowStartsOnServiceStep(t *testing.T) {
 	if result.Page.Shell.Kind != "intake" {
 		t.Fatalf("shell kind = %q", result.Page.Shell.Kind)
 	}
-	if len(result.Page.Nodes) != 3 {
+	if len(result.Page.Nodes) != 4 {
 		t.Fatalf("node count = %d", len(result.Page.Nodes))
 	}
 	if result.Page.Nodes[1].Meta == nil || result.Page.Nodes[1].Meta.ID != "category-tabs" {
@@ -25,6 +25,9 @@ func TestDemoIntakeFlowStartsOnServiceStep(t *testing.T) {
 	}
 	if result.Page.Nodes[2].Meta == nil || result.Page.Nodes[2].Meta.ID != "service-options" {
 		t.Fatalf("service node meta = %#v", result.Page.Nodes[2].Meta)
+	}
+	if result.Page.Nodes[3].Meta == nil || result.Page.Nodes[3].Meta.ID != "stylist-context" || result.Page.Nodes[3].Meta.Region != "context" {
+		t.Fatalf("stylist node meta = %#v", result.Page.Nodes[3].Meta)
 	}
 	if len(session.CurrentActions) != 4 {
 		t.Fatalf("registered actions = %d, want 4", len(session.CurrentActions))
@@ -48,7 +51,7 @@ func TestDemoIntakeFlowCanStartOnColorStepFromState(t *testing.T) {
 	if result.Page.ID != "intake-color" {
 		t.Fatalf("page id = %q", result.Page.ID)
 	}
-	if len(result.Page.Nodes) != 2 {
+	if len(result.Page.Nodes) != 4 {
 		t.Fatalf("node count = %d", len(result.Page.Nodes))
 	}
 	if result.Page.Nodes[0].Meta == nil || result.Page.Nodes[0].Meta.ID != "tone-chips" {
@@ -56,5 +59,11 @@ func TestDemoIntakeFlowCanStartOnColorStepFromState(t *testing.T) {
 	}
 	if result.Page.Nodes[1].Meta == nil || result.Page.Nodes[1].Meta.ID != "damage-rating" {
 		t.Fatalf("damage node meta = %#v", result.Page.Nodes[1].Meta)
+	}
+	if result.Page.Nodes[2].Meta == nil || result.Page.Nodes[2].Meta.ID != "stylist-context" || result.Page.Nodes[2].Meta.Region != "context" {
+		t.Fatalf("stylist node meta = %#v", result.Page.Nodes[2].Meta)
+	}
+	if result.Page.Nodes[3].Meta == nil || result.Page.Nodes[3].Meta.ID != "step-summary" || result.Page.Nodes[3].Meta.Region != "context" {
+		t.Fatalf("summary node meta = %#v", result.Page.Nodes[3].Meta)
 	}
 }

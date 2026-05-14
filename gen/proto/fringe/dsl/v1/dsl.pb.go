@@ -245,6 +245,7 @@ type NodeMeta struct {
 	DataSection   string                 `protobuf:"bytes,4,opt,name=data_section,json=dataSection,proto3" json:"data_section,omitempty"`
 	DataPart      string                 `protobuf:"bytes,5,opt,name=data_part,json=dataPart,proto3" json:"data_part,omitempty"`
 	Note          string                 `protobuf:"bytes,6,opt,name=note,proto3" json:"note,omitempty"`
+	Region        string                 `protobuf:"bytes,7,opt,name=region,proto3" json:"region,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -317,6 +318,13 @@ func (x *NodeMeta) GetDataPart() string {
 func (x *NodeMeta) GetNote() string {
 	if x != nil {
 		return x.Note
+	}
+	return ""
+}
+
+func (x *NodeMeta) GetRegion() string {
+	if x != nil {
+		return x.Region
 	}
 	return ""
 }
@@ -850,14 +858,15 @@ const file_proto_fringe_dsl_v1_dsl_proto_rawDesc = "" +
 	"\x04kind\x18\x01 \x01(\tR\x04kind\x12-\n" +
 	"\x05props\x18\x02 \x01(\v2\x17.google.protobuf.StructR\x05props\x12/\n" +
 	"\bchildren\x18\x03 \x03(\v2\x13.fringe.dsl.v1.NodeR\bchildren\x12+\n" +
-	"\x04meta\x18\x04 \x01(\v2\x17.fringe.dsl.v1.NodeMetaR\x04meta\"\xa9\x01\n" +
+	"\x04meta\x18\x04 \x01(\v2\x17.fringe.dsl.v1.NodeMetaR\x04meta\"\xc1\x01\n" +
 	"\bNodeMeta\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x12\n" +
 	"\x04name\x18\x02 \x01(\tR\x04name\x12%\n" +
 	"\x0edata_component\x18\x03 \x01(\tR\rdataComponent\x12!\n" +
 	"\fdata_section\x18\x04 \x01(\tR\vdataSection\x12\x1b\n" +
 	"\tdata_part\x18\x05 \x01(\tR\bdataPart\x12\x12\n" +
-	"\x04note\x18\x06 \x01(\tR\x04note\"1\n" +
+	"\x04note\x18\x06 \x01(\tR\x04note\x12\x16\n" +
+	"\x06region\x18\a \x01(\tR\x06region\"1\n" +
 	"\tActionRef\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x14\n" +
 	"\x05event\x18\x02 \x01(\tR\x05event\"}\n" +

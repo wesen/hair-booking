@@ -92,6 +92,7 @@ func NodeMetaToProto(meta *NodeMeta) *dslv1.NodeMeta {
 		DataSection:   meta.DataSection,
 		DataPart:      meta.DataPart,
 		Note:          meta.Note,
+		Region:        meta.Region,
 	}
 }
 
