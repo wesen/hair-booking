@@ -437,6 +437,13 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
     }
     case "uploadTile": {
       // Use PhotoTile molecule
+      const uploadIntent = (() => {
+        const raw = props?.upload;
+        if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+        return raw as Record<string, unknown>;
+      })();
+      const imageUrl = str(props, "imageUrl", undefined as unknown as string) || undefined;
+      const imageAlt = str(props, "imageAlt", undefined as unknown as string) || undefined;
       return (
         <PhotoTile
           key={key}
@@ -445,8 +452,26 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
           label={str(props, "label")}
           filled={bool(props, "filled")}
           disabled={bool(props, "disabled")}
-          onUpload={(value) => dispatchAction(ctx, node, props, "upload", "action", value)}
-          onRemove={(value) => dispatchAction(ctx, node, props, "remove", "action", value)}
+          imageUrl={imageUrl}
+          imageAlt={imageAlt}
+          accept={Array.isArray(uploadIntent?.accept) ? (uploadIntent!.accept as string[]).join(",") : undefined}
+          maxBytes={typeof uploadIntent?.maxBytes === "number" ? uploadIntent.maxBytes as number : undefined}
+          onUploadFile={async (file, value, meta) => {
+            // Upload file to backend first, then dispatch with image metadata
+            if (uploadIntent?.url && ctx?.backendUpload) {
+              try {
+                const image = await ctx.backendUpload(uploadIntent, file);
+                dispatchAction(ctx, node, props, "upload", "action", image, meta);
+              } catch (err) {
+                console.error("DSL upload failed:", err);
+                // Let PhotoTile show error state
+              }
+              return;
+            }
+            // Fallback: no upload intent, dispatch directly
+            dispatchAction(ctx, node, props, "upload", "action", value, meta);
+          }}
+          onRemove={(value, meta) => dispatchAction(ctx, node, props, "remove", "action", value, meta)}
           style={style(props)}
         />
       );

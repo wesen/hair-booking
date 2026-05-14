@@ -113,6 +113,48 @@ function interactionEventJson(sessionId: string, event: DslInteractionEvent): Pr
   return json as ProtoJsonValue;
 }
 
+export interface DslUploadIntent {
+  uploadId: string;
+  sessionId?: string;
+  purpose?: string;
+  slot?: string;
+  url: string;
+  fieldName?: string;
+  accept?: string[];
+  maxBytes?: number;
+  method?: string;
+}
+
+export interface DslUploadedImage {
+  uploadId: string;
+  sessionId: string;
+  purpose: string;
+  slot?: string;
+  originalFilename?: string;
+  contentType?: string;
+  sizeBytes: number;
+  storageKey: string;
+  url: string;
+}
+
+export async function postDslUpload(intent: DslUploadIntent, file: File): Promise<DslUploadedImage> {
+  const form = new FormData();
+  form.append(intent.fieldName || "file", file);
+  const response = await fetch(intent.url, {
+    method: intent.method || "POST",
+    body: form,
+  });
+  if (!response.ok) {
+    let message = `Upload failed with status ${response.status}`;
+    try {
+      const body = await response.json();
+      if (body.message) message = body.message;
+    } catch { /* ignore parse error */ }
+    throw new DslApiError(message, { status: response.status });
+  }
+  return response.json();
+}
+
 export async function postDslEvent(sessionId: string, event: DslInteractionEvent): Promise<DslFlowState> {
   const protoEvent = fromJson(InteractionEventSchema, interactionEventJson(sessionId, event));
   const response = await fetch(`/api/dsl/flows/${encodeURIComponent(sessionId)}/events`, {

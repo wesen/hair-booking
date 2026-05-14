@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { DslPageRenderer } from "./render";
-import { DslApiError, getDslFlow, postDslEvent, startDslFlow, type DslFlowState, type DslInteractionEvent } from "./backendClient";
+import { DslApiError, getDslFlow, postDslEvent, postDslUpload, startDslFlow, type DslFlowState, type DslInteractionEvent, type DslUploadIntent, type DslUploadedImage } from "./backendClient";
 import { dslDebug } from "./debug";
 import type { DslBackendEvent } from "./schema";
 import { color, font } from "../fringe-ui/tokens";
@@ -102,6 +102,9 @@ export function BackendDslPage({
       } finally {
         setDispatching(false);
       }
+    },
+    backendUpload: async (intent: unknown, file: File): Promise<DslUploadedImage> => {
+      return postDslUpload(intent as DslUploadIntent, file);
     },
   }), [client, onEventDispatch, onStateChange, state]);
 

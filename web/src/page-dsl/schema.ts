@@ -96,6 +96,7 @@ export type DslBackendDispatch = (event: DslBackendEvent) => void | Promise<void
 export interface DslRenderContext {
   actions?: DslActionMap;
   backendDispatch?: DslBackendDispatch;
+  backendUpload?: (intent: unknown, file: File) => Promise<unknown>;
   overrides?: Record<string, ReactNode>;
 }
 
