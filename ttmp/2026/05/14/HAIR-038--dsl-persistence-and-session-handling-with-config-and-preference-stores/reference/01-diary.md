@@ -158,10 +158,10 @@ The design intentionally keeps callbacks process-local and makes `ctx.state` plu
 
 ### What was tricky to build
 - The tricky design issue is action persistence. Action ids point to Goja closures and therefore should not be persisted. The guide resolves this by making hydration re-run the flow script and rerender the current state, producing a new page version with fresh action ids.
-- Another tricky issue is config drift. A user can start a session under one set of content options and finish after options change. The guide resolves this by storing `config_version_id` on `dsl_flow_sessions` and making `host/config` default to the session's version.
+- Another tricky issue is config drift. A user can start a session under one set of content options and finish after options change. The guide initially resolved this by storing `config_version_id` on `dsl_flow_sessions` and using a semantic config host module; Step 3 corrects this to use generic `configDb` queries instead.
 
 ### What warrants a second pair of eyes
-- Review whether the first implementation should expose raw `configDb`/`stateDb` modules at all, or only semantic `host/config` and `host/preferences` modules.
+- Review whether `configDb` should enforce read-only SQL by both connection mode and query inspection, or whether one layer is sufficient for the first implementation.
 - Review anonymous ownership design: the guide recommends a signed anonymous owner cookie, but the exact integration with existing auth/session middleware should be designed carefully.
 - Review whether `initialState(ctx)` should become supported immediately, or whether defaults/preferences should be applied lazily during `render(ctx)`.
 
@@ -182,3 +182,65 @@ The design intentionally keeps callbacks process-local and makes `ctx.state` plu
   - `ttmp/2026/05/14/HAIR-038--dsl-persistence-and-session-handling-with-config-and-preference-stores/reference/01-diary.md`
 - reMarkable destination:
   - `/ai/2026/05/14/HAIR-038/HAIR_038_DSL_Persistence_and_Session_Handling_Guide.pdf`
+
+## Step 3: Correct the design to generic pre-provisioned database objects
+
+The user clarified that the DSL runtime should not expose an app-specific `host/config` module. The runtime should be reusable for a whole set of apps, not only service appointment flows, so the right abstraction is a pair of pre-provisioned database objects: `configDb` for read-only configuration data and `stateDb` for read-write session/user data.
+
+I updated the guide to remove the recommendation for semantic Go host modules such as `host/config` and `host/preferences`. App-specific helper functions can still exist, but they should live in JavaScript flow code or app-owned JavaScript modules on top of the generic database objects.
+
+### Prompt Context
+
+**User prompt (verbatim):** "nope, no host/config, it should just be another db object that is \"pre-provisioned\". We want to allow for a whole set of apps, not just service appointment apps. i think configDb and stateDb might be all that's needed. Update"
+
+**Assistant interpretation:** Revise the HAIR-038 guide so the runtime exposes generic `configDb` and `stateDb` database modules, not service-appointment-specific semantic host modules.
+
+**Inferred user intent:** The user wants the DSL persistence architecture to stay app-agnostic and reusable across multiple DSL applications.
+
+**Commit (code):** N/A — documentation update pending commit.
+
+### What I did
+- Rewrote the executive-summary guidance to say the target Goja surfaces are `configDb` and `stateDb`.
+- Updated the architecture diagram to show Goja requiring `configDb` and `stateDb` directly.
+- Replaced the host module API section with a generic database-object API section.
+- Replaced `host/config` and `host/preferences` implementation phases with `configDb` and `stateDb` phases.
+- Updated JavaScript examples to use SQL-backed app-local helper functions.
+- Kept `host/user` and `host/images` in scope because those are plumbing modules, not app-specific config or preference APIs.
+
+### Why
+- A reusable Goja DSL runtime should not encode service, budget, appointment, or intake concepts into Go modules.
+- The database module boundary already exists and can represent both read-only and read-write stores with preconfigured connections.
+- App-specific schemas and helper functions can evolve independently of the host runtime.
+
+### What worked
+- The guide now centers on `require("configDb")` and `require("stateDb")`.
+- The state/config split remains intact, but the app-specific semantics moved out of Go and into JavaScript/database schema examples.
+- The revised design better supports non-appointment apps such as onboarding, surveys, product configurators, education flows, and internal tools.
+
+### What didn't work
+- The initial design overfit the first hair-booking app by proposing `host/config` and `host/preferences`.
+- Some negative references to those module names remain intentionally in the guide to document the rejected alternative and prevent future backsliding.
+
+### What I learned
+- The right abstraction is not "configuration API" but "pre-provisioned read-only database object".
+- Durable preferences do not need a Go host module if `stateDb` plus app-local JavaScript helpers can express the required writes safely.
+
+### What was tricky to build
+- The tricky part was preserving the useful session-persistence design while removing app-specific host APIs. The solution was to keep runtime-owned session snapshot persistence in Go, but move application-level config and preference reads/writes to app-local JavaScript helpers backed by `configDb` and `stateDb`.
+
+### What warrants a second pair of eyes
+- Review `configDb` read-only enforcement: use SQLite read-only open mode, wrapper-level `Exec` rejection, and read-only SQL inspection if needed.
+- Review whether `stateDb` should expose the full database module or a narrowed query/exec object with table-ownership guardrails.
+
+### What should be done in the future
+- Re-upload the corrected guide to reMarkable.
+- Commit the updated HAIR-038 docs.
+- Implement `configDb`/`stateDb` registration before adding any app-specific helper modules.
+
+### Code review instructions
+- Diff the guide around Sections 3, 6, 9, 10, 12, 13, and 15.
+- Confirm no implementation phase asks for `pkg/dslgoja/config.go` or `pkg/dslgoja/preferences.go`.
+
+### Technical details
+- Corrected design guide path:
+  - `ttmp/2026/05/14/HAIR-038--dsl-persistence-and-session-handling-with-config-and-preference-stores/design-doc/01-dsl-persistence-and-session-handling-guide.md`

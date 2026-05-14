@@ -16,13 +16,13 @@ RelatedFiles:
     - Path: pkg/dslgoja/flows/intake.flow.js
       Note: |-
         Current flow script with hard-coded service, tone, budget, day, and time options plus ctx.state choices
-        Current hard-coded service/tone/budget/day/time data and ctx.state mutation patterns to replace with durable config/preferences
+        Current hard-coded sample-app content and ctx.state mutation patterns to replace with configDb/stateDb reads and durable state snapshots
     - Path: pkg/dslgoja/host.go
       Note: Current RuntimeHost dependency injection point for DB/blob host resources
     - Path: pkg/dslgoja/modules_dsl.go
       Note: |-
-        Current Goja module registration boundary where config/state database modules should be installed
-        Current Goja module installation point for future host/config and host/preferences modules
+        Current Goja module registration boundary where pre-provisioned configDb and stateDb modules should be installed
+        Current Goja module installation point for future read-only and read-write database objects
     - Path: pkg/dslgoja/runtime.go
       Note: |-
         Current FlowSession lifecycle, ctx.state, action registry, render transaction, and dispatch semantics
@@ -48,10 +48,10 @@ RelatedFiles:
     - Path: web/src/page-dsl/BackendDslPage.tsx
       Note: Current frontend start/resume/dispatch bridge for backend DSL sessions
 ExternalSources: []
-Summary: 'Intern-facing design and implementation guide for adding durable DSL sessions and two Goja database surfaces: read-only site configuration and read-write user preference/session state.'
+Summary: 'Intern-facing design and implementation guide for adding durable DSL sessions and two pre-provisioned Goja database objects: read-only configDb and read-write stateDb.'
 LastUpdated: 2026-05-14T00:00:00Z
 WhatFor: Use this guide to implement HAIR-038 persistence and session handling without rediscovering the Goja DSL architecture.
-WhenToUse: Read before changing DSL session storage, ctx.state persistence, Goja host modules, config option sourcing, session recovery, or DSL database schema.
+WhenToUse: Read before changing DSL session storage, ctx.state persistence, Goja database modules, configDb/stateDb provisioning, session recovery, or DSL database schema.
 ---
 
 
@@ -61,14 +61,14 @@ WhenToUse: Read before changing DSL session storage, ctx.state persistence, Goja
 
 The current backend-driven UI DSL is functional, but it is not yet durable. The Goja flow keeps user choices in `ctx.state`, and `ctx.state` currently lives inside one in-memory Goja VM. The server keeps active flow sessions in an in-memory Go map. The browser remembers a `sessionId` in tab-scoped `sessionStorage`, but that id can only be resumed while the backend process still has the matching `FlowSession` object in memory. The site content used by the flow, such as services, tone options, budget tiers, days, time slots, and price ranges, is still hard-coded as JavaScript arrays in `pkg/dslgoja/flows/intake.flow.js`.
 
-HAIR-038 should turn this prototype into a durable, session-aware runtime. The target architecture gives the Goja DSL two database-backed host surfaces:
+HAIR-038 should turn this prototype into a durable, session-aware runtime. The target architecture gives the Goja DSL two pre-provisioned database objects:
 
-1. A **read-only site configuration database** for content and choices that define the booking experience: service options, tone options, budget ranges, pricing ranges, availability windows, copy blocks, stylist display data, feature flags, and other product configuration.
-2. A **read-write user state database** for user-specific and session-specific state: flow sessions, current page/version, `ctx.state` snapshots, durable draft choices, uploads, preference key/value records, event audit records, and recovery metadata.
+1. A **read-only `configDb`** for application configuration and content. In the current hair-booking app this includes service options, tone options, budget ranges, pricing ranges, availability windows, copy blocks, stylist display data, feature flags, and upload slot definitions. In another app it could contain onboarding questions, product plans, course modules, survey choices, or any other read-only content that drives a DSL flow.
+2. A **read-write `stateDb`** for user-specific and session-specific state: flow sessions, current page/version, `ctx.state` snapshots, durable draft choices, uploads, preference key/value records, event audit records, and recovery metadata.
 
-The implementation should keep the same high-level UI loop. JavaScript still writes the intake flow. React still renders page JSON. The browser still posts opaque action ids. The backend still owns callbacks and state transitions. The difference is that the runtime can now resume after refresh, survive backend restart, and draw page content from configured data instead of from hard-coded arrays.
+The implementation should keep the same high-level UI loop. JavaScript still writes the flow. React still renders page JSON. The browser still posts opaque action ids. The backend still owns callbacks and state transitions. The difference is that the runtime can now resume after refresh, survive backend restart, and draw page content from pre-provisioned data instead of from hard-coded arrays.
 
-The design should be implemented in phases. Start by making the current `ctx.state` durable in the existing DSL read-write SQLite database. Then split site content into a read-only config database and expose it to Goja through a host module. Then add a higher-level preference module so flow scripts do not write raw SQL for common user-choice operations. Finally, harden session ownership, cleanup, migrations, tests, and operational tooling.
+The design should be implemented in phases. Start by making the current `ctx.state` durable in the existing DSL read-write SQLite database. Then split site content into a read-only config database and expose both databases to Goja as database objects named `configDb` and `stateDb`. App-specific query helpers can live in the JavaScript flow or in app-owned JavaScript modules; they should not be hard-coded as Go host modules such as `host/config` because the DSL runtime should support a whole set of apps, not only service-appointment flows. Finally, harden session ownership, cleanup, migrations, tests, and operational tooling.
 
 ## 1. Current System in One Page
 
@@ -159,15 +159,19 @@ HAIR-038 should split DSL persistence into two logical databases.
 ```mermaid
 flowchart LR
   Goja[Goja flow script]
-  ConfigModule[require("host/config")]
-  PrefsModule[require("host/preferences")]
+  ConfigObj[require("configDb")]
+  StateObj[require("stateDb")]
+  AppHelpers[App-owned JS query helpers]
   ConfigDB[(Read-only config DB)]
   StateDB[(Read-write state DB)]
   Runtime[Go runtime]
   Browser[Browser]
 
-  Goja --> ConfigModule --> ConfigDB
-  Goja --> PrefsModule --> StateDB
+  Goja --> ConfigObj --> ConfigDB
+  Goja --> StateObj --> StateDB
+  Goja --> AppHelpers
+  AppHelpers --> ConfigObj
+  AppHelpers --> StateObj
   Runtime --> StateDB
   Runtime --> ConfigDB
   Browser --> Runtime
@@ -193,7 +197,7 @@ Examples:
 - upload slot definitions,
 - per-flow content version metadata.
 
-The read-only property is a host invariant. Even if the JavaScript code tries to write, the host should reject it. The preferred API is a semantic module such as `require("host/config")`, not a raw SQL module. A raw read-only SQL module can be useful for prototyping, but production flow code should use named functions.
+The read-only property is a host invariant. Even if JavaScript code tries to write, the host should reject it. The exposed API should be a pre-provisioned database object, `require("configDb")`, with `query(...)` enabled and `exec(...)` disabled. App-specific convenience functions may be written in JavaScript on top of `configDb`, but the Go runtime should not ship a service-appointment-specific `host/config` API.
 
 ### 3.2 Read-write user state database
 
@@ -269,7 +273,7 @@ This makes the dependency direction explicit. The runtime receives databases; it
 
 ## 5. Database Schema Design
 
-The read-only config schema and the read-write state schema should be separate files. Suggested package layout:
+The read-only `configDb` schema and the read-write `stateDb` schema should be separate files. Suggested package layout:
 
 ```text
 pkg/dslhost/
@@ -467,89 +471,18 @@ CREATE TABLE IF NOT EXISTS dsl_user_preferences (
 
 Keep `dsl_intake_drafts` for session-level draft payloads. Use `dsl_user_preferences` for cross-session remembered values such as preferred budget or preferred tones.
 
-## 6. Host Module API Design
+## 6. Goja Database Object API Design
 
-The JavaScript flow should not need to know every table name. Provide semantic host modules first. Raw SQL modules can exist for debugging or migration scripts, but normal flow code should use host APIs.
+The JavaScript flow should receive two pre-provisioned database objects. The runtime should not expose appointment-specific host APIs such as `host/config` or `host/preferences`. The goal is to support many DSL apps with the same runtime: appointment booking, onboarding, surveys, product configurators, education flows, internal tools, and future apps that do not share the hair-booking schema.
 
-### 6.1 `host/config`: read-only content API
-
-Proposed JavaScript API:
+The generic contract is:
 
 ```js
-const config = require("host/config");
-
-const active = config.activeVersion();
-const serviceOptions = config.services({ category: ctx.state.category });
-const toneOptions = config.tones();
-const budgetOptions = config.budgets();
-const days = config.days({ from: "2026-06-01", limit: 14 });
-const times = config.times({ date: ctx.state.day, service: ctx.state.service });
-const estimate = config.estimateRange({
-  service: ctx.state.service,
-  budget: ctx.state.budget,
-});
-const copy = config.copy("intake.photos.intro");
+const configDb = require("configDb"); // read-only, pre-provisioned by Go
+const stateDb = require("stateDb");   // read-write, pre-provisioned by Go
 ```
 
-Return values should match the props expected by existing renderer nodes. For example, `config.services(...)` should return objects with `value`, `title`, `subtitle`, and `badge`, because `n.selectableGroup(...)` already understands that shape.
-
-Example use in `intake.flow.js`:
-
-```js
-function serviceStep(ctx) {
-  var serviceOptions = config.services({ category: ctx.state.category });
-  return page("intake-service", "Service")
-    .intake(shell(ctx, { step: 1, stepId: "service", next: "color" }))
-    .add(
-      n.segmented(config.serviceCategories(), ctx.state.category, {
-        actions: { change: ctx.action("setCategory", function (event) {
-          ctx.state.category = event.value;
-          return render(ctx);
-        }, "change") },
-      }).id("category-tabs"),
-      n.selectableGroup(serviceOptions, ctx.state.service, {
-        mode: "single",
-        actions: { change: ctx.action("setService", function (event) {
-          ctx.state.service = event.value;
-          return render(ctx);
-        }, "change") },
-      }).id("service-options"),
-    )
-    .toJSON();
-}
-```
-
-### 6.2 `host/preferences`: durable user/session state API
-
-Proposed JavaScript API:
-
-```js
-const prefs = require("host/preferences");
-
-prefs.set("intake", "budget", ctx.state.budget);
-const previousBudget = prefs.get("intake", "budget", "flexible");
-
-prefs.saveDraft({
-  service: ctx.state.service,
-  tones: ctx.state.tones,
-  budget: ctx.state.budget,
-});
-
-const draft = prefs.loadDraft({ flowId: ctx.flowId });
-```
-
-This module should know the current session id and user id through the Go host. The JavaScript flow should not pass `userId` directly. That prevents one session from writing another user's preferences.
-
-### 6.3 Raw database modules during transition
-
-The current runtime already registers `require("db")` using `go-go-goja/modules/database` when `RuntimeHost.DB` exists. HAIR-038 can evolve this into explicit names:
-
-```js
-const configDb = require("configDb"); // query only, exec returns an error
-const stateDb = require("stateDb");   // query and exec, scoped by convention or wrappers
-```
-
-The underlying go-go-goja database module exposes:
+The underlying go-go-goja database module already exposes the right low-level shape:
 
 ```js
 db.query(sql, ...args)  // returns array of row objects
@@ -558,24 +491,118 @@ db.close()
 db.configure(...)       // disabled when preconfigured by Go
 ```
 
-For `configDb`, wrap the connection so `Exec` fails:
+For both database objects, `configure(...)` must be disabled. JavaScript should not be able to point either object at a different database. Go owns provisioning, opening, path selection, pragmas, migrations, and read-only enforcement.
+
+### 6.1 `configDb`: read-only app configuration
+
+`configDb` is the generic read-only content store. It should support `query(...)` and reject all writes. The Go wrapper should reject `exec(...)` unconditionally, and should also reject non-read SQL passed to `query(...)`.
 
 ```go
 type QueryOnlyDB struct { DB *sql.DB }
 
 func (q QueryOnlyDB) Query(query string, args ...any) (*sql.Rows, error) {
     if !looksLikeReadOnlySQL(query) {
-        return nil, fmt.Errorf("config database only allows SELECT/WITH queries")
+        return nil, fmt.Errorf("configDb only allows SELECT/WITH queries")
     }
     return q.DB.Query(query, args...)
 }
 
 func (q QueryOnlyDB) Exec(query string, args ...any) (sql.Result, error) {
-    return nil, fmt.Errorf("config database is read-only")
+    return nil, fmt.Errorf("configDb is read-only")
 }
 ```
 
-Even with this wrapper, prefer `host/config` for flow code. A raw SQL API makes the JavaScript flow tightly coupled to schema details.
+A hair-booking flow can build app-specific JavaScript helpers on top of `configDb`:
+
+```js
+const configDb = require("configDb");
+
+function activeConfigVersion() {
+  var rows = configDb.query(
+    "SELECT id FROM dsl_config_versions WHERE status = ? ORDER BY activated_at DESC LIMIT 1",
+    "active"
+  );
+  return rows.length ? rows[0].id : "default";
+}
+
+function serviceOptions(ctx) {
+  return configDb.query(
+    `SELECT value, title, subtitle, badge
+       FROM dsl_service_options
+      WHERE config_version_id = ? AND category = ? AND enabled = 1
+      ORDER BY sort_order`,
+    ctx.state.configVersionId,
+    ctx.state.category
+  );
+}
+```
+
+A different app can define different helpers against different tables while using the same runtime-level `configDb` object. That is the main reason to keep the Go module generic.
+
+### 6.2 `stateDb`: read-write session and preference state
+
+`stateDb` is the generic read-write database object. It stores runtime-managed session rows and app-managed preference/draft rows. The Go runtime should write core session snapshots itself, while JavaScript may write app-specific rows when it needs durable normalized data.
+
+Example JavaScript helpers for the hair-booking flow:
+
+```js
+const stateDb = require("stateDb");
+const user = require("host/user");
+
+function currentUserId(ctx) {
+  var current = user.current();
+  return current.id || ("anon:" + ctx.sessionId);
+}
+
+function savePreference(ctx, namespace, key, value) {
+  stateDb.exec(
+    `INSERT INTO dsl_user_preferences(user_id, namespace, key, value_json, source_session_id, updated_at)
+     VALUES (?, ?, ?, ?, ?, datetime('now'))
+     ON CONFLICT(user_id, namespace, key)
+     DO UPDATE SET value_json = excluded.value_json,
+                   source_session_id = excluded.source_session_id,
+                   updated_at = datetime('now')`,
+    currentUserId(ctx),
+    namespace,
+    key,
+    JSON.stringify(value),
+    ctx.sessionId
+  );
+}
+
+function loadPreference(ctx, namespace, key, fallback) {
+  var rows = stateDb.query(
+    `SELECT value_json FROM dsl_user_preferences
+      WHERE user_id = ? AND namespace = ? AND key = ?`,
+    currentUserId(ctx),
+    namespace,
+    key
+  );
+  return rows.length ? JSON.parse(rows[0].value_json) : fallback;
+}
+```
+
+The runtime should still persist the entire `ctx.state` after successful render/dispatch. App-level `stateDb` writes are for normalized preferences, drafts, audit records, or app-specific data that should be queryable outside the VM state snapshot.
+
+### 6.3 Runtime-managed rows versus app-managed rows
+
+The two database objects are generic, but not every table should be written by arbitrary app code.
+
+Runtime-managed tables:
+
+- `dsl_flow_sessions`,
+- `dsl_flow_events`,
+- upload metadata rows created by the upload endpoint,
+- cleanup/expiry bookkeeping.
+
+App-managed tables:
+
+- app-specific config tables in `configDb`, read-only to Goja,
+- `dsl_user_preferences`,
+- `dsl_intake_drafts` or future app draft tables,
+- app-specific audit tables if needed.
+
+The implementation should document this boundary in code comments and tests. The database object is generic; the ownership of specific tables still matters.
 
 ## 7. Runtime Session Persistence
 
@@ -721,27 +748,32 @@ The browser may remember the session id, but the server must decide whether the 
 
 ## 9. Content Versioning and Deterministic Rerendering
 
-When a user starts a flow, the runtime should record the active config version on the session row:
+When a user starts a flow, the runtime should record the active config version on the session row. The runtime does not need to know what the version means for every app. It only needs to preserve the value selected at session start and expose it to JavaScript through `ctx.state`, `ctx.configVersionId`, or another JSON-safe context field.
 
 ```text
-session.config_version_id = config.activeVersion().id
+session.config_version_id = selected active config version id
 ```
 
-Subsequent renders for that session should use the same config version unless the product explicitly opts into live content changes. This avoids confusing behavior where a user selects a service, the config changes, and the next render no longer contains the selected option.
+Subsequent renders for that session should use the same config version unless the product explicitly opts into live content changes. This avoids confusing behavior where a user selects an option, the config changes, and the next render no longer contains the selected value.
 
-`host/config` should default to the session's config version:
+With generic database objects, the app-level JavaScript helper carries the version into SQL:
 
 ```js
-config.services() // implicitly uses ctx.configVersionId
+function serviceOptions(ctx) {
+  return configDb.query(
+    `SELECT value, title, subtitle, badge
+       FROM dsl_service_options
+      WHERE config_version_id = ? AND category = ? AND enabled = 1
+      ORDER BY sort_order`,
+    ctx.state.configVersionId,
+    ctx.state.category
+  );
+}
 ```
 
-It can also allow explicit version reads for admin/debug tools:
+A different DSL app can use the same pattern with different tables. The runtime rule is app-agnostic: choose a config version, store it on the session, and make it available to the flow.
 
-```js
-config.services({ versionId: "cfg_2026_05_14" })
-```
-
-The session row should store both the version and a small content snapshot if needed. For example, if price estimates must be legally consistent, store the exact estimated range in user state when it is first computed.
+The session row should store both the version and a small content snapshot if needed. For example, if a price estimate must remain fixed after it is shown, store the exact estimated range in `ctx.state` or an app-specific `stateDb` table when it is first computed.
 
 ## 10. How `intake.flow.js` Changes
 
@@ -755,50 +787,82 @@ const dayOptions = [...];
 const timeOptions = [...];
 ```
 
-After HAIR-038, those arrays should move to `host/config` calls:
+After HAIR-038, those arrays should move behind app-local JavaScript query helpers that use `configDb` and `stateDb`:
 
 ```js
 const { page, n } = require("fringe/dsl");
-const config = require("host/config");
-const prefs = require("host/preferences");
+const configDb = require("configDb");
+const stateDb = require("stateDb");
 const images = require("host/images");
+const user = require("host/user");
 ```
 
-`initialState()` should combine defaults from config and remembered preferences:
+The helpers can live in `intake.flow.js` at first:
 
 ```js
-function initialState(ctx) {
-  var defaults = config.defaults({ flowId: ctx.flowId });
-  return {
-    step: "service",
-    category: prefs.get("intake", "category", defaults.category || "color"),
-    service: prefs.get("intake", "service", defaults.service),
-    tones: prefs.get("intake", "tones", defaults.tones || []),
-    damage: prefs.get("intake", "damage", defaults.damage || 2),
-    photos: { front: null, side: null, back: null },
-    budget: prefs.get("intake", "budget", defaults.budget || "flexible"),
-    day: defaults.day,
-    time: defaults.time,
-  };
+function servicesForCategory(ctx) {
+  return configDb.query(
+    `SELECT value, title, subtitle, badge
+       FROM dsl_service_options
+      WHERE config_version_id = ? AND category = ? AND enabled = 1
+      ORDER BY sort_order`,
+    ctx.state.configVersionId,
+    ctx.state.category
+  );
+}
+
+function budgetOptions(ctx) {
+  return configDb.query(
+    `SELECT value, title, subtitle
+       FROM dsl_budget_options
+      WHERE config_version_id = ? AND enabled = 1
+      ORDER BY sort_order`,
+    ctx.state.configVersionId
+  );
 }
 ```
 
-This requires a runtime change: current `initialState()` receives no `ctx`. HAIR-038 can either pass `ctx` to `initialState(ctx)` or keep `initialState()` pure and let `render(ctx)` initialize missing fields. Passing `ctx` is cleaner because config and preferences are host modules already available after module installation.
+`initialState()` should remain JSON-safe and may stay pure. Because it currently receives no `ctx`, the simplest first implementation is to let the Go runtime hydrate `state_json` before render and let the flow fill missing defaults in an `ensureState(ctx)` helper during render:
 
-A callback should save durable choices when it changes important state:
+```js
+function initialState() {
+  return { step: "service" };
+}
+
+function ensureState(ctx) {
+  if (!ctx.state.configVersionId) {
+    var rows = configDb.query(
+      "SELECT id FROM dsl_config_versions WHERE status = ? ORDER BY activated_at DESC LIMIT 1",
+      "active"
+    );
+    ctx.state.configVersionId = rows.length ? rows[0].id : "default";
+  }
+  if (!ctx.state.category) ctx.state.category = "color";
+  if (!ctx.state.photos) ctx.state.photos = { front: null, side: null, back: null };
+}
+
+function render(ctx) {
+  ensureState(ctx);
+  switch (ctx.state.step) {
+    case "color": return colorStep(ctx);
+    default: return serviceStep(ctx);
+  }
+}
+```
+
+Callbacks should still mutate `ctx.state` and return `render(ctx)`. If a value should also be queryable outside the session snapshot, the callback can write to `stateDb` through an app-local helper:
 
 ```js
 actions: {
   change: ctx.action("setBudget", function (event) {
     ctx.state.budget = event.value;
-    prefs.set("intake", "budget", event.value);
-    prefs.saveDraft(ctx.state);
+    savePreference(ctx, "intake", "budget", event.value);
     return render(ctx);
   }, "change"),
 }
 ```
 
-The runtime should still persist the entire `ctx.state` after dispatch. The preference module is for values that outlive the flow or need normalized access. The session snapshot is for exact flow recovery.
+The runtime remains responsible for persisting the entire `ctx.state` after dispatch. `stateDb` calls inside the flow are additional app-level writes, not a replacement for the runtime session snapshot.
 
 ## 11. API References
 
@@ -873,10 +937,10 @@ Tasks:
 
 - Add `pkg/dslhost/config_db.go` and `pkg/dslhost/state_db.go`.
 - Move current schema into `state_schema.sql` or keep compatibility wrapper while adding new schema files.
-- Add serve flags for config/state DB paths.
+- Add serve flags for `configDb`/`stateDb` paths.
 - Open both DBs in `cmd/hair-booking/cmds/serve.go`.
 - Extend `server.ServerOptions`, `server.HandlerOptions`, `appHandler`, `dslFlowStore`, and `dslgoja.RuntimeHost`.
-- Keep existing `require("db")` mapped to state DB during transition.
+- Keep existing `require("db")` mapped to `stateDb` during transition, or remove it after callers switch to explicit names.
 
 Validation:
 
@@ -932,56 +996,52 @@ Important invariant:
 Do not persist or restore action ids. Hydration re-renders the page and creates fresh action ids.
 ```
 
-### Phase 4: Add read-only config DB and `host/config`
+### Phase 4: Add read-only config DB and `configDb`
 
-Goal: move site content out of `intake.flow.js` arrays.
+Goal: move app content out of `intake.flow.js` arrays without creating an appointment-specific Go host API.
 
 Tasks:
 
-- Add config schema and seed data matching current constants.
+- Add config schema and seed data matching current sample app constants.
 - Open config DB in read-only mode after migration/seed.
-- Implement `pkg/dslgoja/config.go` and module loader in `modules_dsl.go`.
-- Add functions for services, tones, budgets, days, times, copy, estimate ranges, and defaults.
-- Update `intake.flow.js` to call `config.*` instead of constants.
-- Add tests that render pages from seeded config data.
+- Register a pre-provisioned Goja database module named `configDb`.
+- Wrap `configDb` so `exec(...)` fails and `query(...)` accepts only read-only SQL.
+- Keep `configure(...)` disabled.
+- Update `intake.flow.js` to define app-local helper functions that query `configDb`.
+- Add tests that render pages from seeded config data through `configDb`.
 
-Pseudocode for module loader:
+Pseudocode for module registration:
 
 ```go
-func loadConfigModule(session *FlowSession, repo *ConfigRepository) func(*goja.Runtime, *goja.Object) {
-    return func(vm *goja.Runtime, moduleObj *goja.Object) {
-        exports := moduleObj.Get("exports").(*goja.Object)
-        exports.Set("services", func(call goja.FunctionCall) goja.Value {
-            filter := parseConfigFilter(vm, call)
-            rows, err := repo.Services(session.ConfigVersionID, filter)
-            if err != nil { panic(vm.ToValue(err.Error())) }
-            return vm.ToValue(serviceOptionsJS(rows))
-        })
-        // tones, budgets, days, times, estimateRange, copy, defaults
-    }
-}
+configModule := databasemod.New(
+    databasemod.WithName("configDb"),
+    databasemod.WithPreconfiguredDB(QueryOnlyDB{DB: rt.host.ConfigDB}),
+    databasemod.WithConfigureEnabled(false),
+)
+registry.RegisterNativeModule(configModule.Name(), configModule.Loader)
 ```
 
-### Phase 5: Add read-write preferences module
+### Phase 5: Add explicit `stateDb` and app-level preference helpers
 
-Goal: give flow scripts simple durable preference operations.
+Goal: expose a pre-provisioned read-write database object for app-specific durable rows while keeping runtime-managed session snapshots in Go.
 
 Tasks:
 
-- Add `pkg/dslgoja/preferences.go`.
-- Add repository functions for `Get`, `Set`, `LoadDraft`, `SaveDraft`.
-- Scope all reads/writes by current user id and/or session id.
-- Update flow callbacks to save important values.
+- Register a pre-provisioned Goja database module named `stateDb`.
+- Keep `configure(...)` disabled.
+- Keep runtime snapshot writes in Go, not in JavaScript.
+- Add app-local JavaScript helpers such as `savePreference(ctx, namespace, key, value)` and `loadPreference(ctx, namespace, key, fallback)` on top of `stateDb`.
+- Scope helper queries by the current `host/user` snapshot and/or `ctx.sessionId`.
+- Update flow callbacks to call those app-level helpers only for values that should outlive the session snapshot.
 - Add tests for authenticated and anonymous preference isolation.
 
-Proposed API:
+Example helper API inside the app flow:
 
 ```js
-prefs.get(namespace, key, fallback)
-prefs.set(namespace, key, value)
-prefs.saveDraft(value)
-prefs.loadDraft(options)
-prefs.clearDraft(options)
+savePreference(ctx, namespace, key, value)
+loadPreference(ctx, namespace, key, fallback)
+saveDraft(ctx, value)
+loadDraft(ctx)
 ```
 
 ### Phase 6: Session ownership, expiry, and cleanup
@@ -1016,8 +1076,8 @@ Test runtime persistence helpers:
 - `StateJSON()` exports JSON state,
 - non-JSON state fails predictably,
 - `ResumeFlow` restores state and renders current page,
-- `host/config` returns expected seeded values,
-- `host/preferences` scopes values by user/session.
+- `configDb` returns expected seeded values and rejects writes,
+- `stateDb` accepts app-level preference writes and scopes helper queries by user/session.
 
 ### 13.3 `pkg/server`
 
@@ -1063,7 +1123,7 @@ Do not rely on `sessionStorage` alone. Add a signed owner cookie or another serv
 
 ### DB write fails after callback mutated VM state
 
-This is a real consistency risk. The first implementation can return a danger effect and log the failure, but the better long-term pattern is to persist after successful render and treat DB failure as request failure. For high-value actions, callbacks should write through host modules before returning the page, so errors occur before the UI advances.
+This is a real consistency risk. The first implementation can return a danger effect and log the failure, but the better long-term pattern is to persist after successful render and treat DB failure as request failure. For high-value actions, callbacks should write through `stateDb` before returning the page, so errors occur before the UI advances.
 
 ## 15. Design Decisions
 
@@ -1071,9 +1131,9 @@ This is a real consistency risk. The first implementation can return a danger ef
 
 Callbacks are Goja closures and should remain process-local. Persisting them would require serializing executable code and captured VM state, which is not appropriate. Persist `ctx.state` and rerender to regenerate callbacks.
 
-### Decision 2: Use semantic host modules for normal flow code
+### Decision 2: Expose pre-provisioned database objects, not app-specific host modules
 
-The flow should call `config.services()` and `prefs.set(...)`, not hand-write SQL everywhere. Raw SQL modules are useful for testing and migration, but semantic modules keep flow code stable if schema changes.
+The runtime should provide `configDb` and `stateDb` as generic database objects. App-specific helpers may wrap SQL inside the JavaScript flow or app-owned JavaScript modules, but the Go runtime should not hard-code concepts such as services, budgets, appointments, or intake preferences. This keeps the DSL runtime usable for a whole set of apps.
 
 ### Decision 3: Version site configuration
 
@@ -1097,9 +1157,9 @@ This would centralize storage, but it couples the experimental DSL runtime to th
 
 This is simple, but it fails the content-management requirement. Services, budgets, days, and ranges would remain code changes instead of data changes.
 
-### Alternative: Expose only raw SQL databases to Goja
+### Alternative: Add app-specific semantic Go host modules
 
-This satisfies the literal two-database requirement, but it makes every flow script depend on table names and SQL shapes. Semantic modules are safer for intern work and future schema changes.
+The previous design proposed modules such as `host/config` and `host/preferences`. That would make the first hair-booking implementation pleasant, but it would also push appointment-specific semantics into the reusable Goja runtime. HAIR-038 should instead expose `configDb` and `stateDb` and let each app define its own JavaScript query helpers.
 
 ### Alternative: Persist the current rendered page JSON only
 
