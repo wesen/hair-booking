@@ -134,3 +134,57 @@ func TestDemoIntakeFlowShellStepsIncludeNavigationActions(t *testing.T) {
 	 }
 }
 
+
+func TestDemoIntakeFlowPhotosStepCreatesUploadIntents(t *testing.T) {
+	rt := NewRuntime()
+	session, _, err := rt.StartFlow(context.Background(), "fringe.intake.v1", DemoIntakeFlowSource)
+	if err != nil {
+		t.Fatalf("StartFlow: %v", err)
+	}
+	// Navigate to photos step via state
+	state := session.state.ToObject(session.VM)
+	if err := state.Set("step", "photos"); err != nil {
+		t.Fatalf("set step: %v", err)
+	}
+	result, err := session.Render(context.Background())
+	if err != nil {
+		t.Fatalf("render photos: %v", err)
+	}
+	if result.Page.ID != "intake-photos" {
+		t.Fatalf("page id = %q", result.Page.ID)
+	}
+	// Find the photo-grid node
+	var gridNode *Node
+	for i := range result.Page.Nodes {
+		if result.Page.Nodes[i].Meta != nil && result.Page.Nodes[i].Meta.ID == "photo-grid" {
+			gridNode = &result.Page.Nodes[i]
+			break
+		}
+	}
+	if gridNode == nil {
+		t.Fatal("photo-grid node not found")
+	}
+	if len(gridNode.Children) != 3 {
+		t.Fatalf("photo-grid children = %d, want 3", len(gridNode.Children))
+	}
+	for i, child := range gridNode.Children {
+		upload, _ := child.Props["upload"].(map[string]any)
+		if upload == nil {
+			t.Fatalf("photo-grid child[%d] missing upload prop", i)
+		}
+		if _, ok := upload["url"]; !ok {
+			t.Fatalf("photo-grid child[%d] upload missing url", i)
+		}
+		if _, ok := upload["uploadId"]; !ok {
+			t.Fatalf("photo-grid child[%d] upload missing uploadId", i)
+		}
+		slot, _ := upload["slot"].(string)
+		if slot == "" {
+			t.Fatalf("photo-grid child[%d] upload missing slot", i)
+		}
+	}
+	// Verify upload intents are registered in the session
+	if len(session.UploadIntents) < 3 {
+		t.Fatalf("upload intents = %d, want >= 3", len(session.UploadIntents))
+	}
+}

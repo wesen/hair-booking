@@ -1,4 +1,5 @@
 const { page, n } = require("fringe/dsl");
+const images = require("host/images");
 
 // ── Data ──────────────────────────────────────────────────────────────
 
@@ -61,7 +62,7 @@ function initialState() {
     service: "highlights",
     tones: ["dimensional"],
     damage: 2,
-    photos: { front: false, side: false, back: false },
+    photos: { front: null, side: null, back: null },
     budget: "flexible",
     day: "2026-06-19",
     time: "12:00",
@@ -133,7 +134,7 @@ function estimateRange(ctx) {
 }
 
 function photoCount(ctx) {
-  return Object.keys(ctx.state.photos).filter(function (k) { return ctx.state.photos[k]; }).length;
+  return Object.keys(ctx.state.photos).filter(function (k) { return !!ctx.state.photos[k]; }).length;
 }
 
 function editAction(ctx, name, step) {
@@ -252,12 +253,23 @@ function colorStep(ctx) {
 
 function photosStep(ctx) {
   function tile(key, label) {
+    var existing = ctx.state.photos[key];
+    var intent = images.createUploadIntent({ purpose: "intake-photo", slot: key, maxBytes: 5 * 1024 * 1024 });
     return n.uploadTile(label, {
       value: key,
-      filled: !!ctx.state.photos[key],
+      filled: !!existing,
+      imageUrl: existing ? existing.url : null,
+      imageAlt: label + " hair reference photo",
+      upload: intent,
       actions: {
-        upload: ctx.action("uploadPhoto:" + key, function () { ctx.state.photos[key] = true; return render(ctx); }, "upload"),
-        remove: ctx.action("removePhoto:" + key, function () { ctx.state.photos[key] = false; return render(ctx); }, "remove"),
+        upload: ctx.action("uploadPhoto:" + key, function (event) {
+          ctx.state.photos[key] = event.value;
+          return render(ctx);
+        }, "upload"),
+        remove: ctx.action("removePhoto:" + key, function () {
+          ctx.state.photos[key] = null;
+          return render(ctx);
+        }, "remove"),
       },
     }).id("photo-" + key);
   }
