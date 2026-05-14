@@ -622,6 +622,93 @@ The Goja demo is the real integration test — it proves the entire DSL pipeline
 - Consider adding a devctl file-watcher that auto-restarts the Go backend when `pkg/dslgoja/` files change
 - Add a CI integration test that runs the full Goja flow and validates the JSON output uses only new primitive kinds
 
+## Step 8: Responsive desktop/mobile toggle for Goja demo
+
+Made the `/dsl-goja-demo/` page responsive: at viewport widths ≥1080px, the same Goja JSON renders as a desktop two-column layout with TopNav, StepRail, accent panel, and bottom navigation bar. At narrower widths, it shows the original phone frame with IntakeShell. No backend changes — the renderer interprets the same `shell.kind: "intake"` JSON differently based on the `forceDesktop` flag.
+
+Key design decision: rather than creating a separate desktop Goja flow or modifying the JSON, the renderer "upgrades" intake shells to desktop shells when `forceDesktop=true`. This keeps the backend unchanged — one flow, one JSON, two densities.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Can you create a similar flow for the desktop version, or maybe modify the current demo to also toggle and show a desktop version of the page instead of the phone, but keeping the side panel? what would be best in that regard, ideally we can make the site responsive or responsive ish"
+
+**Assistant interpretation:** Make the Goja demo app responsive so it renders desktop layout at wide viewports and mobile layout at narrow viewports, from the same JSON.
+
+**Inferred user intent:** Validate the full DSL pipeline works for both mobile and desktop without maintaining two separate flows.
+
+**Commit (code):** 956d6a3 — "feat: responsive desktop/mobile toggle for Goja demo"
+
+### What I did
+
+- Added `forceDesktop` prop to `DslPageRenderer` and `BackendDslPage`
+- When `forceDesktop=true`, override `shell.kind "intake"` → render as desktop with partition
+- Added desktop bottom nav bar (Back/Skip/Next) mirroring IntakeShell's CTA bar
+- Made `LiveDslDemoApp` viewport-aware via `useIsDesktop()` hook (matchMedia ≥1080px)
+- Desktop layout: full-width DesktopShell + collapsible debug drawer (⟩ toggle)
+- Mobile layout: original phone frame + side debug panel
+- Auto accent color: steps 1-4 get plum, steps 5+ get butter (for visual variety)
+- Fixed step rail: 0-based indexing (`stepNum - 1`), updated labels to match actual 7-step flow
+- Added ViewModeIndicator badge (🖥 Desktop view / 📱 Mobile view)
+
+### Why
+
+The user wants to validate the "same JSON, different density" promise end-to-end. Having a single responsive demo is cleaner than maintaining two separate flows.
+
+### What worked
+
+- The `forceDesktop` approach is clean — no JSON changes, pure renderer interpretation
+- VLM scored desktop estimate **9/10** after fixes
+- Responsive breakpoint at 1080px works well — mobile phone frame below, full desktop above
+- Session persists across viewport changes (same sessionId in sessionStorage)
+
+### What didn't work
+
+- Initial implementation missed the bottom nav bar — DesktopShell had no navigation controls
+- Step rail showed wrong active step (1-based vs 0-based indexing)
+- Step labels had stale "Length" and "History" from the original 9-step design, not matching the actual 7-step Goja flow
+
+### What I learned
+
+- The DesktopShell's `current` prop is 0-based, while the Goja flow sends 1-based `step` — easy off-by-one
+- Responsive switching via `matchMedia` + React state is clean and doesn't require CSS media queries for structural layout changes
+
+### What was tricky to build
+
+- The desktop nav bar had to extract shell action refs (`actions.next`, `actions.back`, `actions.skip`) from the same `props.actions` structure that IntakeShell uses — but with desktop-styled buttons instead of IntakeShell's mobile CTA
+- The `renderDesktopContent` closure pattern was needed to avoid duplicating the DesktopShell wrapper for both single-column and two-column cases
+
+### What warrants a second pair of eyes
+
+- The `stepNum >= 5 ? "butter" : "plum"` accent heuristic is simplistic — should it be configurable from the Goja flow?
+- The `useIsDesktop` hook triggers re-renders on viewport resize — is there a performance concern?
+
+### What should be done in the future
+
+- Make the step labels configurable from the shell props (not hardcoded in DesktopShell)
+- Add desktop stories for all 7 steps, not just estimate
+- Consider persisting viewport preference (localStorage) so users can force mobile on desktop
+- Add a viewport toggle button in the debug panel for manual switching
+
+### Code review instructions
+
+- `git diff 34a0a2f..956d6a3` — responsive toggle + desktop nav bar
+- Verify: resize browser from 500px to 1400px and confirm layout switches
+- Verify: navigate through all 7 steps at desktop width
+- Run `npx tsc --noEmit` — should pass clean
+
+### Technical details
+
+**Files changed:**
+- `page-dsl/render.tsx` — `forceDesktop` prop, desktop nav bar, accent color heuristic, step indexing fix
+- `page-dsl/BackendDslPage.tsx` — pass-through `forceDesktop` prop
+- `LiveDslDemoApp.tsx` — `useIsDesktop()` hook, dual layout (desktop/mobile), collapsible debug drawer
+- `organisms/DesktopShell/DesktopShell.tsx` — updated step labels to match 7-step flow
+
+**VLM scores:**
+- Desktop estimate: 9/10
+- Desktop service: 9/10 (after step rail fix)
+- Mobile estimate: 8/10 (bottom CTA slightly clipped in phone frame)
+
 ### Code review instructions
 
 - No code changes — only a backend restart
