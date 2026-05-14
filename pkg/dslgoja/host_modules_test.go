@@ -72,6 +72,39 @@ func TestRuntimeWithoutHostDBRejectsDBRequire(t *testing.T) {
 	}
 }
 
+func TestRuntimeResumeFlowRestoresStateAndRegeneratesActions(t *testing.T) {
+	source := `
+		const { page, n } = require("fringe/dsl");
+		function render(ctx) {
+			return page("resume", "Resume").add(
+				n.button(ctx.state.choice, { actions: { click: ctx.action("choose", function () { ctx.state.choice = "changed"; return render(ctx); }, "click") } }).id("choice")
+			);
+		}
+	`
+	rt := NewRuntime()
+	session, result, err := rt.ResumeFlow(context.Background(), "test.flow", source, ResumeFlowOptions{
+		SessionID:           "flow_existing",
+		StateJSON:           []byte(`{"choice":"persisted"}`),
+		PreviousPageVersion: 4,
+	})
+	if err != nil {
+		t.Fatalf("ResumeFlow: %v", err)
+	}
+	if session.ID != "flow_existing" {
+		t.Fatalf("session id = %q", session.ID)
+	}
+	if result.PageVersion != 5 {
+		t.Fatalf("page version = %d", result.PageVersion)
+	}
+	text, _ := result.Page.Nodes[0].Props["children"].(string)
+	if text != "persisted" {
+		t.Fatalf("button children = %q", text)
+	}
+	if len(session.CurrentActions) != 1 {
+		t.Fatalf("current actions = %d", len(session.CurrentActions))
+	}
+}
+
 func TestRuntimeExposesConfigDbReadOnlyAndStateDbReadWrite(t *testing.T) {
 	configDB, err := sql.Open("sqlite3", filepath.Join(t.TempDir(), "config.sqlite"))
 	if err != nil {

@@ -80,7 +80,11 @@ ON CONFLICT(id) DO UPDATE SET current_page_id = excluded.current_page_id, curren
 func (h *appHandler) handleDSLUpload(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.PathValue("sessionId")
 	uploadID := r.PathValue("uploadId")
-	session, ok := h.dslFlows.get(sessionID)
+	session, _, ok, err := h.dslFlows.getOrHydrate(r, sessionID, h.dslUserSnapshot(r))
+	if err != nil {
+		writeDSLProtoError(w, http.StatusInternalServerError, "dsl_session_hydrate_failed", err.Error())
+		return
+	}
 	if !ok {
 		writeDSLProtoError(w, http.StatusNotFound, "dsl_session_not_found", "DSL session not found")
 		return

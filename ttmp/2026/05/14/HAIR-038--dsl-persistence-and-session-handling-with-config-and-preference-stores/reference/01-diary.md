@@ -373,3 +373,72 @@ This does not yet hydrate missing in-memory sessions after a backend restart. It
 ### Technical details
 - Focused validation command:
   - `go test ./pkg/dslgoja ./pkg/server -count=1`
+
+## Step 6: Hydrate missing sessions from persisted state
+
+This step implemented the restart-recovery path for persisted DSL sessions. The runtime can now resume a flow from an existing `sessionId`, persisted `state_json`, and previous page version. The server can use that runtime API when an in-memory `FlowSession` is missing but a persisted active session row exists in `stateDb`.
+
+Hydration deliberately regenerates action ids. The durable state is the JSON state snapshot, not the old callback registry. A browser holding stale pre-restart action ids will receive a refreshed page/version path rather than mutating state through old callbacks.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Continue from state persistence into session hydration and restart-style recovery tests.
+
+**Inferred user intent:** The user wants the backend DSL to survive the loss of process-local sessions and reconstruct enough state for the browser to continue.
+
+**Commit (code):** pending at time of diary entry.
+
+### What I did
+- Added `ResumeFlowOptions` with `SessionID`, `User`, `StateJSON`, and `PreviousPageVersion`.
+- Added `Runtime.ResumeFlow(...)` in `pkg/dslgoja/runtime.go`.
+- Refactored session creation/source loading helpers to share setup between `StartFlow` and `ResumeFlow`.
+- Added `dslFlowStore.getOrHydrate(...)` to load active session rows from `stateDB` when memory lookup misses.
+- Updated `GET /api/dsl/flows/{sessionId}` to hydrate and return a fresh `FlowState`.
+- Updated event and upload handlers to use the hydration-aware lookup path.
+- Added runtime test coverage for `ResumeFlow` restoring state and regenerating actions.
+- Added server restart-style test coverage proving a new handler can hydrate a persisted session, preserve the chosen category, and return fresh action ids.
+- Checked tasks 13-15.
+
+### Why
+- Persisting `state_json` is only useful if the server can rebuild a Goja session from it.
+- Action ids are intentionally page-version scoped and process-local, so hydration must rerender and create new actions instead of attempting to restore old callback ids.
+
+### What worked
+- `go test ./pkg/dslgoja ./pkg/server -count=1` passed.
+- Hydrated GET responses return the persisted category selection.
+- Hydrated action ids differ from pre-hydration action ids.
+- Hydrated page versions advance beyond the persisted version, which gives the browser a fresh concurrency boundary.
+
+### What didn't work
+- No code failure remained after formatting and focused tests.
+- Ownership validation remains a later phase; current hydration restores by session id from the active row.
+
+### What I learned
+- The cleanest resume API is explicit rather than trying to overload `StartFlow` options.
+- Hydrating on `GET` and persisting the newly rendered page makes route/session recovery visible through the existing `FlowState` transport without frontend changes.
+
+### What was tricky to build
+- The tricky part was page version semantics. If a persisted session is at version 2, rerendering during hydration creates version 3 with fresh actions. This means old page-version 2 events become stale, which is correct because their action ids point to callbacks that no longer exist.
+- Another subtlety is upload hydration. The flow can be hydrated, but upload intents are not durable yet. An old upload intent after restart will still fail as unknown. That is acceptable for this phase and should be revisited with upload intent persistence or regeneration strategy.
+
+### What warrants a second pair of eyes
+- Review whether `GET` hydration should always persist the newly incremented page version, or whether read-only GET should avoid changing persisted session rows.
+- Review whether event hydration should return a refresh effect immediately instead of trying dispatch and relying on stale page-version handling.
+- Review whether flow source lookup should remain hard-coded to `DemoIntakeFlowSource` or move to a flow registry before adding more apps.
+
+### What should be done in the future
+- Add ownership checks before hydrating authenticated or anonymous sessions.
+- Decide whether upload intents should become durable, deterministically regenerated, or expected to refresh after restart.
+- Continue to Phase 4 only after deciding the config DB seed/migration shape.
+
+### Code review instructions
+- Start in `pkg/dslgoja/runtime.go` at `ResumeFlow`.
+- Then inspect `pkg/server/handlers_dsl.go` at `getOrHydrate` and `handleDSLGetFlow`.
+- Review tests in `pkg/dslgoja/host_modules_test.go` and `pkg/server/handlers_dsl_test.go`.
+- Validate with `go test ./pkg/dslgoja ./pkg/server -count=1`.
+
+### Technical details
+- Focused validation command:
+  - `go test ./pkg/dslgoja ./pkg/server -count=1`

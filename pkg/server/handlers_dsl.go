@@ -55,6 +55,40 @@ func (s *dslFlowStore) get(id string) (*dslgoja.FlowSession, bool) {
 	return session, ok
 }
 
+func (s *dslFlowStore) getOrHydrate(r *http.Request, sessionID string, user dslgoja.UserSnapshot) (*dslgoja.FlowSession, *dslgoja.InteractionResult, bool, error) {
+	if session, ok := s.get(sessionID); ok {
+		return session, nil, true, nil
+	}
+	if s.stateDB == nil {
+		return nil, nil, false, nil
+	}
+
+	var flowID, stateJSON string
+	var pageVersion int64
+	err := s.stateDB.QueryRowContext(r.Context(), `SELECT flow_id, current_page_version, state_json FROM dsl_flow_sessions WHERE id = ? AND status = 'active'`, sessionID).Scan(&flowID, &pageVersion, &stateJSON)
+	if err == sql.ErrNoRows {
+		return nil, nil, false, nil
+	}
+	if err != nil {
+		return nil, nil, false, err
+	}
+	if flowID != "fringe.intake.v1" {
+		return nil, nil, false, nil
+	}
+
+	session, result, err := s.runtime.ResumeFlow(r.Context(), flowID, dslgoja.DemoIntakeFlowSource, dslgoja.ResumeFlowOptions{
+		SessionID:           sessionID,
+		User:                user,
+		StateJSON:           []byte(stateJSON),
+		PreviousPageVersion: pageVersion,
+	})
+	if err != nil {
+		return nil, nil, false, err
+	}
+	s.put(session)
+	return session, result, true, nil
+}
+
 func writeProtoJSON(w http.ResponseWriter, status int, msg proto.Message) {
 	payload, err := protojson.MarshalOptions{EmitUnpopulated: false}.Marshal(msg)
 	if err != nil {
@@ -97,9 +131,26 @@ func (h *appHandler) handleDSLStartFlow(w http.ResponseWriter, r *http.Request) 
 
 func (h *appHandler) handleDSLGetFlow(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.PathValue("sessionId")
-	session, ok := h.dslFlows.get(sessionID)
+	session, hydratedResult, ok, err := h.dslFlows.getOrHydrate(r, sessionID, h.dslUserSnapshot(r))
+	if err != nil {
+		writeDSLProtoError(w, http.StatusInternalServerError, "dsl_session_hydrate_failed", err.Error())
+		return
+	}
 	if !ok {
 		writeDSLProtoError(w, http.StatusNotFound, "dsl_session_not_found", "DSL session not found")
+		return
+	}
+	if hydratedResult != nil {
+		if err := h.recordDSLFlowSession(r, session, hydratedResult); err != nil {
+			writeDSLProtoError(w, http.StatusInternalServerError, "dsl_session_record_failed", err.Error())
+			return
+		}
+		state, err := dslgoja.FlowStateFromResult(hydratedResult)
+		if err != nil {
+			writeDSLProtoError(w, http.StatusInternalServerError, "dsl_proto_conversion_failed", err.Error())
+			return
+		}
+		writeProtoJSON(w, http.StatusOK, state)
 		return
 	}
 	version, page := session.Snapshot()
@@ -113,7 +164,11 @@ func (h *appHandler) handleDSLGetFlow(w http.ResponseWriter, r *http.Request) {
 
 func (h *appHandler) handleDSLEvent(w http.ResponseWriter, r *http.Request) {
 	sessionID := r.PathValue("sessionId")
-	session, ok := h.dslFlows.get(sessionID)
+	session, _, ok, err := h.dslFlows.getOrHydrate(r, sessionID, h.dslUserSnapshot(r))
+	if err != nil {
+		writeDSLProtoError(w, http.StatusInternalServerError, "dsl_session_hydrate_failed", err.Error())
+		return
+	}
 	if !ok {
 		writeDSLProtoError(w, http.StatusNotFound, "dsl_session_not_found", "DSL session not found")
 		return

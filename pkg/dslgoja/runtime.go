@@ -105,29 +105,13 @@ func (rt *Runtime) StartFlow(ctx context.Context, flowID, source string, options
 		}
 	}
 
-	vm := goja.New()
-	session := &FlowSession{
-		ID:              "flow_" + uuid.NewString(),
-		FlowID:          flowID,
-		VM:              vm,
-		CurrentActions:  map[string]ActionRegistration{},
-		RetiredActions:  map[string]RetiredActionInfo{},
-		ProcessedEvents: map[string]InteractionResult{},
-		UploadIntents:   map[string]UploadIntent{},
-		Uploads:         map[string]UploadedImage{},
-		User:            startOptions.User,
-		rt:              rt,
-	}
-	session.User = session.User.WithSessionID(session.ID)
-
-	if err := rt.installModules(vm, session); err != nil {
-		return nil, nil, fmt.Errorf("install DSL modules: %w", err)
-	}
-	value, err := vm.RunString(wrapFlowSource(source))
+	session, err := rt.newFlowSession(flowID, "flow_"+uuid.NewString(), startOptions.User)
 	if err != nil {
-		return nil, nil, fmt.Errorf("load flow %q: %w", flowID, err)
+		return nil, nil, err
 	}
-	session.flow = value.ToObject(vm)
+	if err := rt.loadFlowSource(session, source); err != nil {
+		return nil, nil, err
+	}
 
 	initialState, ok := goja.AssertFunction(session.flow.Get("initialState"))
 	if ok {
@@ -137,7 +121,7 @@ func (rt *Runtime) StartFlow(ctx context.Context, flowID, source string, options
 		}
 		session.state = state
 	} else {
-		session.state = vm.NewObject()
+		session.state = session.VM.NewObject()
 	}
 
 	result, err := session.Render(ctx)
@@ -145,6 +129,66 @@ func (rt *Runtime) StartFlow(ctx context.Context, flowID, source string, options
 		return nil, nil, err
 	}
 	return session, result, nil
+}
+
+func (rt *Runtime) ResumeFlow(ctx context.Context, flowID, source string, options ResumeFlowOptions) (*FlowSession, *InteractionResult, error) {
+	if options.SessionID == "" {
+		return nil, nil, fmt.Errorf("resume flow %q: session id is required", flowID)
+	}
+	session, err := rt.newFlowSession(flowID, options.SessionID, options.User)
+	if err != nil {
+		return nil, nil, err
+	}
+	session.Version = options.PreviousPageVersion
+	if err := rt.loadFlowSource(session, source); err != nil {
+		return nil, nil, err
+	}
+
+	if len(options.StateJSON) > 0 {
+		var state any
+		if err := json.Unmarshal(options.StateJSON, &state); err != nil {
+			return nil, nil, fmt.Errorf("resume flow %q: decode state JSON: %w", flowID, err)
+		}
+		session.state = session.VM.ToValue(state)
+	} else {
+		session.state = session.VM.NewObject()
+	}
+
+	result, err := session.Render(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	return session, result, nil
+}
+
+func (rt *Runtime) newFlowSession(flowID, sessionID string, user UserSnapshot) (*FlowSession, error) {
+	vm := goja.New()
+	session := &FlowSession{
+		ID:              sessionID,
+		FlowID:          flowID,
+		VM:              vm,
+		CurrentActions:  map[string]ActionRegistration{},
+		RetiredActions:  map[string]RetiredActionInfo{},
+		ProcessedEvents: map[string]InteractionResult{},
+		UploadIntents:   map[string]UploadIntent{},
+		Uploads:         map[string]UploadedImage{},
+		User:            user,
+		rt:              rt,
+	}
+	session.User = session.User.WithSessionID(session.ID)
+	if err := rt.installModules(vm, session); err != nil {
+		return nil, fmt.Errorf("install DSL modules: %w", err)
+	}
+	return session, nil
+}
+
+func (rt *Runtime) loadFlowSource(session *FlowSession, source string) error {
+	value, err := session.VM.RunString(wrapFlowSource(source))
+	if err != nil {
+		return fmt.Errorf("load flow %q: %w", session.FlowID, err)
+	}
+	session.flow = value.ToObject(session.VM)
+	return nil
 }
 
 func (s *FlowSession) Render(ctx context.Context) (*InteractionResult, error) {

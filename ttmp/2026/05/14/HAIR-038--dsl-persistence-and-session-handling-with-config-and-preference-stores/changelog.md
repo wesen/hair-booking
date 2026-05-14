@@ -48,3 +48,14 @@ Phase 2: Persist real Goja ctx.state snapshots into dsl_flow_sessions.state_json
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_test.go — State persistence regression test
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_uploads.go — recordDSLFlowSession writes state_json
 
+
+## 2026-05-14
+
+Phase 3: Added Runtime.ResumeFlow and stateDb-backed session hydration for missing in-memory DSL sessions, with restart-style tests for persisted state and fresh action ids.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/runtime.go — ResumeFlow implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl.go — Hydration-aware get/event handlers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_test.go — Restart-style hydration coverage
+

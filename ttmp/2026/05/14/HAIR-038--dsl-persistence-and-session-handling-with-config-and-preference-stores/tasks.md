@@ -15,9 +15,9 @@
 - [x] Phase 2: Add FlowSession StateJSON/StateMap helpers for durable JSON-safe ctx.state snapshots
 - [x] Phase 2: Persist state_json/current page/version after DSL start and every event dispatch
 - [x] Phase 2: Add server tests proving state_json changes after user choices
-- [ ] Phase 3: Add Runtime.ResumeFlow to rebuild a Goja VM from persisted state JSON and regenerate actions
-- [ ] Phase 3: Hydrate missing in-memory DSL sessions from stateDb in GET/event/upload handlers
-- [ ] Phase 3: Add restart-style server tests for session recovery and fresh action ids
+- [x] Phase 3: Add Runtime.ResumeFlow to rebuild a Goja VM from persisted state JSON and regenerate actions
+- [x] Phase 3: Hydrate missing in-memory DSL sessions from stateDb in GET/event/upload handlers
+- [x] Phase 3: Add restart-style server tests for session recovery and fresh action ids
 - [ ] Phase 4: Add configDb schema/seed path for app content and migrate intake.flow.js constants behind configDb helpers
 - [ ] Phase 4: Add config version pinning on DSL sessions and tests for deterministic rerendering
 - [ ] Phase 5: Add ownership/expiry hardening for persisted sessions and uploads

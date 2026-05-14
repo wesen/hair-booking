@@ -45,6 +45,13 @@ type StartFlowOptions struct {
 
 type StartFlowOption func(*StartFlowOptions)
 
+type ResumeFlowOptions struct {
+	SessionID           string
+	User                UserSnapshot
+	StateJSON           []byte
+	PreviousPageVersion int64
+}
+
 func WithUser(user UserSnapshot) StartFlowOption {
 	return func(options *StartFlowOptions) {
 		options.User = user

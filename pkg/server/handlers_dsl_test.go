@@ -99,20 +99,9 @@ func TestDSLFlowPersistsStateJSONOnStartAndDispatch(t *testing.T) {
 	defer func() { _ = dbHost.Close() }()
 
 	handler := NewHandler(HandlerOptions{Version: "test", DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
-	startReq := httptest.NewRequest(http.MethodPost, "/api/dsl/flows/fringe.intake.v1/start", nil)
-	startRec := httptest.NewRecorder()
-	handler.ServeHTTP(startRec, startReq)
-	if startRec.Code != http.StatusOK {
-		t.Fatalf("start status = %d body=%s", startRec.Code, startRec.Body.String())
-	}
-
-	var startData map[string]any
-	if err := json.Unmarshal(startRec.Body.Bytes(), &startData); err != nil {
-		t.Fatalf("decode start: %v", err)
-	}
+	startData := startDSLFlow(t, handler)
 	sessionID := startData["sessionId"].(string)
 	pageVersion := int64(startData["pageVersion"].(float64))
-	page := startData["page"].(map[string]any)
 
 	var startState string
 	if err := dbHost.DB.QueryRow(`SELECT state_json FROM dsl_flow_sessions WHERE id = ?`, sessionID).Scan(&startState); err != nil {
@@ -126,25 +115,7 @@ func TestDSLFlowPersistsStateJSONOnStartAndDispatch(t *testing.T) {
 		t.Fatalf("start category = %#v in %s", startStateData["category"], startState)
 	}
 
-	setCategoryActionID := findActionIDInPage(t, page, "category-tabs", "change")
-	eventBody := map[string]any{
-		"eventId":     "evt_persist_set_category",
-		"pageVersion": pageVersion,
-		"nodeId":      "category-tabs",
-		"nodeKind":    "segmented",
-		"actionId":    setCategoryActionID,
-		"event":       "change",
-		"value":       "extensions",
-	}
-	body, _ := json.Marshal(eventBody)
-	eventReq := httptest.NewRequest(http.MethodPost, "/api/dsl/flows/"+sessionID+"/events", bytes.NewReader(body))
-	eventReq.Header.Set("Content-Type", "application/json")
-	eventRec := httptest.NewRecorder()
-	handler.ServeHTTP(eventRec, eventReq)
-	if eventRec.Code != http.StatusOK {
-		t.Fatalf("event status = %d body=%s", eventRec.Code, eventRec.Body.String())
-	}
-
+	eventData := dispatchCategory(t, handler, startData, "extensions", "evt_persist_set_category")
 	var persistedVersion int64
 	var eventState string
 	if err := dbHost.DB.QueryRow(`SELECT current_page_version, state_json FROM dsl_flow_sessions WHERE id = ?`, sessionID).Scan(&persistedVersion, &eventState); err != nil {
@@ -160,6 +131,99 @@ func TestDSLFlowPersistsStateJSONOnStartAndDispatch(t *testing.T) {
 	if eventStateData["category"] != "extensions" {
 		t.Fatalf("event category = %#v in %s", eventStateData["category"], eventState)
 	}
+	updatedPage := eventData["page"].(map[string]any)
+	if got := findNodeValue(t, updatedPage, "category-tabs"); got != "extensions" {
+		t.Fatalf("category value = %q", got)
+	}
+}
+
+func TestDSLGetHydratesPersistedSessionWithFreshActions(t *testing.T) {
+	dbHost, err := dslhost.OpenDB(context.Background(), dslhost.DBOptions{Path: filepath.Join(t.TempDir(), "dsl.sqlite"), Migrate: true})
+	if err != nil {
+		t.Fatalf("OpenDB: %v", err)
+	}
+	defer func() { _ = dbHost.Close() }()
+
+	firstHandler := NewHandler(HandlerOptions{Version: "test", DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
+	startData, eventData := startAndSetCategory(t, firstHandler, "extensions")
+	sessionID := startData["sessionId"].(string)
+	eventPageVersion := int64(eventData["pageVersion"].(float64))
+	eventPage := eventData["page"].(map[string]any)
+	oldActionID := findActionIDInPage(t, eventPage, "category-tabs", "change")
+
+	secondHandler := NewHandler(HandlerOptions{Version: "test", DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path})
+	getReq := httptest.NewRequest(http.MethodGet, "/api/dsl/flows/"+sessionID, nil)
+	getRec := httptest.NewRecorder()
+	secondHandler.ServeHTTP(getRec, getReq)
+	if getRec.Code != http.StatusOK {
+		t.Fatalf("get status = %d body=%s", getRec.Code, getRec.Body.String())
+	}
+	var getData map[string]any
+	if err := json.Unmarshal(getRec.Body.Bytes(), &getData); err != nil {
+		t.Fatalf("decode get: %v", err)
+	}
+	if int64(getData["pageVersion"].(float64)) <= eventPageVersion {
+		t.Fatalf("hydrated page version = %#v, want > %d", getData["pageVersion"], eventPageVersion)
+	}
+	hydratedPage := getData["page"].(map[string]any)
+	if got := findNodeValue(t, hydratedPage, "category-tabs"); got != "extensions" {
+		t.Fatalf("hydrated category value = %q", got)
+	}
+	newActionID := findActionIDInPage(t, hydratedPage, "category-tabs", "change")
+	if newActionID == oldActionID {
+		t.Fatalf("hydrated action id reused old action id %q", newActionID)
+	}
+}
+
+func startAndSetCategory(t *testing.T, handler http.Handler, value string) (map[string]any, map[string]any) {
+	t.Helper()
+	startData := startDSLFlow(t, handler)
+	return startData, dispatchCategory(t, handler, startData, value, "evt_set_category_"+value)
+}
+
+func startDSLFlow(t *testing.T, handler http.Handler) map[string]any {
+	t.Helper()
+	startReq := httptest.NewRequest(http.MethodPost, "/api/dsl/flows/fringe.intake.v1/start", nil)
+	startRec := httptest.NewRecorder()
+	handler.ServeHTTP(startRec, startReq)
+	if startRec.Code != http.StatusOK {
+		t.Fatalf("start status = %d body=%s", startRec.Code, startRec.Body.String())
+	}
+	var data map[string]any
+	if err := json.Unmarshal(startRec.Body.Bytes(), &data); err != nil {
+		t.Fatalf("decode start: %v", err)
+	}
+	return data
+}
+
+func dispatchCategory(t *testing.T, handler http.Handler, state map[string]any, value, eventID string) map[string]any {
+	t.Helper()
+	sessionID := state["sessionId"].(string)
+	pageVersion := int64(state["pageVersion"].(float64))
+	page := state["page"].(map[string]any)
+	setCategoryActionID := findActionIDInPage(t, page, "category-tabs", "change")
+	eventBody := map[string]any{
+		"eventId":     eventID,
+		"pageVersion": pageVersion,
+		"nodeId":      "category-tabs",
+		"nodeKind":    "segmented",
+		"actionId":    setCategoryActionID,
+		"event":       "change",
+		"value":       value,
+	}
+	body, _ := json.Marshal(eventBody)
+	eventReq := httptest.NewRequest(http.MethodPost, "/api/dsl/flows/"+sessionID+"/events", bytes.NewReader(body))
+	eventReq.Header.Set("Content-Type", "application/json")
+	eventRec := httptest.NewRecorder()
+	handler.ServeHTTP(eventRec, eventReq)
+	if eventRec.Code != http.StatusOK {
+		t.Fatalf("event status = %d body=%s", eventRec.Code, eventRec.Body.String())
+	}
+	var eventData map[string]any
+	if err := json.Unmarshal(eventRec.Body.Bytes(), &eventData); err != nil {
+		t.Fatalf("decode event: %v", err)
+	}
+	return eventData
 }
 
 func findActionIDInPage(t *testing.T, page map[string]any, nodeID, event string) string {

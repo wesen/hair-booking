@@ -35,6 +35,9 @@ RelatedFiles:
         Current FlowSession lifecycle, ctx.state, action registry, render transaction, and dispatch semantics
         Current FlowSession lifecycle
         StateJSON helper exports durable JSON-safe ctx.state snapshots
+        ResumeFlow rebuilds a Goja VM from persisted state JSON and regenerates actions
+    - Path: pkg/dslgoja/user.go
+      Note: ResumeFlowOptions carries session id
     - Path: pkg/dslhost/db.go
       Note: Current SQLite opening/provisioning package to split or extend for read-only config and read-write state stores
     - Path: pkg/dslhost/schema.sql
@@ -47,12 +50,16 @@ RelatedFiles:
         Current start/get/event endpoints and in-memory session store that HAIR-038 must hydrate from DB
         dslFlowStore now carries configDB/stateDB and passes both into RuntimeHost
         Event dispatch now persists updated session snapshots
+        getOrHydrate restores missing in-memory sessions from stateDB for GET/event paths
     - Path: pkg/server/handlers_dsl_test.go
-      Note: Server test covers state_json persistence after start and dispatch
+      Note: |-
+        Server test covers state_json persistence after start and dispatch
+        Restart-style hydration test verifies persisted state and fresh action ids
     - Path: pkg/server/handlers_dsl_uploads.go
       Note: |-
         Current DSL user snapshot, flow-session row persistence, and upload metadata persistence
         recordDSLFlowSession now stores real state_json
+        Upload handler uses hydration path before checking upload intents
     - Path: pkg/server/http.go
       Note: Server options and handler wiring split config/state database dependencies
     - Path: proto/fringe/dsl/v1/dsl.proto
@@ -69,6 +76,7 @@ LastUpdated: 2026-05-14T00:00:00Z
 WhatFor: Use this guide to implement HAIR-038 persistence and session handling without rediscovering the Goja DSL architecture.
 WhenToUse: Read before changing DSL session storage, ctx.state persistence, Goja database modules, configDb/stateDb provisioning, session recovery, or DSL database schema.
 ---
+
 
 
 
