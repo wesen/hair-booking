@@ -63,6 +63,7 @@ RelatedFiles:
         Event dispatch now persists updated session snapshots
         getOrHydrate restores missing in-memory sessions from stateDB for GET/event paths
         Hydration enforces user ownership and active unexpired sessions
+        expireStaleSessions cleanup helper marks active expired sessions
     - Path: pkg/server/handlers_dsl_test.go
       Note: |-
         Server test covers state_json persistence after start and dispatch
@@ -70,6 +71,7 @@ RelatedFiles:
         Tests live DSL flow reading service options from configDb
         Tests config_version_id persistence after start and dispatch
         Tests wrong-user and expired-session hydration rejection
+        Cleanup test verifies expired sessions are marked without touching active sessions
     - Path: pkg/server/handlers_dsl_uploads.go
       Note: |-
         Current DSL user snapshot, flow-session row persistence, and upload metadata persistence
@@ -93,6 +95,7 @@ LastUpdated: 2026-05-14T00:00:00Z
 WhatFor: Use this guide to implement HAIR-038 persistence and session handling without rediscovering the Goja DSL architecture.
 WhenToUse: Read before changing DSL session storage, ctx.state persistence, Goja database modules, configDb/stateDb provisioning, session recovery, or DSL database schema.
 ---
+
 
 
 
@@ -1170,6 +1173,20 @@ Do not rely on `sessionStorage` alone. Add a signed owner cookie or another serv
 ### DB write fails after callback mutated VM state
 
 This is a real consistency risk. The first implementation can return a danger effect and log the failure, but the better long-term pattern is to persist after successful render and treat DB failure as request failure. For high-value actions, callbacks should write through `stateDb` before returning the page, so errors occur before the UI advances.
+
+### Operational cleanup for expired sessions
+
+Expired sessions should stop hydrating immediately. A lightweight cleanup operation should periodically mark active rows as expired when `expires_at <= datetime('now')`:
+
+```sql
+UPDATE dsl_flow_sessions
+SET status = 'expired', updated_at = datetime('now')
+WHERE status = 'active'
+  AND expires_at IS NOT NULL
+  AND expires_at <= datetime('now');
+```
+
+This cleanup does not need to delete rows in the first implementation. Marking rows as expired preserves auditability and makes it possible to inspect abandoned flows. A later retention job can delete expired sessions and cascade uploads/drafts after a product-defined retention window.
 
 ## 15. Design Decisions
 

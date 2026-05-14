@@ -92,3 +92,14 @@ Phase 5 slice: Added expires_at and hydration checks for active, unexpired, same
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl.go — Hydration ownership/expiry checks
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_test.go — Wrong-user and expired-session tests
 
+
+## 2026-05-14
+
+Phase 5 cleanup: Added expireStaleSessions helper, expired-session cleanup test, and operational cleanup notes; HAIR-038 task list is complete.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl.go — Expired-session cleanup helper
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_test.go — Cleanup regression test
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/14/HAIR-038--dsl-persistence-and-session-handling-with-config-and-preference-stores/design-doc/01-dsl-persistence-and-session-handling-guide.md — Operational cleanup notes
+

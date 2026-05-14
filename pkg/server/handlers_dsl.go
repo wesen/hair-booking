@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"database/sql"
 	"io"
 	"net/http"
@@ -53,6 +54,20 @@ func (s *dslFlowStore) get(id string) (*dslgoja.FlowSession, bool) {
 	defer s.mu.RUnlock()
 	session, ok := s.sessions[id]
 	return session, ok
+}
+
+func (s *dslFlowStore) expireStaleSessions(ctx context.Context) (int64, error) {
+	if s == nil || s.stateDB == nil {
+		return 0, nil
+	}
+	result, err := s.stateDB.ExecContext(ctx, `UPDATE dsl_flow_sessions
+SET status = 'expired', updated_at = datetime('now')
+WHERE status = 'active' AND expires_at IS NOT NULL AND expires_at <= datetime('now')`)
+	if err != nil {
+		return 0, err
+	}
+	rows, _ := result.RowsAffected()
+	return rows, nil
 }
 
 func (s *dslFlowStore) getOrHydrate(r *http.Request, sessionID string, user dslgoja.UserSnapshot) (*dslgoja.FlowSession, *dslgoja.InteractionResult, bool, error) {

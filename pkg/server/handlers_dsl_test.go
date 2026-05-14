@@ -217,6 +217,40 @@ func TestDSLHydrationRejectsWrongUserAndExpiredSessions(t *testing.T) {
 	}
 }
 
+func TestDSLFlowStoreExpiresStaleSessions(t *testing.T) {
+	dbHost, err := dslhost.OpenDB(context.Background(), dslhost.DBOptions{Path: filepath.Join(t.TempDir(), "dsl.sqlite"), Migrate: true})
+	if err != nil {
+		t.Fatalf("OpenDB: %v", err)
+	}
+	defer func() { _ = dbHost.Close() }()
+
+	store := newDSLFlowStore(nil, dbHost.DB, "", dbHost.Path, nil)
+	_, err = dbHost.DB.Exec(`INSERT INTO dsl_flow_sessions(id, flow_id, user_id, status, current_page_version, state_json, expires_at)
+VALUES
+  ('expired_1', 'fringe.intake.v1', 'alice', 'active', 1, '{}', datetime('now', '-1 hour')),
+  ('active_1', 'fringe.intake.v1', 'alice', 'active', 1, '{}', datetime('now', '+1 hour'))`)
+	if err != nil {
+		t.Fatalf("seed sessions: %v", err)
+	}
+	rows, err := store.expireStaleSessions(context.Background())
+	if err != nil {
+		t.Fatalf("expire stale sessions: %v", err)
+	}
+	if rows != 1 {
+		t.Fatalf("expired rows = %d", rows)
+	}
+	var expiredStatus, activeStatus string
+	if err := dbHost.DB.QueryRow(`SELECT status FROM dsl_flow_sessions WHERE id = 'expired_1'`).Scan(&expiredStatus); err != nil {
+		t.Fatalf("query expired status: %v", err)
+	}
+	if err := dbHost.DB.QueryRow(`SELECT status FROM dsl_flow_sessions WHERE id = 'active_1'`).Scan(&activeStatus); err != nil {
+		t.Fatalf("query active status: %v", err)
+	}
+	if expiredStatus != "expired" || activeStatus != "active" {
+		t.Fatalf("statuses expired=%q active=%q", expiredStatus, activeStatus)
+	}
+}
+
 func TestDSLFlowReadsServiceOptionsFromConfigDB(t *testing.T) {
 	stateHost, err := dslhost.OpenDB(context.Background(), dslhost.DBOptions{Path: filepath.Join(t.TempDir(), "state.sqlite"), Migrate: true})
 	if err != nil {

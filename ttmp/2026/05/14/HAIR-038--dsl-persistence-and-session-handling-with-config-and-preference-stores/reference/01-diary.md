@@ -634,3 +634,60 @@ This is not the full anonymous-owner-cookie design from the guide, but it closes
 ### Technical details
 - Focused validation command:
   - `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1`
+
+## Step 10: Add expired-session cleanup helper and finish HAIR-038 task list
+
+This step added a small operational cleanup helper for expired sessions. Hydration already rejects expired sessions; the cleanup helper marks active expired rows as `expired` so operators and future jobs can distinguish currently active sessions from stale ones without deleting audit history.
+
+This completes the initially planned HAIR-038 implementation task list. The implementation still has follow-up risks, especially existing-database migrations and anonymous-owner cookies, but the core path now has configDb/stateDb plumbing, durable state snapshots, hydration, config content reads, config version persistence, ownership/expiry checks, and cleanup coverage.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Finish the remaining cleanup/audit task and keep the diary current.
+
+**Inferred user intent:** The user wants the ticket's phased task list to reach a reviewable implementation boundary.
+
+**Commit (code):** pending at time of diary entry.
+
+### What I did
+- Added `dslFlowStore.expireStaleSessions(ctx)`.
+- Added a server test proving expired active sessions are marked `expired` while future-expiring sessions remain `active`.
+- Added operational cleanup notes to the design guide.
+- Checked task 19; docmgr reported all HAIR-038 tasks complete.
+
+### Why
+- Hydration rejection prevents use of expired sessions, but cleanup makes the persisted table easier to inspect and operate.
+- Marking rows instead of deleting them preserves debugging and audit value.
+
+### What worked
+- `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1` passed.
+- The cleanup helper is intentionally small and can later be called from startup, a CLI command, or a scheduled job.
+
+### What didn't work
+- The helper is not wired into a scheduled/background process yet.
+- It does not clean uploads or drafts; it only marks session rows expired.
+
+### What I learned
+- A status transition is a safer first cleanup step than deletion because it avoids losing evidence while the persistence model is still new.
+
+### What was tricky to build
+- The main scope decision was not to overbuild cleanup. A full retention job would need upload/draft retention policy. This step only implements the status transition required to make expiry operationally visible.
+
+### What warrants a second pair of eyes
+- Decide where `expireStaleSessions` should run: server startup, periodic goroutine, admin endpoint, or CLI command.
+- Decide retention policy for expired sessions and uploaded files.
+
+### What should be done in the future
+- Add a real migration path for existing local SQLite files that predate `config_version_id` and `expires_at`.
+- Implement signed anonymous owner cookies.
+- Decide whether to close HAIR-038 or keep it active for follow-up hardening.
+
+### Code review instructions
+- Inspect `expireStaleSessions` in `pkg/server/handlers_dsl.go` and its test in `pkg/server/handlers_dsl_test.go`.
+- Validate with `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1` and then `go test ./... -count=1` before merge.
+
+### Technical details
+- Focused validation command:
+  - `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1`
