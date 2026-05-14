@@ -112,3 +112,12 @@ Final validation: go test ./... -count=1 passed after HAIR-038 implementation ph
 
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/14/HAIR-038--dsl-persistence-and-session-handling-with-config-and-preference-stores/reference/01-diary.md — Final validation diary entry
 
+
+## 2026-05-14
+
+Validation: full go test ./... passed and live serve/curl smoke verified configDb content and stateDb persistence with SQLite row 2|cfg_default|extensions.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/14/HAIR-038--dsl-persistence-and-session-handling-with-config-and-preference-stores/reference/01-diary.md — Step 12 records automated and live smoke validation
+

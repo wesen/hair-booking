@@ -743,3 +743,72 @@ The design guide changed during implementation, especially around operational cl
 ### Technical details
 - Full validation command:
   - `go test ./... -count=1`
+
+## Step 12: Run automated and live smoke tests
+
+This step tested HAIR-038 beyond the focused implementation commits. I first ran the full Go test suite again, then ran a live HTTP smoke against a real `hair-booking serve` process using temporary state/config SQLite databases.
+
+The live smoke proved the end-to-end path: the server starts with `configDb` and `stateDb`, the DSL start endpoint returns the service page with seeded configDb content, a browser-style event dispatch updates `ctx.state`, and the state DB row records the new page version, config version, and chosen category.
+
+### Prompt Context
+
+**User prompt (verbatim):** "can we test it?"
+
+**Assistant interpretation:** Run validation for the HAIR-038 implementation and report the concrete results.
+
+**Inferred user intent:** The user wants confidence that the new persistence/config/session behavior works outside the implementation narrative.
+
+**Commit (code):** N/A — validation-only diary entry pending commit.
+
+### What I did
+- Ran `go test ./... -count=1`.
+- Started a live server with temporary SQLite files:
+  - `--auth-mode dev`
+  - `--dsl-sqlite-path /tmp/.../state.sqlite`
+  - `--dsl-config-sqlite-path /tmp/.../config.sqlite`
+  - `--storage-local-dir /tmp/.../uploads`
+- Called `POST /api/dsl/flows/fringe.intake.v1/start`.
+- Confirmed the returned page was `intake-service` and the first service option came from seeded config data.
+- Dispatched a `change` event against `category-tabs` with value `extensions`.
+- Queried SQLite to confirm `dsl_flow_sessions` stored:
+  - `current_page_version = 2`
+  - `config_version_id = cfg_default`
+  - `json_extract(state_json, '$.category') = extensions`
+
+### Why
+- Unit/integration tests prove package behavior, but a live smoke proves command-line wiring, HTTP routing, configDb provisioning, stateDb provisioning, protobuf JSON transport, and SQLite persistence together.
+
+### What worked
+- Full Go test suite passed:
+  - `go test ./... -count=1`
+- Live smoke passed and printed:
+  - `serviceTitle: "Cut"`
+  - `category: "extensions"`
+  - SQLite row: `2|cfg_default|extensions`
+
+### What didn't work
+- First live smoke attempt omitted `--auth-mode dev`, so startup failed with:
+  - `Error: failed to load auth settings: auth-session-secret is required when auth-mode=oidc`
+- Resolution: reran the server with `--auth-mode dev`; the smoke then passed.
+
+### What I learned
+- The local command defaults require explicit auth mode in this environment. For live smoke scripts, always pass `--auth-mode dev` unless intentionally testing OIDC.
+- The configDb/stateDb flags work through the real Glazed serve command.
+
+### What was tricky to build
+- The live smoke needed to wait for `/healthz` before calling DSL endpoints. Without that wait loop, curl can race server startup.
+
+### What warrants a second pair of eyes
+- Consider turning the live smoke into a tracked script under the HAIR-038 ticket, e.g. `scripts/01-smoke-persistence.sh`.
+
+### What should be done in the future
+- Add an optional live smoke script that starts the server, exercises start/dispatch/hydrate, and inspects SQLite.
+
+### Code review instructions
+- Reproduce with `go test ./... -count=1` first.
+- For live smoke, pass `--auth-mode dev` and use temporary DB paths to avoid mutating local developer state.
+
+### Technical details
+- Successful live smoke DB assertion:
+  - `SELECT current_page_version, config_version_id, json_extract(state_json, '$.category') FROM dsl_flow_sessions WHERE id='<session>';`
+  - output: `2|cfg_default|extensions`
