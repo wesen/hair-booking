@@ -48,24 +48,10 @@ function routeForPage(pageId: string) {
   return `/dsl-goja-demo/${slugForPage(pageId)}`;
 }
 
-const VIEW_PREF_KEY = "fringe.dsl.viewPref";
-
 type ViewPref = "auto" | "mobile" | "desktop";
 
-function readViewPref(): ViewPref {
-  try {
-    const v = window.localStorage.getItem(VIEW_PREF_KEY);
-    if (v === "mobile" || v === "desktop") return v;
-  } catch { /* ignore */ }
-  return "auto";
-}
-
-function writeViewPref(pref: ViewPref) {
-  try { window.localStorage.setItem(VIEW_PREF_KEY, pref); } catch { /* ignore */ }
-}
-
 function useIsDesktop() {
-  const [pref, setPref] = useState<ViewPref>(readViewPref);
+  const [pref, setPref] = useState<ViewPref>("auto");
   const [nativeDesktop, setNativeDesktop] = useState(() => window.matchMedia(`(min-width: ${DESKTOP_BREAKPOINT}px)`).matches);
 
   useEffect(() => {
@@ -77,13 +63,10 @@ function useIsDesktop() {
 
   const isDesktop = pref === "desktop" ? true : pref === "mobile" ? false : nativeDesktop;
   const cyclePref = useCallback(() => {
-    const next = isDesktop ? "mobile" : "desktop";
-    setPref(next);
-    writeViewPref(next);
+    setPref(isDesktop ? "mobile" : "desktop");
   }, [isDesktop]);
   const resetPref = useCallback(() => {
     setPref("auto");
-    writeViewPref("auto");
   }, []);
 
   return { isDesktop, pref, cyclePref, resetPref };
