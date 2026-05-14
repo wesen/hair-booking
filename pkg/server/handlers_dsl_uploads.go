@@ -2,6 +2,7 @@ package server
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"path/filepath"
@@ -64,17 +65,31 @@ func (h *appHandler) recordDSLFlowSession(r *http.Request, session *dslgoja.Flow
 	if err != nil {
 		return err
 	}
-	_, err = h.dslFlows.stateDB.ExecContext(r.Context(), `INSERT INTO dsl_flow_sessions(id, flow_id, user_id, status, current_page_id, current_page_version, state_json)
-VALUES (?, ?, ?, 'active', ?, ?, ?)
-ON CONFLICT(id) DO UPDATE SET current_page_id = excluded.current_page_id, current_page_version = excluded.current_page_version, state_json = excluded.state_json, updated_at = datetime('now')`,
+	configVersionID := configVersionFromStateJSON(stateJSON)
+	_, err = h.dslFlows.stateDB.ExecContext(r.Context(), `INSERT INTO dsl_flow_sessions(id, flow_id, user_id, status, current_page_id, current_page_version, config_version_id, state_json)
+VALUES (?, ?, ?, 'active', ?, ?, ?, ?)
+ON CONFLICT(id) DO UPDATE SET current_page_id = excluded.current_page_id, current_page_version = excluded.current_page_version, config_version_id = excluded.config_version_id, state_json = excluded.state_json, updated_at = datetime('now')`,
 		session.ID,
 		session.FlowID,
 		h.dslUserSnapshot(r).ID,
 		result.Page.ID,
 		result.PageVersion,
+		configVersionID,
 		string(stateJSON),
 	)
 	return err
+}
+
+func configVersionFromStateJSON(stateJSON []byte) string {
+	if len(stateJSON) == 0 {
+		return ""
+	}
+	var state map[string]any
+	if err := json.Unmarshal(stateJSON, &state); err != nil {
+		return ""
+	}
+	value, _ := state["configVersionId"].(string)
+	return strings.TrimSpace(value)
 }
 
 func (h *appHandler) handleDSLUpload(w http.ResponseWriter, r *http.Request) {

@@ -511,3 +511,64 @@ The intake flow still keeps fallback constants so tests and developer setups wit
 ### Technical details
 - Focused validation command:
   - `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1`
+
+## Step 8: Persist config version ids on DSL session rows
+
+This step completed the config-version pinning slice. The state schema now has a dedicated `config_version_id` column on `dsl_flow_sessions`, and the server extracts `configVersionId` from the persisted Goja state snapshot whenever it writes the session row.
+
+The flow currently initializes `ctx.state.configVersionId` to `cfg_default`, and configDb helpers use that value for content queries. Persisting the same value on the session row makes the runtime's content version boundary visible to SQL queries and future hydration logic.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Finish the remaining Phase 4 task by recording the config version used by a session in the state database.
+
+**Inferred user intent:** The user wants deterministic rerendering: sessions should keep track of which pre-provisioned config data version they are using.
+
+**Commit (code):** pending at time of diary entry.
+
+### What I did
+- Added `config_version_id` to `dsl_flow_sessions` in `pkg/dslhost/schema.sql`.
+- Added `configVersionFromStateJSON(...)` in the server persistence path.
+- Updated `recordDSLFlowSession(...)` to write and update `config_version_id` alongside `state_json`.
+- Extended the server persistence test to assert `config_version_id = "cfg_default"` after start and dispatch.
+- Checked task 17.
+
+### Why
+- `ctx.state.configVersionId` is useful to the flow, but SQL-side session management also needs the selected content version.
+- Future cleanup, auditing, and deterministic hydration logic can query the session row without decoding the full state JSON.
+
+### What worked
+- `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1` passed.
+- Config version persistence is covered by the existing state persistence server test.
+
+### What didn't work
+- I accidentally included `pkg/dslhost/schema.sql` in a `gofmt` command, which failed with SQL parse errors such as `expected 'package', found PRAGMA`. I reran `gofmt` only on Go files and then reran package tests successfully.
+
+### What I learned
+- The config-version field should be derived from the same JSON snapshot that is persisted; that keeps `state_json` and `config_version_id` in sync.
+- SQL files must be excluded from `gofmt` commands even when they sit next to Go files.
+
+### What was tricky to build
+- The main detail was avoiding a second runtime API just to read one state field. Since `recordDSLFlowSession` already has the serialized JSON snapshot, extracting `configVersionId` there is simple and keeps the runtime surface small.
+
+### What warrants a second pair of eyes
+- Review migration behavior for existing SQLite DBs. The embedded `CREATE TABLE` schema now includes `config_version_id`, but existing files may need an explicit migration/ALTER path.
+- Review whether `config_version_id` should be allowed to be empty for flows that do not use versioned config.
+
+### What should be done in the future
+- Add an explicit SQLite migration mechanism for existing local DB files if HAIR-038 must support upgrading old `./var/fringe-dsl.sqlite` files.
+- Move to ownership/expiry hardening only after deciding migration policy.
+
+### Code review instructions
+- Review `pkg/dslhost/schema.sql` and `pkg/server/handlers_dsl_uploads.go` together.
+- Validate with `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1`.
+
+### Technical details
+- Failed command:
+  - `gofmt -w pkg/dslhost/schema.sql pkg/server/handlers_dsl_uploads.go pkg/server/handlers_dsl_test.go`
+- Exact error included:
+  - `pkg/dslhost/schema.sql:1:1: expected 'package', found PRAGMA`
+- Successful validation command:
+  - `go test ./pkg/dslhost ./pkg/dslgoja ./pkg/server -count=1`

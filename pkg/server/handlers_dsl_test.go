@@ -104,7 +104,8 @@ func TestDSLFlowPersistsStateJSONOnStartAndDispatch(t *testing.T) {
 	pageVersion := int64(startData["pageVersion"].(float64))
 
 	var startState string
-	if err := dbHost.DB.QueryRow(`SELECT state_json FROM dsl_flow_sessions WHERE id = ?`, sessionID).Scan(&startState); err != nil {
+	var startConfigVersion string
+	if err := dbHost.DB.QueryRow(`SELECT state_json, config_version_id FROM dsl_flow_sessions WHERE id = ?`, sessionID).Scan(&startState, &startConfigVersion); err != nil {
 		t.Fatalf("query start state_json: %v", err)
 	}
 	var startStateData map[string]any
@@ -114,11 +115,15 @@ func TestDSLFlowPersistsStateJSONOnStartAndDispatch(t *testing.T) {
 	if startStateData["category"] != "color" {
 		t.Fatalf("start category = %#v in %s", startStateData["category"], startState)
 	}
+	if startConfigVersion != "cfg_default" {
+		t.Fatalf("start config_version_id = %q", startConfigVersion)
+	}
 
 	eventData := dispatchCategory(t, handler, startData, "extensions", "evt_persist_set_category")
 	var persistedVersion int64
 	var eventState string
-	if err := dbHost.DB.QueryRow(`SELECT current_page_version, state_json FROM dsl_flow_sessions WHERE id = ?`, sessionID).Scan(&persistedVersion, &eventState); err != nil {
+	var eventConfigVersion string
+	if err := dbHost.DB.QueryRow(`SELECT current_page_version, state_json, config_version_id FROM dsl_flow_sessions WHERE id = ?`, sessionID).Scan(&persistedVersion, &eventState, &eventConfigVersion); err != nil {
 		t.Fatalf("query event state_json: %v", err)
 	}
 	if persistedVersion != pageVersion+1 {
@@ -130,6 +135,9 @@ func TestDSLFlowPersistsStateJSONOnStartAndDispatch(t *testing.T) {
 	}
 	if eventStateData["category"] != "extensions" {
 		t.Fatalf("event category = %#v in %s", eventStateData["category"], eventState)
+	}
+	if eventConfigVersion != "cfg_default" {
+		t.Fatalf("event config_version_id = %q", eventConfigVersion)
 	}
 	updatedPage := eventData["page"].(map[string]any)
 	if got := findNodeValue(t, updatedPage, "category-tabs"); got != "extensions" {

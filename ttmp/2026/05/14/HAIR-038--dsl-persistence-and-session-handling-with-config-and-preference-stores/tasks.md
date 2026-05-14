@@ -19,6 +19,6 @@
 - [x] Phase 3: Hydrate missing in-memory DSL sessions from stateDb in GET/event/upload handlers
 - [x] Phase 3: Add restart-style server tests for session recovery and fresh action ids
 - [x] Phase 4: Add configDb schema/seed path for app content and migrate intake.flow.js constants behind configDb helpers
-- [ ] Phase 4: Add config version pinning on DSL sessions and tests for deterministic rerendering
+- [x] Phase 4: Add config version pinning on DSL sessions and tests for deterministic rerendering
 - [ ] Phase 5: Add ownership/expiry hardening for persisted sessions and uploads
 - [ ] Phase 5: Add cleanup/audit tests and operational notes for expired sessions

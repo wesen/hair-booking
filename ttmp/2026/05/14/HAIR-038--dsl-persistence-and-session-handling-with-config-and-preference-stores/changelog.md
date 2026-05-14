@@ -70,3 +70,14 @@ Phase 4 slice: Added seeded configDb schema/opening path and moved intake conten
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/flows/intake.flow.js — configDb-backed content helper functions
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslhost/config_schema.sql — Versioned configDb schema and seed data
 
+
+## 2026-05-14
+
+Phase 4: Added config_version_id to DSL session rows and persist it from ctx.state.configVersionId, with server assertions after start and dispatch.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslhost/schema.sql — config_version_id column
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_test.go — config version persistence assertions
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_uploads.go — config version extraction during session persistence
+

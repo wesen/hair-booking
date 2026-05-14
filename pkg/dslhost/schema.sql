@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS dsl_flow_sessions (
   status TEXT NOT NULL DEFAULT 'active',
   current_page_id TEXT,
   current_page_version INTEGER NOT NULL DEFAULT 0,
+  config_version_id TEXT,
   state_json TEXT NOT NULL DEFAULT '{}',
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   updated_at TEXT NOT NULL DEFAULT (datetime('now'))
