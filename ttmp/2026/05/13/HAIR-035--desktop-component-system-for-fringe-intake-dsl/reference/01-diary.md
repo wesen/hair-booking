@@ -565,3 +565,70 @@ The desktop DSL pages had no page-level padding, no display-scale typography, an
 **VLM design review scores:**
 - Desktop estimate: 9/10 vs gold standard
 - Desktop explicit region (sage): 8/10
+
+## Step 7: Goja demo — fix stale binary, verify end-to-end flow
+
+The Goja-backed demo at `/dsl-goja-demo/` was broken with `"Unsupported DSL node: serviceOptionGroup"`. The root cause was a **stale Go binary** — the backend had been compiled and started at 14:46 (before all our Step 3–6 commits), so it was still running the old Goja module that emitted `serviceOptionGroup` instead of `selectableGroup`. The Vite cache issue from the same session was already resolved.
+
+Fix: `devctl restart hair-booking-backend` to recompile with the updated Goja module.
+
+After restart, all 7 steps render correctly: Service → Color → Photos → Budget → Estimate → Booking → Confirm. The Goja JS flow script (`intake.flow.js`) was already using the new primitives — only the Go-compiled binary needed refreshing.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Attached image(s) from tool result:" (context: user shared a browser error screenshot showing `SyntaxError: The requested module 'render.tsx' doesn't provide an export named: 'DslPageRenderer'` at `/dsl-goja-demo/estimate`)
+
+**Assistant interpretation:** Fix the Goja demo rendering pipeline so the estimate page loads and renders correctly.
+
+**Inferred user intent:** Validate that the full end-to-end flow (Goja JS → Go backend → JSON → React renderer) works with the new UI primitives.
+
+### What I did
+
+- Read `intake.flow.js` — confirmed it already uses new primitives (`selectableGroup`, `stat`, `kvRow`, etc.)
+- Checked Goja Go module (`modules_dsl.go`) — confirmed `selectableGroup` mapping is correct
+- Identified that the Go backend binary was compiled before the cutover commits
+- Restarted backend via `devctl restart hair-booking-backend`
+- Navigated through all 7 steps, took screenshots, verified zero rendering errors
+
+### Why
+
+The Goja demo is the real integration test — it proves the entire DSL pipeline works, not just Storybook mockups.
+
+### What worked
+
+- Simple `devctl restart` fixed everything — no code changes needed
+- All 7 steps render without console errors
+- The old `serviceOptionGroup` error is gone
+
+### What didn't work
+
+- Initially tried to find the issue in the JS/Vite layer (Vite cache), which wasted time. The real issue was the compiled Go binary.
+
+### What I learned
+
+- After modifying Goja Go modules, the backend **must be restarted** for changes to take effect. `go run` compiles once and runs the binary — it doesn't hot-reload.
+- The Vite cache issue (from earlier) and the Go binary issue (this step) were unrelated but had similar symptoms ("unsupported node").
+
+### What was tricky to build
+
+- Debugging was complicated because the error message referenced `serviceOptionGroup`, which doesn't appear anywhere in the current Goja JS flow or Go module — it was the old compiled binary's version of the module.
+
+### What warrants a second pair of eyes
+
+- N/A — no code changes in this step.
+
+### What should be done in the future
+
+- Consider adding a devctl file-watcher that auto-restarts the Go backend when `pkg/dslgoja/` files change
+- Add a CI integration test that runs the full Goja flow and validates the JSON output uses only new primitive kinds
+
+### Code review instructions
+
+- No code changes — only a backend restart
+- Verify: navigate to `http://localhost:5175/dsl-goja-demo/estimate` and confirm the estimate renders with stat + kvRows
+
+### Technical details
+
+**Command:** `devctl restart hair-booking-backend`
+**Pages verified:** service, color, photos, budget, estimate, booking, confirm
+**Console errors:** 0 (only 1 stale session 404 from initial load)
