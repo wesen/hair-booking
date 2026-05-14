@@ -76,10 +76,10 @@ export function DesktopShell({
 
       {/* Body: step rail + content */}
       <div style={{ flex: 1, display: "flex", overflow: "hidden" }}>
-        <DesktopStepRail steps={items} current={step} accent={accent} onStepSelect={onStepSelect} />
+        <DesktopStepRail steps={items} current={step} accent={accent} onStepSelect={onStepSelect} style={{ position: "relative", zIndex: 1 }} />
         <div
           data-component="DesktopShellContent"
-          style={{ flex: 1, overflow: "auto" }}
+          style={{ flex: 1, overflow: "auto", position: "relative", zIndex: 0 }}
         >
           {children}
         </div>
