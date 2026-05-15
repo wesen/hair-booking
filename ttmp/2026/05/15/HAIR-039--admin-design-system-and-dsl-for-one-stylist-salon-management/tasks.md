@@ -33,15 +33,15 @@
 ## Phase 4 — Validation and documentation
 
 - [x] Run TypeScript validation for the web app.
-- [ ] Run relevant frontend tests if feasible.
+- [x] Run relevant frontend tests if feasible.
 - [x] Update HAIR-039 diary with commands, failures, and review instructions.
 - [x] Update HAIR-039 changelog and doc relations for implementation files.
-- [ ] Commit each completed phase separately.
+- [x] Commit each completed phase separately.
 
 ## Phase 5 — Follow-up implementation backlog
 
-- [ ] Add unit tests for admin DSL builders and JSON stability.
-- [ ] Add interaction tests for row actions, modal open actions, and confirm actions.
+- [x] Add unit tests for admin DSL builders and JSON stability.
+- [x] Add interaction tests for row actions, modal open actions, and confirm actions.
 - [ ] Add real admin components under `web/src/admin/` if inline renderer components become too large.
 - [ ] Add backend-driven admin flow spike for services/pricing.
 - [ ] Decide whether admin config edits need draft/publish tables before live mutation.

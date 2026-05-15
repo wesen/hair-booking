@@ -292,3 +292,63 @@ The API keeps the simplicity/expressiveness balance by offering high-level helpe
   - `web/src/admin-dsl/render.tsx`
   - `web/src/admin-dsl/AdminDsl.stories.tsx`
   - `web/src/admin-dsl/index.ts`
+
+## Step 5: Add focused admin DSL tests
+
+I added a small focused test file for the new admin DSL instead of trying to fix unrelated existing page DSL failures in the same step. The tests cover the most important contract for this slice: builders emit stable plain JSON, and rendered resource-row actions dispatch inspectable action events.
+
+This gives the admin DSL its own validation surface while preserving the earlier note that the full frontend test suite still has pre-existing `page-dsl` interaction failures.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 3)
+
+**Assistant interpretation:** Continue the phased implementation by adding targeted tests for the new admin DSL and committing the next slice.
+
+**Inferred user intent:** The user wants each implementation slice to be validated and recorded rather than just visually added to Storybook.
+
+**Commit (code):** TBD — test slice will be committed after doc/task updates.
+
+### What I did
+- Added `web/src/admin-dsl/AdminDsl.test.tsx`.
+- Tested that a small admin page built with `admin.page`, `admin.section`, `resource.list`, `resource.row`, and `action.open` round-trips through `JSON.stringify` / `JSON.parse`.
+- Tested that the Services & Pricing demo renders key rows and dispatches the row `Edit` action.
+
+### Why
+- The admin DSL's most important invariant is that ergonomic builders still produce plain JSON.
+- The renderer's most important first behavior is dispatching actions with explicit node/action metadata.
+
+### What worked
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Focused admin tests passed:
+  - `cd web && pnpm vitest run src/admin-dsl/AdminDsl.test.tsx`
+  - `2 passed`.
+
+### What didn't work
+- I did not rerun the full frontend test suite after adding admin tests because the previous full run already showed unrelated `page-dsl/InteractiveDsl.test.tsx` failures.
+
+### What I learned
+- The admin DSL can be tested without a backend by asserting the JSON contract and render dispatch events.
+- Focused tests are the right first validation level for this frontend-only phase.
+
+### What was tricky to build
+- The Storybook examples include several duplicate visible `Edit` buttons because each service row has an edit action. The test uses `getAllByRole("button", { name: "Edit" })[0]` intentionally to click the first row action.
+
+### What warrants a second pair of eyes
+- Review whether the first test should assert a stricter full JSON snapshot or whether structural assertions are better while the DSL is still evolving.
+
+### What should be done in the future
+- Add renderer tests for modal/confirm actions.
+- Add a JSON fixture snapshot once node naming stabilizes.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/AdminDsl.test.tsx`.
+- Then inspect the corresponding example page in `web/src/admin-dsl/examples.ts`.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm vitest run src/admin-dsl/AdminDsl.test.tsx`
+
+### Technical details
+- New test file:
+  - `web/src/admin-dsl/AdminDsl.test.tsx`
