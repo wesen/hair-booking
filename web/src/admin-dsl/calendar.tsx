@@ -1,64 +1,9 @@
 import type { Key } from "react";
-import type { AdminActionRef, AdminJsonObject, AdminNode, AdminRenderContext } from "./schema";
+import type { AdminNode, AdminRenderContext } from "./schema";
 import { color, radius, shadow, type } from "../fringe-ui/tokens";
 
-function str(props: AdminJsonObject | undefined, key: string, fallback = "") {
-  const value = props?.[key];
-  return typeof value === "string" ? value : fallback;
-}
-
-function num(props: AdminJsonObject | undefined, key: string, fallback = 0) {
-  const value = props?.[key];
-  return typeof value === "number" ? value : fallback;
-}
-
-function jsonArray<T = unknown>(props: AdminJsonObject | undefined, key: string): T[] {
-  const value = props?.[key];
-  return Array.isArray(value) ? value as T[] : [];
-}
-
-function style(props: AdminJsonObject | undefined) {
-  const value = props?.style;
-  return value && typeof value === "object" && !Array.isArray(value) ? value : undefined;
-}
-
-function isActionRef(item: unknown): item is AdminActionRef {
-  return !!item && typeof item === "object" && !Array.isArray(item) && typeof (item as { type?: unknown }).type === "string";
-}
-
-function actionList(props: AdminJsonObject | undefined): AdminActionRef[] {
-  const value = props?.actions;
-  if (Array.isArray(value)) return value.filter(isActionRef);
-  if (value && typeof value === "object" && !Array.isArray(value)) return Object.values(value).filter(isActionRef);
-  return [];
-}
-
-function dataAttrs(node: AdminNode) {
-  return {
-    "data-admin-dsl-kind": node.kind,
-    "data-admin-dsl-id": node.meta?.id || str(node.props, "id", undefined as unknown as string),
-    "data-section": node.meta?.dataSection,
-    "data-part": node.meta?.dataPart,
-  };
-}
-
-function nodeKey(node: AdminNode, index: number): Key {
-  return node.meta?.id || str(node.props, "id", `${node.kind}:${index}`);
-}
-
-function dispatch(ctx: AdminRenderContext | undefined, node: AdminNode, actionRef: AdminActionRef, value?: unknown, meta?: unknown) {
-  if (ctx?.dispatch) {
-    void ctx.dispatch({
-      nodeId: node.meta?.id || str(node.props, "id", ""),
-      nodeKind: node.kind,
-      action: actionRef,
-      value: value as never,
-      meta,
-    });
-    return;
-  }
-  console.log("Admin DSL action", { node, action: actionRef, value, meta });
-}
+import { actionList, dispatchAdminAction } from "./actions";
+import { dataAttrs, jsonArray, nodeKey, num, str, style } from "./renderUtils";
 
 const surface = {
   background: color.paper,
@@ -96,7 +41,7 @@ function renderCalendarBlock(node: AdminNode, ctx: AdminRenderContext | undefine
       key={key}
       {...dataAttrs(node)}
       type="button"
-      onClick={() => actionList(props)[0] && dispatch(ctx, node, actionList(props)[0])}
+      onClick={() => actionList(props)[0] && dispatchAdminAction(ctx, node, actionList(props)[0])}
       style={{
         gridColumn: column,
         gridRow: `${row} / span ${span}`,
@@ -131,7 +76,7 @@ function renderCalendarAgendaItem(node: AdminNode, ctx: AdminRenderContext | und
       key={key}
       {...dataAttrs(node)}
       type="button"
-      onClick={() => actionList(props)[0] && dispatch(ctx, node, actionList(props)[0])}
+      onClick={() => actionList(props)[0] && dispatchAdminAction(ctx, node, actionList(props)[0])}
       style={{
         minHeight: 58,
         width: "100%",

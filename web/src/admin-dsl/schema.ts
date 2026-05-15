@@ -97,6 +97,14 @@ export type AdminActionRef = AdminJsonObject & {
   label?: string;
   payload?: AdminJsonValue;
   options?: AdminJsonObject;
+  intent?: "neutral" | "primary" | "danger";
+  priority?: "primary" | "secondary" | "tertiary";
+  presentation?: "button" | "icon" | "menuItem" | "overflow" | "link";
+  placement?: "toolbar" | "row" | "footer" | "detail" | "overflow";
+  requiresConfirmation?: boolean;
+  disabled?: boolean;
+  loading?: boolean;
+  accessibilityLabel?: string;
 };
 
 export type AdminQueryRef = AdminJsonObject & {

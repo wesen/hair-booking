@@ -79,11 +79,11 @@
 
 ## Phase 10 — Renderer utility and action subsystem extraction
 
-- [ ] Create `web/src/admin-dsl/renderUtils.ts` for shared JSON extraction, style, data attribute, tone, and node-key helpers.
-- [ ] Create `web/src/admin-dsl/actions.ts` for action normalization, dispatch helpers, action placement defaults, and presentation metadata.
-- [ ] Move duplicated helper logic out of `render.tsx` and `calendar.tsx` without changing rendered output.
-- [ ] Add tests for array-style actions, keyed action maps, missing/invalid actions, confirmation metadata, and row-action placement semantics.
-- [ ] Keep renderer node-kind handling explicit; do not introduce dynamic component lookup by string.
+- [x] Create `web/src/admin-dsl/renderUtils.ts` for shared JSON extraction, style, data attribute, tone, and node-key helpers.
+- [x] Create `web/src/admin-dsl/actions.ts` for action normalization, dispatch helpers, action placement defaults, and presentation metadata.
+- [x] Move duplicated helper logic out of `render.tsx` and `calendar.tsx` without changing rendered output.
+- [x] Add tests for array-style actions, keyed action maps, missing/invalid actions, confirmation metadata, and row-action placement semantics.
+- [x] Keep renderer node-kind handling explicit; do not introduce dynamic component lookup by string.
 
 ## Phase 11 — Rich semantic action model
 

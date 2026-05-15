@@ -3,84 +3,8 @@ import type { AdminActionRef, AdminJsonObject, AdminNode, AdminPage, AdminRender
 import { color, font, radius, shadow, type } from "../fringe-ui/tokens";
 import { AdminCalendarWeek } from "./calendar";
 
-function str(props: AdminJsonObject | undefined, key: string, fallback = "") {
-  const value = props?.[key];
-  return typeof value === "string" ? value : fallback;
-}
-
-function num(props: AdminJsonObject | undefined, key: string, fallback = 0) {
-  const value = props?.[key];
-  return typeof value === "number" ? value : fallback;
-}
-
-function bool(props: AdminJsonObject | undefined, key: string, fallback = false) {
-  const value = props?.[key];
-  return typeof value === "boolean" ? value : fallback;
-}
-
-function jsonArray<T = unknown>(props: AdminJsonObject | undefined, key: string): T[] {
-  const value = props?.[key];
-  return Array.isArray(value) ? value as T[] : [];
-}
-
-function jsonObject(props: AdminJsonObject | undefined, key: string): AdminJsonObject | undefined {
-  const value = props?.[key];
-  return value && typeof value === "object" && !Array.isArray(value) ? value as AdminJsonObject : undefined;
-}
-
-function isActionRef(item: unknown): item is AdminActionRef {
-  return !!item && typeof item === "object" && !Array.isArray(item) && typeof (item as { type?: unknown }).type === "string";
-}
-
-function actionList(props: AdminJsonObject | undefined): AdminActionRef[] {
-  const value = props?.actions;
-  if (Array.isArray(value)) return value.filter(isActionRef);
-  if (value && typeof value === "object" && !Array.isArray(value)) return Object.values(value).filter(isActionRef);
-  return [];
-}
-
-function style(props: AdminJsonObject | undefined): CSSProperties | undefined {
-  const value = props?.style;
-  return value && typeof value === "object" && !Array.isArray(value) ? value as CSSProperties : undefined;
-}
-
-function toneColor(tone: string) {
-  switch (tone) {
-    case "success": return color.success;
-    case "warn": return color.warn;
-    case "danger": return color.danger;
-    case "plum": return color.plum;
-    case "muted": return color.soft;
-    default: return color.ink;
-  }
-}
-
-function nodeKey(node: AdminNode, index: number): Key {
-  return node.meta?.id || str(node.props, "id", `${node.kind}:${index}`);
-}
-
-function dataAttrs(node: AdminNode) {
-  return {
-    "data-admin-dsl-kind": node.kind,
-    "data-admin-dsl-id": node.meta?.id || str(node.props, "id", undefined as unknown as string),
-    "data-section": node.meta?.dataSection,
-    "data-part": node.meta?.dataPart,
-  };
-}
-
-function dispatch(ctx: AdminRenderContext | undefined, node: AdminNode, actionRef: AdminActionRef, value?: unknown, meta?: unknown) {
-  if (ctx?.dispatch) {
-    void ctx.dispatch({
-      nodeId: node.meta?.id || str(node.props, "id", ""),
-      nodeKind: node.kind,
-      action: actionRef,
-      value: value as never,
-      meta,
-    });
-    return;
-  }
-  console.log("Admin DSL action", { node, action: actionRef, value, meta });
-}
+import { actionIsDanger, actionIsPrimary, actionKey, actionList, dispatchAdminAction } from "./actions";
+import { bool, dataAttrs, jsonArray, jsonObject, nodeKey, str, style, toneColor } from "./renderUtils";
 
 function renderActions(node: AdminNode, ctx: AdminRenderContext | undefined, actions: AdminActionRef[] = actionList(node.props)) {
   if (!actions.length) return null;
@@ -88,14 +12,14 @@ function renderActions(node: AdminNode, ctx: AdminRenderContext | undefined, act
     <div className="adminDslActions" style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
       {actions.map((actionRef, i) => (
         <button
-          key={`${actionRef.type}:${actionRef.target}:${i}`}
+          key={actionKey(actionRef, i)}
           className="adminDslActionButton"
           type="button"
-          onClick={() => dispatch(ctx, node, actionRef)}
+          onClick={() => dispatchAdminAction(ctx, node, actionRef)}
           style={{ minHeight: 38,
-            border: `1px solid ${actionRef.type === "confirm" ? color.danger : color.ink}`,
-            background: actionRef.type === "mutation" || actionRef.type === "open" ? color.ink : color.paper,
-            color: actionRef.type === "mutation" || actionRef.type === "open" ? color.paper : actionRef.type === "confirm" ? color.danger : color.ink,
+            border: `1px solid ${actionIsDanger(actionRef) ? color.danger : color.ink}`,
+            background: actionIsPrimary(actionRef) ? color.ink : color.paper,
+            color: actionIsPrimary(actionRef) ? color.paper : actionIsDanger(actionRef) ? color.danger : color.ink,
             borderRadius: radius.pill,
             padding: "8px 12px",
             fontFamily: font.mono,
@@ -304,7 +228,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     case "availabilityBlock":
     case "timeOffBlock":
       return (
-        <button key={key} {...common} type="button" onClick={() => actionList(props)[0] && dispatch(ctx, node, actionList(props)[0])} style={{ textAlign: "left", border: `1px solid ${node.kind === "timeOffBlock" ? color.warn : color.plum}`, background: node.kind === "timeOffBlock" ? "#fbefcf" : color.paper, borderRadius: radius.md, padding: 12, boxShadow: shadow.sm, cursor: "pointer", ...style(props) }}>
+        <button key={key} {...common} type="button" onClick={() => actionList(props)[0] && dispatchAdminAction(ctx, node, actionList(props)[0])} style={{ textAlign: "left", border: `1px solid ${node.kind === "timeOffBlock" ? color.warn : color.plum}`, background: node.kind === "timeOffBlock" ? "#fbefcf" : color.paper, borderRadius: radius.md, padding: 12, boxShadow: shadow.sm, cursor: "pointer", ...style(props) }}>
           <strong style={{ ...type.body, display: "block" }}>{str(props, "clientName", str(props, "title", "Appointment"))}</strong>
           <span style={{ ...type.bodySm, color: color.softInk }}>{str(props, "service", str(props, "status"))}</span>
           <span style={{ ...type.meta, display: "block", marginTop: 6 }}>{str(props, "startsAt")} – {str(props, "endsAt")}</span>

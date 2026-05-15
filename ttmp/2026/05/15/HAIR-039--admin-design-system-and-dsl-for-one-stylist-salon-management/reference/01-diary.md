@@ -1579,3 +1579,73 @@ The package is intentionally not tied to the salon schema. It owns generic Admin
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder.go`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/validate.go`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder_test.go`
+
+## Step 23: Extract Admin DSL renderer utilities and action handling
+
+I completed the renderer/action extraction phase by moving shared JSON extraction, node metadata, tone, style, key, action normalization, and dispatch behavior out of the large renderer files. `render.tsx` and `calendar.tsx` still explicitly interpret known node kinds, but they now share helper modules instead of carrying duplicated local functions.
+
+This is intentionally a maintainability step rather than a visual redesign. The output should remain the same, but future semantic action work now has a focused `actions.ts` home, and future renderer refactors can reuse `renderUtils.ts` without copying utility functions between widgets.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 22)
+
+**Assistant interpretation:** Continue implementing the planned phases task by task, with validation, diary, and focused commits.
+
+**Inferred user intent:** The user wants incremental Admin DSL evolution with each step left in a reviewable state.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Added `web/src/admin-dsl/renderUtils.ts` for:
+  - `str`, `num`, `bool`, `jsonArray`, `jsonObject`, `style`, `toneColor`, `nodeKey`, and `dataAttrs`.
+- Added `web/src/admin-dsl/actions.ts` for:
+  - `isActionRef`, `actionList`, `dispatchAdminAction`, `actionKey`, `actionIsPrimary`, and `actionIsDanger`.
+- Refactored `web/src/admin-dsl/render.tsx` to import shared helpers while keeping explicit switch-based node rendering.
+- Refactored `web/src/admin-dsl/calendar.tsx` to import shared helpers and action dispatch.
+- Extended `AdminActionRef` with optional semantic action metadata fields so shared action helpers can reason about intent/priority/placement without type casts.
+- Added `web/src/admin-dsl/actions.test.ts` for array actions, keyed action maps, invalid/missing actions, confirmation metadata dispatch, and action keys.
+- Marked Phase 10 tasks complete in `tasks.md`.
+
+### Why
+- Renderer utility duplication was already present after extracting the calendar renderer.
+- Semantic action evolution needs a dedicated action subsystem before adding richer presentation rules.
+
+### What worked
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Frontend tests passed:
+  - `cd web && pnpm test -- --runInBand`
+  - `8 passed`, `32 passed`
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The renderer can stay explicit and simple while still extracting cross-cutting behavior. The extraction does not require dynamic component lookup.
+
+### What was tricky to build
+- The key was keeping the extraction behavior-preserving. I limited the new modules to pure helper functions and left rendering structure in `render.tsx`/`calendar.tsx`.
+
+### What warrants a second pair of eyes
+- Review whether `actionIsPrimary` should treat all `open` actions as primary long term. It preserves the current visual behavior, but future placement-aware actions may want more nuance.
+
+### What should be done in the future
+- Build Phase 11 on top of `actions.ts` by adding richer builder helpers and renderer presentation policies.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/actions.ts` and `web/src/admin-dsl/renderUtils.ts`.
+- Then review the diff in `render.tsx` and `calendar.tsx` to confirm the explicit renderer pattern remains intact.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- Files added:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/actions.ts`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/renderUtils.ts`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/actions.test.ts`
+- Files changed:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/calendar.tsx`
