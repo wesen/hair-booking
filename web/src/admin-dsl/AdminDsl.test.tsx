@@ -42,5 +42,12 @@ describe("admin DSL", () => {
       nodeKind: "resourceRow",
       action: expect.objectContaining({ type: "open", target: "editService" }),
     }));
+
+    fireEvent.click(screen.getAllByRole("button", { name: "Archive" })[0]);
+
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      nodeKind: "resourceRow",
+      action: expect.objectContaining({ type: "confirm", target: "archiveService" }),
+    }));
   });
 });
