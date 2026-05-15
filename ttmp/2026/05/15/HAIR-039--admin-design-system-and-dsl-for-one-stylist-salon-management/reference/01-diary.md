@@ -1179,3 +1179,124 @@ The review called out the most important mobile issues: oversized H1s, full-widt
   - no blocker-level issues visible across all seven mobile layouts.
 - Final desktop review result:
   - one Analytics Ops metric ambiguity was fixed and re-captured.
+
+## Step 17: Write the Admin DSL evolution brainstorm/design guide
+
+I wrote a second HAIR-039 design document focused on the next evolution of the Admin DSL. The document captures what we learned from building the one-stylist admin pages and the broader layout catalog, then proposes how to keep the DSL elegant and versatile without fitting it too tightly to one application or one visual design.
+
+The key framing is that the DSL should evolve from a visual layout DSL into a semantic admin interaction DSL. Application builders still own their config database schemas and write semantics. The generic DSL should provide reusable semantics for actions, surfaces, resources, forms, layout policies, and adaptive desktop/mobile views.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, create a new brainstorm / design document where we work on improving the dsl to keep this balance of elegant and versatile, so that one can build this kind of admin pages elegantly, yet also have the flexibility to cover a wide variety of use cases (vs fitting the dsl to a pecific design).
+
+Create  a detailed analysis / design / implementation guide that is for a new intern, explaining all the parts of the system needed to understand what it is, with prose paragraphs and bullet point sand pseudocode and diagrams and api references and file references. It should be very clear and technical. Store in the ticket and the nupload to remarkable."
+
+**Assistant interpretation:** Create a new HAIR-039 design document that analyzes the current Admin DSL after the layout catalog work and proposes a clear intern-facing evolution plan for richer but still flexible semantics.
+
+**Inferred user intent:** The user wants the lessons from the implementation work captured as a durable design guide before the next round of DSL refactoring.
+
+**Commit (code):** TBD — documentation will be committed after upload/changelog update.
+
+### What I did
+- Created design document:
+  - `design-doc/02-admin-dsl-evolution-brainstorm-and-design-guide.md`
+- Covered current state, strengths, weak points, design goals, proposed next-level concepts, package structure, implementation phases, testing strategy, risks, and intern checklist.
+- Emphasized that application builders own backend config schemas and write semantics.
+- Proposed future improvements:
+  - richer action metadata,
+  - surface subsystem,
+  - formal but flexible resource pages,
+  - form lifecycle semantics,
+  - adaptive desktop/mobile views,
+  - explicit layout policies,
+  - renderer utility extraction.
+
+### Why
+- The DSL has enough real examples now to assess what is working and what is awkward.
+- A design guide prevents the next refactor from becoming ad hoc.
+
+### What worked
+- The current layout catalog gave concrete evidence for the guide: row action density, overlay placement, mobile calendar adaptation, and split-pane collapse are all real issues observed in stories.
+
+### What didn't work
+- N/A for document creation.
+
+### What I learned
+- The next fundamental shift should be from visual nodes to semantic admin intent, while preserving JSON output and low-level escape hatches.
+
+### What was tricky to build
+- The document needed to avoid over-prescribing application data models. I kept the generic platform concerns separate from app-owned config DB schema and mutation semantics.
+
+### What warrants a second pair of eyes
+- Review whether `surface.*` and richer action metadata are the right first semantic layers to implement.
+- Review whether `resource.page` should introduce `slots` or continue with `children` for now.
+
+### What should be done in the future
+- Implement Phase 1 from the guide: extract shared renderer/action utilities.
+- Then add richer action metadata and surface builders incrementally.
+
+### Code review instructions
+- Read the new guide from top to bottom.
+- Compare proposed changes to current files:
+  - `web/src/admin-dsl/schema.ts`
+  - `web/src/admin-dsl/builder.ts`
+  - `web/src/admin-dsl/render.tsx`
+  - `web/src/admin-dsl/calendar.tsx`
+  - `web/src/admin-dsl/layoutExamples.ts`
+
+### Technical details
+- New document:
+  - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/design-doc/02-admin-dsl-evolution-brainstorm-and-design-guide.md`
+
+## Step 18: Upload and validate the Admin DSL evolution guide
+
+I uploaded the new Admin DSL evolution guide to reMarkable and validated the document frontmatter. The upload succeeded directly without any manual authentication or listing steps.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 17)
+
+**Assistant interpretation:** Finish the requested guide by storing it in the ticket, validating it, uploading it to reMarkable, and recording the outcome.
+
+**Inferred user intent:** The user wants the design guide available both in docmgr and as a readable PDF on the reMarkable.
+
+**Commit (code):** TBD — documentation will be committed after final changelog update.
+
+### What I did
+- Validated frontmatter for:
+  - `design-doc/02-admin-dsl-evolution-brainstorm-and-design-guide.md`
+- Uploaded the guide with:
+  - `remarquee upload bundle ... --name "HAIR 039 Admin DSL Evolution Guide" --remote-dir "/ai/2026/05/15/HAIR-039" --toc-depth 2 --non-interactive`
+- Upload succeeded:
+  - `OK: uploaded HAIR_039_Admin_DSL_Evolution_Guide.pdf -> /ai/2026/05/15/HAIR-039`
+
+### Why
+- The reMarkable copy makes it easier to review the design away from the code editor.
+- Frontmatter validation keeps docmgr search/linking reliable.
+
+### What worked
+- reMarkable upload succeeded.
+- Frontmatter validation passed.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The guide is large enough to benefit from `--toc-depth 2`; the table of contents should make the reMarkable version easier to navigate.
+
+### What was tricky to build
+- N/A for upload; the earlier design work was the substantive part.
+
+### What warrants a second pair of eyes
+- Review whether the guide should be re-uploaded after any major edits to action/surface/resource recommendations.
+
+### What should be done in the future
+- Use the guide as the starting point for the next implementation phase: renderer utility extraction, richer actions, and surface builders.
+
+### Code review instructions
+- Confirm the ticket source markdown and reMarkable upload refer to the same guide.
+
+### Technical details
+- reMarkable path:
+  - `/ai/2026/05/15/HAIR-039/HAIR_039_Admin_DSL_Evolution_Guide.pdf`

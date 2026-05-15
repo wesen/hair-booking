@@ -187,3 +187,23 @@ Set explicit desktop/mobile viewport parameters on Admin DSL layout catalog stor
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/layoutExamples.ts — Analytics Ops metric text adjusted after desktop visual review
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Mobile layout density
 
+
+## 2026-05-15
+
+Added an intern-facing Admin DSL evolution brainstorm/design guide proposing richer action, surface, resource, form, layout, and adaptive-view semantics while keeping app-owned config schemas flexible.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/design-doc/02-admin-dsl-evolution-brainstorm-and-design-guide.md — New Admin DSL evolution guide
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records guide creation
+
+
+## 2026-05-15
+
+Uploaded the Admin DSL evolution guide to reMarkable at /ai/2026/05/15/HAIR-039/HAIR_039_Admin_DSL_Evolution_Guide.pdf.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/design-doc/02-admin-dsl-evolution-brainstorm-and-design-guide.md — Uploaded guide source
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records upload
+
