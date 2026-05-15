@@ -339,15 +339,27 @@ func TextField(name string, props JSONObject) *NodeBuilder {
 }
 
 func Drawer(id string, props JSONObject, children ...*NodeBuilder) *NodeBuilder {
-	return NodeOf(NodeDrawer, merge(JSONObject{"id": id}, props), children...).Region(RegionDrawer)
+	return NodeOf(NodeDrawer, merge(JSONObject{"id": id, "presentation": "drawer"}, props), children...).Region(RegionDrawer)
 }
 
 func Modal(id string, props JSONObject, children ...*NodeBuilder) *NodeBuilder {
-	return NodeOf(NodeModal, merge(JSONObject{"id": id}, props), children...).Region(RegionModal)
+	return NodeOf(NodeModal, merge(JSONObject{"id": id, "presentation": "modal"}, props), children...).Region(RegionModal)
+}
+
+func Sheet(id string, props JSONObject, children ...*NodeBuilder) *NodeBuilder {
+	return NodeOf(NodeSheet, merge(JSONObject{"id": id, "presentation": "sheet"}, props), children...).Region(RegionDrawer)
+}
+
+func DetailPanel(id string, props JSONObject, children ...*NodeBuilder) *NodeBuilder {
+	return NodeOf(NodeDetailPanel, merge(JSONObject{"id": id, "presentation": "detailPanel"}, props), children...).Region(RegionSide)
+}
+
+func InlinePanel(id string, props JSONObject, children ...*NodeBuilder) *NodeBuilder {
+	return NodeOf(NodeInlinePanel, merge(JSONObject{"id": id, "presentation": "inlinePanel"}, props), children...)
 }
 
 func ConfirmDialog(id string, props JSONObject) *NodeBuilder {
-	return NodeOf(NodeConfirmDialog, merge(JSONObject{"id": id}, props)).Region(RegionModal)
+	return NodeOf(NodeConfirmDialog, merge(JSONObject{"id": id, "presentation": "confirm"}, props)).Region(RegionModal)
 }
 
 func buildNodes(builders ...*NodeBuilder) []Node {

@@ -96,12 +96,12 @@
 
 ## Phase 12 — Surface subsystem for drawers, modals, sheets, confirms, and details
 
-- [ ] Add a `surface.*` builder namespace for `drawer`, `modal`, `sheet`, `confirm`, `detailPanel`, and `inlinePanel` fixtures.
-- [ ] Add equivalent Go host fluent builders and validation for surface id uniqueness, close behavior, presentation mode, and mobile fallback.
-- [ ] Define surface state inputs: selected resource id, open/closed state, pending action, validation errors, and optimistic mutation state.
-- [ ] Refactor current static `modal`, `drawer`, and `confirmDialog` nodes to use surface semantics while keeping JSON backward-compatible during the transition.
-- [ ] Add renderer support for desktop right drawers, centered modals, mobile bottom sheets, inline detail panels, and screenshot-friendly static-open states.
-- [ ] Add Storybook folders per screen with scenarios for closed, opened, editing, confirming, saving, error, and success states.
+- [x] Add a `surface.*` builder namespace for `drawer`, `modal`, `sheet`, `confirm`, `detailPanel`, and `inlinePanel` fixtures.
+- [x] Add equivalent Go host fluent builders and validation for surface id uniqueness, close behavior, presentation mode, and mobile fallback.
+- [x] Define surface state inputs: selected resource id, open/closed state, pending action, validation errors, and optimistic mutation state.
+- [x] Refactor current static `modal`, `drawer`, and `confirmDialog` nodes to use surface semantics while keeping JSON backward-compatible during the transition.
+- [x] Add renderer support for desktop right drawers, centered modals, mobile bottom sheets, inline detail panels, and screenshot-friendly static-open states.
+- [x] Add Storybook folders per screen with scenarios for closed, opened, editing, confirming, saving, error, and success states.
 
 ## Phase 13 — Resource and form lifecycle semantics
 

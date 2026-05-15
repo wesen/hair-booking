@@ -184,11 +184,15 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       return <div key={key} {...common} style={{ ...surface, padding: 16, display: "grid", gap: 8, ...style(props) }}><div style={{ ...type.h3 }}>{str(props, "title", "Loading")}</div>{str(props, "body") && <p style={{ ...type.bodySm, color: color.softInk, margin: 0 }}>{str(props, "body")}</p>}<div style={{ height: 8, borderRadius: radius.pill, background: `linear-gradient(90deg, ${color.rule}, ${color.cream}, ${color.rule})` }} /></div>;
 
     case "modal":
-    case "drawer": {
-      const isDrawer = node.kind === "drawer";
+    case "drawer":
+    case "sheet":
+    case "detailPanel":
+    case "inlinePanel": {
+      const isDrawerLike = node.kind === "drawer" || node.kind === "sheet" || node.kind === "detailPanel";
+      const label = node.kind === "sheet" ? "Sheet" : node.kind === "detailPanel" ? "Detail" : node.kind === "inlinePanel" ? "Inline" : node.kind === "drawer" ? "Drawer" : "Modal";
       return (
-        <aside key={key} {...common} className={`adminDslOverlaySurface ${isDrawer ? "adminDslDrawerSurface" : "adminDslModalSurface"}`} style={{ ...surface, padding: 18, background: isDrawer ? color.cream : color.paper, borderStyle: bool(props, "open", false) ? "solid" : "dashed", ...style(props) }}>
-          <div className="adminDslSurfaceKicker" style={{ ...type.eyebrow, color: color.softInk }}>{isDrawer ? "Drawer" : "Modal"}</div>
+        <aside key={key} {...common} className={`adminDslOverlaySurface adminDslSurface-${node.kind} ${isDrawerLike ? "adminDslDrawerSurface" : "adminDslModalSurface"}`} style={{ ...surface, padding: 18, background: isDrawerLike ? color.cream : color.paper, borderStyle: bool(props, "open", false) ? "solid" : "dashed", ...style(props) }}>
+          <div className="adminDslSurfaceKicker" style={{ ...type.eyebrow, color: color.softInk }}>{label}</div>
           <h3 style={{ ...type.h2, margin: "8px 0 16px" }}>{str(props, "title", str(props, "id"))}</h3>
           <div style={{ display: "grid", gap: 14 }}>{renderChildren(node.children, ctx)}</div>
         </aside>

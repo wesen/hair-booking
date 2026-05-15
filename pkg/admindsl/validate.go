@@ -15,7 +15,7 @@ var allowedNodeKinds = map[NodeKind]struct{}{
 	NodeResourcePage: {}, NodeResourceList: {}, NodeResourceRow: {}, NodeResourceDetail: {}, NodeFilterBar: {}, NodeSearchBox: {}, NodeActionMenu: {},
 	NodeForm: {}, NodeFieldGroup: {}, NodeTextField: {}, NodeTextareaField: {}, NodeMoneyField: {}, NodeDurationField: {}, NodeDateField: {}, NodeTimeField: {}, NodeSelectField: {}, NodeSwitchField: {}, NodeImageField: {}, NodeSaveBar: {},
 	NodeCalendarWeek: {}, NodeAppointmentBlock: {}, NodeAvailabilityBlock: {}, NodeTimeOffBlock: {},
-	NodeModal: {}, NodeDrawer: {}, NodeConfirmDialog: {},
+	NodeModal: {}, NodeDrawer: {}, NodeSheet: {}, NodeDetailPanel: {}, NodeInlinePanel: {}, NodeConfirmDialog: {},
 }
 
 var allowedActionTypes = map[ActionType]struct{}{
@@ -50,22 +50,60 @@ func ValidatePage(page Page) error {
 	if err := validateJSONValue("shell.props", page.Shell.Props); err != nil {
 		return err
 	}
+	surfaceIDs := map[string]string{}
 	for i, node := range page.Nodes {
 		if err := ValidateNode(node); err != nil {
 			return fmt.Errorf("nodes[%d]: %w", i, err)
+		}
+		if err := collectSurfaceIDs(surfaceIDs, fmt.Sprintf("nodes[%d]", i), node); err != nil {
+			return err
 		}
 	}
 	for i, node := range page.Modals {
 		if err := ValidateNode(node); err != nil {
 			return fmt.Errorf("modals[%d]: %w", i, err)
 		}
+		if err := collectSurfaceIDs(surfaceIDs, fmt.Sprintf("modals[%d]", i), node); err != nil {
+			return err
+		}
 	}
 	for i, node := range page.Drawers {
 		if err := ValidateNode(node); err != nil {
 			return fmt.Errorf("drawers[%d]: %w", i, err)
 		}
+		if err := collectSurfaceIDs(surfaceIDs, fmt.Sprintf("drawers[%d]", i), node); err != nil {
+			return err
+		}
 	}
 	return nil
+}
+
+func collectSurfaceIDs(seen map[string]string, path string, node Node) error {
+	if isSurfaceKind(node.Kind) {
+		id, _ := node.Props["id"].(string)
+		if id == "" {
+			return fmt.Errorf("%s: surface %q requires props.id", path, node.Kind)
+		}
+		if previous, ok := seen[id]; ok {
+			return fmt.Errorf("%s: duplicate surface id %q already used at %s", path, id, previous)
+		}
+		seen[id] = path
+	}
+	for i, child := range node.Children {
+		if err := collectSurfaceIDs(seen, fmt.Sprintf("%s.children[%d]", path, i), child); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func isSurfaceKind(kind NodeKind) bool {
+	switch kind {
+	case NodeModal, NodeDrawer, NodeSheet, NodeDetailPanel, NodeInlinePanel, NodeConfirmDialog:
+		return true
+	default:
+		return false
+	}
 }
 
 func ValidateNode(node Node) error {

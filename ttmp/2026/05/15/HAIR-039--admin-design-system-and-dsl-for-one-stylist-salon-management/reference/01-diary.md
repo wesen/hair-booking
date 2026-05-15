@@ -1728,3 +1728,81 @@ I also added the first behavior/action Storybook catalog under a per-screen fold
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslBehavior.stories.tsx`
+
+## Step 25: Add the first Admin DSL surface subsystem layer
+
+I added an additive surface layer on top of the existing modal/drawer/confirm nodes. The frontend now has a `surface.*` builder namespace for drawer, modal, sheet, confirm, detail panel, and inline panel fixtures. The Go host builder package mirrors those concepts with host-side builders and validation, including duplicate surface id detection.
+
+This is still a transition layer, not the final overlay runtime. It preserves the existing static screenshot-friendly rendering model while making the DSL vocabulary more semantic. The renderer can now distinguish drawers, sheets, detail panels, inline panels, modals, and confirms as surface concepts without introducing dynamic component lookup.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 22)
+
+**Assistant interpretation:** Continue implementing the planned Admin DSL phases in order, with focused commits and diary entries.
+
+**Inferred user intent:** The user wants the semantic Admin DSL layers implemented incrementally while preserving reviewability and runtime control.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Added `sheet`, `detailPanel`, and `inlinePanel` to the frontend `AdminNodeKind` union.
+- Added `surface.*` frontend fixture builders:
+  - `surface.drawer`, `surface.modal`, `surface.sheet`, `surface.confirm`, `surface.detailPanel`, and `surface.inlinePanel`.
+- Updated the renderer to handle modal, drawer, sheet, detail panel, and inline panel as related surface nodes with stable classes and labels.
+- Added frontend tests proving surface builders emit JSON-safe nodes.
+- Added Go host surface node kinds:
+  - `NodeSheet`, `NodeDetailPanel`, and `NodeInlinePanel`.
+- Added Go host builders:
+  - `Sheet`, `DetailPanel`, and `InlinePanel`.
+- Updated Go validation to accept new surface kinds and reject duplicate surface ids across page nodes, modals, drawers, and nested children.
+- Added Go tests for surface serialization and duplicate surface id rejection.
+- Marked Phase 12 tasks complete in `tasks.md`.
+
+### Why
+- Surfaces need to become explicit before resource detail, form lifecycle, and backend-driven admin flows can use them consistently.
+- Duplicate surface ids are a runtime correctness issue, so the Go host validator now catches them before transport.
+
+### What worked
+- Go validation passed:
+  - `go test ./pkg/admindsl -count=1`
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Frontend tests passed:
+  - `cd web && pnpm test -- --runInBand`
+  - `8 passed`, `34 passed`
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The surface layer can be introduced additively by adding node kinds and builder semantics while keeping legacy modal/drawer/confirm behavior intact.
+
+### What was tricky to build
+- Surface id validation has to traverse all page regions, including nested children, because a future screen may place an inline or detail surface inside the normal node tree rather than only in `page.modals` or `page.drawers`.
+
+### What warrants a second pair of eyes
+- Review whether `inlinePanel` should count as a globally unique surface id or only a local content node. I included it in uniqueness validation for now because it can represent stateful detail content.
+
+### What should be done in the future
+- Add real open/close/focus/safe-area behavior when the overlay runtime is introduced.
+- Move current behavior stories from local state to the future MSW-backed action harness where HTTP-shaped responses matter.
+
+### Code review instructions
+- Review `surface.*` in `web/src/admin-dsl/builder.ts` and the new renderer surface cases.
+- Review `collectSurfaceIDs` in `pkg/admindsl/validate.go` for validation behavior.
+- Validate with:
+  - `go test ./pkg/admindsl -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- Files changed:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/builder.ts`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/types.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/validate.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder_test.go`

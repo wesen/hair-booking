@@ -324,6 +324,15 @@ export const admin = {
   confirm: (id: string, props: AdminJsonObject = {}) => node("confirmDialog", { id, ...props }).region("modal"),
 };
 
+export const surface = {
+  drawer: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("drawer", { id, presentation: "drawer", ...props }, ...children).region("drawer"),
+  modal: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("modal", { id, presentation: "modal", ...props }, ...children).region("modal"),
+  sheet: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("sheet", { id, presentation: "sheet", ...props }, ...children).region("drawer"),
+  confirm: (id: string, props: AdminJsonObject = {}) => node("confirmDialog", { id, presentation: "confirm", ...props }).region("modal"),
+  detailPanel: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("detailPanel", { id, presentation: "detailPanel", ...props }, ...children).region("side"),
+  inlinePanel: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("inlinePanel", { id, presentation: "inlinePanel", ...props }, ...children),
+};
+
 export const resource = {
   page: (id: string, title = id) => new AdminPageBuilder(id, title, "resource"),
   list: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("resourceList", { id, ...props }, ...children),

@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { action, admin, resource } from "./builder";
+import { action, admin, resource, surface } from "./builder";
 import { calendarAdminPage, servicesAdminPage } from "./examples";
 import { AdminPageRenderer } from "./render";
 
@@ -46,6 +46,19 @@ describe("admin DSL", () => {
       expect.objectContaining({ target: "archive", intent: "danger", requiresConfirmation: true, accessibilityLabel: "Archive service" }),
       expect.objectContaining({ target: "cancel", priority: "tertiary", presentation: "link", disabled: true }),
     ]));
+    expect(JSON.parse(JSON.stringify(page))).toEqual(page);
+  });
+
+  it("serializes surface builders as plain JSON nodes", () => {
+    const page = admin.page("surfaces", "Surfaces")
+      .content(surface.inlinePanel("inline-help", { title: "Inline help" }, admin.markdown("Help text")))
+      .drawers(surface.sheet("mobile-editor", { title: "Mobile editor", open: true }))
+      .modals(surface.confirm("delete-service", { title: "Delete service?", tone: "danger" }))
+      .toJSON();
+
+    expect(page.nodes[0]).toEqual(expect.objectContaining({ kind: "inlinePanel" }));
+    expect(page.drawers?.[0]).toEqual(expect.objectContaining({ kind: "sheet", props: expect.objectContaining({ presentation: "sheet" }) }));
+    expect(page.modals?.[0]).toEqual(expect.objectContaining({ kind: "confirmDialog", props: expect.objectContaining({ presentation: "confirm" }) }));
     expect(JSON.parse(JSON.stringify(page))).toEqual(page);
   });
 

@@ -51,9 +51,12 @@ export type AdminNodeKind =
   | "appointmentBlock"
   | "availabilityBlock"
   | "timeOffBlock"
-  // Dialog surfaces
+  // Dialog/detail surfaces
   | "modal"
   | "drawer"
+  | "sheet"
+  | "detailPanel"
+  | "inlinePanel"
   | "confirmDialog";
 
 export interface AdminNode<P extends AdminJsonObject = AdminJsonObject> {

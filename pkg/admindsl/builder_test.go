@@ -83,6 +83,35 @@ func TestGoHostBuilderRejectsInvalidSchema(t *testing.T) {
 	}
 }
 
+func TestGoHostBuilderSupportsSurfaceNodes(t *testing.T) {
+	page, err := PageAdmin("surfaces", "Surfaces").
+		Content(InlinePanel("inline-help", JSONObject{"title": "Inline help"}, TextField("name", JSONObject{"label": "Name"}))).
+		Drawers(Sheet("mobile-editor", JSONObject{"title": "Mobile editor", "open": true})).
+		Modals(ConfirmDialog("delete-service", JSONObject{"title": "Delete service?", "tone": "danger"})).
+		Build()
+	if err != nil {
+		t.Fatalf("build page: %v", err)
+	}
+	if page.Nodes[0].Kind != NodeInlinePanel {
+		t.Fatalf("expected inline panel, got %s", page.Nodes[0].Kind)
+	}
+	if page.Drawers[0].Kind != NodeSheet || page.Drawers[0].Props["presentation"] != "sheet" {
+		t.Fatalf("expected sheet drawer, got %#v", page.Drawers[0])
+	}
+	if page.Modals[0].Kind != NodeConfirmDialog || page.Modals[0].Props["presentation"] != "confirm" {
+		t.Fatalf("expected confirm modal, got %#v", page.Modals[0])
+	}
+}
+
+func TestGoHostBuilderRejectsDuplicateSurfaceIDs(t *testing.T) {
+	_, err := PageAdmin("duplicate-surfaces", "Duplicate surfaces").
+		Drawers(Drawer("editor", nil), Sheet("editor", nil)).
+		Build()
+	if err == nil || !strings.Contains(err.Error(), "duplicate surface id") {
+		t.Fatalf("expected duplicate surface id error, got %v", err)
+	}
+}
+
 func TestGoHostBuilderSupportsKeyedActionMaps(t *testing.T) {
 	page, err := PageCalendar("calendar", "Calendar").Content(
 		NodeOf(NodeAppointmentBlock, JSONObject{"id": "appt-1"}).Action("open", Open("appointment.open", "Open")),

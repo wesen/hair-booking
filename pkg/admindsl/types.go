@@ -61,6 +61,9 @@ const (
 	NodeTimeOffBlock      NodeKind = "timeOffBlock"
 	NodeModal             NodeKind = "modal"
 	NodeDrawer            NodeKind = "drawer"
+	NodeSheet             NodeKind = "sheet"
+	NodeDetailPanel       NodeKind = "detailPanel"
+	NodeInlinePanel       NodeKind = "inlinePanel"
 	NodeConfirmDialog     NodeKind = "confirmDialog"
 )
 
