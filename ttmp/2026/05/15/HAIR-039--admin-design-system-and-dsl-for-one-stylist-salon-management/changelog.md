@@ -142,3 +142,14 @@ Extracted Admin DSL calendar rendering into a focused module and added regressio
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/calendar.tsx — Extracted calendar renderer
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Delegates calendarWeek nodes to AdminCalendarWeek and supports keyed action maps
 
+
+## 2026-05-15
+
+Added a tracked HAIR-039 script for refreshing cropped mobile Admin DSL css-visual-diff screenshots and documented Storybook/Admin DSL review URLs in the devctl README.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/plugins/devctl/README.md — Documented storybook profile and Admin DSL story URLs
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records script creation and successful run
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/scripts/01-capture-mobile-admin-dsl.sh — Repeatable cropped mobile screenshot workflow
+

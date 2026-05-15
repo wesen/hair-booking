@@ -33,6 +33,29 @@ devctl down
 devctl up --profile live-dsl --force
 devctl up --profile backend-only --force
 devctl up --profile web-only --force
+devctl up --profile storybook --force
+```
+
+The `storybook` profile starts only Storybook on:
+
+```text
+http://127.0.0.1:6006
+```
+
+Useful Admin DSL review URLs:
+
+```text
+http://127.0.0.1:6006/?path=/story/admin-dsl-rendered-pages--services-pricing
+http://127.0.0.1:6006/?path=/story/admin-dsl-rendered-pages--dashboard
+http://127.0.0.1:6006/?path=/story/admin-dsl-rendered-pages--calendar
+http://127.0.0.1:6006/?path=/story/admin-dsl-rendered-pages--json-contract
+```
+
+To refresh cropped mobile Admin DSL screenshots for HAIR-039, start Storybook and run:
+
+```bash
+devctl up --profile storybook --force
+./ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/scripts/01-capture-mobile-admin-dsl.sh
 ```
 
 ## Port overrides

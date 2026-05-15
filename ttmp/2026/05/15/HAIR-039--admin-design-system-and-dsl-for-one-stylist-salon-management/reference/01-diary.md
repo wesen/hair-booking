@@ -868,3 +868,73 @@ I also added tests for the behavior that motivated the extraction: the mobile ag
 - Changed files:
   - `web/src/admin-dsl/render.tsx`
   - `web/src/admin-dsl/AdminDsl.test.tsx`
+
+## Step 13: Add the repeatable mobile screenshot workflow
+
+I added a tracked script for refreshing cropped mobile Admin DSL screenshots and documented the Storybook profile in the devctl README. The script uses the same `css-visual-diff compare` selector strategy from the manual visual review work: it targets `[data-admin-dsl-page]`, which captures only the rendered page region and avoids Storybook chrome.
+
+I ran the script successfully against the devctl-managed Storybook instance, producing a fresh `mobile-admin-dsl-latest` artifact set for Services & Pricing, Dashboard, and Calendar.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 11)
+
+**Assistant interpretation:** Finish the planned documentation/script phase and keep the diary/changelog current.
+
+**Inferred user intent:** The user wants this visual review workflow to be repeatable by future agents or humans, not just something done ad hoc once.
+
+**Commit (code):** TBD — script/docs slice will be committed after task/changelog update.
+
+### What I did
+- Added executable script:
+  - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/scripts/01-capture-mobile-admin-dsl.sh`
+- Script captures:
+  - Services & Pricing,
+  - Dashboard,
+  - Calendar.
+- Script defaults:
+  - Storybook URL: `http://127.0.0.1:6006`
+  - viewport: `390x844`
+  - selector: `[data-admin-dsl-page]`
+  - output: `various/mobile-admin-dsl-latest/`
+- Updated `plugins/devctl/README.md` with:
+  - `storybook` profile command,
+  - Admin DSL story URLs,
+  - screenshot refresh command.
+- Ran the script successfully.
+
+### Why
+- The visual review artifacts are important enough to regenerate consistently.
+- A script reduces mistakes around Storybook iframe URLs, selectors, viewport size, and output paths.
+
+### What worked
+- Script run succeeded and wrote fresh artifacts:
+  - `.../various/mobile-admin-dsl-latest/services-pricing/url1_screenshot.png`
+  - `.../various/mobile-admin-dsl-latest/dashboard/url1_screenshot.png`
+  - `.../various/mobile-admin-dsl-latest/calendar/url1_screenshot.png`
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Keeping the css-visual-diff command in a ticket script makes future visual QA much easier than embedding the command only in the diary.
+
+### What was tricky to build
+- The script path must be robust when launched from the repo root. It resolves the repo root relative to the script location and then runs from there.
+
+### What warrants a second pair of eyes
+- Review whether generated latest artifacts should be committed every time or only when useful for a review milestone.
+
+### What should be done in the future
+- Add a review-site manifest workflow if we want side-by-side before/after comparisons instead of same-URL captures.
+
+### Code review instructions
+- Review the script first, then run it with Storybook already started:
+  - `./ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/scripts/01-capture-mobile-admin-dsl.sh`
+- Review `plugins/devctl/README.md` for Storybook profile instructions.
+
+### Technical details
+- New script:
+  - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/scripts/01-capture-mobile-admin-dsl.sh`
+- Updated doc:
+  - `plugins/devctl/README.md`

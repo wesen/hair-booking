@@ -60,6 +60,6 @@
 
 ## Phase 8 — Review workflow documentation and scripts
 
-- [ ] Add a tracked script for refreshing cropped mobile Admin DSL css-visual-diff screenshots.
-- [ ] Document the devctl Storybook profile and Admin DSL story URLs in `plugins/devctl/README.md`.
-- [ ] Update HAIR-039 diary, changelog, and file relations.
+- [x] Add a tracked script for refreshing cropped mobile Admin DSL css-visual-diff screenshots.
+- [x] Document the devctl Storybook profile and Admin DSL story URLs in `plugins/devctl/README.md`.
+- [x] Update HAIR-039 diary, changelog, and file relations.
