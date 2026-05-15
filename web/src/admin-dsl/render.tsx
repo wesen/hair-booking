@@ -22,7 +22,10 @@ function renderActions(node: AdminNode, ctx: AdminRenderContext | undefined, act
           data-admin-dsl-action-priority={actionRef.priority}
           data-admin-dsl-action-placement={actionRef.placement}
           data-admin-dsl-action-confirm={actionRef.requiresConfirmation || undefined}
-          onClick={() => dispatchAdminAction(ctx, node, actionRef)}
+          onClick={(event) => {
+            const value = node.kind === "form" && event.currentTarget.form ? Object.fromEntries(new FormData(event.currentTarget.form).entries()) : undefined;
+            dispatchAdminAction(ctx, node, actionRef, value);
+          }}
           style={{ minHeight: 38,
             border: `1px solid ${actionIsDanger(actionRef) ? color.danger : color.ink}`,
             background: actionRef.disabled ? color.ruleSoft : actionIsPrimary(actionRef) ? color.ink : color.paper,
@@ -274,7 +277,8 @@ function renderInlineNode(node: AdminJsonObject | undefined, ctx?: AdminRenderCo
 
 function FieldPreview({ node }: { node: AdminNode }) {
   const props = node.props || {};
-  const label = str(props, "label", str(props, "name"));
+  const name = str(props, "name", node.meta?.id || "");
+  const label = str(props, "label", name);
   const value = props.value;
   const inputStyle: CSSProperties = { border: `1px solid ${color.rule}`, borderRadius: radius.md, padding: "10px 12px", background: color.paper, ...type.body };
 
@@ -284,13 +288,13 @@ function FieldPreview({ node }: { node: AdminNode }) {
       {node.kind === "switchField" ? (
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8, ...type.body }}><span style={{ width: 34, height: 20, borderRadius: radius.pill, background: value ? color.success : color.rule, display: "inline-block" }} />{value ? "On" : "Off"}</span>
       ) : node.kind === "textareaField" ? (
-        <textarea readOnly value={typeof value === "string" ? value : ""} style={{ ...inputStyle, minHeight: 76 }} />
+        <textarea name={name} defaultValue={typeof value === "string" ? value : ""} style={{ ...inputStyle, minHeight: 76 }} />
       ) : node.kind === "selectField" ? (
-        <select disabled style={inputStyle}><option>{String(value || "Choose...")}</option></select>
+        <select name={name} defaultValue={String(value || "")} style={inputStyle}><option value={String(value || "")}>{String(value || "Choose...")}</option></select>
       ) : node.kind === "imageField" ? (
         <div style={{ ...inputStyle, borderStyle: "dashed", color: color.softInk }}>Image upload field</div>
       ) : (
-        <input readOnly value={value == null ? "" : String(value)} style={inputStyle} />
+        <input name={name} defaultValue={value == null ? "" : String(value)} style={inputStyle} />
       )}
     </label>
   );

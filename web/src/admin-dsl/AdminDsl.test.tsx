@@ -116,6 +116,26 @@ describe("admin DSL", () => {
     expect(container.querySelector(".adminDslFormErrors")).toBeNull();
   });
 
+  it("allows form fields to be edited and dispatches submitted values", () => {
+    const dispatch = vi.fn();
+    const page = resource.page("editable-form", "Editable form")
+      .content(
+        admin.form("itemForm", { title: "Item", dirty: true }, field.text("name", { label: "Name", value: "Cut" }))
+          .submit(action.primary("item.save", "Save")),
+      )
+      .toJSON();
+
+    render(<AdminPageRenderer page={page} context={{ dispatch }} />);
+    const input = screen.getByLabelText("Name");
+    fireEvent.change(input, { target: { value: "Curly Cut" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      nodeKind: "form",
+      value: { name: "Curly Cut" },
+    }));
+  });
+
   it("serializes surface builders as plain JSON nodes", () => {
     const page = admin.page("surfaces", "Surfaces")
       .content(surface.inlinePanel("inline-help", { title: "Inline help" }, admin.markdown("Help text")))

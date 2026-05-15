@@ -31,6 +31,10 @@ func firstActionID(t *testing.T, page Page, target string) string {
 
 func actionIDFromProps(value any, target string) string {
 	switch actions := value.(type) {
+	case ActionRef:
+		if actions.Target == target {
+			return actions.ID
+		}
 	case []any:
 		for _, item := range actions {
 			if id := actionIDFromProps(item, target); id != "" {

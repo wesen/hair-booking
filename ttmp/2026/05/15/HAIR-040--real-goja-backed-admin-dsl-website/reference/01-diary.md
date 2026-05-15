@@ -643,3 +643,91 @@ I added a small additive migration pass after schema provisioning so existing de
   - remove `var/fringe-dsl.sqlite*`
   - restart devctl
 - Removing `var/fringe-dsl-config.sqlite*` forces config DB reseeding, but is not required for the `dsl_flow_sessions.config_version_id` error.
+
+## Step 11: Make the service drawer form actually editable
+
+Manual testing showed that the service editor looked like a form but behaved like a read-only preview. The fields were rendered with `readOnly`, the form actions did not submit current field values, and the validation demo always replaced the name with an empty value.
+
+I changed the renderer to make fields editable and to collect `FormData` when a form action is clicked. The Goja services flow now receives the submitted values, validates the current name, saves valid edits into the in-memory service list, and only shows `Name is required` when the user actually submits/validates an empty name.
+
+### Prompt Context
+
+**User prompt (verbatim):** "1. I can't type in the edit Cut Service Form
+2. Trigger Validation seems to cleawr the name?
+3. Is those 3 things all there is to the admin service for nwo?"
+
+**Assistant interpretation:** The user found that the real Admin DSL route is too static: fields cannot be typed into, validation clears values unexpectedly, and the current services surface appears very small.
+
+**Inferred user intent:** They want the admin service demo to behave like a real editable page and want clarity about current MVP scope.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Updated `web/src/admin-dsl/render.tsx`:
+  - form action clicks now collect `FormData` from the enclosing form and dispatch it as the action value.
+  - text and textarea fields now render editable controls with `name` and `defaultValue` instead of read-only controlled values.
+- Updated `pkg/admindsl/flows/services.flow.js`:
+  - added draft value handling.
+  - save now validates submitted values and writes valid edits into the mock in-memory service list.
+  - trigger validation now validates the current form values instead of unconditionally clearing the name.
+  - service rows now render from `state.services` rather than hard-coded row labels.
+  - changed the validation action from `.Actions(...)` to `.Action("validate", ...)` so it no longer overwrites submit/cancel actions.
+- Updated tests:
+  - `web/src/admin-dsl/AdminDsl.test.tsx` covers editing a field and dispatching submitted form values.
+  - `pkg/admindsl/flows_test.go` covers validation and saving updated service values.
+  - `pkg/admindsl/test_helpers_test.go` can now find typed `ActionRef` values in test fixtures.
+- Re-smoked in Playwright:
+  - opened `/admin/services`
+  - opened Cut
+  - typed `Curly Cut` and `75 min · $95+`
+  - clicked Save
+  - verified the row and drawer updated.
+- Captured:
+  - `various/playwright/04-admin-services-edit-save.png`
+- Validated:
+  - `go test ./... -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+  - frontend: 10 files, 43 tests passed.
+
+### Why
+- A realistic admin form needs at least local edit/save behavior, even before application-owned persistence is added.
+- Trigger validation should validate the form state, not mutate it into an artificial failure state.
+
+### What worked
+- The drawer form is now editable in the browser.
+- Save updates the in-memory services flow state and re-renders the service row.
+- Clearing the name and triggering validation shows the expected error without unexpected hidden behavior.
+
+### What didn't work
+- Before this step, `.Actions(forceValidation)` overwrote `.Submit(save)` and `.Cancel(cancel)` because `Actions` replaces the action collection. The fix was to attach the extra action with a keyed `.Action("validate", forceValidation)` call.
+
+### What I learned
+- The Admin DSL renderer had been sufficient for display scenarios, but the real backend route needed value collection semantics to cross the browser/backend boundary.
+
+### What was tricky to build
+- The page renders both desktop and mobile drawer columns in the DOM for responsive layout, so Playwright selectors need to scope to `.adminDslDesktopSideColumn` on desktop.
+- Empty string draft values must be preserved; simple `draft.name || service.title` would accidentally replace an intentionally blank name during validation.
+
+### What warrants a second pair of eyes
+- The current fields are uncontrolled inputs. That is acceptable for the present submit-on-action model, but richer field-level events would need a more explicit form state policy.
+- The duplicate desktop/mobile accessible controls should still be reviewed for accessibility.
+
+### What should be done in the future
+- Persist service edits to application-owned storage instead of the current in-memory JS flow state.
+- Add real create/archive/publish flows if the Admin Services page becomes a production surface.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/render.tsx:renderActions` and `FieldPreview`.
+- Then review `pkg/admindsl/flows/services.flow.js` save/validation behavior.
+- Validate with:
+  - `go test ./... -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- Current Admin Services scope is intentionally small:
+  - three seeded mock services: Cut, Color, Extensions.
+  - Cut and Color can open the editor.
+  - Extensions is displayed as Draft and currently has no editor action.
+  - edits are in-memory per Admin DSL session, not persisted to the app database.

@@ -126,3 +126,18 @@ Step 10: Added additive SQLite migration for existing dsl_flow_sessions tables m
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslhost/db_test.go — Regression coverage for old dsl_flow_sessions table migration
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/reference/01-diary.md — Diary records old SQLite schema issue and migration fix
 
+
+## 2026-05-15
+
+Step 11: Made /admin/services drawer fields editable, dispatch form values to the Goja flow, fixed validation so it no longer clears the name, preserved submit/cancel actions, and Playwright-smoked edit/save. Validation: go test ./... -count=1; cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (10 files, 43 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows/services.flow.js — Editable service save/validation flow
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows_test.go — Backend service flow edit/save coverage
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/test_helpers_test.go — Action lookup helper handles typed ActionRef values
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/reference/01-diary.md — Diary records editable form fix
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/various/playwright/04-admin-services-edit-save.png — Playwright screenshot after edit/save
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — Frontend form value dispatch regression coverage
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Editable fields and form value dispatch
+
