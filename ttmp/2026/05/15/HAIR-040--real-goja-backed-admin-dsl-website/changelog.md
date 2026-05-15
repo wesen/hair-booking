@@ -27,3 +27,17 @@ Step 2: Added Admin Goja runtime skeleton with Go-host builder module, ctx.bind 
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/reference/01-diary.md — Diary records runtime skeleton
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/tasks.md — Phase 1 completion
 
+
+## 2026-05-15
+
+Step 3: Added the real Goja services Admin DSL flow source, embedded it, exposed surface namespace to Goja, and tested render/dispatch/validation. Validation: go test ./pkg/admindsl -run 'TestServicesFlowSource|TestGojaModule' -count=1.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows.go — Embedded services Admin DSL flow source
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows/services.flow.js — Real services Admin DSL flow source
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows_test.go — Services Admin DSL flow tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/goja_module.go — Goja module exposes surface namespace
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/reference/01-diary.md — Diary records flow source
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/tasks.md — Phase 2 completion
+

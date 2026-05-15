@@ -19,11 +19,11 @@
 
 ## Phase 2 — Goja host module and flow source
 
-- [ ] Add `pkg/admindsl/modules.go` with `require("fringe/admin-dsl")` backed by Go host builders.
-- [ ] Add `pkg/admindsl/flows/services.flow.js` as the real services/pricing admin page flow.
-- [ ] Add `pkg/admindsl/flows.go` to embed/export the service admin flow source.
-- [ ] Ensure the JS flow uses clean `surface.*` semantics and no legacy surface helpers.
-- [ ] Add tests proving Goja flow source can render and dispatch through host builders.
+- [x] Add `pkg/admindsl/goja_module.go`/runtime module installation with `require("fringe/admin-dsl")` backed by Go host builders.
+- [x] Add `pkg/admindsl/flows/services.flow.js` as the real services/pricing admin page flow.
+- [x] Add `pkg/admindsl/flows.go` to embed/export the service admin flow source.
+- [x] Ensure the JS flow uses clean `surface.*` semantics and no legacy surface helpers.
+- [x] Add tests proving Goja flow source can render and dispatch through host builders.
 
 ## Phase 3 — HTTP integration cut-over
 

@@ -126,3 +126,61 @@ The Admin runtime exposes `require("fringe/admin-dsl")` through the Go host buil
 - Files added:
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/script_runtime.go`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/script_runtime_test.go`
+
+## Step 3: Add the real services Admin DSL flow source
+
+I added the first real Admin DSL `.flow.js` source file and embedded it into the Go binary. The flow is the Admin DSL counterpart to the intake flow: JavaScript owns the page/state authoring logic, while the fluent API it calls is backed by Go host builders and Go validation.
+
+The flow renders a services/pricing admin page, opens an editor drawer, supports save/cancel, and has an explicit validation path. It uses `admin.surface.drawer(...)` for surface authoring, preserving the clean `surface.*` cut-over from HAIR-039.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 1)
+
+**Assistant interpretation:** Continue implementing the real Goja-backed Admin DSL website phases.
+
+**Inferred user intent:** The user wants the Admin page to become a real backend-authored flow source rather than a Go-only spike.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Updated `pkg/admindsl/goja_module.go` to expose a nested `surface` namespace to Goja scripts.
+- Added `pkg/admindsl/flows/services.flow.js`.
+- Added `pkg/admindsl/flows.go` with `ServicesFlowSource` embedded from the JS file.
+- Added `pkg/admindsl/flows_test.go` proving the embedded flow renders, opens a drawer, and returns validation errors after dispatch.
+- Marked Phase 2 complete in `tasks.md`.
+
+### Why
+- HAIR-040 requires a real flow file comparable to `pkg/dslgoja/flows/intake.flow.js`.
+- Embedding the JS source gives server code a stable in-binary flow source while preserving the authoring model.
+
+### What worked
+- Focused validation passed:
+  - `go test ./pkg/admindsl -run 'TestServicesFlowSource|TestGojaModule' -count=1`
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The Goja module can expose both flat builder functions and a semantic `surface` namespace without moving schema ownership out of Go.
+
+### What was tricky to build
+- The JS flow needed to be fluent but still compatible with Go method names as exposed by Goja. The current flow uses Go method names such as `.Shell`, `.Content`, `.Actions`, `.Submit`, and `.Cancel`.
+
+### What warrants a second pair of eyes
+- Review whether we want lower-camel JS aliases later, or whether Go method names are acceptable for host-backed builders.
+
+### What should be done in the future
+- Phase 3 should replace the server's hardcoded Go spike session store with `ScriptRuntime` and `ServicesFlowSource`.
+
+### Code review instructions
+- Start with `pkg/admindsl/flows/services.flow.js`.
+- Then review `pkg/admindsl/flows.go`, `goja_module.go`, and `flows_test.go`.
+- Validate with:
+  - `go test ./pkg/admindsl -run 'TestServicesFlowSource|TestGojaModule' -count=1`
+
+### Technical details
+- Files added:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows/services.flow.js`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows_test.go`
