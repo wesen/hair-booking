@@ -178,3 +178,23 @@ type QueryRef struct {
 	ID     string     `json:"id"`
 	Params JSONObject `json:"params,omitempty"`
 }
+
+type FlowEvent struct {
+	EventID     string
+	PageVersion int64
+	ActionID    string
+	Value       JSONValue
+}
+
+type FlowResult struct {
+	SessionID   string
+	PageVersion int64
+	Page        Page
+	Effects     []FlowEffect
+}
+
+type FlowEffect struct {
+	Kind    string `json:"kind"`
+	Tone    string `json:"tone,omitempty"`
+	Message string `json:"message,omitempty"`
+}

@@ -34,7 +34,7 @@ function render(ctx) {
       )
     );
   if (state.mode !== "list") {
-    page.Drawers(admin.drawer("editor", { title: "Editor", open: true },
+    page.Drawers(admin.surface.drawer("editor", { title: "Editor", open: true },
       admin.form("serviceForm", { title: "Service" }).Submit(save)
     ));
   }

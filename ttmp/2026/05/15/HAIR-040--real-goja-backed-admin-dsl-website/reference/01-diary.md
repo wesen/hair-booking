@@ -242,3 +242,72 @@ This is the first point where the real flow source is served through the HTTP/pr
 - Files changed:
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl.go`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl_test.go`
+
+## Step 5: Remove the Go spike and complete HTTP cut-over tests
+
+I completed the HTTP integration cut-over by removing the old Go-only `ServicesFlowSession` spike and moving shared flow transport types into the common Admin DSL type file. The server and proto conversion tests now exercise the real Goja-backed flow source instead of the temporary Go spike.
+
+I also added HTTP coverage for unknown flow ids and stale action dispatch. This closes Phase 3: the public Admin DSL protobuf endpoints now start, get, and dispatch against the embedded JavaScript flow source.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 1)
+
+**Assistant interpretation:** Continue the phased implementation and apply the clean cut-over principle by removing obsolete spike code.
+
+**Inferred user intent:** The user wants the real flow to replace temporary infrastructure rather than coexist as a compatibility path.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Removed the old Go-only spike files:
+  - `pkg/admindsl/flow.go`
+  - `pkg/admindsl/flow_test.go`
+- Moved shared `FlowEvent`, `FlowResult`, and `FlowEffect` types into `pkg/admindsl/types.go`.
+- Added `pkg/admindsl/test_helpers_test.go` to preserve action-id test helpers after deleting the spike test file.
+- Updated `pkg/admindsl/proto_convert_test.go` to use `ScriptRuntime` and `ServicesFlowSource`.
+- Updated `pkg/admindsl/script_runtime_test.go` to use `admin.surface.drawer(...)` in the test flow.
+- Added HTTP tests for:
+  - unknown Admin DSL flow id,
+  - stale action dispatch effect.
+- Marked Phase 3 complete in `tasks.md`.
+
+### Why
+- Keeping `ServicesFlowSession` would violate the clean cut-over preference and leave two competing backend flow implementations.
+- The real `.flow.js` path should be the only services Admin DSL backend path.
+
+### What worked
+- Focused validation passed:
+  - `go test ./pkg/admindsl ./pkg/server -count=1`
+
+### What didn't work
+- After deleting `flow.go`, shared flow types were missing. I moved them to `types.go`.
+- After deleting `flow_test.go`, several tests lost `firstActionID`. I extracted it into `test_helpers_test.go`.
+- Go's `JSONValue` alias made `[]any` and `[]JSONValue` duplicate type-switch cases, so I removed the duplicate test helper case.
+
+### What I learned
+- The cleanup made it clear which code is product path and which code was temporary spike scaffolding.
+
+### What was tricky to build
+- Removing the spike required touching tests that were originally written around it, especially proto conversion tests. The updated tests now protect the real runtime path instead.
+
+### What warrants a second pair of eyes
+- Review whether `FlowEvent`, `FlowResult`, and `FlowEffect` belong in `types.go` long term or should move into a dedicated transport/runtime file.
+
+### What should be done in the future
+- Phase 4 should add the frontend route bridge and mount `/admin/services`.
+
+### Code review instructions
+- Review the deleted spike files and the updated tests.
+- Validate with:
+  - `go test ./pkg/admindsl ./pkg/server -count=1`
+
+### Technical details
+- Files removed:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flow.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flow_test.go`
+- Files changed/added:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/types.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/test_helpers_test.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/proto_convert_test.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl_test.go`

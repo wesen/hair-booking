@@ -1,19 +1,19 @@
 package admindsl
 
 import (
+	"context"
 	"testing"
 
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
 func TestAdminFlowStateProtoJSONIncludesSurfaces(t *testing.T) {
-	session := NewServicesFlowSession()
-	initial, err := session.Start()
+	session, initial, err := NewScriptRuntime().StartFlow(context.Background(), "fringe.admin.services.v1", ServicesFlowSource)
 	if err != nil {
 		t.Fatalf("start: %v", err)
 	}
-	openID := firstActionID(t, initial.Page, "service.select")
-	selected, err := session.Dispatch(FlowEvent{EventID: "evt-open", PageVersion: initial.PageVersion, ActionID: openID})
+	openID := firstActionID(t, initial.Page, "service.open")
+	selected, err := session.Dispatch(context.Background(), FlowEvent{EventID: "evt-open", PageVersion: initial.PageVersion, ActionID: openID})
 	if err != nil {
 		t.Fatalf("dispatch: %v", err)
 	}

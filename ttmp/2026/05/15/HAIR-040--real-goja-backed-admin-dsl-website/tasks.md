@@ -30,7 +30,7 @@
 - [x] Replace the hardcoded `ServicesFlowSession` store in `pkg/server/handlers_admin_dsl.go` with runtime-backed Admin Goja sessions.
 - [x] Keep existing Admin DSL protobuf endpoints and response shapes.
 - [x] Update server tests for start/get/dispatch through the JS flow.
-- [ ] Add a test for unknown flow id and stale action behavior through HTTP.
+- [x] Add a test for unknown flow id and stale action behavior through HTTP.
 
 ## Phase 4 — Frontend real website route
 

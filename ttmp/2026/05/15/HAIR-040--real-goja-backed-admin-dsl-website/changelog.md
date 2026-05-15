@@ -53,3 +53,17 @@ Step 4: Cut Admin DSL HTTP start/get/dispatch over from the Go spike to the Goja
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/reference/01-diary.md — Diary records HTTP cut-over
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/tasks.md — Phase 3 cut-over tasks updated
 
+
+## 2026-05-15
+
+Step 5: Removed the Go-only Admin DSL flow spike, moved shared flow transport types, updated proto/runtime tests to use the JS flow, and added HTTP unknown-flow/stale-action tests. Validation: go test ./pkg/admindsl ./pkg/server -count=1.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/proto_convert_test.go — Proto conversion now uses ScriptRuntime and ServicesFlowSource
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/test_helpers_test.go — Action id test helper after spike removal
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/types.go — Shared Admin DSL flow transport types
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl_test.go — HTTP unknown-flow and stale-action tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/reference/01-diary.md — Diary records spike removal and HTTP tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/tasks.md — Phase 3 complete
+

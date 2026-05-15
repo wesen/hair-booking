@@ -10,6 +10,16 @@ import (
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
+func TestAdminDSLHTTPRejectsUnknownFlow(t *testing.T) {
+	handler := NewHandler(HandlerOptions{})
+	req := httptest.NewRequest(http.MethodPost, "/api/admin-dsl/flows/not-real/start", nil)
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusNotFound {
+		t.Fatalf("status %d body %s", rec.Code, rec.Body.String())
+	}
+}
+
 func TestAdminDSLHTTPStartGetDispatch(t *testing.T) {
 	handler := NewHandler(HandlerOptions{})
 
@@ -54,6 +64,20 @@ func TestAdminDSLHTTPStartGetDispatch(t *testing.T) {
 	}
 	if len(eventState.Page.Drawers) != 1 {
 		t.Fatalf("expected drawer after open, got %#v", eventState.Page.Drawers)
+	}
+
+	staleReq := httptest.NewRequest(http.MethodPost, "/api/admin-dsl/flows/"+startState.SessionId+"/events", bytes.NewReader(body))
+	staleRec := httptest.NewRecorder()
+	handler.ServeHTTP(staleRec, staleReq)
+	if staleRec.Code != http.StatusOK {
+		t.Fatalf("stale status %d body %s", staleRec.Code, staleRec.Body.String())
+	}
+	var staleState admindslv1.AdminFlowState
+	if err := protojson.Unmarshal(staleRec.Body.Bytes(), &staleState); err != nil {
+		t.Fatalf("decode stale: %v", err)
+	}
+	if len(staleState.Effects) != 1 || staleState.Effects[0].Tone != "info" {
+		t.Fatalf("expected stale info effect, got %#v", staleState.Effects)
 	}
 
 	getReq := httptest.NewRequest(http.MethodGet, "/api/admin-dsl/flows/"+startState.SessionId, nil)
