@@ -67,3 +67,92 @@
 - [x] Add missing renderer coverage for layout exploration nodes such as split panes, tabs, search boxes, activity feeds, loading states, and image grids
 - [x] Create Storybook stories with desktop and mobile framed variants for rapid layout browsing and future screenshot tooling
 - [x] Validate TypeScript/tests and update HAIR-039 diary/changelog/file relations for expanded layout stories
+
+## Phase 9 — Backend-owned fluent Admin DSL API design
+
+- [ ] Design the Go host fluent API surface for Admin DSL page construction, treating TypeScript builders as fixtures/prototyping helpers rather than the long-term source of truth.
+- [ ] Define Go-side builder packages/modules for page, resource, action, surface, form, layout, and adaptive-view concepts.
+- [ ] Ensure Go builders own schema validation, required-field checks, action-placement rules, and JSON serialization.
+- [ ] Decide how Go host builders are exposed to Goja scripts so backend JavaScript authors can still use a fluent API while the host controls validity.
+- [ ] Add golden JSON tests for Go-built Admin DSL pages and compare representative output to frontend fixture expectations.
+- [ ] Document the boundary: Go host owns Admin DSL validity and schema; app code owns domain schema, permissions, mutations, and publish semantics.
+
+## Phase 10 — Renderer utility and action subsystem extraction
+
+- [ ] Create `web/src/admin-dsl/renderUtils.ts` for shared JSON extraction, style, data attribute, tone, and node-key helpers.
+- [ ] Create `web/src/admin-dsl/actions.ts` for action normalization, dispatch helpers, action placement defaults, and presentation metadata.
+- [ ] Move duplicated helper logic out of `render.tsx` and `calendar.tsx` without changing rendered output.
+- [ ] Add tests for array-style actions, keyed action maps, missing/invalid actions, confirmation metadata, and row-action placement semantics.
+- [ ] Keep renderer node-kind handling explicit; do not introduce dynamic component lookup by string.
+
+## Phase 11 — Rich semantic action model
+
+- [ ] Extend `AdminActionRef` additively with `intent`, `priority`, `presentation`, `placement`, `requiresConfirmation`, `disabled`, `loading`, and `accessibilityLabel` metadata.
+- [ ] Add fluent frontend fixture helpers for `action.primary`, `action.secondary`, `action.danger`, `action.ghost`, `.placement(...)`, `.presentation(...)`, `.confirm(...)`, `.disabled(...)`, and `.loading(...)`.
+- [ ] Mirror the same fluent concepts in the Go host builder API and make Go validation authoritative.
+- [ ] Update renderer action buttons/menus to honor placement and priority for toolbar, row, footer, drawer, modal, and mobile contexts.
+- [ ] Add unit tests for semantic action serialization and renderer dispatch payloads.
+- [ ] Add Storybook behavior stories that demonstrate normal, disabled, loading, destructive, confirm-required, overflow, and stale-action scenarios.
+
+## Phase 12 — Surface subsystem for drawers, modals, sheets, confirms, and details
+
+- [ ] Add a `surface.*` builder namespace for `drawer`, `modal`, `sheet`, `confirm`, `detailPanel`, and `inlinePanel` fixtures.
+- [ ] Add equivalent Go host fluent builders and validation for surface id uniqueness, close behavior, presentation mode, and mobile fallback.
+- [ ] Define surface state inputs: selected resource id, open/closed state, pending action, validation errors, and optimistic mutation state.
+- [ ] Refactor current static `modal`, `drawer`, and `confirmDialog` nodes to use surface semantics while keeping JSON backward-compatible during the transition.
+- [ ] Add renderer support for desktop right drawers, centered modals, mobile bottom sheets, inline detail panels, and screenshot-friendly static-open states.
+- [ ] Add Storybook folders per screen with scenarios for closed, opened, editing, confirming, saving, error, and success states.
+
+## Phase 13 — Resource and form lifecycle semantics
+
+- [ ] Define `resource.page(...)` semantics for query, list/table/card views, selected item, detail surface, bulk actions, empty state, loading state, and error state.
+- [ ] Define lifecycle-aware form semantics for values, dirty state, validation errors, submit state, cancel/reset, sticky save bars, and optimistic save feedback.
+- [ ] Implement TypeScript fixture helpers and Go host builders for resource and form lifecycle descriptors.
+- [ ] Add renderer handling for resource loading/empty/error states and form dirty/pending/error/success states.
+- [ ] Add tests covering form serialization, dirty-state rendering, validation error rendering, submit action dispatch, and cancel/reset action dispatch.
+- [ ] Keep app-owned data schema and write semantics out of the generic Admin DSL.
+
+## Phase 14 — Backend-driven Admin DSL flow spike
+
+- [ ] Add a Go-backed Admin DSL flow spike for a services/pricing admin page using the Go host fluent API as the page construction authority.
+- [ ] Expose the Go builders to Goja only as controlled host objects/functions, not as open-ended browser-side builders.
+- [ ] Reuse existing runtime concepts where appropriate: page versions, opaque action ids, action dispatch, and protobuf/JSON transport boundaries.
+- [ ] Add backend action handlers for open drawer, edit field, validate, save success, save error, cancel, and confirm-delete flows.
+- [ ] Add tests proving stale page-version actions are rejected and malformed Admin DSL pages fail before transport.
+- [ ] Document how the backend-driven Admin DSL differs from the frontend-only Storybook fixture path.
+
+## Phase 15 — Storybook behavior and action scenario catalog
+
+- [ ] Reorganize Admin DSL Storybook into folders per screen, for example `Admin DSL/Services`, `Admin DSL/Calendar`, `Admin DSL/Orders`, and `Admin DSL/Behavior`.
+- [ ] For each representative screen, add multiple scenario stories: default, selected row, drawer open, confirm open, validation error, save pending, save success, save failed, empty, loading, and permission-restricted.
+- [ ] Add interactive `play` functions for key click-through paths so screenshots can capture meaningful post-interaction states.
+- [ ] Use MSW where needed to mock backend action dispatch, resource queries, validation failures, and mutation results.
+- [ ] Evaluate or build a small Admin DSL MSW fixture framework for declaring action handlers, state transitions, latency, errors, and page re-render responses.
+- [ ] Add screenshot-capture script support for scenario stories, not only static page stories.
+
+## Phase 16 — MSW-backed Admin DSL interaction test harness
+
+- [ ] Add MSW dependencies/configuration if not already present in the web app.
+- [ ] Create a small test/story harness for Admin DSL action handling that can map action targets to mocked state transitions.
+- [ ] Support declarative fixtures for latency, success, validation error, authorization error, server error, and stale-action responses.
+- [ ] Wire the harness into Storybook stories and selected Vitest integration tests.
+- [ ] Ensure the harness models the real runtime shape closely enough that backend-driven stories do not become misleading.
+- [ ] Document when to use pure static fixtures, local story state, MSW-backed stories, and live backend stories.
+
+## Phase 17 — Adaptive layout policies and visual regression expansion
+
+- [ ] Add explicit layout policy props for split panes, resource lists, calendars, drawers, toolbars, side panels, and sticky action regions.
+- [ ] Extend calendar adaptive behavior into a reusable adaptive-view pattern for table/card, grid/list, detail/summary, and drawer/sheet variants.
+- [ ] Add desktop/mobile behavior stories for each adaptive policy.
+- [ ] Expand screenshot automation to capture behavior scenarios and layout catalog desktop/mobile stories.
+- [ ] Add VLM/image-review checkpoints for scenario groups where visual correctness is hard to assert with DOM tests alone.
+- [ ] Decide which screenshots should become CI-grade regression artifacts and which remain manual review artifacts.
+
+## Phase 18 — Documentation, migration, and release readiness
+
+- [ ] Update the Admin DSL evolution guide after each implemented subsystem with final API shapes and examples.
+- [ ] Add a backend-author guide for building Admin DSL pages through Go host fluent APIs and Goja-controlled scripts.
+- [ ] Add a frontend-renderer guide for adding new node kinds without breaking the JSON contract.
+- [ ] Add a Storybook scenario authoring guide for static, local-state, MSW-backed, and live-backend stories.
+- [ ] Add migration notes from current TypeScript-only fixtures to Go-host-authoritative Admin DSL construction.
+- [ ] Run final validation: `go test ./... -count=1`, `cd web && npx tsc --noEmit`, and `cd web && pnpm test -- --runInBand`.

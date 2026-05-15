@@ -226,3 +226,13 @@ Uploaded the PARC Admin DSL React renderer report to reMarkable and pushed the P
 
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records report upload and PARC push
 
+
+## 2026-05-15
+
+Expanded HAIR-039 with detailed Admin DSL evolution phases covering Go-host fluent builders, semantic actions, surfaces, resource/form lifecycles, backend-driven flow spike, Storybook behavior scenarios, MSW harnesses, adaptive layout policies, and documentation readiness.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records planning step
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Detailed next-phase task plan
+

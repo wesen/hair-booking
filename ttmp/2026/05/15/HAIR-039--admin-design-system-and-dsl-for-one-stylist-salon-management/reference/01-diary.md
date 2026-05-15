@@ -1438,3 +1438,73 @@ I uploaded the Admin DSL React renderer deep-dive project report to reMarkable, 
 ### Technical details
 - PARC vault remote:
   - `ssh://git@github.com/go-go-golems/go-go-parc`
+
+## Step 21: Plan the Admin DSL evolution implementation phases
+
+I expanded the HAIR-039 task list into a concrete implementation plan for the next Admin DSL evolution. The plan turns the prior brainstorm into phased work that starts with backend-owned fluent builders, then moves through renderer/action extraction, semantic actions, surfaces, resources/forms, backend-driven flow spikes, Storybook behavior scenarios, MSW-backed interaction harnesses, adaptive layout policies, and documentation/release readiness.
+
+The most important adjustment from the user prompt is that fluent authoring should not remain primarily a TypeScript frontend concern. The long-term fluent API should be implemented in the Go host and exposed to Goja in a controlled way, so the runtime can own validity, schema checks, JSON serialization, and lifecycle invariants. TypeScript builders remain useful for Storybook fixtures and prototyping, but the authoritative backend-driven construction path should be Go-host-owned.
+
+### Prompt Context
+
+**User prompt (verbatim):** "cool, let's implement them, by adding detailed phases + tasks to the ticket.
+
+Keep in  mind:
+- prefer fluent APIs with the fluent side implemented in the go host, this gives us full runtime control over the validity and schema
+- add behavior / actions stories to storybook as well, best as a folder per screen and then a whole set of different scenarios clicking through and such to be able ot capture proper screenshots of the interactive sie of things. You can mock http stuff by using msw if necessary (because of the complexity of our system, we might want to adopt a framework on the msw side to facilitate building action handlers and such)."
+
+**Assistant interpretation:** Expand the HAIR-039 ticket into implementable phases and tasks that prioritize Go-host fluent Admin DSL builders and richer Storybook behavior/action scenarios, potentially backed by MSW.
+
+**Inferred user intent:** The user wants the Admin DSL evolution to move from design notes into an actionable implementation backlog while preserving important architectural direction before code work begins.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Updated `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md`.
+- Added Phase 9 through Phase 18:
+  - Backend-owned fluent Admin DSL API design.
+  - Renderer utility and action subsystem extraction.
+  - Rich semantic action model.
+  - Surface subsystem for drawers, modals, sheets, confirms, and details.
+  - Resource and form lifecycle semantics.
+  - Backend-driven Admin DSL flow spike.
+  - Storybook behavior and action scenario catalog.
+  - MSW-backed Admin DSL interaction test harness.
+  - Adaptive layout policies and visual regression expansion.
+  - Documentation, migration, and release readiness.
+- Explicitly captured the preference that Go host builders should become the authoritative schema/validity layer.
+- Explicitly added Storybook folder-per-screen behavior/action scenarios and MSW-backed interaction testing tasks.
+
+### Why
+- The ticket had a completed initial implementation plan, but the next evolution needed a detailed backlog before code changes.
+- The Go-host fluent API decision materially changes implementation order: schema ownership and runtime validation should be designed before adding too many frontend-only conveniences.
+- Behavior screenshots require scenarios and interaction harnesses, not only static page fixtures.
+
+### What worked
+- The existing task file was a good place to extend the implementation plan without creating a separate planning document.
+- The phases now map directly to the implementation sequence implied by the evolution guide and the user's new constraints.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The next Admin DSL work should begin from runtime/schema authority rather than only renderer ergonomics.
+- Storybook should evolve from static layout catalog to an interaction scenario catalog with mockable backend behavior.
+
+### What was tricky to build
+- The task plan needed to avoid overfitting to the salon admin MVP while still providing concrete implementation steps. I split the work into generic platform layers: Go host builders, action semantics, surfaces, resources/forms, backend flow spike, Storybook scenarios, MSW harness, and adaptive policies.
+
+### What warrants a second pair of eyes
+- Review Phase 9 and Phase 14 before implementation to confirm the Go package/module boundary for host-owned builders.
+- Review Phase 15 and Phase 16 before adding dependencies to decide how much MSW framework abstraction is worthwhile.
+
+### What should be done in the future
+- Start implementation with Phase 9 or Phase 10, depending on whether we want to establish backend schema authority before renderer refactoring.
+
+### Code review instructions
+- Review the new phases in `tasks.md` from Phase 9 onward.
+- Confirm that each phase has concrete completion criteria and that Storybook behavior/MSW work is represented explicitly.
+
+### Technical details
+- Task file updated:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md`
