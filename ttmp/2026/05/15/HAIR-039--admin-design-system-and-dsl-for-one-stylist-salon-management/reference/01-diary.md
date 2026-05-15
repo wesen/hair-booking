@@ -1649,3 +1649,82 @@ This is intentionally a maintainability step rather than a visual redesign. The 
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/calendar.tsx`
+
+## Step 24: Add semantic Admin DSL action metadata and behavior stories
+
+I implemented the first semantic action layer on the frontend and connected it to the already-added Go host action concepts. The TypeScript action contract now carries intent, priority, presentation, placement, confirmation, disabled/loading, and accessibility metadata. The frontend builder exposes fluent helpers for primary, secondary, danger, and ghost actions, plus chainable action metadata methods.
+
+I also added the first behavior/action Storybook catalog under a per-screen folder. The Services behavior stories model row selection, open drawers, confirmation states, pending saves, validation errors, success, stale actions, and play-function click-through scenarios. This starts moving Storybook from static page review into screenshot-friendly interaction scenario review.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 22)
+
+**Assistant interpretation:** Continue implementing the planned phases task by task, including semantic actions and behavior/action stories.
+
+**Inferred user intent:** The user wants implementation to proceed while preserving the architectural preference for Go-host validity and richer interactive Storybook review surfaces.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Extended `AdminActionRef` in `web/src/admin-dsl/schema.ts` with semantic action metadata:
+  - `intent`, `priority`, `presentation`, `placement`, `requiresConfirmation`, `disabled`, `loading`, and `accessibilityLabel`.
+- Added fluent TypeScript action fixture helpers in `web/src/admin-dsl/builder.ts`:
+  - `action.primary`, `action.secondary`, `action.danger`, `action.ghost`.
+  - `.intent(...)`, `.priority(...)`, `.placement(...)`, `.presentation(...)`, `.confirm(...)`, `.disabled(...)`, `.loading(...)`, `.accessibilityLabel(...)`.
+- Updated `renderActions` to expose metadata as data attributes and honor disabled/loading state, primary/danger styling, accessible labels, and pending text.
+- Added a semantic action serialization test to `AdminDsl.test.tsx`.
+- Added `web/src/admin-dsl/AdminDslBehavior.stories.tsx` under Storybook title `Admin DSL/Services/Behavior Actions` with scenarios:
+  - Idle,
+  - Drawer Open,
+  - Confirm Open,
+  - Save Pending,
+  - Save Error,
+  - Save Success,
+  - Stale Action,
+  - Click Through Save,
+  - Click Through Archive.
+- Marked Phase 11 tasks complete in `tasks.md`.
+
+### Why
+- Richer action metadata is needed before surfaces, form lifecycles, and adaptive action placement can be implemented cleanly.
+- Behavior Storybook scenarios are needed for proper screenshots of interactive UI states, not just static initial pages.
+
+### What worked
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Frontend tests passed:
+  - `cd web && pnpm test -- --runInBand`
+  - `8 passed`, `33 passed`
+
+### What didn't work
+- I initially wrote the behavior story with an `undefined as never` drawer placeholder for the idle state. I rewrote it to construct the page first and conditionally call `.drawers(...)` only when a selected state exists.
+
+### What I learned
+- Storybook behavior stories can model the runtime event loop with local state first, before introducing MSW. This keeps Phase 11 focused while leaving Phase 16 for a reusable MSW-backed harness.
+
+### What was tricky to build
+- The story needed to represent interaction states without pretending to be the full backend runtime. I kept it explicit: dispatch maps action targets to local story states, and the story displays a mock action log so screenshots show both page state and recent actions.
+
+### What warrants a second pair of eyes
+- Review whether `action.danger(...)` should emit `type: "mutation"` with danger metadata or `type: "confirm"` for some flows. The current choice keeps destructive actions semantic while requiring confirmation metadata.
+- Review whether behavior stories should move into even deeper screen-specific folders once more screens are added.
+
+### What should be done in the future
+- Add MSW-backed action handlers so behavior stories can exercise HTTP-shaped request/response flows.
+- Add screenshot capture script support for behavior stories.
+
+### Code review instructions
+- Review `builder.ts` and `schema.ts` for additive action contract changes.
+- Review `AdminDslBehavior.stories.tsx` for scenario shape and click-through play functions.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- Files changed:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/builder.ts`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslBehavior.stories.tsx`

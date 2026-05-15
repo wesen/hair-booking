@@ -28,6 +28,27 @@ describe("admin DSL", () => {
     expect(page.nodes[0].kind).toBe("section");
   });
 
+  it("serializes semantic action metadata from fluent helpers", () => {
+    const page = admin.page("actions", "Actions")
+      .content(
+        resource.row("row-1", { title: "Row" })
+          .actions(
+            action.primary("save", "Save").placement("footer"),
+            action.danger("archive", "Archive").placement("row").accessibilityLabel("Archive service"),
+            action.ghost("cancel", "Cancel").disabled(),
+          ),
+      )
+      .toJSON();
+
+    const actions = page.nodes[0].props?.actions;
+    expect(actions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ target: "save", intent: "primary", priority: "primary", placement: "footer" }),
+      expect.objectContaining({ target: "archive", intent: "danger", requiresConfirmation: true, accessibilityLabel: "Archive service" }),
+      expect.objectContaining({ target: "cancel", priority: "tertiary", presentation: "link", disabled: true }),
+    ]));
+    expect(JSON.parse(JSON.stringify(page))).toEqual(page);
+  });
+
   it("renders services demo rows and dispatches row actions", () => {
     const dispatch = vi.fn();
     render(<AdminPageRenderer page={servicesAdminPage} context={{ dispatch }} />);

@@ -267,3 +267,18 @@ Step 23: Extracted Admin DSL render utilities and action handling into shared mo
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/renderUtils.ts — Shared renderer JSON/style/node utility helpers
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts — Admin action metadata fields
 
+
+## 2026-05-15
+
+Step 24: Added semantic Admin DSL action metadata, fluent action helpers, renderer disabled/loading/accessibility handling, and Services behavior/action Storybook scenarios; Phase 11 complete. Validation: cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (8 files, 33 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records Phase 11 implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Phase 11 task completion
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — Semantic action serialization tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslBehavior.stories.tsx — Services behavior/action Storybook scenario catalog
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/builder.ts — Fluent semantic action helpers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Renderer honors action disabled/loading/accessibility metadata
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts — Semantic action metadata fields
+

@@ -191,6 +191,42 @@ export class AdminActionBuilder {
     return new AdminActionBuilder({ ...this.ref, options: { ...(this.ref.options || {}), ...options } });
   }
 
+  intent(intent: NonNullable<AdminActionRef["intent"]>) {
+    return new AdminActionBuilder({ ...this.ref, intent });
+  }
+
+  priority(priority: NonNullable<AdminActionRef["priority"]>) {
+    return new AdminActionBuilder({ ...this.ref, priority });
+  }
+
+  placement(placement: NonNullable<AdminActionRef["placement"]>) {
+    return new AdminActionBuilder({ ...this.ref, placement });
+  }
+
+  presentation(presentation: NonNullable<AdminActionRef["presentation"]>) {
+    return new AdminActionBuilder({ ...this.ref, presentation });
+  }
+
+  confirm(options: AdminJsonObject = {}) {
+    return new AdminActionBuilder({
+      ...this.ref,
+      requiresConfirmation: true,
+      options: { ...(this.ref.options || {}), confirmation: options },
+    });
+  }
+
+  disabled(disabled = true) {
+    return new AdminActionBuilder({ ...this.ref, disabled });
+  }
+
+  loading(loading = true) {
+    return new AdminActionBuilder({ ...this.ref, loading });
+  }
+
+  accessibilityLabel(accessibilityLabel: string) {
+    return new AdminActionBuilder({ ...this.ref, accessibilityLabel });
+  }
+
   toJSON(): AdminActionRef {
     return clone(this.ref);
   }
@@ -229,9 +265,13 @@ export const action = {
   close: (target = "current") => new AdminActionBuilder(makeAction("close", target)),
   navigate: (target: string, label?: string, payload?: AdminJsonValue) => new AdminActionBuilder(makeAction("navigate", target, label, payload)),
   mutation: (target: string, label?: string, payload?: AdminJsonValue) => new AdminActionBuilder(makeAction("mutation", target, label, payload)),
-  confirm: (target: string, label?: string, payload?: AdminJsonValue) => new AdminActionBuilder(makeAction("confirm", target, label, payload)),
+  confirm: (target: string, label?: string, payload?: AdminJsonValue) => new AdminActionBuilder(makeAction("confirm", target, label, payload)).intent("danger").confirm(),
   refresh: (target: string, label = "Refresh", payload?: AdminJsonValue) => new AdminActionBuilder(makeAction("refresh", target, label, payload)),
   upload: (target: string, label?: string, options: AdminJsonObject = {}) => new AdminActionBuilder(makeAction("upload", target, label, undefined, options)),
+  primary: (target: string, label?: string, payload?: AdminJsonValue) => new AdminActionBuilder(makeAction("mutation", target, label, payload)).intent("primary").priority("primary"),
+  secondary: (target: string, label?: string, payload?: AdminJsonValue) => new AdminActionBuilder(makeAction("mutation", target, label, payload)).intent("neutral").priority("secondary"),
+  danger: (target: string, label?: string, payload?: AdminJsonValue) => new AdminActionBuilder(makeAction("mutation", target, label, payload)).intent("danger").priority("secondary").confirm(),
+  ghost: (target: string, label?: string, payload?: AdminJsonValue) => new AdminActionBuilder(makeAction("mutation", target, label, payload)).intent("neutral").priority("tertiary").presentation("link"),
 };
 
 export const query = {

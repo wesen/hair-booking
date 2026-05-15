@@ -15,21 +15,29 @@ function renderActions(node: AdminNode, ctx: AdminRenderContext | undefined, act
           key={actionKey(actionRef, i)}
           className="adminDslActionButton"
           type="button"
+          disabled={actionRef.disabled || actionRef.loading}
+          aria-label={actionRef.accessibilityLabel || actionRef.label || actionRef.target}
+          aria-busy={actionRef.loading || undefined}
+          data-admin-dsl-action-intent={actionRef.intent}
+          data-admin-dsl-action-priority={actionRef.priority}
+          data-admin-dsl-action-placement={actionRef.placement}
+          data-admin-dsl-action-confirm={actionRef.requiresConfirmation || undefined}
           onClick={() => dispatchAdminAction(ctx, node, actionRef)}
           style={{ minHeight: 38,
             border: `1px solid ${actionIsDanger(actionRef) ? color.danger : color.ink}`,
-            background: actionIsPrimary(actionRef) ? color.ink : color.paper,
-            color: actionIsPrimary(actionRef) ? color.paper : actionIsDanger(actionRef) ? color.danger : color.ink,
+            background: actionRef.disabled ? color.ruleSoft : actionIsPrimary(actionRef) ? color.ink : color.paper,
+            color: actionRef.disabled ? color.soft : actionIsPrimary(actionRef) ? color.paper : actionIsDanger(actionRef) ? color.danger : color.ink,
             borderRadius: radius.pill,
             padding: "8px 12px",
             fontFamily: font.mono,
             fontSize: 11,
             letterSpacing: 0.6,
             textTransform: "uppercase",
-            cursor: "pointer",
+            cursor: actionRef.disabled || actionRef.loading ? "not-allowed" : "pointer",
+            opacity: actionRef.loading ? 0.72 : 1,
           }}
         >
-          {actionRef.label || actionRef.target}
+          {actionRef.loading ? "Working…" : actionRef.label || actionRef.target}
         </button>
       ))}
     </div>

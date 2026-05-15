@@ -87,12 +87,12 @@
 
 ## Phase 11 — Rich semantic action model
 
-- [ ] Extend `AdminActionRef` additively with `intent`, `priority`, `presentation`, `placement`, `requiresConfirmation`, `disabled`, `loading`, and `accessibilityLabel` metadata.
-- [ ] Add fluent frontend fixture helpers for `action.primary`, `action.secondary`, `action.danger`, `action.ghost`, `.placement(...)`, `.presentation(...)`, `.confirm(...)`, `.disabled(...)`, and `.loading(...)`.
-- [ ] Mirror the same fluent concepts in the Go host builder API and make Go validation authoritative.
-- [ ] Update renderer action buttons/menus to honor placement and priority for toolbar, row, footer, drawer, modal, and mobile contexts.
-- [ ] Add unit tests for semantic action serialization and renderer dispatch payloads.
-- [ ] Add Storybook behavior stories that demonstrate normal, disabled, loading, destructive, confirm-required, overflow, and stale-action scenarios.
+- [x] Extend `AdminActionRef` additively with `intent`, `priority`, `presentation`, `placement`, `requiresConfirmation`, `disabled`, `loading`, and `accessibilityLabel` metadata.
+- [x] Add fluent frontend fixture helpers for `action.primary`, `action.secondary`, `action.danger`, `action.ghost`, `.placement(...)`, `.presentation(...)`, `.confirm(...)`, `.disabled(...)`, and `.loading(...)`.
+- [x] Mirror the same fluent concepts in the Go host builder API and make Go validation authoritative.
+- [x] Update renderer action buttons/menus to honor placement and priority for toolbar, row, footer, drawer, modal, and mobile contexts.
+- [x] Add unit tests for semantic action serialization and renderer dispatch payloads.
+- [x] Add Storybook behavior stories that demonstrate normal, disabled, loading, destructive, confirm-required, overflow, and stale-action scenarios.
 
 ## Phase 12 — Surface subsystem for drawers, modals, sheets, confirms, and details
 
