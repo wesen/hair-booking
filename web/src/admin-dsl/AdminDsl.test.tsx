@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
-import { action, admin, resource, surface } from "./builder";
+import { action, admin, field, resource, surface } from "./builder";
 import { calendarAdminPage, servicesAdminPage } from "./examples";
 import { AdminPageRenderer } from "./render";
 
@@ -47,6 +47,48 @@ describe("admin DSL", () => {
       expect.objectContaining({ target: "cancel", priority: "tertiary", presentation: "link", disabled: true }),
     ]));
     expect(JSON.parse(JSON.stringify(page))).toEqual(page);
+  });
+
+  it("serializes resource and form lifecycle helpers", () => {
+    const page = resource.page("lifecycle", "Lifecycle")
+      .content(
+        resource.list("items", { state: "empty" }).empty(admin.emptyState("No items")),
+        admin.form("itemForm", { title: "Item" })
+          .state("dirty")
+          .dirty()
+          .values({ name: "Cut" })
+          .errors({ price: "Required" })
+          .children(field.text("name", { label: "Name", value: "Cut" }))
+          .submit(action.primary("item.save", "Save"))
+          .cancel(action.secondary("item.cancel", "Cancel")),
+      )
+      .toJSON();
+
+    expect(page.nodes[0].props).toEqual(expect.objectContaining({ state: "empty", empty: expect.objectContaining({ kind: "emptyState" }) }));
+    expect(page.nodes[1].props).toEqual(expect.objectContaining({
+      state: "dirty",
+      dirty: true,
+      values: { name: "Cut" },
+      errors: { price: "Required" },
+      actions: expect.objectContaining({ submit: expect.objectContaining({ target: "item.save" }), cancel: expect.objectContaining({ target: "item.cancel" }) }),
+    }));
+    expect(JSON.parse(JSON.stringify(page))).toEqual(page);
+  });
+
+  it("renders resource lifecycle empty and form validation states", () => {
+    const page = resource.page("render-lifecycle", "Render lifecycle")
+      .content(
+        resource.list("items", { state: "empty", emptyTitle: "No items" }),
+        admin.form("itemForm", { title: "Item", dirty: true, errors: { name: "Required" } }, field.text("name", { label: "Name", value: "" }))
+          .submit(action.primary("item.save", "Save")),
+      )
+      .toJSON();
+
+    render(<AdminPageRenderer page={page} />);
+    expect(screen.getByText("No items")).toBeInTheDocument();
+    expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
+    expect(screen.getByText(/name/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
   });
 
   it("serializes surface builders as plain JSON nodes", () => {

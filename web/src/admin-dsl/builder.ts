@@ -112,6 +112,39 @@ export class AdminNodeBuilder<P extends AdminJsonObject = AdminJsonObject> {
     return this;
   }
 
+  state(state: "idle" | "loading" | "empty" | "error" | "dirty" | "pending" | "success") {
+    this.node.props = { ...(this.node.props || {}), state } as unknown as P;
+    return this;
+  }
+
+  values(values: AdminJsonObject) {
+    this.node.props = { ...(this.node.props || {}), values } as unknown as P;
+    return this;
+  }
+
+  errors(errors: AdminJsonObject) {
+    this.node.props = { ...(this.node.props || {}), errors } as unknown as P;
+    return this;
+  }
+
+  submit(actionRef: ActionInput) {
+    return this.action("submit", actionRef);
+  }
+
+  cancel(actionRef: ActionInput) {
+    return this.action("cancel", actionRef);
+  }
+
+  dirty(dirty = true) {
+    this.node.props = { ...(this.node.props || {}), dirty } as unknown as P;
+    return this;
+  }
+
+  pending(pending = true) {
+    this.node.props = { ...(this.node.props || {}), pending } as unknown as P;
+    return this;
+  }
+
   toJSON(): AdminNode<P> {
     return clone(this.node);
   }

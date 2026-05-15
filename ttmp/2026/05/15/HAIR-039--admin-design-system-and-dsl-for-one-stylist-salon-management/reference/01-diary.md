@@ -1806,3 +1806,98 @@ This is still a transition layer, not the final overlay runtime. It preserves th
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder.go`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/validate.go`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder_test.go`
+
+## Step 26: Add surface catalog stories and resource/form lifecycle semantics
+
+I added a dedicated Storybook surface catalog and then continued into resource/form lifecycle semantics. The new surface catalog gives every surface type its own screenshot-friendly story, plus a matrix story for comparing them together. The lifecycle work adds generic resource query states and form lifecycle metadata without prescribing application-owned database schemas or mutation behavior.
+
+The implementation stays additive: TypeScript fixture builders gained lifecycle helper methods, the Go host builder gained matching lifecycle methods, and the renderer learned how to display loading/empty/error resource states plus dirty/pending/success/error form states. Storybook now has separate folders for surfaces and resource/form lifecycles.
+
+### Prompt Context
+
+**User prompt (verbatim):** "yes, detailed surface specific storybook catalog, then continue with the next phases"
+
+**Assistant interpretation:** Add dedicated surface-specific Storybook stories, then continue implementing the next planned HAIR-039 phases.
+
+**Inferred user intent:** The user wants visual review coverage for the new surface subsystem before moving on, and then wants implementation to keep progressing into resource/form lifecycle semantics.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Added `web/src/admin-dsl/AdminDslSurfaces.stories.tsx` under `Admin DSL/Surfaces/Catalog` with stories:
+  - Drawer,
+  - Modal,
+  - Sheet,
+  - Detail Panel,
+  - Inline Panel,
+  - Confirm,
+  - Matrix.
+- Added `web/src/admin-dsl/AdminDslResourceLifecycle.stories.tsx` under `Admin DSL/Resources/Form Lifecycle` with stories:
+  - Loading,
+  - Empty,
+  - Error,
+  - Selected,
+  - Dirty,
+  - Pending,
+  - Validation Error,
+  - Saved.
+- Added TypeScript lifecycle helper methods to `AdminNodeBuilder`:
+  - `.state(...)`, `.values(...)`, `.errors(...)`, `.submit(...)`, `.cancel(...)`, `.dirty(...)`, `.pending(...)`.
+- Added Go host lifecycle helper methods to `NodeBuilder`:
+  - `State`, `Values`, `Errors`, `Submit`, `Cancel`, `Dirty`, `Pending`.
+- Updated `render.tsx` so `resourceList` can render loading, empty, and error states from props.
+- Updated `render.tsx` so `form` can render dirty/pending/success lifecycle status, validation errors, and keyed form actions.
+- Added frontend tests for lifecycle helper serialization and lifecycle rendering.
+- Added Go host tests for lifecycle helper output.
+- Marked Phase 13 tasks complete in `tasks.md`.
+
+### Why
+- Surface stories make the new surface subsystem reviewable independently from the Services behavior screen.
+- Resource and form lifecycle semantics are needed before backend-driven admin flows can return realistic pending/error/success page states.
+- Keeping lifecycle fields generic avoids putting app-specific config/write semantics into the Admin DSL.
+
+### What worked
+- Go package validation passed:
+  - `go test ./pkg/admindsl -count=1`
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Frontend tests passed:
+  - `cd web && pnpm test -- --runInBand`
+  - `8 passed`, `36 passed`
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The same lifecycle helpers can serve both resources and forms if they only describe state and actions, not app-owned persistence semantics.
+- Dedicated Storybook folders make it much easier to browse individual semantic subsystems than embedding every state into one large page catalog.
+
+### What was tricky to build
+- The lifecycle renderer needed to be useful without becoming a full form framework. I kept it limited to displayable state: loading/empty/error for resources; dirty/pending/success/error summaries and keyed actions for forms.
+
+### What warrants a second pair of eyes
+- Review whether `.state(...)` should remain a generic node builder method or move to narrower resource/form builders later.
+- Review whether form errors should be standardized as a map, array, or richer object before backend integration.
+
+### What should be done in the future
+- Connect these lifecycle states to the backend-driven Admin DSL flow spike in Phase 14.
+- Add MSW-backed stories so lifecycle scenarios can be generated from request/response handlers instead of local fixtures.
+
+### Code review instructions
+- Review the new Storybook files first to see the visual scenarios.
+- Then review `builder.ts`, `render.tsx`, and `pkg/admindsl/builder.go` for lifecycle helper behavior.
+- Validate with:
+  - `go test ./pkg/admindsl -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- Files added:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslSurfaces.stories.tsx`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslResourceLifecycle.stories.tsx`
+- Files changed:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/builder.ts`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder_test.go`

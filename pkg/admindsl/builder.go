@@ -183,6 +183,34 @@ func (b *NodeBuilder) Query(query *QueryBuilder) *NodeBuilder {
 	return b
 }
 
+func (b *NodeBuilder) State(state string) *NodeBuilder {
+	return b.Props(JSONObject{"state": state})
+}
+
+func (b *NodeBuilder) Values(values JSONObject) *NodeBuilder {
+	return b.Props(JSONObject{"values": values})
+}
+
+func (b *NodeBuilder) Errors(errors JSONObject) *NodeBuilder {
+	return b.Props(JSONObject{"errors": errors})
+}
+
+func (b *NodeBuilder) Submit(action *ActionBuilder) *NodeBuilder {
+	return b.Action("submit", action)
+}
+
+func (b *NodeBuilder) Cancel(action *ActionBuilder) *NodeBuilder {
+	return b.Action("cancel", action)
+}
+
+func (b *NodeBuilder) Dirty(dirty bool) *NodeBuilder {
+	return b.Props(JSONObject{"dirty": dirty})
+}
+
+func (b *NodeBuilder) Pending(pending bool) *NodeBuilder {
+	return b.Props(JSONObject{"pending": pending})
+}
+
 func (b *NodeBuilder) Build() Node {
 	return b.node
 }

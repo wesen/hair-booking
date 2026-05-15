@@ -300,3 +300,20 @@ Step 25: Added the first Admin DSL surface subsystem layer with frontend surface
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Renderer surface cases
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts — Surface node kinds
 
+
+## 2026-05-15
+
+Step 26: Added dedicated surface Storybook catalog stories and implemented resource/form lifecycle semantics with TypeScript and Go host helpers, renderer state handling, tests, and lifecycle stories; Phase 13 complete. Validation: go test ./pkg/admindsl -count=1; cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (8 files, 36 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder.go — Go host lifecycle helper methods
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder_test.go — Go host lifecycle tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records surface catalog and lifecycle implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Phase 13 task completion
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — Lifecycle frontend tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslResourceLifecycle.stories.tsx — Resource/form lifecycle Storybook catalog
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslSurfaces.stories.tsx — Surface-specific Storybook catalog
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/builder.ts — Frontend lifecycle helper methods
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Renderer lifecycle state handling
+

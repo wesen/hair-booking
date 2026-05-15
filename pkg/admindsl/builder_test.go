@@ -83,6 +83,28 @@ func TestGoHostBuilderRejectsInvalidSchema(t *testing.T) {
 	}
 }
 
+func TestGoHostBuilderSupportsResourceAndFormLifecycle(t *testing.T) {
+	page, err := PageResource("lifecycle", "Lifecycle").Content(
+		ResourceList("services", JSONObject{"state": "empty", "emptyTitle": "No services"}),
+		Form("serviceForm", JSONObject{"title": "Service"}, TextField("name", JSONObject{"label": "Name", "value": "Cut"})).
+			State("dirty").Dirty(true).Values(JSONObject{"name": "Cut"}).Errors(JSONObject{"price": "Required"}).
+			Submit(Primary("service.save", "Save")).Cancel(Secondary("service.cancel", "Cancel")),
+	).Build()
+	if err != nil {
+		t.Fatalf("build page: %v", err)
+	}
+	if page.Nodes[0].Props["state"] != "empty" {
+		t.Fatalf("expected empty resource state, got %#v", page.Nodes[0].Props)
+	}
+	actions, ok := page.Nodes[1].Props["actions"].(map[string]any)
+	if !ok {
+		t.Fatalf("expected keyed form actions, got %T", page.Nodes[1].Props["actions"])
+	}
+	if actions["submit"].(map[string]any)["target"] != "service.save" {
+		t.Fatalf("unexpected submit action: %#v", actions["submit"])
+	}
+}
+
 func TestGoHostBuilderSupportsSurfaceNodes(t *testing.T) {
 	page, err := PageAdmin("surfaces", "Surfaces").
 		Content(InlinePanel("inline-help", JSONObject{"title": "Inline help"}, TextField("name", JSONObject{"label": "Name"}))).

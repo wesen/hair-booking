@@ -105,12 +105,12 @@
 
 ## Phase 13 — Resource and form lifecycle semantics
 
-- [ ] Define `resource.page(...)` semantics for query, list/table/card views, selected item, detail surface, bulk actions, empty state, loading state, and error state.
-- [ ] Define lifecycle-aware form semantics for values, dirty state, validation errors, submit state, cancel/reset, sticky save bars, and optimistic save feedback.
-- [ ] Implement TypeScript fixture helpers and Go host builders for resource and form lifecycle descriptors.
-- [ ] Add renderer handling for resource loading/empty/error states and form dirty/pending/error/success states.
-- [ ] Add tests covering form serialization, dirty-state rendering, validation error rendering, submit action dispatch, and cancel/reset action dispatch.
-- [ ] Keep app-owned data schema and write semantics out of the generic Admin DSL.
+- [x] Define `resource.page(...)` semantics for query, list/table/card views, selected item, detail surface, bulk actions, empty state, loading state, and error state.
+- [x] Define lifecycle-aware form semantics for values, dirty state, validation errors, submit state, cancel/reset, sticky save bars, and optimistic save feedback.
+- [x] Implement TypeScript fixture helpers and Go host builders for resource and form lifecycle descriptors.
+- [x] Add renderer handling for resource loading/empty/error states and form dirty/pending/error/success states.
+- [x] Add tests covering form serialization, dirty-state rendering, validation error rendering, submit action dispatch, and cancel/reset action dispatch.
+- [x] Keep app-owned data schema and write semantics out of the generic Admin DSL.
 
 ## Phase 14 — Backend-driven Admin DSL flow spike
 

@@ -122,12 +122,17 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       );
     }
 
-    case "resourceList":
+    case "resourceList": {
+      const state = str(props, "state", "idle");
+      if (state === "loading") return renderAdminNode({ kind: "loadingState", props: { title: str(props, "loadingTitle", "Loading resources"), body: str(props, "loadingBody", "Fetching the latest data.") }, meta: node.meta }, ctx, key);
+      if (state === "error") return renderAdminNode({ kind: "inlineError", props: { title: str(props, "errorTitle", "Could not load resources"), body: str(props, "errorBody", "Try refreshing or check the backend response.") }, meta: node.meta }, ctx, key);
+      if (state === "empty") return renderInlineNode(jsonObject(props, "empty"), ctx) || renderAdminNode({ kind: "emptyState", props: { title: str(props, "emptyTitle", "No records yet"), body: str(props, "emptyBody") }, meta: node.meta }, ctx, key);
       return (
         <div key={key} {...common} style={{ display: "grid", gap: 10, ...style(props) }}>
           {node.children?.length ? renderChildren(node.children, ctx) : renderInlineNode(jsonObject(props, "empty"), ctx)}
         </div>
       );
+    }
 
     case "resourceRow":
       return (
@@ -208,13 +213,19 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
         </aside>
       );
 
-    case "form":
+    case "form": {
+      const errors = jsonObject(props, "errors");
+      const pending = bool(props, "pending") || str(props, "state") === "pending";
       return (
-        <form key={key} {...common} style={{ display: "grid", gap: 16, ...style(props) }} onSubmit={(event) => event.preventDefault()}>
+        <form key={key} {...common} aria-busy={pending || undefined} style={{ display: "grid", gap: 16, opacity: pending ? 0.76 : 1, ...style(props) }} onSubmit={(event) => event.preventDefault()}>
           {str(props, "title") && <h3 style={{ ...type.h2, margin: 0 }}>{str(props, "title")}</h3>}
+          {(bool(props, "dirty") || pending || str(props, "state") === "success") && <div className="adminDslFormLifecycle" style={{ ...type.meta, border: `1px solid ${pending ? color.warn : str(props, "state") === "success" ? color.success : color.rule}`, borderRadius: radius.pill, padding: "6px 10px", width: "fit-content", background: color.paper }}>{pending ? "Saving…" : str(props, "state") === "success" ? "Saved" : "Unsaved changes"}</div>}
+          {errors && <div style={{ border: `1px solid ${color.danger}`, borderRadius: radius.md, padding: 10, color: color.danger, display: "grid", gap: 4 }}>{Object.entries(errors).map(([name, message]) => <div key={name} style={{ ...type.bodySm }}><strong>{name}</strong>: {String(message)}</div>)}</div>}
           {renderChildren(node.children, ctx)}
+          {renderActions(node, ctx)}
         </form>
       );
+    }
 
     case "fieldGroup":
       return <fieldset key={key} {...common} style={{ border: `1px solid ${color.rule}`, borderRadius: radius.md, padding: 14, display: "grid", gap: 12, ...style(props) }}><legend style={{ ...type.eyebrow }}>{str(props, "title")}</legend>{renderChildren(node.children, ctx)}</fieldset>;
