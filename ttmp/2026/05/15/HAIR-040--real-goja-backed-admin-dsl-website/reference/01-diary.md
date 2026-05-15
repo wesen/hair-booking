@@ -433,3 +433,64 @@ The static and MSW stories remain the correct screenshot candidates. The live st
 ### Technical details
 - File added:
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/BackendAdminDslPage.stories.tsx`
+
+## Step 8: Run final validation and close the HAIR-040 implementation loop
+
+I ran the full repository validation suite after the Admin DSL runtime, flow source, HTTP cut-over, frontend route, and live Storybook story were in place. All Go and frontend checks passed, so I marked the final validation/documentation phase complete.
+
+This leaves HAIR-040 with a real `/admin/services` website route backed by a Goja-authored Admin DSL flow source and served through the dedicated Admin DSL protobuf HTTP transport.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 1)
+
+**Assistant interpretation:** Complete the phased implementation with final validation and documentation updates.
+
+**Inferred user intent:** The user wants a validated, committed implementation rather than only a design sketch.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Ran full Go tests:
+  - `go test ./... -count=1`
+- Ran TypeScript validation:
+  - `cd web && npx tsc --noEmit`
+- Ran frontend tests:
+  - `cd web && pnpm test -- --runInBand`
+- Marked Phase 6 complete in `tasks.md`.
+
+### Why
+- The implementation touched backend runtime, server handlers, protobuf conversion, frontend routing, Storybook, and docs, so full validation was required.
+
+### What worked
+- Go tests passed across the repo.
+- TypeScript passed.
+- Frontend tests passed:
+  - `10 passed`, `41 passed`.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The real Admin DSL website now follows the same high-level loop as the intake DSL while preserving Admin-specific schema, surfaces, and protobuf transport.
+
+### What was tricky to build
+- The final state required several clean cut-overs: old Go spike removed, surface authoring kept on `surface.*`, and frontend dispatch requires opaque backend action ids.
+
+### What warrants a second pair of eyes
+- Manual browser smoke for `/admin/services` with the Go server running.
+- Review auth/authorization before exposing the route beyond development.
+
+### What should be done in the future
+- Persist Admin DSL sessions if admin workflows need reload durability.
+- Add real service persistence/mutation against app-owned backend storage.
+
+### Code review instructions
+- Review commits Step 1 through Step 8 in order.
+- Validate with the three commands above.
+
+### Technical details
+- Final validation:
+  - `go test ./... -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`

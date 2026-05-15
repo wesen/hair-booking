@@ -48,9 +48,9 @@
 
 ## Phase 6 — Final validation and documentation
 
-- [ ] Update HAIR-040 diary after each implementation step.
-- [ ] Update HAIR-040 changelog and doc relations.
-- [ ] Run `go test ./... -count=1`.
-- [ ] Run `cd web && npx tsc --noEmit`.
-- [ ] Run `cd web && pnpm test -- --runInBand`.
-- [ ] Commit each completed phase separately.
+- [x] Update HAIR-040 diary after each implementation step.
+- [x] Update HAIR-040 changelog and doc relations.
+- [x] Run `go test ./... -count=1`.
+- [x] Run `cd web && npx tsc --noEmit`.
+- [x] Run `cd web && pnpm test -- --runInBand`.
+- [x] Commit each completed phase separately.
