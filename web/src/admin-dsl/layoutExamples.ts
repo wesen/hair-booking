@@ -1,4 +1,4 @@
-import { action, admin, field, resource } from "./builder";
+import { action, admin, field, resource, surface } from "./builder";
 import type { AdminPage } from "./schema";
 
 export const commerceOrdersPage = admin.page("commerce-orders", "Orders")
@@ -26,7 +26,7 @@ export const commerceOrdersPage = admin.page("commerce-orders", "Orders")
     ),
   )
   .drawers(
-    admin.drawer("orderDetail", { title: "Order #1042", open: true },
+    surface.drawer("orderDetail", { title: "Order #1042", open: true },
       admin.kvList([
         { label: "Customer", value: "Mina Carter" },
         { label: "Payment", value: "Paid · Visa ending 8821" },
@@ -39,7 +39,7 @@ export const commerceOrdersPage = admin.page("commerce-orders", "Orders")
       ]),
     ),
   )
-  .modals(admin.confirm("refundOrder", { title: "Refund order?", body: "This will create a refund event and notify the customer.", confirmLabel: "Refund", tone: "danger" }))
+  .modals(surface.confirm("refundOrder", { title: "Refund order?", body: "This will create a refund event and notify the customer.", confirmLabel: "Refund", tone: "danger" }))
   .meta({ storyTitle: "Admin DSL Layouts/Commerce Orders", tags: ["admin", "commerce", "layout"] })
   .toJSON();
 
@@ -66,7 +66,7 @@ export const courseAdminPage = admin.page("course-admin", "Course builder")
       ),
     ),
   )
-  .modals(admin.modal("newLesson", { title: "New lesson" }, admin.form("newLessonForm", {}, field.text("title", { label: "Title" }), field.select("type", [{ value: "video", label: "Video" }, { value: "article", label: "Article" }], { label: "Type" }))))
+  .modals(surface.modal("newLesson", { title: "New lesson" }, admin.form("newLessonForm", {}, field.text("title", { label: "Title" }), field.select("type", [{ value: "video", label: "Video" }, { value: "article", label: "Article" }], { label: "Type" }))))
   .meta({ storyTitle: "Admin DSL Layouts/Course Builder", tags: ["admin", "education", "layout"] })
   .toJSON();
 
@@ -107,7 +107,7 @@ export const supportInboxPage = admin.page("support-inbox", "Support inbox")
       ),
     ),
   )
-  .drawers(admin.drawer("ticketDetail", { title: "Refund not received", open: true }, admin.activityFeed([{ time: "Mon", title: "Customer wrote in", body: "Refund still missing after four business days." }, { time: "Tue", title: "Agent replied", body: "Shared bank processing timeline." }]), admin.form("reply", {}, field.textarea("body", { label: "Reply" }), admin.saveBar({ status: "assigned to Mia", primary: action.mutation("ticket.reply", "Send reply").toJSON() }))))
+  .drawers(surface.drawer("ticketDetail", { title: "Refund not received", open: true }, admin.activityFeed([{ time: "Mon", title: "Customer wrote in", body: "Refund still missing after four business days." }, { time: "Tue", title: "Agent replied", body: "Shared bank processing timeline." }]), admin.form("reply", {}, field.textarea("body", { label: "Reply" }), admin.saveBar({ status: "assigned to Mia", primary: action.mutation("ticket.reply", "Send reply").toJSON() }))))
   .meta({ storyTitle: "Admin DSL Layouts/Support Inbox", tags: ["admin", "support", "layout"] })
   .toJSON();
 
@@ -125,7 +125,7 @@ export const mediaLibraryPage = admin.page("media-library", "Media library")
       ]),
     ),
   )
-  .modals(admin.modal("editAsset", { title: "Edit asset", open: true }, admin.form("assetForm", {}, field.text("alt", { label: "Alt text", value: "Stylist finishing color service" }), field.text("caption", { label: "Caption", value: "Fresh color result" }), field.switch("visible", { label: "Visible", value: true }), admin.saveBar({ status: "selected", primary: action.mutation("asset.save", "Save asset").toJSON() }))))
+  .modals(surface.modal("editAsset", { title: "Edit asset", open: true }, admin.form("assetForm", {}, field.text("alt", { label: "Alt text", value: "Stylist finishing color service" }), field.text("caption", { label: "Caption", value: "Fresh color result" }), field.switch("visible", { label: "Visible", value: true }), admin.saveBar({ status: "selected", primary: action.mutation("asset.save", "Save asset").toJSON() }))))
   .meta({ storyTitle: "Admin DSL Layouts/Media Library", tags: ["admin", "media", "layout"] })
   .toJSON();
 
@@ -161,7 +161,7 @@ export const teamSettingsPage = admin.settings("team-settings", "Team settings")
     ),
     admin.section("Audit log", {}, admin.activityFeed([{ time: "Yesterday", title: "Role changed", body: "Sam Lee became Editor." }, { time: "Last week", title: "Invite accepted", body: "Mia invited Sam Lee." }])),
   )
-  .modals(admin.modal("inviteMember", { title: "Invite member" }, admin.form("invite", {}, field.text("email", { label: "Email" }), field.select("role", [{ value: "viewer", label: "Viewer" }, { value: "editor", label: "Editor" }, { value: "admin", label: "Admin" }], { label: "Role" }))))
+  .modals(surface.modal("inviteMember", { title: "Invite member" }, admin.form("invite", {}, field.text("email", { label: "Email" }), field.select("role", [{ value: "viewer", label: "Viewer" }, { value: "editor", label: "Editor" }, { value: "admin", label: "Admin" }], { label: "Role" }))))
   .meta({ storyTitle: "Admin DSL Layouts/Team Settings", tags: ["admin", "team", "layout"] })
   .toJSON();
 

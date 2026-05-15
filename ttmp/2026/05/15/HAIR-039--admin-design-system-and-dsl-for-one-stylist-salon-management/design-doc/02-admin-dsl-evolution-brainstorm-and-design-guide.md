@@ -284,8 +284,8 @@ action.mutation("service.archive", "Archive")
 Current overlays are static nodes:
 
 ```ts
-admin.modal("editService", { title: "Edit service" }, serviceForm)
-admin.drawer("orderDetail", { title: "Order #1042" }, detail)
+surface.modal("editService", { title: "Edit service" }, serviceForm)
+surface.drawer("orderDetail", { title: "Order #1042" }, detail)
 ```
 
 This is useful for Storybook, but it does not model behavior strongly enough.
@@ -823,3 +823,20 @@ from: nodes that look like UI
 ```
 
 That shift is what will preserve the balance of elegance and versatility.
+
+## Implementation Checkpoint: Phase 16-18 Direction
+
+The implemented Admin DSL direction is now a clean cut-over toward semantic subsystems:
+
+- backend-authoritative Go builders in `pkg/admindsl`,
+- dedicated Admin DSL protobuf transport under `proto/fringe/admin_dsl/v1`,
+- explicit surface builders under `surface.*`,
+- semantic action metadata,
+- resource/form lifecycle state,
+- reusable MSW scenario harnesses,
+- explicit layout/adaptive policy props,
+- focused backend, renderer, and Storybook author guides.
+
+The code path should prefer `surface.*` for all modal, drawer, sheet, confirm, detail, and inline surface construction. Legacy surface helpers should not be used for new work.
+
+Phase 16 is the reusable Storybook/test simulation layer. Phase 14B is the live protobuf/HTTP transport layer. Both are useful: MSW stories provide deterministic review; live backend transport proves real integration.

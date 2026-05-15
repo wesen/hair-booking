@@ -211,6 +211,14 @@ func (b *NodeBuilder) Pending(pending bool) *NodeBuilder {
 	return b.Props(JSONObject{"pending": pending})
 }
 
+func (b *NodeBuilder) LayoutPolicy(policy JSONObject) *NodeBuilder {
+	return b.Props(JSONObject{"layoutPolicy": policy})
+}
+
+func (b *NodeBuilder) Adaptive(views JSONObject) *NodeBuilder {
+	return b.Props(JSONObject{"adaptive": views})
+}
+
 func (b *NodeBuilder) Build() Node {
 	return b.node
 }

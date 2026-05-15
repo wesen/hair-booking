@@ -1,4 +1,5 @@
-import { action, admin, resource } from "./builder";
+import { action, admin, resource, surface } from "./builder";
+import type { AdminScenarioDefinition } from "./scenarioHarness";
 import type { AdminPage } from "./schema";
 
 export type ServicesScenarioState = "idle" | "selected" | "confirm" | "saving" | "error" | "success" | "stale" | "empty" | "loading" | "permission";
@@ -13,6 +14,25 @@ export function nextServicesScenarioState(target: string, options: { failSave?: 
     default: return "selected";
   }
 }
+
+export const servicesScenarioDefinition: AdminScenarioDefinition<ServicesScenarioState> = {
+  endpoint: "/api/admin-dsl/scenarios/services",
+  initialState: "idle",
+  renderPage: servicesScenarioPage,
+  fallbackState: "selected",
+  transitions: [
+    { target: "service.select", to: "selected", message: "Opened service editor" },
+    { target: "service.archive", to: "confirm", message: "Opened archive confirmation" },
+    { target: "service.archive.confirm", to: "success", message: "Archived service" },
+    { target: "service.save", to: "success", latencyMs: 180, message: "Saved service" },
+    { target: "service.save.validation", to: "error", status: "validation", message: "Validation failed" },
+    { target: "service.save.pending", to: "saving", latencyMs: 250, message: "Saving service" },
+    { target: "service.cancel", to: "idle", message: "Cancelled edit" },
+    { target: "services.refresh", to: "loading", latencyMs: 180, message: "Refreshing services" },
+    { target: "service.permission", to: "permission", status: "authorization", message: "Permission denied" },
+    { target: "service.stale", to: "stale", status: "stale", message: "Stale page version" },
+  ],
+};
 
 export function servicesScenarioPage(state: ServicesScenarioState): AdminPage {
   const selected = ["selected", "confirm", "saving", "error", "success"].includes(state);
@@ -48,7 +68,7 @@ export function servicesScenarioPage(state: ServicesScenarioState): AdminPage {
     );
 
   if (selected) {
-    page.drawers(admin.drawer("serviceEditor", { title: state === "confirm" ? "Archive Cut?" : "Edit Cut", open: true, selectedId: "cut" },
+    page.drawers(surface.drawer("serviceEditor", { title: state === "confirm" ? "Archive Cut?" : "Edit Cut", open: true, selectedId: "cut" },
       admin.form("serviceForm", { title: "Service form", dirty: state === "selected" || state === "error", pending: isSaving, state: isSaving ? "pending" : state === "success" ? "success" : state === "error" ? "dirty" : "dirty" })
         .errors(state === "error" ? { name: "Name is required" } : {})
         .children(admin.fieldGroup("Basics", admin.markdown(state === "confirm" ? "Confirm archival for Cut." : "Name: Cut\nDuration: 60 min\nPrice: $80+")))

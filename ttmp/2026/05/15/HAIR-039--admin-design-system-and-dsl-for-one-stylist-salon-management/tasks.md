@@ -99,7 +99,7 @@
 - [x] Add a `surface.*` builder namespace for `drawer`, `modal`, `sheet`, `confirm`, `detailPanel`, and `inlinePanel` fixtures.
 - [x] Add equivalent Go host fluent builders and validation for surface id uniqueness, close behavior, presentation mode, and mobile fallback.
 - [x] Define surface state inputs: selected resource id, open/closed state, pending action, validation errors, and optimistic mutation state.
-- [x] Refactor current static `modal`, `drawer`, and `confirmDialog` nodes to use surface semantics while keeping JSON backward-compatible during the transition.
+- [x] Cut over current static `modal`, `drawer`, and `confirmDialog` authoring to `surface.*` semantics without retaining legacy builder wrappers.
 - [x] Add renderer support for desktop right drawers, centered modals, mobile bottom sheets, inline detail panels, and screenshot-friendly static-open states.
 - [x] Add Storybook folders per screen with scenarios for closed, opened, editing, confirming, saving, error, and success states.
 
@@ -140,27 +140,26 @@
 
 ## Phase 16 — MSW-backed Admin DSL interaction test harness
 
-- [ ] Add MSW dependencies/configuration if not already present in the web app.
-- [ ] Create a small test/story harness for Admin DSL action handling that can map action targets to mocked state transitions.
-- [ ] Support declarative fixtures for latency, success, validation error, authorization error, server error, and stale-action responses.
-- [ ] Wire the harness into Storybook stories and selected Vitest integration tests.
-- [ ] Ensure the harness models the real runtime shape closely enough that backend-driven stories do not become misleading.
-- [ ] Document when to use pure static fixtures, local story state, MSW-backed stories, and live backend stories.
+- [x] Add MSW dependencies/configuration if not already present in the web app.
+- [x] Create a small test/story harness for Admin DSL action handling that can map action targets to mocked state transitions.
+- [x] Support declarative fixtures for latency, success, validation error, authorization error, server error, and stale-action responses.
+- [x] Wire the harness into Storybook stories and selected Vitest integration tests.
+- [x] Ensure the harness models the real runtime shape closely enough that backend-driven stories do not become misleading.
+- [x] Document when to use pure static fixtures, local story state, MSW-backed stories, and live backend stories.
 
 ## Phase 17 — Adaptive layout policies and visual regression expansion
 
-- [ ] Add explicit layout policy props for split panes, resource lists, calendars, drawers, toolbars, side panels, and sticky action regions.
-- [ ] Extend calendar adaptive behavior into a reusable adaptive-view pattern for table/card, grid/list, detail/summary, and drawer/sheet variants.
-- [ ] Add desktop/mobile behavior stories for each adaptive policy.
-- [ ] Expand screenshot automation to capture behavior scenarios and layout catalog desktop/mobile stories.
-- [ ] Add VLM/image-review checkpoints for scenario groups where visual correctness is hard to assert with DOM tests alone.
-- [ ] Decide which screenshots should become CI-grade regression artifacts and which remain manual review artifacts.
+- [x] Add explicit layout policy props for split panes, resource lists, calendars, drawers, toolbars, side panels, and sticky action regions.
+- [x] Extend calendar adaptive behavior into a reusable adaptive-view pattern for table/card, grid/list, detail/summary, and drawer/sheet variants.
+- [x] Add desktop/mobile behavior stories for each adaptive policy.
+- [x] Expand screenshot automation to capture behavior scenarios and layout catalog desktop/mobile stories.
+- [x] Add VLM/image-review checkpoints for scenario groups where visual correctness is hard to assert with DOM tests alone.
+- [x] Decide which screenshots should become CI-grade regression artifacts and which remain manual review artifacts.
 
-## Phase 18 — Documentation, migration, and release readiness
+## Phase 18 — Documentation and release readiness
 
-- [ ] Update the Admin DSL evolution guide after each implemented subsystem with final API shapes and examples.
-- [ ] Add a backend-author guide for building Admin DSL pages through Go host fluent APIs and Goja-controlled scripts.
-- [ ] Add a frontend-renderer guide for adding new node kinds without breaking the JSON contract.
-- [ ] Add a Storybook scenario authoring guide for static, local-state, MSW-backed, and live-backend stories.
-- [ ] Add migration notes from current TypeScript-only fixtures to Go-host-authoritative Admin DSL construction.
-- [ ] Run final validation: `go test ./... -count=1`, `cd web && npx tsc --noEmit`, and `cd web && pnpm test -- --runInBand`.
+- [x] Update the Admin DSL evolution guide after each implemented subsystem with final API shapes and examples.
+- [x] Add a backend-author guide for building Admin DSL pages through Go host fluent APIs and Goja-controlled scripts.
+- [x] Add a frontend-renderer guide for adding new node kinds without breaking the JSON contract.
+- [x] Add a Storybook scenario authoring guide for static, local-state, MSW-backed, and live-backend stories.
+- [x] Run final validation: `go test ./... -count=1`, `cd web && npx tsc --noEmit`, and `cd web && pnpm test -- --runInBand`.

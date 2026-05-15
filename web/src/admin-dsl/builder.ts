@@ -145,6 +145,16 @@ export class AdminNodeBuilder<P extends AdminJsonObject = AdminJsonObject> {
     return this;
   }
 
+  layoutPolicy(policy: AdminJsonObject) {
+    this.node.props = { ...(this.node.props || {}), layoutPolicy: policy } as unknown as P;
+    return this;
+  }
+
+  adaptive(views: AdminJsonObject) {
+    this.node.props = { ...(this.node.props || {}), adaptive: views } as unknown as P;
+    return this;
+  }
+
   toJSON(): AdminNode<P> {
     return clone(this.node);
   }
@@ -352,9 +362,6 @@ export const admin = {
   availabilityBlock: (id: string, props: AdminJsonObject = {}) => node("availabilityBlock", { id, ...props }),
   timeOffBlock: (id: string, props: AdminJsonObject = {}) => node("timeOffBlock", { id, ...props }),
 
-  modal: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("modal", { id, ...props }, ...children).region("modal"),
-  drawer: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("drawer", { id, ...props }, ...children).region("drawer"),
-  confirm: (id: string, props: AdminJsonObject = {}) => node("confirmDialog", { id, ...props }).region("modal"),
 };
 
 export const surface = {

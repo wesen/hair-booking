@@ -49,6 +49,21 @@ describe("admin DSL", () => {
     expect(JSON.parse(JSON.stringify(page))).toEqual(page);
   });
 
+  it("serializes layout policy and adaptive view helpers", () => {
+    const page = admin.page("policy", "Policy")
+      .content(
+        admin.splitPane({})
+          .layoutPolicy({ desktop: { columns: ["320px", "1fr"] }, mobile: { mode: "stack" } })
+          .adaptive({ desktop: "split", mobile: "stack" }),
+      )
+      .toJSON();
+    expect(page.nodes[0].props).toEqual(expect.objectContaining({
+      layoutPolicy: { desktop: { columns: ["320px", "1fr"] }, mobile: { mode: "stack" } },
+      adaptive: { desktop: "split", mobile: "stack" },
+    }));
+    expect(JSON.parse(JSON.stringify(page))).toEqual(page);
+  });
+
   it("serializes resource and form lifecycle helpers", () => {
     const page = resource.page("lifecycle", "Lifecycle")
       .content(

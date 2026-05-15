@@ -369,3 +369,23 @@ Step 29: Wired Admin DSL protobuf/HTTP transport as Phase 14B with start/get/dis
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Adds completed Phase 14B transport tasks
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/backendClient.ts — Generated-protobuf Admin DSL frontend client
 
+
+## 2026-05-15
+
+Step 30: Completed Phases 16-18 with reusable MSW scenario harness, adaptive policy stories, expanded screenshot script, final authoring guides, and clean cut-over to surface.* without legacy admin modal/drawer/confirm wrappers. Validation: go test ./... -count=1; cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (9 files, 39 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder.go — Go host layout/adaptive helpers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records Phases 16-18 implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/03-admin-dsl-backend-author-guide.md — Backend author guide
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/04-admin-dsl-frontend-renderer-guide.md — Frontend renderer guide
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/05-admin-dsl-storybook-scenario-guide.md — Storybook scenario guide
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Phases 16-18 complete with no migration-notes task
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslAdaptivePolicies.stories.tsx — Adaptive policy Storybook stories
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslServiceScenarios.stories.tsx — Uses reusable scenario harness
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/builder.ts — Clean surface.* cut-over and layout/adaptive helpers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/mswHandlers.ts — Uses declarative scenario handlers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/scenarioHarness.test.ts — Scenario harness tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/scenarioHarness.tsx — Reusable Admin DSL MSW/story scenario harness
+

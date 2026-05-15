@@ -1,4 +1,4 @@
-import { action, admin, field, resource, view } from "./builder";
+import { action, admin, field, resource, surface, view } from "./builder";
 import type { AdminPage } from "./schema";
 
 const services = [
@@ -60,8 +60,8 @@ export const servicesAdminPage = resource.page("admin-services", "Services & pri
     ),
   )
   .modals(
-    admin.modal("editService", { title: "Edit service", open: true }, serviceForm),
-    admin.confirm("archiveService", {
+    surface.modal("editService", { title: "Edit service", open: true }, serviceForm),
+    surface.confirm("archiveService", {
       title: "Archive this service?",
       body: "Hidden services will not appear in the public booking flow.",
       confirmLabel: "Archive service",
@@ -100,7 +100,7 @@ export const dashboardAdminPage = admin.dashboard("admin-dashboard", "Today")
     ),
   )
   .drawers(
-    admin.drawer("intakeDetail", { title: "Consultation request", open: true },
+    surface.drawer("intakeDetail", { title: "Consultation request", open: true },
       admin.kvList([
         { label: "Client", value: "Ari Wells" },
         { label: "Request", value: "Balayage with face frame" },
@@ -132,7 +132,7 @@ export const calendarAdminPage = admin.calendarPage("admin-calendar", "Calendar"
     ),
   )
   .modals(
-    admin.modal("newAppointment", { title: "New appointment" },
+    surface.modal("newAppointment", { title: "New appointment" },
       admin.form("appointmentForm", { submitLabel: "Create appointment" },
         field.text("clientName", { label: "Client name" }),
         field.select("service", services.map((service) => ({ value: service.id, label: service.title })), { label: "Service" }),
@@ -142,7 +142,7 @@ export const calendarAdminPage = admin.calendarPage("admin-calendar", "Calendar"
     ),
   )
   .drawers(
-    admin.drawer("appointmentDetail", { title: "Appointment", open: true },
+    surface.drawer("appointmentDetail", { title: "Appointment", open: true },
       admin.kvList([
         { label: "Client", value: "Lena Ortiz" },
         { label: "Service", value: "Color + cut" },

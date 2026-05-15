@@ -2164,3 +2164,100 @@ This slots into the ticket as a new Phase 14B because it is not exactly Phase 16
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flow.go`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/02-backend-admin-dsl-flow-spike.md`
+
+## Step 30: Complete Phases 16-18 with a clean surface cut-over
+
+I completed the remaining HAIR-039 implementation phases by adding a reusable MSW-backed scenario harness, adaptive layout policy fixtures, expanded screenshot coverage, and final authoring guides. During the work, the user clarified that there should be no migration-note task and no backwards-compatibility/legacy surface wrappers, so I removed the old `admin.modal`, `admin.drawer`, and `admin.confirm` builder aliases and cut all current frontend examples/stories over to `surface.*`.
+
+This leaves the Admin DSL in a cleaner shape: surface authoring uses the semantic `surface` namespace, backend-driven construction uses Go-host builders, Storybook scenarios use a reusable harness, and documentation describes the final authoring paths rather than compatibility bridges.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead, 16-18"
+
+**Assistant interpretation:** Implement Phase 16, Phase 17, and Phase 18 from the HAIR-039 task list.
+
+**Inferred user intent:** The user wants the remaining Admin DSL hardening phases completed: reusable MSW harness, adaptive policy stories/screenshot expansion, and release-readiness docs/validation.
+
+**User prompt (verbatim):** "no need to do migration notes, and remove all backwards compatiblity wrapper or legacy stuff yu might have, clean cut over"
+
+**Assistant interpretation:** Remove migration-note work from Phase 18 and delete compatibility/legacy surface authoring wrappers instead of preserving old APIs.
+
+**Inferred user intent:** The user prefers a clean semantic API cut-over over compatibility layers that keep deprecated authoring paths alive.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Added `web/src/admin-dsl/scenarioHarness.tsx` with:
+  - `AdminScenarioDefinition`,
+  - declarative transitions,
+  - success/validation/authorization/server/stale response semantics,
+  - `createAdminScenarioHandlers`,
+  - `AdminScenarioHarness`.
+- Added `web/src/admin-dsl/scenarioHarness.test.ts` covering transition semantics and error/stale cases.
+- Refactored `web/src/admin-dsl/mswHandlers.ts` to use `createAdminScenarioHandlers(...)`.
+- Refactored `web/src/admin-dsl/AdminDslServiceScenarios.stories.tsx` to use the reusable scenario harness.
+- Added layout/adaptive policy helpers:
+  - frontend `.layoutPolicy(...)` and `.adaptive(...)`,
+  - Go host `LayoutPolicy(...)` and `Adaptive(...)`.
+- Added `web/src/admin-dsl/AdminDslAdaptivePolicies.stories.tsx` with desktop/mobile policy stories.
+- Expanded `scripts/02-capture-admin-dsl-scenarios.sh` to include adaptive policy stories and documented manual/VLM vs CI-grade screenshot policy.
+- Added final guides:
+  - `reference/03-admin-dsl-backend-author-guide.md`,
+  - `reference/04-admin-dsl-frontend-renderer-guide.md`,
+  - `reference/05-admin-dsl-storybook-scenario-guide.md`.
+- Updated the evolution guide implementation checkpoint.
+- Removed the Phase 18 migration-notes task and renamed Phase 18 to documentation/release readiness.
+- Removed `admin.modal`, `admin.drawer`, and `admin.confirm` from the builder API.
+- Updated examples, behavior stories, service scenario fixtures, layout catalog examples, and design docs to use `surface.*` instead of legacy `admin.*` surface helpers.
+- Marked Phase 16, Phase 17, and Phase 18 complete in `tasks.md`.
+
+### Why
+- Phase 16 needed a reusable harness instead of one-off MSW code in a single story.
+- Phase 17 needed explicit adaptive policy props and review stories before visual regression expansion.
+- Phase 18 needed final authoring guidance, but not migration notes after the user clarified a clean cut-over preference.
+
+### What worked
+- Full validation passed:
+  - `go test ./... -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+- Frontend tests now pass with:
+  - `9 passed`, `39 passed`
+
+### What didn't work
+- The first TypeScript pass failed because the validation-failure story overrode a typed transition with `to: "error"` inferred as plain `string`. I fixed it with `as const` so the overridden transition stays within `ServicesScenarioState`.
+
+### What I learned
+- The clean cut-over significantly simplifies the public frontend builder API: surface authoring now has one namespace.
+- Keeping `AdminScenarioDefinition` declarative makes MSW handlers and Storybook harnesses share the same transition model.
+
+### What was tricky to build
+- The sharp edge was avoiding a false compatibility layer. Existing stories and examples still used `admin.modal`/`admin.drawer`/`admin.confirm`; I updated those call sites and removed the wrappers so future code fails fast if it uses the old API.
+
+### What warrants a second pair of eyes
+- Review whether `scenarioHarness.tsx` should be split into a pure non-React handler module and a React harness component before it grows.
+- Review whether layout policy props should become typed unions instead of generic JSON objects in a later hardening pass.
+
+### What should be done in the future
+- Add live-backend Storybook stories using `backendClient.ts` if desired.
+- Promote only stable static/MSW stories to CI-grade screenshot regression.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/scenarioHarness.tsx` and `AdminDslServiceScenarios.stories.tsx`.
+- Review `builder.ts` to confirm legacy surface helpers are gone and `surface.*` is the only surface authoring path.
+- Review `AdminDslAdaptivePolicies.stories.tsx` for Phase 17 policy examples.
+- Review the three new reference guides for final authoring instructions.
+- Validate with:
+  - `go test ./... -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- New files:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/scenarioHarness.tsx`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/scenarioHarness.test.ts`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslAdaptivePolicies.stories.tsx`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/03-admin-dsl-backend-author-guide.md`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/04-admin-dsl-frontend-renderer-guide.md`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/05-admin-dsl-storybook-scenario-guide.md`

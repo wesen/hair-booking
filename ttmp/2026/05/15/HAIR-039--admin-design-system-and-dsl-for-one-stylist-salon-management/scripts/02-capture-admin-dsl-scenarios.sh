@@ -18,7 +18,14 @@ stories=(
   "admin-dsl-services-scenarios--msw-click-through-save"
   "admin-dsl-surfaces-catalog--matrix"
   "admin-dsl-resources-form-lifecycle--validation-error"
+  "admin-dsl-adaptive-policies--mobile"
+  "admin-dsl-adaptive-policies--desktop"
 )
+
+# Review guidance:
+# - Treat these captures as manual/VLM review artifacts by default.
+# - Promote only stable, deterministic stories to CI-grade visual regression.
+# - Prefer MSW/static scenario stories over live backend stories for CI screenshots.
 
 mkdir -p "$OUT_DIR"
 

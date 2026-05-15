@@ -83,6 +83,20 @@ func TestGoHostBuilderRejectsInvalidSchema(t *testing.T) {
 	}
 }
 
+func TestGoHostBuilderSupportsLayoutPolicies(t *testing.T) {
+	page, err := PageAdmin("policy", "Policy").Content(
+		NodeOf(NodeSplitPane, nil).
+			LayoutPolicy(JSONObject{"desktop": JSONObject{"columns": []JSONValue{"320px", "1fr"}}, "mobile": JSONObject{"mode": "stack"}}).
+			Adaptive(JSONObject{"desktop": "split", "mobile": "stack"}),
+	).Build()
+	if err != nil {
+		t.Fatalf("build page: %v", err)
+	}
+	if page.Nodes[0].Props["layoutPolicy"] == nil || page.Nodes[0].Props["adaptive"] == nil {
+		t.Fatalf("expected policy props, got %#v", page.Nodes[0].Props)
+	}
+}
+
 func TestGoHostBuilderSupportsResourceAndFormLifecycle(t *testing.T) {
 	page, err := PageResource("lifecycle", "Lifecycle").Content(
 		ResourceList("services", JSONObject{"state": "empty", "emptyTitle": "No services"}),

@@ -458,8 +458,8 @@ resource.page("services")
     action.open("editService", "Add service", { mode: "create" }),
   )
   .modals(
-    admin.modal("editService").form(serviceForm),
-    admin.confirm("archiveService").title("Archive service?").danger(),
+    surface.modal("editService").form(serviceForm),
+    surface.confirm("archiveService").title("Archive service?").danger(),
   );
 ```
 
@@ -530,8 +530,8 @@ admin.page("calendar", "Calendar")
       .emptySlotAction(action.open("newAppointment"))
       .eventAction(action.open("appointmentDetail")),
   )
-  .side(admin.drawer("appointmentDetail").content(appointmentDetail))
-  .modals(admin.modal("newAppointment").form(appointmentForm));
+  .side(surface.drawer("appointmentDetail").content(appointmentDetail))
+  .modals(surface.modal("newAppointment").form(appointmentForm));
 ```
 
 ### 6.8 Settings page
@@ -915,8 +915,8 @@ const servicesPage = resource.page("services")
       .action(action.open("editService", "Add first service")),
   )
   .modals(
-    admin.modal("editService").form(serviceForm),
-    admin.confirm("archiveService")
+    surface.modal("editService").form(serviceForm),
+    surface.confirm("archiveService")
       .title("Archive this service?")
       .body("Hidden services will not appear in the public booking flow."),
   )
@@ -949,11 +949,11 @@ const calendarPage = admin.page("calendar", "Calendar")
       .emptySlotAction(action.open("newAppointment")),
   )
   .drawers(
-    admin.drawer("appointmentDetail").content(appointmentDetail),
+    surface.drawer("appointmentDetail").content(appointmentDetail),
   )
   .modals(
-    admin.modal("newAppointment").form(appointmentForm),
-    admin.modal("blockTimeOff").form(timeOffForm),
+    surface.modal("newAppointment").form(appointmentForm),
+    surface.modal("blockTimeOff").form(timeOffForm),
   )
   .toJSON();
 ```

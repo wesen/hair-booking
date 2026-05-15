@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
-import { action, admin, resource } from "./builder";
+import { action, admin, resource, surface } from "./builder";
 import { AdminPageRenderer } from "./render";
 import type { AdminActionRef, AdminPage, AdminRenderEvent } from "./schema";
 
@@ -46,7 +46,7 @@ function servicesBehaviorPage(state: ServicesBehaviorState): AdminPage {
 ;
 
   if (selected) {
-    page.drawers(admin.drawer("serviceEditor", {
+    page.drawers(surface.drawer("serviceEditor", {
       title: state === "confirm" ? "Archive Cut?" : "Edit Cut",
       open: true,
       selectedId: "cut",
