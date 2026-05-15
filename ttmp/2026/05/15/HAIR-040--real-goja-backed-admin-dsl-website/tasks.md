@@ -10,12 +10,12 @@
 
 ## Phase 1 — Admin Goja runtime skeleton
 
-- [ ] Add `pkg/admindsl/runtime.go` with Admin runtime/session types.
-- [ ] Add render lifecycle with page validation and page-version commit.
-- [ ] Add dispatch lifecycle with stale page-version rejection and opaque action lookup.
-- [ ] Add `ctx.action(name, callback, event?)` support for backend callback registration.
-- [ ] Add runtime tests for initial render, dispatch, stale page, and invalid page rejection.
-- [ ] Keep runtime separate from `pkg/dslgoja` but borrow proven lifecycle patterns.
+- [x] Add `pkg/admindsl/script_runtime.go` with Admin runtime/session types.
+- [x] Add render lifecycle with page validation and page-version commit.
+- [x] Add dispatch lifecycle with stale page-version rejection and opaque action lookup.
+- [x] Add `ctx.bind(actionBuilder, callback, event?)` support for backend callback registration.
+- [x] Add runtime tests for initial render, dispatch, stale page, and invalid page rejection.
+- [x] Keep runtime separate from `pkg/dslgoja` but borrow proven lifecycle patterns.
 
 ## Phase 2 — Goja host module and flow source
 

@@ -55,3 +55,74 @@ The plan intentionally keeps the Admin runtime separate from the intake runtime 
 ### Technical details
 - Ticket path:
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website`
+
+## Step 2: Add the Admin Goja runtime skeleton
+
+I implemented the first real Admin DSL runtime layer. The new runtime is separate from the intake `pkg/dslgoja` runtime, but it borrows the same proven lifecycle ideas: load a Goja source file, call `initialState`, call `render(ctx)`, register opaque backend actions during render, commit a page version, reject stale dispatches, and validate every rendered Admin page before returning it.
+
+The Admin runtime exposes `require("fringe/admin-dsl")` through the Go host builder module created in HAIR-039. JavaScript flow code can stay fluent, but it uses Go-owned builder objects and validation. For callbacks, the runtime provides `ctx.bind(actionBuilder, callback, event?)`, which attaches an opaque `admin_act_*` id and event name to an action builder while registering the Goja callback on the backend.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 1)
+
+**Assistant interpretation:** Continue implementing HAIR-040 phase by phase after ticket setup.
+
+**Inferred user intent:** The user wants the real Admin DSL runtime built incrementally with reviewable commits.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Added `pkg/admindsl/script_runtime.go` with:
+  - `ScriptRuntime`,
+  - `ScriptSession`,
+  - Goja source loading,
+  - native module installation for `require("fringe/admin-dsl")`,
+  - `initialState` support,
+  - render lifecycle,
+  - page validation,
+  - page-version commits,
+  - stale page rejection,
+  - opaque action registration through `ctx.bind(...)`,
+  - dispatch lifecycle.
+- Added `pkg/admindsl/script_runtime_test.go` covering:
+  - initial render,
+  - dispatch to open a drawer,
+  - stale page-version rejection,
+  - invalid rendered page rejection.
+- Marked Phase 1 complete in `tasks.md`.
+
+### Why
+- HAIR-040 needs a real Goja-backed Admin runtime before a `.flow.js` file can replace the Go-only services flow spike.
+- Keeping the runtime in `pkg/admindsl` preserves Admin-specific page/protobuf semantics.
+
+### What worked
+- Focused tests passed:
+  - `go test ./pkg/admindsl -run 'TestScriptRuntime|TestGoja' -count=1`
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Binding callbacks to Go-host action builders is cleaner than returning plain action objects from `ctx.action(...)`, because the action builder keeps all semantic action metadata before the runtime injects the opaque id/event.
+
+### What was tricky to build
+- The runtime must preserve Go-host builder authority while still feeling natural in JavaScript. `ctx.bind(actionBuilder, callback, event?)` is the key bridge: JavaScript authors compose actions fluently, and the runtime turns them into trusted backend callback references.
+
+### What warrants a second pair of eyes
+- Review the `ctx.bind(...)` naming and signature before writing many flow sources.
+- Review whether callback errors should remain toast-style results or become typed Admin DSL error effects.
+
+### What should be done in the future
+- Phase 2 should add the real `pkg/admindsl/flows/services.flow.js` source and embed it.
+
+### Code review instructions
+- Start with `pkg/admindsl/script_runtime.go`.
+- Then review `pkg/admindsl/script_runtime_test.go`.
+- Validate with:
+  - `go test ./pkg/admindsl -run 'TestScriptRuntime|TestGoja' -count=1`
+
+### Technical details
+- Files added:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/script_runtime.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/script_runtime_test.go`
