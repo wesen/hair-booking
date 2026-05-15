@@ -1378,3 +1378,63 @@ tested them, cover the fundamentals and technology involved (since we gathered s
   - `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/05/15/PROJECT REPORT - Fringe Admin DSL and React Renderer Technique Deep Dive.md`
 - PARC commit:
   - `7e8d29d Add Fringe Admin DSL React renderer deep dive report`
+
+## Step 20: Upload the Obsidian report to reMarkable and push the PARC vault
+
+I uploaded the Admin DSL React renderer deep-dive project report to reMarkable, then committed and pushed all remaining files in the PARC vault as requested. This included the previously created Fringe Admin DSL report commit and a second commit containing the other outstanding May 15 vault files plus Obsidian workspace state.
+
+### Prompt Context
+
+**User prompt (verbatim):** "upload to remarkable, commit all the files in the parc vault and push"
+
+**Assistant interpretation:** Upload the Obsidian/PARC report PDF to reMarkable, then stage all current PARC vault changes, commit them, and push to GitHub.
+
+**Inferred user intent:** The user wants the report available on reMarkable and wants the PARC vault fully synchronized, including unrelated outstanding vault files.
+
+**Commit (code):** PARC vault commits `7e8d29d` — "Add Fringe Admin DSL React renderer deep dive report" and `d2e9296` — "Add May 15 project reports and vault state".
+
+### What I did
+- Uploaded the report to reMarkable:
+  - `remarquee upload bundle 'Projects/2026/05/15/PROJECT REPORT - Fringe Admin DSL and React Renderer Technique Deep Dive.md' --name "HAIR 039 Fringe Admin DSL React Renderer Deep Dive" --remote-dir "/ai/2026/05/15/HAIR-039" --toc-depth 2 --non-interactive`
+- Upload succeeded:
+  - `OK: uploaded HAIR_039_Fringe_Admin_DSL_React_Renderer_Deep_Dive.pdf -> /ai/2026/05/15/HAIR-039`
+- In the PARC vault, staged all outstanding changes with `git add -A`.
+- Committed:
+  - `d2e9296 Add May 15 project reports and vault state`
+- Pushed `main` to origin.
+
+### Why
+- The report is long-form and benefits from reMarkable review.
+- The user explicitly requested committing all PARC vault files and pushing, so I included the previously unrelated outstanding files.
+
+### What worked
+- reMarkable upload succeeded.
+- PARC vault push succeeded:
+  - `main -> main`
+- PARC vault working tree is clean after push.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The PARC vault had outstanding files unrelated to HAIR-039, but the user explicitly asked to commit all vault files, so they were included in the second PARC commit.
+
+### What was tricky to build
+- The only care point was distinguishing the prior append-only vault behavior from the explicit user instruction. Earlier I avoided committing unrelated vault files; this turn the user explicitly asked for all files to be committed and pushed.
+
+### What warrants a second pair of eyes
+- Review the `d2e9296` PARC commit if the unrelated May 15 notes need any follow-up polish.
+
+### What should be done in the future
+- N/A.
+
+### Code review instructions
+- Confirm the reMarkable PDF path:
+  - `/ai/2026/05/15/HAIR-039/HAIR_039_Fringe_Admin_DSL_React_Renderer_Deep_Dive.pdf`
+- Confirm PARC vault commits:
+  - `7e8d29d Add Fringe Admin DSL React renderer deep dive report`
+  - `d2e9296 Add May 15 project reports and vault state`
+
+### Technical details
+- PARC vault remote:
+  - `ssh://git@github.com/go-go-golems/go-go-parc`

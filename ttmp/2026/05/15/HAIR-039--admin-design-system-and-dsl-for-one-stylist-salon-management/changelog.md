@@ -217,3 +217,12 @@ Wrote and committed an Obsidian/PARC deep-dive project report on the Admin DSL a
 - /home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/05/15/PROJECT REPORT - Fringe Admin DSL and React Renderer Technique Deep Dive.md — Obsidian project report for Admin DSL React technique
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records report creation
 
+
+## 2026-05-15
+
+Uploaded the PARC Admin DSL React renderer report to reMarkable and pushed the PARC vault. reMarkable path: /ai/2026/05/15/HAIR-039/HAIR_039_Fringe_Admin_DSL_React_Renderer_Deep_Dive.pdf; PARC commits: 7e8d29d and d2e9296.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records report upload and PARC push
+
