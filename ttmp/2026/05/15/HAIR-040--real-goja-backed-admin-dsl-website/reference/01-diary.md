@@ -381,3 +381,55 @@ The route mount is intentionally simple for now: `App` checks `window.location.p
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/BackendAdminDslPage.test.ts`
 - Files changed:
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/App.tsx`
+
+## Step 7: Add live-backend Storybook smoke support
+
+I added a dev-only Storybook story for the real backend Admin DSL page. This story renders `BackendAdminDslPage` directly, so it requires the Go server and `/api/admin-dsl` protobuf endpoints to be available. It is intentionally documented as a live smoke surface, not a deterministic screenshot source.
+
+The static and MSW stories remain the correct screenshot candidates. The live story is for integration confidence: it proves the Storybook environment can exercise the same component used by `/admin/services` when a backend is running.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 1)
+
+**Assistant interpretation:** Continue implementation into Storybook/live smoke support.
+
+**Inferred user intent:** The user wants a complete real website workflow with review surfaces, while preserving deterministic screenshot discipline.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Added `web/src/admin-dsl/BackendAdminDslPage.stories.tsx`.
+- Storybook section:
+  - `Admin DSL/Services/Live Backend`
+- Story:
+  - `ServicesAdminFlow`
+- Marked Phase 5 complete in `tasks.md`.
+
+### Why
+- A real Admin DSL website route benefits from a dev-only live Storybook smoke story, separate from static/MSW screenshot stories.
+
+### What worked
+- The story is type-safe and uses the same `BackendAdminDslPage` component as `/admin/services`.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Live backend stories should be documented as smoke surfaces because they depend on server availability and mutable session state.
+
+### What was tricky to build
+- The key was avoiding accidental promotion of the live story into deterministic screenshot workflows.
+
+### What warrants a second pair of eyes
+- Review if the live story should be hidden behind a Storybook tag or environment note later.
+
+### What should be done in the future
+- Optionally run a manual Storybook smoke with the Go backend running.
+
+### Code review instructions
+- Review `web/src/admin-dsl/BackendAdminDslPage.stories.tsx`.
+
+### Technical details
+- File added:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/BackendAdminDslPage.stories.tsx`

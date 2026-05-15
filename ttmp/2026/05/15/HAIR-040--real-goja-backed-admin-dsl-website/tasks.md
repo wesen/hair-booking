@@ -42,9 +42,9 @@
 
 ## Phase 5 — Storybook/live smoke support
 
-- [ ] Add a live-backend Storybook story or documented dev-only story for `/api/admin-dsl` transport.
-- [ ] Keep static/MSW stories as deterministic screenshot sources.
-- [ ] Update screenshot guidance if live story should be excluded from CI-grade captures.
+- [x] Add a live-backend Storybook story or documented dev-only story for `/api/admin-dsl` transport.
+- [x] Keep static/MSW stories as deterministic screenshot sources.
+- [x] Update screenshot guidance if live story should be excluded from CI-grade captures.
 
 ## Phase 6 — Final validation and documentation
 

@@ -80,3 +80,14 @@ Step 6: Added BackendAdminDslPage, mounted /admin/services, wired renderer dispa
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/BackendAdminDslPage.test.ts — Backend Admin DSL event conversion tests
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/BackendAdminDslPage.tsx — Real Admin DSL frontend route bridge
 
+
+## 2026-05-15
+
+Step 7: Added dev-only live backend Storybook story for BackendAdminDslPage and marked Phase 5 complete.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/reference/01-diary.md — Diary records live backend story
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/tasks.md — Phase 5 complete
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/BackendAdminDslPage.stories.tsx — Live backend Storybook smoke story
+
