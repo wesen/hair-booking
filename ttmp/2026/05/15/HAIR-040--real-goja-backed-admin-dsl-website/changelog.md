@@ -67,3 +67,16 @@ Step 5: Removed the Go-only Admin DSL flow spike, moved shared flow transport ty
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/reference/01-diary.md — Diary records spike removal and HTTP tests
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/tasks.md — Phase 3 complete
 
+
+## 2026-05-15
+
+Step 6: Added BackendAdminDslPage, mounted /admin/services, wired renderer dispatch to Admin DSL protobuf backend client, and added event conversion tests. Validation: cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (10 files, 41 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/reference/01-diary.md — Diary records frontend route bridge
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/tasks.md — Phase 4 complete
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/App.tsx — Mounts /admin/services
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/BackendAdminDslPage.test.ts — Backend Admin DSL event conversion tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/BackendAdminDslPage.tsx — Real Admin DSL frontend route bridge
+

@@ -311,3 +311,73 @@ I also added HTTP coverage for unknown flow ids and stale action dispatch. This 
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/test_helpers_test.go`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/proto_convert_test.go`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl_test.go`
+
+## Step 6: Add the real `/admin/services` frontend bridge
+
+I added the frontend bridge that turns the Admin DSL protobuf HTTP flow into an actual website route. The new component starts or resumes the backend Admin DSL services flow, renders the returned Admin page with `AdminPageRenderer`, and dispatches renderer events back to the backend using the opaque action id and event name embedded by the Goja runtime.
+
+The route mount is intentionally simple for now: `App` checks `window.location.pathname === "/admin/services"` and renders the Admin DSL page. The existing server SPA fallback already serves this path in dev/prod, so no special HTML route is required.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 1)
+
+**Assistant interpretation:** Continue implementing the real Admin DSL website through the frontend route phase.
+
+**Inferred user intent:** The user wants a real browser route that serves the backend-authored Admin DSL page.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Added `web/src/admin-dsl/BackendAdminDslPage.tsx`.
+- Added `adminInteractionEventFromRenderEvent(...)` to convert renderer dispatch events into `AdminDslInteractionEvent` values.
+- Wired backend calls through:
+  - `startAdminDslFlow`,
+  - `getAdminDslFlow`,
+  - `postAdminDslEvent`.
+- Added loading, error, pending, and effect display.
+- Added sessionStorage persistence for the active Admin DSL session id.
+- Mounted `/admin/services` in `web/src/App.tsx`.
+- Added `web/src/admin-dsl/BackendAdminDslPage.test.ts` for event conversion and missing action id rejection.
+- Marked Phase 4 complete in `tasks.md`.
+
+### Why
+- The real Admin DSL flow needs a real frontend route, not only Storybook and HTTP tests.
+- The renderer must reject frontend-only actions for backend flow dispatch because backend trust depends on opaque action ids.
+
+### What worked
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Frontend tests passed:
+  - `cd web && pnpm test -- --runInBand`
+  - `10 passed`, `41 passed`
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The Admin DSL route can be a thin bridge because the renderer and protobuf client already exist.
+
+### What was tricky to build
+- The critical correctness point is event conversion. The browser must post `action.id` rather than trusting semantic `action.target`; the test now enforces that missing opaque ids throw.
+
+### What warrants a second pair of eyes
+- Review whether sessionStorage resume is desired for admin pages or whether admin routes should always start fresh.
+- Review whether `App` should move from pathname branching to a proper router before more real pages are added.
+
+### What should be done in the future
+- Add live-backend Storybook smoke support or dev notes.
+- Run a manual browser smoke against `/admin/services` with the Go server.
+
+### Code review instructions
+- Review `web/src/admin-dsl/BackendAdminDslPage.tsx` and `web/src/App.tsx`.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- Files added:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/BackendAdminDslPage.tsx`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/BackendAdminDslPage.test.ts`
+- Files changed:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/App.tsx`

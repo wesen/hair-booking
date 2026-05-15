@@ -34,11 +34,11 @@
 
 ## Phase 4 — Frontend real website route
 
-- [ ] Add `web/src/admin-dsl/BackendAdminDslPage.tsx`.
-- [ ] Wire `AdminPageRenderer` dispatch to `postAdminDslEvent` using opaque `action.id` and `action.event`.
-- [ ] Add loading/error/effect display for backend Admin DSL states.
-- [ ] Mount `/admin/services` in the web app.
-- [ ] Add frontend tests for event conversion and missing backend action id handling.
+- [x] Add `web/src/admin-dsl/BackendAdminDslPage.tsx`.
+- [x] Wire `AdminPageRenderer` dispatch to `postAdminDslEvent` using opaque `action.id` and `action.event`.
+- [x] Add loading/error/effect display for backend Admin DSL states.
+- [x] Mount `/admin/services` in the web app.
+- [x] Add frontend tests for event conversion and missing backend action id handling.
 
 ## Phase 5 — Storybook/live smoke support
 
