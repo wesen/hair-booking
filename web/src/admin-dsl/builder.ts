@@ -262,6 +262,9 @@ export const admin = {
   inlineError: (title: string, props: AdminJsonObject = {}) => node("inlineError", { title, ...props }),
   markdown: (markdown: string, props: AdminJsonObject = {}) => node("markdownBlock", { markdown, ...props }),
   kvList: (items: AdminJsonObject[], props: AdminJsonObject = {}) => node("kvList", { items, ...props }),
+  activityFeed: (items: AdminJsonObject[], props: AdminJsonObject = {}) => node("activityFeed", { items, ...props }),
+  imageGrid: (items: AdminJsonObject[], props: AdminJsonObject = {}) => node("imageGrid", { items, ...props }),
+  loadingState: (title: string, props: AdminJsonObject = {}) => node("loadingState", { title, ...props }),
 
   resourceList: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("resourceList", { id, ...props }, ...children),
   filterBar: (filters: AdminJsonObject[], value?: string) => node("filterBar", { filters, value: value || null }),

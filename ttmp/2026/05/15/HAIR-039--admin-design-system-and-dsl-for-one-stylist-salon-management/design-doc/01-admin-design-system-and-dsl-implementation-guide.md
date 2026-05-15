@@ -38,8 +38,12 @@ RelatedFiles:
       Note: |-
         Focused tests for admin DSL JSON builder invariants and action dispatch
         Calendar mobile agenda grouping and action dispatch regression tests
+    - Path: web/src/admin-dsl/AdminDslLayouts.stories.tsx
+      Note: Desktop/mobile/matrix Storybook variants for layout catalog
     - Path: web/src/admin-dsl/builder.ts
-      Note: Fluent admin/resource/field/view/action/query builder API
+      Note: |-
+        Fluent admin/resource/field/view/action/query builder API
+        Added activityFeed/imageGrid/loadingState helpers
     - Path: web/src/admin-dsl/calendar.tsx
       Note: Extracted admin calendar week/mobile agenda renderer
     - Path: web/src/admin-dsl/examples.ts
@@ -48,12 +52,17 @@ RelatedFiles:
         Admin demo page fixture updates for mobile polish
     - Path: web/src/admin-dsl/index.ts
       Note: Admin DSL public exports
+    - Path: web/src/admin-dsl/layoutExamples.ts
+      Note: Broad backend-admin layout catalog examples
     - Path: web/src/admin-dsl/render.tsx
       Note: |-
         Initial explicit admin DSL renderer/interpreter
         Responsive Admin DSL renderer and calendar day/hour grid fix
+        Added splitPane/tabs/search/activityFeed/imageGrid/loadingState renderer cases
     - Path: web/src/admin-dsl/schema.ts
-      Note: Admin DSL JSON-safe schema introduced by Phase 1
+      Note: |-
+        Admin DSL JSON-safe schema introduced by Phase 1
+        Added imageGrid node kind for layout catalog
     - Path: web/src/atoms/Button/Button.tsx
       Note: Existing action primitive to reuse in admin UI
     - Path: web/src/atoms/TextField/TextField.tsx
@@ -90,6 +99,7 @@ LastUpdated: 2026-05-15T00:00:00Z
 WhatFor: Use this guide before implementing admin DSL schema, builders, renderer mappings, Storybook examples, or one-stylist admin screens.
 WhenToUse: Read when adding backend-management UI primitives, resource pages, admin forms, modals/drawers, dashboard pages, or generic admin DSL authoring APIs.
 ---
+
 
 
 

@@ -145,6 +145,18 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     case "cardGrid":
       return <div key={key} {...common} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 14, marginBottom: 24, ...style(props) }}>{renderChildren(node.children, ctx)}</div>;
 
+    case "splitPane":
+      return <div key={key} {...common} className="adminDslSplitPane" style={{ display: "grid", gridTemplateColumns: "minmax(260px, 0.85fr) minmax(320px, 1.15fr)", gap: 16, alignItems: "start", ...style(props) }}>{renderChildren(node.children, ctx)}</div>;
+
+    case "tabs": {
+      const tabs = jsonArray<AdminJsonObject>(props, "tabs");
+      const value = str(props, "value");
+      return <div key={key} {...common} style={{ display: "flex", gap: 8, flexWrap: "wrap", ...style(props) }}>{tabs.map((tab) => { const active = tab.id === value; return <span key={String(tab.id)} className="adminDslFilterPill" style={{ minHeight: 38, display: "inline-flex", alignItems: "center", borderRadius: radius.pill, padding: "8px 12px", border: `1px solid ${active ? color.ink : color.rule}`, background: active ? color.ink : color.paper, color: active ? color.paper : color.ink, ...type.meta }}>{String(tab.label || tab.id)}</span>; })}</div>;
+    }
+
+    case "searchBox":
+      return <div key={key} {...common} style={{ ...surface, padding: 12, display: "flex", alignItems: "center", gap: 10, color: color.softInk, ...style(props) }}><span style={{ ...type.meta }}>Search</span><span style={{ ...type.body, color: color.soft }}>{str(props, "placeholder", "Search")}</span></div>;
+
     case "panel":
     case "summaryCard":
       return (
@@ -224,7 +236,20 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     }
 
     case "markdownBlock":
-      return <p key={key} {...common} style={{ ...type.body, color: color.softInk, margin: 0, ...style(props) }}>{str(props, "markdown")}</p>;
+      return <p key={key} {...common} style={{ ...type.body, color: color.softInk, margin: 0, whiteSpace: "pre-wrap", ...style(props) }}>{str(props, "markdown")}</p>;
+
+    case "activityFeed": {
+      const items = jsonArray<AdminJsonObject>(props, "items");
+      return <div key={key} {...common} style={{ display: "grid", gap: 10, ...style(props) }}>{items.map((item, i) => <div key={i} style={{ display: "grid", gridTemplateColumns: "72px 1fr", gap: 12, paddingBottom: 10, borderBottom: `1px solid ${color.ruleSoft}` }}><div style={{ ...type.meta, color: color.softInk }}>{String(item.time || "")}</div><div><div style={{ ...type.body, fontWeight: 800 }}>{String(item.title || "")}</div>{item.body && <div style={{ ...type.bodySm, color: color.softInk, marginTop: 2 }}>{String(item.body)}</div>}</div></div>)}</div>;
+    }
+
+    case "imageGrid": {
+      const items = jsonArray<AdminJsonObject>(props, "items");
+      return <div key={key} {...common} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, ...style(props) }}>{items.map((item) => <article key={String(item.id || item.title)} style={{ ...surface, overflow: "hidden" }}><div style={{ aspectRatio: "4 / 3", background: `linear-gradient(135deg, ${color.peachSoft}, ${color.creamDeep})`, borderBottom: `1px solid ${color.rule}` }} /><div style={{ padding: 12 }}><div style={{ ...type.h3, fontSize: 18 }}>{String(item.title || "Asset")}</div><div style={{ ...type.bodySm, color: color.softInk, marginTop: 4 }}>{String(item.subtitle || "")}</div>{item.status && <span style={{ display: "inline-flex", marginTop: 8, borderRadius: radius.pill, padding: "4px 8px", background: color.paper, border: `1px solid ${color.rule}`, color: toneColor(String(item.tone || "")), fontWeight: 700, ...type.meta }}>{String(item.status)}</span>}</div></article>)}</div>;
+    }
+
+    case "loadingState":
+      return <div key={key} {...common} style={{ ...surface, padding: 16, display: "grid", gap: 8, ...style(props) }}><div style={{ ...type.h3 }}>{str(props, "title", "Loading")}</div>{str(props, "body") && <p style={{ ...type.bodySm, color: color.softInk, margin: 0 }}>{str(props, "body")}</p>}<div style={{ height: 8, borderRadius: radius.pill, background: `linear-gradient(90deg, ${color.rule}, ${color.cream}, ${color.rule})` }} /></div>;
 
     case "modal":
     case "drawer": {
@@ -335,6 +360,7 @@ const responsiveCss = `
     .adminDslTitle { font-size: clamp(30px, 11vw, 40px) !important; line-height: 0.96 !important; letter-spacing: -0.25px !important; }
     .adminDslSectionTitle { font-size: clamp(20px, 7vw, 24px) !important; line-height: 1.05 !important; }
     .adminDslActionButton { min-height: 44px !important; flex: 1 1 132px !important; justify-content: center !important; }
+    .adminDslSplitPane { grid-template-columns: 1fr !important; }
     .adminDslFilterPill { min-height: 44px !important; padding-inline: 14px !important; }
     .adminDslSaveBar { display: grid !important; grid-template-columns: 1fr !important; align-items: stretch !important; }
     .adminDslSurfaceKicker { display: none !important; }

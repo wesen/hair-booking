@@ -20,6 +20,7 @@ export type AdminNodeKind =
   | "statusBadge"
   | "activityFeed"
   | "kvList"
+  | "imageGrid"
   | "markdownBlock"
   | "emptyState"
   | "loadingState"

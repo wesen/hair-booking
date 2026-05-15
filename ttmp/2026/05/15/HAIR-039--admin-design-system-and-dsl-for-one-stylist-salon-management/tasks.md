@@ -63,3 +63,7 @@
 - [x] Add a tracked script for refreshing cropped mobile Admin DSL css-visual-diff screenshots.
 - [x] Document the devctl Storybook profile and Admin DSL story URLs in `plugins/devctl/README.md`.
 - [x] Update HAIR-039 diary, changelog, and file relations.
+- [x] Add broad Admin DSL layout demo pages beyond salon intake: commerce, education, CMS/content, support, media, analytics, and team/settings
+- [x] Add missing renderer coverage for layout exploration nodes such as split panes, tabs, search boxes, activity feeds, loading states, and image grids
+- [x] Create Storybook stories with desktop and mobile framed variants for rapid layout browsing and future screenshot tooling
+- [x] Validate TypeScript/tests and update HAIR-039 diary/changelog/file relations for expanded layout stories

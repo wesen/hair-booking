@@ -938,3 +938,153 @@ I ran the script successfully against the devctl-managed Storybook instance, pro
   - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/scripts/01-capture-mobile-admin-dsl.sh`
 - Updated doc:
   - `plugins/devctl/README.md`
+
+## Step 14: Plan broad backend-admin layout story coverage
+
+I added a new task batch for broad Admin DSL layout exploration. The key correction is that backend write schema is application-owned: the platform should provide a flexible admin DSL and generic config/state database access, while each application decides its own config schema and mutation semantics.
+
+This phase therefore focuses on layout coverage rather than a single salon-specific write model. The stories should exercise reusable admin surfaces that many backend applications need: commerce/order management, course/content administration, CMS publishing, support inboxes, media libraries, analytics/operations, and team/settings pages. Each layout should be easy to inspect in desktop and mobile Storybook variants, and later easy to screenshot with Chromatic or css-visual-diff.
+
+### Prompt Context
+
+**User prompt (verbatim):** "that's up to the person building the application, they have a config db and can design any schema they want. make a whole set more storybook stories and pages to test out all potential different combinations of backend admin layouts that would be useful. Think beyond just simple intake applications and try to cover more complex application use cases.
+
+Ad tasks to the ticket and then implement them. Also make stories that are desktop and mobile so that we can quickly browse through them and see the layotu (or take screenshots, for example in the future with a tool like chromatic)"
+
+**Assistant interpretation:** Stop treating admin write semantics as something the platform must decide now; instead add broad Storybook coverage for many backend-admin layout patterns, with desktop/mobile variants for visual review.
+
+**Inferred user intent:** The user wants the Admin DSL to be stress-tested as a general backend admin UI layout language, not just a salon intake companion.
+
+**Commit (code):** TBD — planning will be committed after implementation/doc updates for this batch.
+
+### What I did
+- Added tasks for broad layout examples beyond salon intake.
+- Added tasks for renderer coverage needed by those examples.
+- Added tasks for desktop/mobile framed Storybook variants.
+- Added validation/documentation task for the batch.
+
+### Why
+- A backend admin DSL needs to cover more than CRUD forms: master/detail, inboxes, review queues, settings, media grids, dashboards, analytics, publishing, team/admin controls, and operational states.
+- Desktop/mobile story variants make layout review fast and prepare the project for future screenshot tools.
+
+### What worked
+- The existing Admin DSL primitives are already close to sufficient; we mainly need more examples and a few renderer cases for layout exploration nodes.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The platform contract should stay flexible: config DB schema and admin mutations belong to the application builder.
+
+### What was tricky to build
+- The scope could easily become an implementation of every domain. I scoped this as Storybook layout coverage with fixture data, not backend integration.
+
+### What warrants a second pair of eyes
+- Review whether the new examples are broad enough to pressure-test the DSL without becoming too domain-specific.
+
+### What should be done in the future
+- Add screenshot automation around these desktop/mobile variants once the layout catalog stabilizes.
+
+### Code review instructions
+- Review tasks 38-41 before the implementation commit.
+- Then review the new layout example/story files and renderer node coverage.
+
+### Technical details
+- Task file:
+  - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md`
+
+## Step 15: Add broad Admin DSL layout catalog stories
+
+I implemented a broader layout catalog for backend-admin applications beyond the original salon/intake scenario. The new examples are still fixture-driven Storybook pages, but they exercise more demanding combinations of admin layouts: high-volume resource queues, master/detail drawers, split-pane editors, CMS previews, support inboxes, media grids, operational dashboards, audit feeds, settings forms, confirmations, loading states, and error states.
+
+The goal is to treat the Admin DSL as a general backend admin UI language. Application builders can design any schema they want in their config database; these stories are not prescribing backend writes. Instead, they pressure-test the frontend layout vocabulary and make desktop/mobile layout review fast.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 14)
+
+**Assistant interpretation:** Implement the broad layout story catalog, add renderer support for missing layout exploration nodes, and provide desktop/mobile Storybook variants.
+
+**Inferred user intent:** The user wants enough Storybook coverage to evaluate the Admin DSL as a flexible backend admin UI system across many application types.
+
+**Commit (code):** TBD — this layout catalog slice will be committed after task/changelog updates.
+
+### What I did
+- Added `web/src/admin-dsl/layoutExamples.ts` with seven broader admin pages:
+  - Commerce Orders,
+  - Course Builder,
+  - CMS Publishing,
+  - Support Inbox,
+  - Media Library,
+  - Analytics/Ops,
+  - Team Settings.
+- Added `web/src/admin-dsl/AdminDslLayouts.stories.tsx` with desktop, mobile, and matrix variants for each layout.
+- Exported the layout examples from `web/src/admin-dsl/index.ts`.
+- Extended `web/src/admin-dsl/builder.ts` with helpers for:
+  - `activityFeed`,
+  - `imageGrid`,
+  - `loadingState`.
+- Extended `web/src/admin-dsl/render.tsx` with renderer cases for:
+  - `splitPane`,
+  - `tabs`,
+  - `searchBox`,
+  - `activityFeed`,
+  - `imageGrid`,
+  - `loadingState`.
+- Added `imageGrid` to `AdminNodeKind` in `web/src/admin-dsl/schema.ts`.
+- Smoke-captured the Commerce Orders mobile story with `css-visual-diff` and reviewed the screenshot with the image tool.
+
+### Why
+- The previous stories proved salon/admin basics. The new layout catalog tests more general backend-admin patterns.
+- Desktop/mobile paired stories make it easy to browse layouts manually and prepare for future screenshot tools such as Chromatic.
+
+### What worked
+- Storybook index now contains 22 `Admin DSL/Layout Catalog` stories.
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Full frontend tests passed:
+  - `cd web && pnpm test -- --runInBand`
+  - `7 passed`, `29 passed`.
+- The Commerce Orders mobile smoke screenshot had no blocker-level visual issues according to the image review tool.
+
+### What didn't work
+- Initial TypeScript validation failed because `imageGrid` was used by the builder/renderer but missing from `AdminNodeKind`.
+- Fix: added `imageGrid` to `web/src/admin-dsl/schema.ts`.
+
+### What I learned
+- The DSL was already flexible enough for many layout combinations; the missing pieces were mostly renderer coverage for common admin display nodes.
+- Fixed-width mobile frame stories are useful even before adding Chromatic because they make responsive layout review deterministic.
+
+### What was tricky to build
+- Some examples use dense real-world patterns such as queues, drawers, forms, feeds, and confirmations in one page. The renderer needed to stay generic rather than adding domain-specific components.
+- The layout catalog has many stories, so the story naming needs to remain predictable: each page has Desktop, Mobile, and Matrix variants.
+
+### What warrants a second pair of eyes
+- Review whether these seven domains are the right breadth for the first catalog.
+- Review whether the renderer cases should now move to extracted components instead of more inline JSX.
+- Review the visual hierarchy of the new stories, especially labels and helper text contrast.
+
+### What should be done in the future
+- Add screenshot automation for all layout catalog mobile/desktop variants.
+- Add tests for representative renderer cases like `splitPane`, `activityFeed`, and `imageGrid`.
+- Consider extracting shared renderer helpers and presentation components before adding more story domains.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/layoutExamples.ts` to understand the new backend-admin scenarios.
+- Then inspect `web/src/admin-dsl/AdminDslLayouts.stories.tsx` for desktop/mobile/matrix story structure.
+- Then review renderer additions in `web/src/admin-dsl/render.tsx` and schema/builder additions.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- New files:
+  - `web/src/admin-dsl/layoutExamples.ts`
+  - `web/src/admin-dsl/AdminDslLayouts.stories.tsx`
+- Updated files:
+  - `web/src/admin-dsl/schema.ts`
+  - `web/src/admin-dsl/builder.ts`
+  - `web/src/admin-dsl/render.tsx`
+  - `web/src/admin-dsl/index.ts`
+- Smoke artifact:
+  - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/various/layout-catalog-smoke/commerce-orders-mobile/url1_screenshot.png`

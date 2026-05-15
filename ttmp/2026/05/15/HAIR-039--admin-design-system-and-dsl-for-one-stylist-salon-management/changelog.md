@@ -153,3 +153,25 @@ Added a tracked HAIR-039 script for refreshing cropped mobile Admin DSL css-visu
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records script creation and successful run
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/scripts/01-capture-mobile-admin-dsl.sh — Repeatable cropped mobile screenshot workflow
 
+
+## 2026-05-15
+
+Added tasks for broad Admin DSL backend-admin layout coverage with desktop/mobile Storybook variants, correcting that application builders own config DB schemas and write semantics.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records layout story planning
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Added broad layout story tasks
+
+
+## 2026-05-15
+
+Added broad Admin DSL layout catalog Storybook coverage with desktop/mobile/matrix variants across commerce, course, CMS, support, media, analytics, and team settings use cases; added renderer support for split panes, tabs, search boxes, activity feeds, image grids, and loading states.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records implementation and validation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslLayouts.stories.tsx — New desktop/mobile/matrix layout catalog stories
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/layoutExamples.ts — New broad layout examples
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Renderer coverage for layout catalog nodes
+
