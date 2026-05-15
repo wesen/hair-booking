@@ -70,12 +70,12 @@
 
 ## Phase 9 — Backend-owned fluent Admin DSL API design
 
-- [ ] Design the Go host fluent API surface for Admin DSL page construction, treating TypeScript builders as fixtures/prototyping helpers rather than the long-term source of truth.
-- [ ] Define Go-side builder packages/modules for page, resource, action, surface, form, layout, and adaptive-view concepts.
-- [ ] Ensure Go builders own schema validation, required-field checks, action-placement rules, and JSON serialization.
-- [ ] Decide how Go host builders are exposed to Goja scripts so backend JavaScript authors can still use a fluent API while the host controls validity.
-- [ ] Add golden JSON tests for Go-built Admin DSL pages and compare representative output to frontend fixture expectations.
-- [ ] Document the boundary: Go host owns Admin DSL validity and schema; app code owns domain schema, permissions, mutations, and publish semantics.
+- [x] Design the Go host fluent API surface for Admin DSL page construction, treating TypeScript builders as fixtures/prototyping helpers rather than the long-term source of truth.
+- [x] Define Go-side builder packages/modules for page, resource, action, surface, form, layout, and adaptive-view concepts.
+- [x] Ensure Go builders own schema validation, required-field checks, action-placement rules, and JSON serialization.
+- [x] Decide how Go host builders are exposed to Goja scripts so backend JavaScript authors can still use a fluent API while the host controls validity.
+- [x] Add golden JSON tests for Go-built Admin DSL pages and compare representative output to frontend fixture expectations.
+- [x] Document the boundary: Go host owns Admin DSL validity and schema; app code owns domain schema, permissions, mutations, and publish semantics.
 
 ## Phase 10 — Renderer utility and action subsystem extraction
 

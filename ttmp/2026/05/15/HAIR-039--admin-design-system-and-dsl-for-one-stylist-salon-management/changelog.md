@@ -236,3 +236,18 @@ Expanded HAIR-039 with detailed Admin DSL evolution phases covering Go-host flue
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records planning step
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Detailed next-phase task plan
 
+
+## 2026-05-15
+
+Step 22: Added pkg/admindsl as the Go-host authoritative fluent Admin DSL builder and validation package; marked Phase 9 tasks complete. Validation: go test ./pkg/admindsl -count=1.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder.go — Fluent Go host Admin DSL builders
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder_test.go — Go host builder tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/doc.go — Documents Go-host authoritative Admin DSL builder boundary
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/types.go — Admin DSL host-side transport and semantic types
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/validate.go — Runtime schema and JSON-safety validation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records Phase 9 implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Phase 9 task completion
+

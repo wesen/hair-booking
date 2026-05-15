@@ -1508,3 +1508,74 @@ Keep in  mind:
 ### Technical details
 - Task file updated:
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md`
+
+## Step 22: Add the Go-host authoritative Admin DSL builder package
+
+I started implementation with the backend-owned fluent API direction. The new `pkg/admindsl` package defines the host-side Admin DSL page, node, action, query, shell, region, and semantic action types, plus fluent builders that emit JSON-compatible page trees. This makes the Go host the first place where Admin DSL validity can be enforced before a page is sent to Goja, protobuf/JSON transport, or the React renderer.
+
+The package is intentionally not tied to the salon schema. It owns generic Admin DSL structure and semantics: page identity, shell kinds, node kinds, action kinds, semantic action intent/priority/placement, JSON-safe props, validation, and serialization. Application code will still own database schema, permissions, mutations, draft/publish behavior, and domain-specific validation.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead, work on them task by task, commit at appropriate intervals."
+
+**Assistant interpretation:** Begin implementing the newly planned HAIR-039 phases sequentially, keeping diary updates and focused commits.
+
+**Inferred user intent:** The user wants the Admin DSL evolution to move from planning into code, with a traceable implementation history.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Added `pkg/admindsl/doc.go` with the architecture boundary: Go-host authoritative builders, Goja as thin wrapper surface, TypeScript builders as fixtures/prototyping helpers.
+- Added `pkg/admindsl/types.go` with Admin DSL transport structs and semantic enums.
+- Added `pkg/admindsl/builder.go` with fluent builders for pages, nodes, actions, queries, resources, forms, drawers, modals, and confirms.
+- Added `pkg/admindsl/validate.go` with schema/version, shell-kind, node-kind, action-kind, action-metadata, and JSON-safety validation.
+- Added `pkg/admindsl/builder_test.go` covering:
+  - stable representative page JSON,
+  - JSON round-tripping,
+  - invalid shell rejection,
+  - invalid action rejection,
+  - non-JSON prop rejection,
+  - keyed action maps.
+- Marked Phase 9 tasks complete in `tasks.md`.
+
+### Why
+- The user explicitly preferred fluent APIs where the fluent side is implemented in the Go host so the runtime controls validity and schema.
+- Starting with `pkg/admindsl` gives later Goja and backend-flow work a controlled construction layer instead of pushing all semantics into frontend TypeScript fixtures.
+
+### What worked
+- `go test ./pkg/admindsl -count=1` passed.
+- The package can now construct a services/pricing-style page with toolbar actions, resource rows, a drawer, a dirty form, footer actions, and semantic action placement metadata.
+
+### What didn't work
+- Initial validation failed to compile because `JSONValue` was a defined `any` type, which made conversions between `map[string]any` and `JSONObject` awkward. I changed it to a type alias so JSON maps behave predictably.
+- The first non-JSON validation test panicked because node cloning used `json.Marshal` before validation. I changed node/action `Build()` to return raw builder structs and let page `Build()` validate before the final JSON clone.
+- The initial toolbar test called `.Toolbar(...).Content(...)`; `Content` replaces page nodes, so the toolbar disappeared. I changed the test to call `Content(...).Toolbar(...)` for the intended output.
+
+### What I learned
+- Host-side builders should validate before attempting JSON clone/serialization so errors stay reportable rather than panicking.
+- The fluent API needs clear ordering semantics for page-level `Content`, `Add`, and `Toolbar`.
+
+### What was tricky to build
+- The hard part was preserving a JSON-only contract while still allowing Go callers to use ergonomic typed structs. The validation layer now recursively rejects non-JSON values and verifies actions after they have been embedded in props as either arrays or keyed maps.
+
+### What warrants a second pair of eyes
+- Review whether `PageBuilder.Content` should preserve an existing toolbar or continue to replace all page nodes.
+- Review the exact Go package boundary before exposing the builders as a Goja module.
+
+### What should be done in the future
+- Add the Goja module wrapper around `pkg/admindsl` in a later phase.
+- Expand golden tests once frontend semantic actions and surfaces are implemented.
+
+### Code review instructions
+- Start with `pkg/admindsl/doc.go`, then read `types.go`, `builder.go`, `validate.go`, and `builder_test.go`.
+- Validate with:
+  - `go test ./pkg/admindsl -count=1`
+
+### Technical details
+- Files added:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/doc.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/types.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/validate.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder_test.go`
