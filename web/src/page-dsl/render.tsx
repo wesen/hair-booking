@@ -456,21 +456,16 @@ export function renderNode(node: DslNode, ctx?: DslRenderContext, key?: Key): Re
           imageAlt={imageAlt}
           accept={Array.isArray(uploadIntent?.accept) ? (uploadIntent!.accept as string[]).join(",") : undefined}
           maxBytes={typeof uploadIntent?.maxBytes === "number" ? uploadIntent.maxBytes as number : undefined}
-          onUploadFile={async (file, value, meta) => {
-            // Upload file to backend first, then dispatch with image metadata
-            if (uploadIntent?.url && ctx?.backendUpload) {
-              try {
-                const image = await ctx.backendUpload(uploadIntent, file);
-                dispatchAction(ctx, node, props, "upload", "action", image, meta);
-              } catch (err) {
-                console.error("DSL upload failed:", err);
-                // Let PhotoTile show error state
-              }
-              return;
+          onUpload={(value, meta) => dispatchAction(ctx, node, props, "upload", "action", value, meta)}
+          onUploadFile={uploadIntent?.url && ctx?.backendUpload ? async (file, value, meta) => {
+            try {
+              const image = await ctx.backendUpload!(uploadIntent, file);
+              dispatchAction(ctx, node, props, "upload", "action", image, meta);
+            } catch (err) {
+              console.error("DSL upload failed:", err);
+              // Let PhotoTile show error state
             }
-            // Fallback: no upload intent, dispatch directly
-            dispatchAction(ctx, node, props, "upload", "action", value, meta);
-          }}
+          } : undefined}
           onRemove={(value, meta) => dispatchAction(ctx, node, props, "remove", "action", value, meta)}
           style={style(props)}
         />

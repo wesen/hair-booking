@@ -34,8 +34,8 @@ describe("interactive DSL renderer", () => {
 
     const { container } = render(<DslPageRenderer page={dsl} context={{ actions: { serviceChanged: onServiceChanged } }} />);
 
-    // SelectableGroup renders ServiceOption buttons
-    const items = container.querySelectorAll("[data-component='ServiceOption']");
+    // Options with subtitles and no badges render as BudgetOption rows.
+    const items = container.querySelectorAll("[data-component='BudgetOption']");
     expect(items.length).toBe(2);
     fireEvent.click(items[1]);
 

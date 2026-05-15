@@ -67,3 +67,14 @@ Extended admin DSL interaction coverage to assert confirm actions dispatch with 
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Updated commit references
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — Confirm action interaction coverage
 
+
+## 2026-05-15
+
+Fixed existing page-dsl interaction test failures by aligning selectableGroup selector expectations with BudgetOption rendering and restoring direct local uploadTile action dispatch when no backend upload intent is configured.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records full frontend test fix and validation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/InteractiveDsl.test.tsx — Updated selectableGroup test selector to current renderer behavior
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — Restored direct uploadTile local action fallback without backend upload intent
+

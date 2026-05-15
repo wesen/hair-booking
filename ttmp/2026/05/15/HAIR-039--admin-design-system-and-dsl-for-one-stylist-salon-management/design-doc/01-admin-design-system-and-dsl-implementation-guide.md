@@ -54,6 +54,8 @@ RelatedFiles:
       Note: |-
         Current backend-driven DSL bridge for FlowState and action dispatch
         Current backend-driven FlowState and action dispatch bridge for future admin backend integration
+    - Path: web/src/page-dsl/InteractiveDsl.test.tsx
+      Note: Existing page DSL interaction tests fixed during admin DSL validation cleanup
     - Path: web/src/page-dsl/builder.ts
       Note: |-
         Current fluent page/node builder pattern that emits JSON
@@ -72,6 +74,7 @@ LastUpdated: 2026-05-15T00:00:00Z
 WhatFor: Use this guide before implementing admin DSL schema, builders, renderer mappings, Storybook examples, or one-stylist admin screens.
 WhenToUse: Read when adding backend-management UI primitives, resource pages, admin forms, modals/drawers, dashboard pages, or generic admin DSL authoring APIs.
 ---
+
 
 
 

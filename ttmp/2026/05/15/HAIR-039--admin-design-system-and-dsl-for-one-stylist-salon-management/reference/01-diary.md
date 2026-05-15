@@ -353,3 +353,67 @@ This gives the admin DSL its own validation surface while preserving the earlier
 ### Technical details
 - New test file:
   - `web/src/admin-dsl/AdminDsl.test.tsx`
+
+## Step 6: Fix the existing page DSL interaction tests
+
+After explaining the existing `page-dsl` interaction tests, I fixed the two failing assertions from the full frontend test run. This step touched the older client-facing page DSL, not the new admin DSL, because the failures were in `web/src/page-dsl/InteractiveDsl.test.tsx` and `web/src/page-dsl/render.tsx`.
+
+The selectable-group test had drifted from the renderer's current component selection rule: options with subtitles and no badges render as `BudgetOption`, not `ServiceOption`. The upload-tile behavior had a real fallback issue: the renderer always passed `onUploadFile`, so a no-backend upload tile opened the hidden file picker instead of dispatching the local named `upload` action on click.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead"
+
+**Assistant interpretation:** Proceed with fixing the existing page-DSL interaction tests that were explained in the previous response.
+
+**Inferred user intent:** The user wants the full frontend test suite green, including the older page DSL tests, before continuing admin DSL work.
+
+**Commit (code):** TBD — this fix will be committed after diary/changelog updates.
+
+### What I did
+- Updated `web/src/page-dsl/InteractiveDsl.test.tsx`:
+  - changed the selectable-group selector from `[data-component='ServiceOption']` to `[data-component='BudgetOption']` for subtitle/no-badge options.
+- Updated `web/src/page-dsl/render.tsx`:
+  - added direct `onUpload` dispatch for `uploadTile` local-action fallback.
+  - only passes `onUploadFile` when there is a backend upload intent URL and `ctx.backendUpload` exists.
+
+### Why
+- The selectable test should match the renderer's documented molecule mapping.
+- Local upload-tile actions should still work without a backend upload intent, especially in Storybook/local DSL examples.
+
+### What worked
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Full frontend tests passed:
+  - `cd web && pnpm test -- --runInBand`
+  - `7 passed`, `27 passed`.
+
+### What didn't work
+- N/A after the fix. The previously failing tests now pass.
+
+### What I learned
+- The selectable-group failure was selector drift caused by a legitimate renderer rule.
+- The upload-tile failure exposed a fallback behavior regression: `PhotoTile` interprets `onUploadFile` as file-picker mode, so the renderer should not pass that prop unless a real backend upload path is available.
+
+### What was tricky to build
+- `PhotoTile` supports both direct local upload callbacks and file-picker uploads. Passing both callbacks is valid, but passing `onUploadFile` changes click behavior for empty tiles. The renderer now chooses the callback shape based on whether backend upload handling is actually configured.
+
+### What warrants a second pair of eyes
+- Review whether Storybook upload-tile demos should show both modes explicitly:
+  - direct local action mode,
+  - backend upload intent mode.
+
+### What should be done in the future
+- Add a backend-upload-intent-specific test that simulates file selection and asserts `ctx.backendUpload` is called.
+
+### Code review instructions
+- Review `web/src/page-dsl/render.tsx` around the `uploadTile` case.
+- Review `web/src/page-dsl/InteractiveDsl.test.tsx` for the updated current-renderer selector.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- Files changed:
+  - `web/src/page-dsl/render.tsx`
+  - `web/src/page-dsl/InteractiveDsl.test.tsx`
