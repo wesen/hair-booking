@@ -339,3 +339,17 @@ Step 27: Implemented Phase 14 backend-driven Admin DSL services flow spike and P
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/scenarioFixtures.ts — Shared Admin DSL Services scenario fixtures
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/mock/handlers.ts — Registers Admin DSL MSW handlers
 
+
+## 2026-05-15
+
+Step 28: Added dedicated Admin DSL protobuf transport schema, generated Go/TS bindings, and Admin DSL proto conversion tests. Validation: buf generate; go test ./... -count=1; cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (8 files, 36 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/gen/proto/fringe/admin_dsl/v1/admin_dsl.pb.go — Generated Go Admin DSL protobuf bindings
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/proto_convert.go — Admin DSL Go-to-protobuf conversion helpers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/proto_convert_test.go — Admin DSL protobuf JSON conversion test
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/proto/fringe/admin_dsl/v1/admin_dsl.proto — Dedicated Admin DSL protobuf transport schema
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records Admin DSL proto work
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/pb/proto/fringe/admin_dsl/v1/admin_dsl_pb.ts — Generated TypeScript Admin DSL protobuf bindings
+

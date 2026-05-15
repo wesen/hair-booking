@@ -1997,3 +1997,91 @@ The Goja exposure is deliberately controlled: `pkg/admindsl.GojaModule()` expose
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/mock/handlers.ts`
 - Script:
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/scripts/02-capture-admin-dsl-scenarios.sh`
+
+## Step 28: Add the dedicated Admin DSL protobuf transport contract
+
+I added a dedicated Admin DSL protobuf schema instead of extending the existing intake/page DSL proto. The new schema models Admin-specific top-level surface regions (`modals` and `drawers`) directly, so backend-admin pages do not have to smuggle surfaces through generic metadata or force the intake DSL transport to know about admin-only concepts.
+
+I also generated Go and TypeScript bindings and added Go conversion helpers for `pkg/admindsl` flow results. The conversion test verifies that a backend-rendered services flow page with an open drawer survives protobuf JSON marshaling with the drawer present.
+
+### Prompt Context
+
+**User prompt (verbatim):** "admun dsl proto"
+
+**Assistant interpretation:** Add a dedicated Admin DSL protobuf transport schema rather than reusing or overloading the existing intake DSL proto.
+
+**Inferred user intent:** The user is choosing the dedicated Admin DSL proto direction for future HTTP/protobuf integration.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Added `proto/fringe/admin_dsl/v1/admin_dsl.proto` with:
+  - `AdminPage`,
+  - `AdminShell`,
+  - `AdminNode`,
+  - `AdminNodeMeta`,
+  - `AdminActionRef`,
+  - `AdminEffect`,
+  - `AdminInteractionEvent`,
+  - `StartAdminFlowRequest`,
+  - `GetAdminFlowRequest`,
+  - `DispatchAdminEventRequest`,
+  - `AdminFlowState`,
+  - `AdminDslError`.
+- Ran `buf generate`.
+- Generated:
+  - `gen/proto/fringe/admin_dsl/v1/admin_dsl.pb.go`
+  - `web/src/pb/proto/fringe/admin_dsl/v1/admin_dsl_pb.ts`
+- Added `pkg/admindsl/proto_convert.go` for converting Admin DSL Go pages/flow results/events to/from the generated proto types.
+- Added `pkg/admindsl/proto_convert_test.go` proving `AdminFlowState` protobuf JSON preserves top-level drawers.
+
+### Why
+- Admin DSL pages now have first-class top-level surfaces. A dedicated proto keeps the admin transport clean and avoids coupling the existing intake DSL proto to admin-specific surface semantics.
+
+### What worked
+- Code generation succeeded with existing Buf config.
+- Full Go validation passed:
+  - `go test ./... -count=1`
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Frontend tests passed:
+  - `cd web && pnpm test -- --runInBand`
+  - `8 passed`, `36 passed`
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The dedicated proto can mirror the Admin DSL shape closely while still leaving widget props dynamic with `google.protobuf.Struct`.
+- Keeping action refs as documented proto messages is useful even though they are typically embedded dynamically under `AdminNode.props.actions`.
+
+### What was tricky to build
+- The main design choice was whether to model semantic action fields in the proto. I included them because Admin action policy is now a first-class part of the DSL and future typed action transport may use this message directly.
+
+### What warrants a second pair of eyes
+- Review whether `AdminActionRef` should remain a documented embedded shape only, or whether future schemas should move actions out of `Struct` props and into typed node fields.
+- Review whether `AdminPage` should eventually include typed resource/surface registries instead of only nodes/modals/drawers.
+
+### What should be done in the future
+- Wire HTTP handlers for Admin DSL start/get/dispatch using `AdminFlowState` and `AdminInteractionEvent`.
+- Add a frontend `admin-dsl/backendClient.ts` using generated `AdminFlowStateSchema` and `AdminInteractionEventSchema`.
+
+### Code review instructions
+- Start with `proto/fringe/admin_dsl/v1/admin_dsl.proto`.
+- Then review generated Go/TS bindings and `pkg/admindsl/proto_convert.go`.
+- Validate with:
+  - `buf generate`
+  - `go test ./... -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- Proto path:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/proto/fringe/admin_dsl/v1/admin_dsl.proto`
+- Generated Go:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/gen/proto/fringe/admin_dsl/v1/admin_dsl.pb.go`
+- Generated TypeScript:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/pb/proto/fringe/admin_dsl/v1/admin_dsl_pb.ts`
+- Conversion helpers:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/proto_convert.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/proto_convert_test.go`
