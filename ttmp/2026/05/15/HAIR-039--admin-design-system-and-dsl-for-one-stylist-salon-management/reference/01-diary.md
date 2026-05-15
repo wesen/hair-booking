@@ -1300,3 +1300,81 @@ I uploaded the new Admin DSL evolution guide to reMarkable and validated the doc
 ### Technical details
 - reMarkable path:
   - `/ai/2026/05/15/HAIR-039/HAIR_039_Admin_DSL_Evolution_Guide.pdf`
+
+## Step 19: Write the Obsidian project report on the Admin DSL React technique
+
+I wrote a durable Obsidian project report for the PARC vault focused on the Admin DSL and React renderer technique. The report is written as a deep-dive technical article: it explains why the DSL exists, how the JSON contract works, how fluent builders emit plain data, how the renderer interprets nodes into React, how actions are represented as data instead of callbacks, how Storybook and css-visual-diff were used, and what the next semantic improvements should be.
+
+The note intentionally focuses on the reusable DSL + React technique rather than only the salon domain. It also connects the Admin DSL to the earlier page DSL, Goja runtime, and protobuf transport context.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Ok, write a detailed project report for our obsidian vault as a deep dive technical blog post in a textbook writing style (no analogies, see skill). Cover all the internals, how we built things, how we   
+tested them, cover the fundamentals and technology involved (since we gathered so much information as well).  The focus is on this DSL + react technique."
+
+**Assistant interpretation:** Create a durable Obsidian vault report that teaches the Admin DSL and React renderer technique in a detailed, textbook-style technical blog post.
+
+**Inferred user intent:** The user wants the implementation knowledge preserved outside the ticket as a reusable project report for later reading and sharing.
+
+**Commit (code):** PARC vault commit `7e8d29d` — "Add Fringe Admin DSL React renderer deep dive report".
+
+### What I did
+- Read the Obsidian vault writing and textbook authoring skill guidance.
+- Created:
+  - `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/05/15/PROJECT REPORT - Fringe Admin DSL and React Renderer Technique Deep Dive.md`
+- Included frontmatter with tags, aliases, source tickets, related docs, and repo path.
+- Covered:
+  - purpose of the DSL,
+  - lineage from the intake page DSL,
+  - Admin DSL schema and builder design,
+  - renderer-as-interpreter pattern,
+  - action dispatch model,
+  - surfaces/overlays,
+  - row action density,
+  - adaptive calendar widget,
+  - Storybook catalog workflow,
+  - css-visual-diff screenshot review,
+  - test strategy,
+  - technology stack,
+  - platform/application boundary,
+  - tricky details and future improvements.
+- Committed only the new report file in the PARC vault, leaving unrelated vault changes untouched.
+
+### Why
+- The Admin DSL work now contains enough implementation and design learning to justify a durable project report.
+- The report gives future readers the fundamentals and the internals without requiring them to reconstruct the story from tickets and commits.
+
+### What worked
+- The PARC vault report was committed successfully:
+  - `7e8d29d Add Fringe Admin DSL React renderer deep dive report`
+
+### What didn't work
+- The PARC vault had unrelated existing changes/untracked files:
+  - `.obsidian/workspace.json`
+  - `Projects/2026/05/15/ARTICLE - Providence Therapist Search - End-to-End Research System and LLM Extraction Lab.md`
+  - `Projects/2026/05/15/PROJECT REPORT - goja-kanban Deployment Fix - Config Schema Drift Between GitOps and Goja Runtime.md`
+- I did not stage or modify those files.
+
+### What I learned
+- The project report is most useful when framed as a reusable DSL + React technique, not as a chronological worklog.
+- The Admin DSL now has enough breadth to teach both fundamentals and practical failure modes.
+
+### What was tricky to build
+- The report needed to balance project specificity with reusable engineering knowledge. I anchored the explanation in concrete files and tests while keeping the main lesson focused on JSON DSL authoring, React interpretation, actions, Storybook, and visual review.
+
+### What warrants a second pair of eyes
+- Review whether the report should also be uploaded to reMarkable, since the user asked only for Obsidian vault output this time.
+- Review whether the report should cross-link more PARC notes once related notes are indexed.
+
+### What should be done in the future
+- Use the report as the teaching reference before implementing the next Admin DSL semantic refactor.
+
+### Code review instructions
+- Open the PARC report and read it as a standalone technical article.
+- Confirm it explains both fundamentals and concrete implementation paths.
+
+### Technical details
+- Report path:
+  - `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/05/15/PROJECT REPORT - Fringe Admin DSL and React Renderer Technique Deep Dive.md`
+- PARC commit:
+  - `7e8d29d Add Fringe Admin DSL React renderer deep dive report`
