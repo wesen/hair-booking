@@ -494,3 +494,87 @@ This leaves HAIR-040 with a real `/admin/services` website route backed by a Goj
   - `go test ./... -count=1`
   - `cd web && npx tsc --noEmit`
   - `cd web && pnpm test -- --runInBand`
+
+## Step 9: Playwright smoke test the real Admin DSL page and fix empty error chrome
+
+I smoke-tested `/admin/services` in Playwright against the dev backend and Vite frontend. The page loaded, the services list rendered from the Goja-backed Admin DSL flow, opening the Cut row showed the editor drawer, and triggering validation showed a real validation message from the backend flow.
+
+During visual review I noticed an empty red validation box above the form fields before validation was triggered. That was caused by the renderer displaying the form error container whenever `props.errors` existed, even when it was an empty object. I fixed the renderer so it only renders the validation box when there is at least one error entry, added regression coverage, and retook the drawer screenshot.
+
+### Prompt Context
+
+**User prompt (verbatim):** "test in playwright, take screenshots."
+
+**Assistant interpretation:** Run the real Admin DSL website in a browser, interact with it, capture screenshots, and report any visual/runtime issues.
+
+**Inferred user intent:** The user wants browser-level confidence that `/admin/services` actually works beyond unit tests.
+
+**User prompt (verbatim):** "you see that little red box?"
+
+**Assistant interpretation:** Confirm and fix the unexpected empty red validation/error box visible in the drawer screenshot.
+
+**Inferred user intent:** The user wants visual polish and not just functional correctness.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Started the dev stack with:
+  - `devctl up --profile live-dsl --force`
+- Confirmed backend was alive on `127.0.0.1:19080`.
+- Reused an already-running Vite dev server on `127.0.0.1:5175` because the devctl web service could not bind that port.
+- Opened:
+  - `http://127.0.0.1:5175/admin/services`
+- Captured screenshots:
+  - `various/playwright/01-admin-services-initial.png`
+  - `various/playwright/02-admin-services-drawer-open-fixed.png`
+  - `various/playwright/03-admin-services-validation.png`
+- Clicked the Cut row Open button and verified the drawer appeared.
+- Clicked Trigger validation and verified `name: Name is required` appeared.
+- Checked browser console warnings/errors; no warning/error messages were reported.
+- Fixed the empty red error box in `web/src/admin-dsl/render.tsx` by only rendering `.adminDslFormErrors` when `Object.entries(errors).length > 0`.
+- Added a regression test in `web/src/admin-dsl/AdminDsl.test.tsx`.
+- Validated the frontend:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+  - `10 passed`, `42 passed`
+
+### Why
+- Playwright caught a visual defect that unit tests did not catch: empty form errors were displayed as an empty red box.
+- The screenshot set documents the real backend/Admin DSL page states for review.
+
+### What worked
+- `/admin/services` rendered the real Goja-backed Admin DSL page.
+- Backend dispatch worked for opening the drawer and triggering validation.
+- The empty red validation box is gone in the fixed drawer screenshot.
+
+### What didn't work
+- `devctl up --profile live-dsl --force` started the backend, but the web service failed because port `5175` was already occupied by an older Vite process:
+  - `Error: Port 5175 is already in use`
+- The existing Vite process on `5175` was still usable and correctly proxied `/api/admin-dsl` to the backend.
+
+### What I learned
+- The page is functionally wired end-to-end, and the remaining issues are normal UI polish items.
+- Form error rendering should treat an empty error object as no errors.
+
+### What was tricky to build
+- Playwright strict locators found duplicate buttons because mobile and desktop side columns can both exist in the DOM for responsive rendering. I used a desktop-side-column scoped selector for the validation button.
+
+### What warrants a second pair of eyes
+- Review whether hidden mobile side-column elements should be `aria-hidden` or removed from the accessibility tree on desktop to avoid duplicate accessible buttons.
+- Review whether the old Vite process on port `5175` should be cleaned up so devctl owns the web service.
+
+### What should be done in the future
+- Add a tracked Playwright or css-visual-diff smoke script for `/admin/services` if this route will be reviewed frequently.
+
+### Code review instructions
+- Review the screenshots in `various/playwright/`.
+- Review the `render.tsx` form error rendering fix and the added test.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- Screenshot files:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/various/playwright/01-admin-services-initial.png`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/various/playwright/02-admin-services-drawer-open-fixed.png`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/various/playwright/03-admin-services-validation.png`

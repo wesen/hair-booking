@@ -106,6 +106,16 @@ describe("admin DSL", () => {
     expect(screen.getByRole("button", { name: "Save" })).toBeInTheDocument();
   });
 
+  it("does not render an empty validation box for empty form errors", () => {
+    const page = resource.page("empty-errors", "Empty errors")
+      .content(admin.form("itemForm", { title: "Item", dirty: true, errors: {} }, field.text("name", { label: "Name", value: "Cut" })))
+      .toJSON();
+
+    const { container } = render(<AdminPageRenderer page={page} />);
+    expect(screen.getByText("Unsaved changes")).toBeInTheDocument();
+    expect(container.querySelector(".adminDslFormErrors")).toBeNull();
+  });
+
   it("serializes surface builders as plain JSON nodes", () => {
     const page = admin.page("surfaces", "Surfaces")
       .content(surface.inlinePanel("inline-help", { title: "Inline help" }, admin.markdown("Help text")))

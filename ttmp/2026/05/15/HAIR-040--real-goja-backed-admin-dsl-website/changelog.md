@@ -101,3 +101,17 @@ Step 8: Ran final validation for HAIR-040 and marked Phase 6 complete. Validatio
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/reference/01-diary.md — Diary records final validation
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/tasks.md — Phase 6 final validation complete
 
+
+## 2026-05-15
+
+Step 9: Playwright-tested /admin/services, captured initial/drawer/validation screenshots, fixed empty form error chrome, and added regression coverage. Validation: cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (10 files, 42 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/reference/01-diary.md — Diary records Playwright smoke and visual fix
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/various/playwright/01-admin-services-initial.png — Initial Playwright screenshot
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/various/playwright/02-admin-services-drawer-open-fixed.png — Drawer-open Playwright screenshot after empty-error fix
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/various/playwright/03-admin-services-validation.png — Validation Playwright screenshot
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — Regression test for empty errors
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Only render form error box when error entries exist
+
