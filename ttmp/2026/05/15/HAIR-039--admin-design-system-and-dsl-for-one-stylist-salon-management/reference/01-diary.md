@@ -202,3 +202,93 @@ The split intentionally keeps the first implementation small. We can prove the D
 ### Technical details
 - Task file:
   - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md`
+
+## Step 4: Build the first admin DSL slice and Storybook demos
+
+I implemented the first working admin DSL slice under `web/src/admin-dsl`. The slice includes a JSON-safe schema, fluent builder helpers, three concrete MVP examples, a renderer/interpreter, exports, and Storybook stories. The examples are intentionally frontend-only fixtures for now: they prove the API and visual vocabulary before a backend admin flow exists.
+
+The API keeps the simplicity/expressiveness balance by offering high-level helpers such as `admin.dashboard`, `resource.page`, `field.text`, `view.list`, and `action.open`, while still emitting inspectable JSON. The renderer uses explicit node-kind switches rather than dynamic component lookup.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 3)
+
+**Assistant interpretation:** Implement the initial admin DSL files and a few Storybook demo pages, then validate and record what happened.
+
+**Inferred user intent:** The user wants a tangible starting point for the admin DSL, not just design prose.
+
+**Commit (code):** TBD — code will be committed after doc/task updates.
+
+### What I did
+- Added `web/src/admin-dsl/schema.ts`:
+  - `AdminPage`, `AdminNode`, `AdminActionRef`, `AdminQueryRef`, render event/context types.
+- Added `web/src/admin-dsl/builder.ts`:
+  - `admin`, `resource`, `field`, `view`, `action`, and `query` helpers.
+- Added `web/src/admin-dsl/examples.ts`:
+  - Services & Pricing resource page.
+  - Today dashboard page.
+  - Calendar week page.
+- Added `web/src/admin-dsl/render.tsx`:
+  - explicit renderer mappings for shell, toolbar, sections, metric cards, resource rows/lists, forms, fields, modal/drawer, confirm dialog, and calendar blocks.
+- Added `web/src/admin-dsl/AdminDsl.stories.tsx`:
+  - Services & Pricing story.
+  - Dashboard story.
+  - Calendar story.
+  - JSON contract story.
+- Added `web/src/admin-dsl/index.ts` exports.
+
+### Why
+- The first code slice should prove the DSL ergonomics and emitted JSON before introducing backend flows.
+- Storybook gives quick design review for the one-stylist admin MVP screens.
+
+### What worked
+- `npx tsc --noEmit` passed from `web/`.
+- The builder API can express the first three admin pages without becoming one helper per screen.
+- The renderer remains explicit and reviewable.
+
+### What didn't work
+- Full frontend test command failed in existing page DSL tests:
+  - Command: `cd web && pnpm test -- --runInBand`
+  - Failures:
+    - `src/page-dsl/InteractiveDsl.test.tsx > routes selectableGroup changes through named DSL action payloads`
+    - `src/page-dsl/InteractiveDsl.test.tsx > routes uploadTile actions`
+  - Exact assertions:
+    - `expected +0 to be 2` for `[data-component='ServiceOption']` query.
+    - expected upload action spy to be called, but call count was `0`.
+- These tests exercise the pre-existing `page-dsl` renderer, not the new `admin-dsl` files. I did not change `web/src/page-dsl/*` in this step.
+
+### What I learned
+- `AdminActionRef` and `AdminQueryRef` need to be JSON-object compatible because they are stored inside node props. I made them intersections with `AdminJsonObject` and ensured helper constructors omit `undefined` fields.
+- Keeping examples as plain `toJSON()` output immediately catches accidental non-JSON values.
+
+### What was tricky to build
+- The TypeScript index-signature constraints were the main sharp edge. Optional fields like `label?: string` and `payload?: AdminJsonValue` are fine as TypeScript interfaces, but they conflict with a strict JSON object index signature when the value is `undefined`. The fix was to construct action/query objects without undefined properties.
+- The renderer is intentionally inline for this first slice. That is fast to review, but if it grows further, components should move to `web/src/admin/atoms`, `web/src/admin/molecules`, and `web/src/admin/organisms`.
+
+### What warrants a second pair of eyes
+- Review `builder.ts` for API ergonomics: it should feel concise but not magical.
+- Review `render.tsx` for whether any node kinds are too app-specific.
+- Review whether services/dashboard/calendar are the right first Storybook demos or whether intake requests should come next.
+
+### What should be done in the future
+- Add admin DSL builder unit tests.
+- Add admin interaction tests for row action dispatch and modal/confirm action dispatch.
+- Split renderer internals into reusable admin components if the next phase expands the visual system.
+- Investigate the existing `page-dsl/InteractiveDsl.test.tsx` failures separately.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/examples.ts` to understand the desired authoring experience.
+- Then inspect `web/src/admin-dsl/schema.ts` and `web/src/admin-dsl/builder.ts` for the JSON contract.
+- Then inspect `web/src/admin-dsl/render.tsx` for node-kind mappings.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+- Be aware that full `pnpm test -- --runInBand` currently fails in unrelated existing `page-dsl` tests.
+
+### Technical details
+- New files:
+  - `web/src/admin-dsl/schema.ts`
+  - `web/src/admin-dsl/builder.ts`
+  - `web/src/admin-dsl/examples.ts`
+  - `web/src/admin-dsl/render.tsx`
+  - `web/src/admin-dsl/AdminDsl.stories.tsx`
+  - `web/src/admin-dsl/index.ts`

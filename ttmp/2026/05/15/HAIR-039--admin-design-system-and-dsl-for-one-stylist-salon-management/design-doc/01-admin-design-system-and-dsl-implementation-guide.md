@@ -24,6 +24,18 @@ RelatedFiles:
       Note: Current stateDb/session/persistence schema used by backend-driven DSL flows
     - Path: web/src/LiveDslDemoApp.tsx
       Note: Current route/session/debug shell around backend DSL pages
+    - Path: web/src/admin-dsl/AdminDsl.stories.tsx
+      Note: Storybook demos for the admin DSL pages and JSON contract
+    - Path: web/src/admin-dsl/builder.ts
+      Note: Fluent admin/resource/field/view/action/query builder API
+    - Path: web/src/admin-dsl/examples.ts
+      Note: Concrete one-stylist MVP dashboard/services/calendar demo pages
+    - Path: web/src/admin-dsl/index.ts
+      Note: Admin DSL public exports
+    - Path: web/src/admin-dsl/render.tsx
+      Note: Initial explicit admin DSL renderer/interpreter
+    - Path: web/src/admin-dsl/schema.ts
+      Note: Admin DSL JSON-safe schema introduced by Phase 1
     - Path: web/src/atoms/Button/Button.tsx
       Note: Existing action primitive to reuse in admin UI
     - Path: web/src/atoms/TextField/TextField.tsx
@@ -58,6 +70,7 @@ LastUpdated: 2026-05-15T00:00:00Z
 WhatFor: Use this guide before implementing admin DSL schema, builders, renderer mappings, Storybook examples, or one-stylist admin screens.
 WhenToUse: Read when adding backend-management UI primitives, resource pages, admin forms, modals/drawers, dashboard pages, or generic admin DSL authoring APIs.
 ---
+
 
 
 # Admin Design System and DSL Implementation Guide
