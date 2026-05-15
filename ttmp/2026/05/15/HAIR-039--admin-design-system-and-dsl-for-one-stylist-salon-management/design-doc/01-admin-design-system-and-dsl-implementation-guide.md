@@ -12,6 +12,8 @@ DocType: design-doc
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: .devctl.yaml
+      Note: Storybook profile used to review admin DSL demos
     - Path: pkg/dslgoja/flows/intake.flow.js
       Note: |-
         Current backend-authored DSL flow pattern for future admin flow scripts
@@ -22,6 +24,8 @@ RelatedFiles:
         Seeded configDb tables that future admin screens may expose or edit through a draft/publish model
     - Path: pkg/dslhost/schema.sql
       Note: Current stateDb/session/persistence schema used by backend-driven DSL flows
+    - Path: plugins/devctl/hair_booking.py
+      Note: Devctl launch plan support for Storybook
     - Path: web/src/LiveDslDemoApp.tsx
       Note: Current route/session/debug shell around backend DSL pages
     - Path: web/src/admin-dsl/AdminDsl.stories.tsx
@@ -74,6 +78,7 @@ LastUpdated: 2026-05-15T00:00:00Z
 WhatFor: Use this guide before implementing admin DSL schema, builders, renderer mappings, Storybook examples, or one-stylist admin screens.
 WhenToUse: Read when adding backend-management UI primitives, resource pages, admin forms, modals/drawers, dashboard pages, or generic admin DSL authoring APIs.
 ---
+
 
 
 

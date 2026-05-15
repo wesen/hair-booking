@@ -78,3 +78,14 @@ Fixed existing page-dsl interaction test failures by aligning selectableGroup se
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/InteractiveDsl.test.tsx — Updated selectableGroup test selector to current renderer behavior
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — Restored direct uploadTile local action fallback without backend upload intent
 
+
+## 2026-05-15
+
+Added a devctl Storybook profile/service and started Storybook under devctl supervision for Admin DSL review at http://127.0.0.1:6006/?path=/story/admin-dsl-rendered-pages--services-pricing.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/.devctl.yaml — Added storybook profile for design review
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/plugins/devctl/hair_booking.py — Added storybook service selection and launch plan
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records devctl Storybook startup and verification
+

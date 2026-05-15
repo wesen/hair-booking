@@ -36,6 +36,16 @@ profiles:
       HAIR_BOOKING_DEVCTL_WEB_HOST: "127.0.0.1"
       HAIR_BOOKING_DEVCTL_WEB_PORT: "5175"
 
+  storybook:
+    display_name: Hair Booking Storybook
+    description: Launch only Storybook for component and DSL review.
+    plugins:
+      - hair-booking
+    env:
+      HAIR_BOOKING_DEVCTL_SERVICES: storybook
+      HAIR_BOOKING_DEVCTL_STORYBOOK_HOST: "127.0.0.1"
+      HAIR_BOOKING_DEVCTL_STORYBOOK_PORT: "6006"
+
 plugins:
   - id: hair-booking
     path: python3

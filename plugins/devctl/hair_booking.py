@@ -19,6 +19,8 @@ DEFAULT_BACKEND_HOST = "127.0.0.1"
 DEFAULT_BACKEND_PORT = "19080"
 DEFAULT_WEB_HOST = "127.0.0.1"
 DEFAULT_WEB_PORT = "5175"
+DEFAULT_STORYBOOK_HOST = "127.0.0.1"
+DEFAULT_STORYBOOK_PORT = "6006"
 
 
 def emit(frame: dict[str, Any]) -> None:
@@ -45,8 +47,11 @@ def settings() -> dict[str, str]:
     backend_port = env_str("HAIR_BOOKING_DEVCTL_BACKEND_PORT", DEFAULT_BACKEND_PORT)
     web_host = env_str("HAIR_BOOKING_DEVCTL_WEB_HOST", DEFAULT_WEB_HOST)
     web_port = env_str("HAIR_BOOKING_DEVCTL_WEB_PORT", DEFAULT_WEB_PORT)
+    storybook_host = env_str("HAIR_BOOKING_DEVCTL_STORYBOOK_HOST", DEFAULT_STORYBOOK_HOST)
+    storybook_port = env_str("HAIR_BOOKING_DEVCTL_STORYBOOK_PORT", DEFAULT_STORYBOOK_PORT)
     backend_url = env_str("HAIR_BOOKING_BACKEND_URL", f"http://{backend_host}:{backend_port}")
     web_url = f"http://{web_host}:{web_port}"
+    storybook_url = f"http://{storybook_host}:{storybook_port}"
     return {
         "backend_host": backend_host,
         "backend_port": backend_port,
@@ -54,6 +59,9 @@ def settings() -> dict[str, str]:
         "web_host": web_host,
         "web_port": web_port,
         "web_url": web_url,
+        "storybook_host": storybook_host,
+        "storybook_port": storybook_port,
+        "storybook_url": storybook_url,
         "services": ",".join(sorted(env_services())),
     }
 
@@ -90,6 +98,10 @@ def handle_config_mutate(request_id: str) -> None:
                 "services.hair-booking-web.port": int(s["web_port"]),
                 "services.hair-booking-web.url": s["web_url"],
                 "services.hair-booking-web.demo_url": f"{s['web_url']}/dsl-goja-demo",
+                "services.hair-booking-storybook.host": s["storybook_host"],
+                "services.hair-booking-storybook.port": int(s["storybook_port"]),
+                "services.hair-booking-storybook.url": s["storybook_url"],
+                "services.hair-booking-storybook.admin_dsl_url": f"{s['storybook_url']}/?path=/story/admin-dsl-rendered-pages--services-pricing",
                 "devctl.hair-booking.services": s["services"],
             },
             "unset": [],
@@ -123,10 +135,10 @@ def handle_validate_run(request_id: str, req: dict[str, Any]) -> None:
         })
 
     s = settings()
-    if env_services() - {"backend", "web"}:
+    if env_services() - {"backend", "web", "storybook"}:
         errors.append({
             "code": "E_UNKNOWN_SERVICE_SELECTION",
-            "message": f"HAIR_BOOKING_DEVCTL_SERVICES must contain backend and/or web, got {s['services']}",
+            "message": f"HAIR_BOOKING_DEVCTL_SERVICES must contain backend, web, and/or storybook, got {s['services']}",
         })
 
     ok(request_id, {"valid": not errors, "errors": errors, "warnings": warnings})
@@ -175,6 +187,24 @@ def handle_launch_plan(request_id: str) -> None:
                 "HAIR_BOOKING_DEVCTL_WEB_PORT": s["web_port"],
             },
             "health": {"type": "http", "url": s["web_url"], "timeout_ms": 60000},
+        })
+
+    if "storybook" in selected:
+        services.append({
+            "name": "hair-booking-storybook",
+            "cwd": "web",
+            "command": [
+                "bash",
+                "--noprofile",
+                "--norc",
+                "-lc",
+                "exec pnpm storybook --host ${HAIR_BOOKING_DEVCTL_STORYBOOK_HOST:-127.0.0.1} --port ${HAIR_BOOKING_DEVCTL_STORYBOOK_PORT:-6006} --no-open",
+            ],
+            "env": {
+                "HAIR_BOOKING_DEVCTL_STORYBOOK_HOST": s["storybook_host"],
+                "HAIR_BOOKING_DEVCTL_STORYBOOK_PORT": s["storybook_port"],
+            },
+            "health": {"type": "http", "url": s["storybook_url"], "timeout_ms": 60000},
         })
 
     ok(request_id, {"services": services})

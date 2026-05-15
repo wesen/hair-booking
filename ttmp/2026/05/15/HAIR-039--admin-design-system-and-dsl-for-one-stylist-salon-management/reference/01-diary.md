@@ -417,3 +417,84 @@ The selectable-group test had drifted from the renderer's current component sele
 - Files changed:
   - `web/src/page-dsl/render.tsx`
   - `web/src/page-dsl/InteractiveDsl.test.tsx`
+
+## Step 7: Add a devctl Storybook profile and verify admin stories live
+
+I added a dedicated `storybook` devctl profile so the admin DSL stories can be launched through the same orchestration workflow as the backend and Vite app. There was already an unmanaged Storybook process from a previous session on port 6006, so I stopped that stale process and restarted Storybook under devctl supervision.
+
+After devctl startup, I verified that Storybook's `index.json` contains the new `Admin DSL/Rendered Pages` stories and opened the Services & Pricing story in Playwright. The iframe text showed the expected admin DSL page content: service rows, the edit modal, and the archive confirmation panel.
+
+### Prompt Context
+
+**User prompt (verbatim):** "can i alreayd see something in storybook? can you use devctl to start it if it isn't?"
+
+**Assistant interpretation:** Check whether the new admin DSL stories are visible in Storybook and start Storybook via devctl if needed.
+
+**Inferred user intent:** The user wants a live URL for visual review, preferably managed by devctl rather than an ad-hoc background process.
+
+**Commit (code):** TBD — devctl profile/plugin changes will be committed after changelog update.
+
+### What I did
+- Added `.devctl.yaml` profile `storybook`.
+- Extended `plugins/devctl/hair_booking.py` with a `storybook` service selection.
+- Added devctl config keys for:
+  - Storybook host/port/url,
+  - direct Admin DSL Services & Pricing story URL.
+- Validated the plugin:
+  - `python3 -m py_compile plugins/devctl/hair_booking.py`
+  - `devctl validate --profile storybook`
+  - `devctl plan --profile storybook`
+- Started Storybook under devctl:
+  - `devctl up --profile storybook --force`
+- Verified devctl status reports `hair-booking-storybook` alive.
+- Verified Storybook index contains:
+  - `admin-dsl-rendered-pages--services-pricing`
+  - `admin-dsl-rendered-pages--dashboard`
+  - `admin-dsl-rendered-pages--calendar`
+  - `admin-dsl-rendered-pages--json-contract`
+- Opened the Services & Pricing story in Playwright.
+
+### Why
+- A dedicated Storybook profile makes design review repeatable.
+- Keeping Storybook under devctl prevents old unmanaged background processes from hiding port conflicts.
+
+### What worked
+- Storybook is now available at:
+  - `http://127.0.0.1:6006`
+- Admin DSL Services & Pricing is available at:
+  - `http://127.0.0.1:6006/?path=/story/admin-dsl-rendered-pages--services-pricing`
+- Playwright confirmed the story page title:
+  - `Admin DSL / Rendered Pages - Services & Pricing ⋅ Storybook`
+
+### What didn't work
+- First `devctl up --profile storybook --force` found port 6006 occupied by a stale unmanaged Storybook process from May 13. Storybook prompted for port 6007 and exited from devctl's perspective.
+- I stopped the stale process and reran devctl successfully.
+
+### What I learned
+- Storybook was already reachable, but it was not devctl-managed. The repo now has a proper devctl profile for it.
+
+### What was tricky to build
+- Storybook prompts interactively when port 6006 is occupied. In a devctl service, that looks like the supervised process exits while an old server may still be serving. The fix was to remove the stale unmanaged listener and let devctl own the port.
+
+### What warrants a second pair of eyes
+- Review whether the Storybook profile should become the default for design-system work or remain opt-in.
+
+### What should be done in the future
+- Add a short note to `plugins/devctl/README.md` documenting the new `storybook` profile.
+- Consider a combined `design-review` profile if we later want Storybook plus Vite running together.
+
+### Code review instructions
+- Review `.devctl.yaml` for the new profile.
+- Review `plugins/devctl/hair_booking.py` for the `storybook` service handling.
+- Validate with:
+  - `devctl validate --profile storybook`
+  - `devctl plan --profile storybook`
+  - `devctl up --profile storybook --force`
+
+### Technical details
+- Live URLs:
+  - Storybook: `http://127.0.0.1:6006`
+  - Admin DSL Services & Pricing: `http://127.0.0.1:6006/?path=/story/admin-dsl-rendered-pages--services-pricing`
+  - Admin DSL Dashboard: `http://127.0.0.1:6006/?path=/story/admin-dsl-rendered-pages--dashboard`
+  - Admin DSL Calendar: `http://127.0.0.1:6006/?path=/story/admin-dsl-rendered-pages--calendar`
+  - Admin DSL JSON contract: `http://127.0.0.1:6006/?path=/story/admin-dsl-rendered-pages--json-contract`
