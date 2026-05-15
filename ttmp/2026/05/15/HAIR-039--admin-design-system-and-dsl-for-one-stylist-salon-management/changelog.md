@@ -175,3 +175,15 @@ Added broad Admin DSL layout catalog Storybook coverage with desktop/mobile/matr
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/layoutExamples.ts — New broad layout examples
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Renderer coverage for layout catalog nodes
 
+
+## 2026-05-15
+
+Set explicit desktop/mobile viewport parameters on Admin DSL layout catalog stories, reviewed desktop/mobile screenshot pairs with image analysis, and fixed mobile density/search/side-panel issues plus Analytics metric ambiguity.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records pair review and fixes
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslLayouts.stories.tsx — Explicit desktop/mobile Storybook viewport parameters
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/layoutExamples.ts — Analytics Ops metric text adjusted after desktop visual review
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Mobile layout density
+

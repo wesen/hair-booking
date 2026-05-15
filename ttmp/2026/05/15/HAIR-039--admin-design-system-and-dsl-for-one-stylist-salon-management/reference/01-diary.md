@@ -1088,3 +1088,94 @@ The goal is to treat the Admin DSL as a general backend admin UI language. Appli
   - `web/src/admin-dsl/index.ts`
 - Smoke artifact:
   - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/various/layout-catalog-smoke/commerce-orders-mobile/url1_screenshot.png`
+
+## Step 16: Review desktop/mobile layout catalog pairs and fix mobile density issues
+
+I explicitly set viewport parameters on the layout-catalog desktop and mobile stories so Storybook does not keep a sticky iPhone viewport when switching to desktop variants. I then captured desktop/mobile pairs for all seven layout catalog pages and reviewed them with the image analysis tool in groups.
+
+The review called out the most important mobile issues: oversized H1s, full-width row buttons causing excessive card height, redundant search label/placeholder text, side panels appearing too far below the selected list context, and a desktop Analytics metric that visually read as `98.7%o`. I addressed these in the renderer and examples, regenerated final captures, and re-ran image review for the mobile set plus desktop set.
+
+### Prompt Context
+
+**User prompt (verbatim):** "explicitly set the desktop / reset viewport on the desktop versions, because otherwise iphone stays sticky. Then go over desktop + mobile versions (in pairs) with the image analysis tool, and address issues (especially in mobile)"
+
+**Assistant interpretation:** Fix Storybook viewport stickiness for desktop stories, visually review desktop/mobile layout catalog pairs, and implement the high-priority layout fixes.
+
+**Inferred user intent:** The user wants the layout catalog to be reliable for browsing and screenshot automation, with mobile layouts especially cleaned up before committing.
+
+**Commit (code):** TBD — this review/fix slice will be committed after changelog update.
+
+### What I did
+- Updated `web/src/admin-dsl/AdminDslLayouts.stories.tsx`:
+  - desktop stories now set `desktop1440` viewport parameters/globals,
+  - mobile stories set `iPhone14` viewport parameters/globals,
+  - matrix stories reset to desktop parameters.
+- Captured desktop/mobile screenshots for all layout catalog stories under:
+  - `various/layout-catalog-pairs/`
+- Reviewed pairs with the image analysis tool:
+  - Commerce + Course,
+  - CMS + Support,
+  - Media + Analytics + Team.
+- Implemented mobile fixes in `web/src/admin-dsl/render.tsx`:
+  - reduced mobile H1 scale further,
+  - added root `overflow-x: hidden`,
+  - removed redundant visible `Search` label from search boxes,
+  - made mobile resource-row actions compact grids instead of always full-width stacked buttons,
+  - render side panels in a mobile side column directly below the header instead of only far below the main list,
+  - kept desktop side panels in the right column and hidden on mobile.
+- Updated `web/src/admin-dsl/layoutExamples.ts`:
+  - changed the Analytics Jobs metric from `98.7%` to `98.7` with `% successful last 24h` as the caption, avoiding the display-font ambiguity the image tool read as `98.7%o`.
+- Regenerated final desktop/mobile layout catalog screenshots under:
+  - `various/layout-catalog-pairs-final/`
+- Re-ran image analysis on all final mobile screenshots and all final desktop screenshots.
+
+### Why
+- Storybook viewport stickiness would make desktop/mobile variants unreliable for review and future screenshot tools.
+- The layout catalog is only valuable if the desktop/mobile pairs are visibly distinct and stable.
+- Mobile admin UIs need denser row/action layouts than intake pages; otherwise queues and settings pages become too tall to scan.
+
+### What worked
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Full frontend tests passed:
+  - `cd web && pnpm test -- --runInBand`
+  - `7 passed`, `29 passed`.
+- Final mobile VLM review found no blocker-level issues.
+- Final desktop VLM review found one issue in Analytics Ops; after the metric text change, direct image inspection showed it reads as `98.7` with a clear caption.
+
+### What didn't work
+- Initial desktop VLM review flagged Analytics Ops as visually reading `98.7%o`. This was likely display-font ambiguity around the percent sign, so I changed the example text instead of leaving a confusing demo artifact.
+
+### What I learned
+- Storybook story-level viewport globals are important when the global preview default is a mobile viewport.
+- Mobile queue layouts should not blindly inherit full-width CTA behavior from modal/save flows. Row actions need a compact mode.
+- Static open drawers/modals in screenshot stories are useful, but they should appear near the relevant page context on mobile rather than after a long main-content scroll.
+
+### What was tricky to build
+- The renderer now duplicates side panels into a mobile side column and a desktop side column, with CSS controlling visibility. This preserves desktop right-column layout while making mobile review pages more usable.
+- The same action button component must serve modal footers and resource rows. I used CSS scoping under `.adminDslResourceRow` to make row actions compact without breaking save bars and modal actions.
+
+### What warrants a second pair of eyes
+- Review whether mobile side panels should eventually become true overlay/bottom sheets rather than static story-visible panels.
+- Review whether story-level viewport `globals` are sufficient for Chromatic or whether explicit `chromatic.viewports` parameters should be added later.
+
+### What should be done in the future
+- Add screenshot automation for the full layout catalog, not just manual css-visual-diff captures.
+- Add accessibility checks for search boxes now that the visible `Search` label was removed.
+- Consider separate action-density variants for row actions, toolbar actions, and modal footer actions in the DSL contract.
+
+### Code review instructions
+- Review `web/src/admin-dsl/AdminDslLayouts.stories.tsx` for explicit viewport parameters.
+- Review `web/src/admin-dsl/render.tsx` for mobile density and side-column behavior.
+- Review `web/src/admin-dsl/layoutExamples.ts` for the Analytics metric text change.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+- Review screenshots in:
+  - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/various/layout-catalog-pairs-final/`
+
+### Technical details
+- Final mobile review result:
+  - no blocker-level issues visible across all seven mobile layouts.
+- Final desktop review result:
+  - one Analytics Ops metric ambiguity was fixed and re-captured.

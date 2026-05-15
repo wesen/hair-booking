@@ -85,7 +85,7 @@ function dispatch(ctx: AdminRenderContext | undefined, node: AdminNode, actionRe
 function renderActions(node: AdminNode, ctx: AdminRenderContext | undefined, actions: AdminActionRef[] = actionList(node.props)) {
   if (!actions.length) return null;
   return (
-    <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+    <div className="adminDslActions" style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
       {actions.map((actionRef, i) => (
         <button
           key={`${actionRef.type}:${actionRef.target}:${i}`}
@@ -155,7 +155,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     }
 
     case "searchBox":
-      return <div key={key} {...common} style={{ ...surface, padding: 12, display: "flex", alignItems: "center", gap: 10, color: color.softInk, ...style(props) }}><span style={{ ...type.meta }}>Search</span><span style={{ ...type.body, color: color.soft }}>{str(props, "placeholder", "Search")}</span></div>;
+      return <div key={key} {...common} style={{ ...surface, padding: 12, display: "flex", alignItems: "center", gap: 10, color: color.softInk, ...style(props) }}><span aria-hidden="true" style={{ ...type.body, color: color.softInk }}>{str(props, "placeholder", "Search")}</span></div>;
 
     case "panel":
     case "summaryCard":
@@ -354,10 +354,11 @@ const responsiveCss = `
   .adminDslGrid { grid-template-columns: var(--admin-dsl-grid-columns, 1fr); }
   .adminDslTitle { text-wrap: balance; overflow-wrap: anywhere; }
   .adminDslSideColumn { min-width: 0; }
+  .adminDslMobileSideColumn { display: none !important; }
   @media (max-width: 720px) {
-    .adminDslRoot { padding: 16px !important; }
+    .adminDslRoot { padding: 16px !important; overflow-x: hidden !important; }
     .adminDslGrid { grid-template-columns: 1fr !important; gap: 16px !important; }
-    .adminDslTitle { font-size: clamp(30px, 11vw, 40px) !important; line-height: 0.96 !important; letter-spacing: -0.25px !important; }
+    .adminDslTitle { font-size: clamp(28px, 9vw, 34px) !important; line-height: 0.98 !important; letter-spacing: -0.15px !important; }
     .adminDslSectionTitle { font-size: clamp(20px, 7vw, 24px) !important; line-height: 1.05 !important; }
     .adminDslActionButton { min-height: 44px !important; flex: 1 1 132px !important; justify-content: center !important; }
     .adminDslSplitPane { grid-template-columns: 1fr !important; }
@@ -367,12 +368,15 @@ const responsiveCss = `
     .adminDslCalendarScroller { display: none !important; }
     .adminDslCalendarAgenda { display: grid !important; }
     .adminDslResourceRow { grid-template-columns: 1fr !important; gap: 12px !important; padding: 14px !important; }
-    .adminDslOverlaySurface { max-height: 82dvh !important; overflow: auto !important; border-radius: 14px !important; }
-    .adminDslSideColumn { display: grid !important; grid-template-columns: 1fr !important; }
+    .adminDslOverlaySurface { max-height: none !important; overflow: auto !important; border-radius: 14px !important; border-style: solid !important; border-left-width: 4px !important; }
+    .adminDslDesktopSideColumn { display: none !important; }
+    .adminDslMobileSideColumn { display: grid !important; grid-template-columns: 1fr !important; margin: 16px 0 22px !important; }
   }
   @media (max-width: 430px) {
     .adminDslRoot { padding: 12px !important; }
     .adminDslActionButton { flex-basis: 100% !important; }
+    .adminDslResourceRow .adminDslActions { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)) !important; width: 100% !important; }
+    .adminDslResourceRow .adminDslActionButton { flex-basis: auto !important; min-height: 40px !important; padding-block: 8px !important; }
   }
 `;
 
@@ -390,9 +394,10 @@ export function AdminPageRenderer({ page, context }: { page: AdminPage; context?
             <h1 className="adminDslTitle" style={{ ...type.display2, fontSize: 56, margin: "6px 0 8px" }}>{page.title}</h1>
             {page.description && <p style={{ ...type.bodyLg, color: color.softInk, maxWidth: 680, margin: 0 }}>{page.description}</p>}
           </header>
+          {sideNodes.length > 0 && <div className="adminDslSideColumn adminDslMobileSideColumn" style={{ display: "grid", gap: 14, alignContent: "start" }}>{sideNodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</div>}
           <div style={{ display: "grid", gap: 4 }}>{page.nodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</div>
         </div>
-        {sideNodes.length > 0 && <div className="adminDslSideColumn" style={{ display: "grid", gap: 14, alignContent: "start" }}>{sideNodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</div>}
+        {sideNodes.length > 0 && <div className="adminDslSideColumn adminDslDesktopSideColumn" style={{ display: "grid", gap: 14, alignContent: "start" }}>{sideNodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</div>}
       </div>
     </main>
   );

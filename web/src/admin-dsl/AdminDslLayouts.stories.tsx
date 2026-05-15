@@ -58,33 +58,45 @@ export default meta;
 type Story = StoryObj<typeof LayoutStory>;
 type Matrix = StoryObj<typeof MatrixStory>;
 
-export const CommerceOrdersDesktop: Story = { args: { page: pages.commerceOrders, width: "100%" } };
-export const CommerceOrdersMobile: Story = { args: { page: pages.commerceOrders, width: 390 } };
-export const CommerceOrdersMatrix: Matrix = { render: () => <MatrixStory page={pages.commerceOrders} /> };
+const desktopParameters = {
+  viewport: { defaultViewport: "desktop1440" },
+  globals: { viewport: { value: "desktop1440", isRotated: false } },
+};
 
-export const CourseBuilderDesktop: Story = { args: { page: pages.courseAdmin, width: "100%" } };
-export const CourseBuilderMobile: Story = { args: { page: pages.courseAdmin, width: 390 } };
-export const CourseBuilderMatrix: Matrix = { render: () => <MatrixStory page={pages.courseAdmin} /> };
+const mobileParameters = {
+  viewport: { defaultViewport: "iPhone14" },
+  globals: { viewport: { value: "iPhone14", isRotated: false } },
+};
 
-export const CmsPublishingDesktop: Story = { args: { page: pages.cmsPublishing, width: "100%" } };
-export const CmsPublishingMobile: Story = { args: { page: pages.cmsPublishing, width: 390 } };
-export const CmsPublishingMatrix: Matrix = { render: () => <MatrixStory page={pages.cmsPublishing} /> };
+const matrixParameters = desktopParameters;
 
-export const SupportInboxDesktop: Story = { args: { page: pages.supportInbox, width: "100%" } };
-export const SupportInboxMobile: Story = { args: { page: pages.supportInbox, width: 390 } };
-export const SupportInboxMatrix: Matrix = { render: () => <MatrixStory page={pages.supportInbox} /> };
+export const CommerceOrdersDesktop: Story = { args: { page: pages.commerceOrders, width: "100%" }, parameters: desktopParameters };
+export const CommerceOrdersMobile: Story = { args: { page: pages.commerceOrders, width: 390 }, parameters: mobileParameters };
+export const CommerceOrdersMatrix: Matrix = { parameters: matrixParameters, render: () => <MatrixStory page={pages.commerceOrders} /> };
 
-export const MediaLibraryDesktop: Story = { args: { page: pages.mediaLibrary, width: "100%" } };
-export const MediaLibraryMobile: Story = { args: { page: pages.mediaLibrary, width: 390 } };
-export const MediaLibraryMatrix: Matrix = { render: () => <MatrixStory page={pages.mediaLibrary} /> };
+export const CourseBuilderDesktop: Story = { args: { page: pages.courseAdmin, width: "100%" }, parameters: desktopParameters };
+export const CourseBuilderMobile: Story = { args: { page: pages.courseAdmin, width: 390 }, parameters: mobileParameters };
+export const CourseBuilderMatrix: Matrix = { parameters: matrixParameters, render: () => <MatrixStory page={pages.courseAdmin} /> };
 
-export const AnalyticsOpsDesktop: Story = { args: { page: pages.analyticsOps, width: "100%" } };
-export const AnalyticsOpsMobile: Story = { args: { page: pages.analyticsOps, width: 390 } };
-export const AnalyticsOpsMatrix: Matrix = { render: () => <MatrixStory page={pages.analyticsOps} /> };
+export const CmsPublishingDesktop: Story = { args: { page: pages.cmsPublishing, width: "100%" }, parameters: desktopParameters };
+export const CmsPublishingMobile: Story = { args: { page: pages.cmsPublishing, width: 390 }, parameters: mobileParameters };
+export const CmsPublishingMatrix: Matrix = { parameters: matrixParameters, render: () => <MatrixStory page={pages.cmsPublishing} /> };
 
-export const TeamSettingsDesktop: Story = { args: { page: pages.teamSettings, width: "100%" } };
-export const TeamSettingsMobile: Story = { args: { page: pages.teamSettings, width: 390 } };
-export const TeamSettingsMatrix: Matrix = { render: () => <MatrixStory page={pages.teamSettings} /> };
+export const SupportInboxDesktop: Story = { args: { page: pages.supportInbox, width: "100%" }, parameters: desktopParameters };
+export const SupportInboxMobile: Story = { args: { page: pages.supportInbox, width: 390 }, parameters: mobileParameters };
+export const SupportInboxMatrix: Matrix = { parameters: matrixParameters, render: () => <MatrixStory page={pages.supportInbox} /> };
+
+export const MediaLibraryDesktop: Story = { args: { page: pages.mediaLibrary, width: "100%" }, parameters: desktopParameters };
+export const MediaLibraryMobile: Story = { args: { page: pages.mediaLibrary, width: 390 }, parameters: mobileParameters };
+export const MediaLibraryMatrix: Matrix = { parameters: matrixParameters, render: () => <MatrixStory page={pages.mediaLibrary} /> };
+
+export const AnalyticsOpsDesktop: Story = { args: { page: pages.analyticsOps, width: "100%" }, parameters: desktopParameters };
+export const AnalyticsOpsMobile: Story = { args: { page: pages.analyticsOps, width: 390 }, parameters: mobileParameters };
+export const AnalyticsOpsMatrix: Matrix = { parameters: matrixParameters, render: () => <MatrixStory page={pages.analyticsOps} /> };
+
+export const TeamSettingsDesktop: Story = { args: { page: pages.teamSettings, width: "100%" }, parameters: desktopParameters };
+export const TeamSettingsMobile: Story = { args: { page: pages.teamSettings, width: 390 }, parameters: mobileParameters };
+export const TeamSettingsMatrix: Matrix = { parameters: matrixParameters, render: () => <MatrixStory page={pages.teamSettings} /> };
 
 export const LayoutJsonContract: Story = {
   name: "Layout JSON contract",

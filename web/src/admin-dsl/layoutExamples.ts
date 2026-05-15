@@ -135,7 +135,7 @@ export const analyticsOpsPage = admin.page("analytics-ops", "Operations")
   .toolbar(action.refresh("ops.summary"), action.navigate("incidents", "Incidents"))
   .content(
     admin.cardGrid(
-      admin.metric("Jobs", "98.7%", { caption: "Successful last 24h", tone: "success" }),
+      admin.metric("Jobs", "98.7", { caption: "% successful last 24h", tone: "success" }),
       admin.metric("Queue", 128, { caption: "Pending background jobs", tone: "warn" }),
       admin.metric("Errors", 7, { caption: "New exceptions", tone: "danger" }),
     ),
