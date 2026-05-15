@@ -27,9 +27,9 @@ func TestAdminDSLHTTPStartGetDispatch(t *testing.T) {
 		t.Fatalf("unexpected start state: %#v", &startState)
 	}
 
-	actionID := findAdminProtoActionID(startState.Page.Nodes, "service.select")
+	actionID := findAdminProtoActionID(startState.Page.Nodes, "service.open")
 	if actionID == "" {
-		t.Fatalf("service.select action not found")
+		t.Fatalf("service.open action not found")
 	}
 	event := &admindslv1.AdminInteractionEvent{
 		EventId:     "evt-http-open",

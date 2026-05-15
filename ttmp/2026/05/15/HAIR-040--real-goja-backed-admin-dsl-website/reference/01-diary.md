@@ -184,3 +184,61 @@ The flow renders a services/pricing admin page, opens an editor drawer, supports
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows/services.flow.js`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows.go`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows_test.go`
+
+## Step 4: Cut Admin DSL HTTP over to the Goja runtime
+
+I replaced the Admin DSL HTTP handler's hardcoded Go spike session store with the new Goja-backed `ScriptRuntime`. The existing Admin DSL protobuf endpoints remain the same, but starting `fringe.admin.services.v1` now loads and executes the embedded `pkg/admindsl/flows/services.flow.js` source.
+
+This is the first point where the real flow source is served through the HTTP/protobuf transport. The frontend client can keep using the same Admin DSL endpoints while the backend implementation changes from Go spike to Goja-authored page logic.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 1)
+
+**Assistant interpretation:** Continue implementing the real Admin DSL website, moving from runtime and flow source into HTTP integration.
+
+**Inferred user intent:** The user wants the new `.flow.js` source to become the actual server-backed Admin DSL flow.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Updated `pkg/server/handlers_admin_dsl.go` so `adminDSLFlowStore` owns an `admindsl.ScriptRuntime` and `*admindsl.ScriptSession` values.
+- Changed Admin DSL start to call:
+  - `StartFlow(r.Context(), flowID, admindsl.ServicesFlowSource)`.
+- Changed GET to use `ScriptSession.Snapshot()`.
+- Changed dispatch to pass request context into `ScriptSession.Dispatch(...)`.
+- Updated the existing Admin DSL HTTP test to look for the real flow target `service.open`.
+- Marked the main Phase 3 cut-over tasks complete, leaving additional stale/unknown-flow HTTP tests as follow-up in the same phase.
+
+### Why
+- The HTTP transport should now serve the real Goja-backed Admin flow instead of the temporary Go-only `ServicesFlowSession` spike.
+
+### What worked
+- Focused server validation passed:
+  - `go test ./pkg/server -run TestAdminDSLHTTPStartGetDispatch -count=1`
+
+### What didn't work
+- The first server test run failed because the old test looked for target `service.select`, while the real JS flow uses target `service.open`. I updated the test to match the real flow source.
+
+### What I learned
+- Keeping the endpoint contract stable made the cut-over small: the handler store/session implementation changed, but the protobuf HTTP shape did not.
+
+### What was tricky to build
+- The test helper searches dynamic `Struct` action payloads. Because action refs are still embedded under `props.actions`, tests need to inspect protobuf `Struct.AsMap()` rather than typed action fields.
+
+### What warrants a second pair of eyes
+- Review whether we should delete the old Go-only `ServicesFlowSession` spike now or keep it briefly as a lower-level test fixture. The user's clean-cutover preference suggests deleting it once remaining HTTP/runtime tests are in place.
+
+### What should be done in the future
+- Add HTTP stale-action and unknown-flow tests.
+- Remove `ServicesFlowSession` if no tests still need it.
+
+### Code review instructions
+- Review `pkg/server/handlers_admin_dsl.go` and `pkg/server/handlers_admin_dsl_test.go`.
+- Validate with:
+  - `go test ./pkg/server -run TestAdminDSLHTTPStartGetDispatch -count=1`
+
+### Technical details
+- Files changed:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl_test.go`

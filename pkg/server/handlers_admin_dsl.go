@@ -12,20 +12,21 @@ import (
 
 type adminDSLFlowStore struct {
 	mu       sync.RWMutex
-	sessions map[string]*admindsl.ServicesFlowSession
+	runtime  *admindsl.ScriptRuntime
+	sessions map[string]*admindsl.ScriptSession
 }
 
 func newAdminDSLFlowStore() *adminDSLFlowStore {
-	return &adminDSLFlowStore{sessions: map[string]*admindsl.ServicesFlowSession{}}
+	return &adminDSLFlowStore{runtime: admindsl.NewScriptRuntime(), sessions: map[string]*admindsl.ScriptSession{}}
 }
 
-func (s *adminDSLFlowStore) put(session *admindsl.ServicesFlowSession) {
+func (s *adminDSLFlowStore) put(session *admindsl.ScriptSession) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	s.sessions[session.ID] = session
 }
 
-func (s *adminDSLFlowStore) get(id string) (*admindsl.ServicesFlowSession, bool) {
+func (s *adminDSLFlowStore) get(id string) (*admindsl.ScriptSession, bool) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 	session, ok := s.sessions[id]
@@ -43,8 +44,7 @@ func (h *appHandler) handleAdminDSLStartFlow(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	session := admindsl.NewServicesFlowSession()
-	result, err := session.Start()
+	session, result, err := h.adminDSLFlows.runtime.StartFlow(r.Context(), flowID, admindsl.ServicesFlowSource)
 	if err != nil {
 		writeAdminDSLProtoError(w, http.StatusInternalServerError, "admin_dsl_flow_start_failed", err.Error())
 		return
@@ -65,7 +65,8 @@ func (h *appHandler) handleAdminDSLGetFlow(w http.ResponseWriter, r *http.Reques
 		writeAdminDSLProtoError(w, http.StatusNotFound, "admin_dsl_session_not_found", "Admin DSL session not found")
 		return
 	}
-	result := &admindsl.FlowResult{SessionID: session.ID, PageVersion: session.Version, Page: session.CurrentPage()}
+	version, page := session.Snapshot()
+	result := &admindsl.FlowResult{SessionID: session.ID, PageVersion: version, Page: page}
 	state, err := admindsl.FlowStateFromResult(result)
 	if err != nil {
 		writeAdminDSLProtoError(w, http.StatusInternalServerError, "admin_dsl_proto_conversion_failed", err.Error())
@@ -92,7 +93,7 @@ func (h *appHandler) handleAdminDSLEvent(w http.ResponseWriter, r *http.Request)
 		return
 	}
 	protoEvent.SessionId = sessionID
-	result, err := session.Dispatch(admindsl.InteractionEventFromProto(&protoEvent))
+	result, err := session.Dispatch(r.Context(), admindsl.InteractionEventFromProto(&protoEvent))
 	if err != nil {
 		writeAdminDSLProtoError(w, http.StatusBadRequest, "admin_dsl_dispatch_failed", err.Error())
 		return

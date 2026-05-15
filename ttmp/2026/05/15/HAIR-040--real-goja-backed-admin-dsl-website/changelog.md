@@ -41,3 +41,15 @@ Step 3: Added the real Goja services Admin DSL flow source, embedded it, exposed
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/reference/01-diary.md — Diary records flow source
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/tasks.md — Phase 2 completion
 
+
+## 2026-05-15
+
+Step 4: Cut Admin DSL HTTP start/get/dispatch over from the Go spike to the Goja-backed ScriptRuntime and embedded services.flow.js. Validation: go test ./pkg/server -run TestAdminDSLHTTPStartGetDispatch -count=1.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl.go — Admin DSL HTTP now uses ScriptRuntime sessions
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl_test.go — HTTP test updated for real JS flow action target
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/reference/01-diary.md — Diary records HTTP cut-over
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/tasks.md — Phase 3 cut-over tasks updated
+
