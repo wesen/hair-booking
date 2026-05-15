@@ -23,3 +23,13 @@ Uploaded the HAIR-039 admin design system and DSL implementation guide to reMark
 
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/design-doc/01-admin-design-system-and-dsl-implementation-guide.md — Uploaded source document
 
+
+## 2026-05-15
+
+Expanded HAIR-039 into phased implementation tasks for admin DSL schema, builders, renderer, Storybook demos, validation, and follow-up backend/testing work.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records phase planning step
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Detailed phased implementation checklist
+

@@ -147,3 +147,58 @@ One command failed because I passed a `ttmp/...` path to `docmgr validate frontm
 ### Technical details
 - reMarkable path:
   - `/ai/2026/05/15/HAIR-039/HAIR_039_Admin_Design_System_DSL_Guide.pdf`
+
+## Step 3: Split implementation into concrete phases
+
+I expanded HAIR-039 from a design guide into an executable implementation checklist. The phase plan starts with the DSL contract and builder helpers, then adds a renderer, Storybook demo pages, validation/documentation, and a follow-up backlog for tests and backend integration.
+
+The split intentionally keeps the first implementation small. We can prove the DSL shape with frontend-only fixtures and Storybook demos before introducing backend-driven admin flows or persistence semantics.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Create detailed list of tasks split into phases to build the DSL and a couple of demo pages in storybook to get started. Then work on them one by one, committing as you go and keeping a diary"
+
+**Assistant interpretation:** Turn HAIR-039 into phased implementation tasks, then implement each phase incrementally with commits and diary updates.
+
+**Inferred user intent:** The user wants the admin DSL work to move from design into concrete tracked implementation, while preserving the disciplined ticket/diary workflow used by earlier HAIR tickets.
+
+**Commit (code):** TBD — documentation phase will be committed after changelog update.
+
+### What I did
+- Rewrote `tasks.md` into phases:
+  - Phase 0: Planning and task breakdown.
+  - Phase 1: Admin DSL foundation.
+  - Phase 2: Renderer and starter components.
+  - Phase 3: Storybook demo pages.
+  - Phase 4: Validation and documentation.
+  - Phase 5: Follow-up backlog.
+
+### Why
+- A phased task list keeps the implementation reviewable and lets us commit at natural boundaries.
+- It also prevents backend integration from blocking frontend DSL exploration.
+
+### What worked
+- The design guide already had enough implementation detail to convert into actionable tasks.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The safest first slice is frontend-only: schema, builder, examples, renderer, and Storybook. Backend admin flows should come after the JSON/UI language is stable.
+
+### What was tricky to build
+- The task split had to preserve the user's simplicity/expressiveness goal. The phases avoid prematurely building a full admin framework while still creating enough structure to test real pages.
+
+### What warrants a second pair of eyes
+- Review whether Phase 1 should include tests immediately or whether Storybook JSON contract review is enough for the first slice.
+
+### What should be done in the future
+- Implement Phase 1 next: schema, builder, examples, and exports.
+
+### Code review instructions
+- Review `tasks.md` first to confirm the planned ordering.
+- Then review new `web/src/admin-dsl/*` files as they are added.
+
+### Technical details
+- Task file:
+  - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md`
