@@ -45,3 +45,21 @@
 - [ ] Add real admin components under `web/src/admin/` if inline renderer components become too large.
 - [ ] Add backend-driven admin flow spike for services/pricing.
 - [ ] Decide whether admin config edits need draft/publish tables before live mutation.
+
+## Phase 6 — Component extraction and maintainability
+
+- [ ] Extract calendar rendering from `render.tsx` into a focused admin DSL calendar module.
+- [ ] Keep the desktop week grid and mobile agenda behavior unchanged after extraction.
+- [ ] Keep renderer imports explicit and avoid dynamic component lookup.
+
+## Phase 7 — Mobile calendar regression coverage
+
+- [ ] Add focused tests for the calendar mobile agenda structure and day grouping.
+- [ ] Add focused tests that calendar action dispatch still works after extraction.
+- [ ] Run TypeScript and frontend tests.
+
+## Phase 8 — Review workflow documentation and scripts
+
+- [ ] Add a tracked script for refreshing cropped mobile Admin DSL css-visual-diff screenshots.
+- [ ] Document the devctl Storybook profile and Admin DSL story URLs in `plugins/devctl/README.md`.
+- [ ] Update HAIR-039 diary, changelog, and file relations.

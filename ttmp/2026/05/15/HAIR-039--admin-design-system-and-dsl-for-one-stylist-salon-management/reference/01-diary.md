@@ -736,3 +736,55 @@ I added a mobile-specific agenda rendering mode for `calendarWeek`. The desktop/
 ### Technical details
 - Main changed file:
   - `web/src/admin-dsl/render.tsx`
+
+## Step 11: Plan the next hardening phases
+
+I converted the immediate next steps into a small set of tracked phases focused on maintainability and regression coverage. I intentionally scoped this batch to frontend/admin-DSL hardening: extract the calendar renderer, test the mobile agenda behavior, and document the visual review workflow. Backend-driven admin flows and config draft/publish semantics remain important, but they should be a separate backend-focused phase rather than mixed into this component cleanup.
+
+This keeps the work shippable in small commits while protecting the mobile calendar decision we just made.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, create phases and tasks, and then do them all, commit at appropriate intervals and keep a detailed diary"
+
+**Assistant interpretation:** Add concrete phases/tasks for the next admin DSL hardening work, then implement them with commits and diary updates.
+
+**Inferred user intent:** The user wants disciplined execution: planned phases, incremental implementation, validation, commits, and a detailed implementation diary.
+
+**Commit (code):** TBD — planning phase will be committed after changelog update.
+
+### What I did
+- Added Phase 6: component extraction and maintainability.
+- Added Phase 7: mobile calendar regression coverage.
+- Added Phase 8: review workflow documentation and scripts.
+
+### Why
+- `render.tsx` was beginning to contain too much specialized calendar logic.
+- The mobile agenda behavior should be protected by tests.
+- The screenshot workflow should be reproducible instead of relying on remembered commands.
+
+### What worked
+- The remaining HAIR-039 ticket already had a clear next-step backlog, so this phase plan is a focused continuation rather than a new direction.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The next safe unit is not backend integration yet; it is making the frontend admin DSL implementation easier to maintain and review.
+
+### What was tricky to build
+- The task scope needed to avoid becoming too broad. I kept backend-driven services/pricing and draft/publish design out of this immediate batch so the requested “do them all” remains realistic and reviewable.
+
+### What warrants a second pair of eyes
+- Confirm whether backend admin flow work should become HAIR-040 or a later HAIR-039 phase after the frontend component extraction lands.
+
+### What should be done in the future
+- Create a backend-focused phase/ticket for `fringe.admin.services.v1` and config draft/publish semantics.
+
+### Code review instructions
+- Review the new Phase 6-8 tasks in `tasks.md`.
+- Then review the follow-up commits for extracted calendar code, tests, and scripts.
+
+### Technical details
+- Task file:
+  - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md`

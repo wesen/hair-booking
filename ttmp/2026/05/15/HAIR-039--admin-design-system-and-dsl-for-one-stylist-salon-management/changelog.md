@@ -120,3 +120,13 @@ Added a mobile-specific Admin DSL calendar agenda view that replaces the horizon
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records mobile agenda decision
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — calendarWeek now renders a mobile agenda grouped by day
 
+
+## 2026-05-15
+
+Added Phase 6-8 hardening tasks for calendar extraction, mobile agenda tests, and reproducible css-visual-diff review scripts/documentation.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records next-phase planning
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Added follow-up hardening phases
+
