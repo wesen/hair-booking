@@ -217,7 +217,7 @@ The API keeps the simplicity/expressiveness balance by offering high-level helpe
 
 **Inferred user intent:** The user wants a tangible starting point for the admin DSL, not just design prose.
 
-**Commit (code):** TBD — code will be committed after doc/task updates.
+**Commit (code):** 27b67ac — "HAIR-039 Step 4: Add admin DSL Storybook demos"
 
 ### What I did
 - Added `web/src/admin-dsl/schema.ts`:
@@ -307,12 +307,13 @@ This gives the admin DSL its own validation surface while preserving the earlier
 
 **Inferred user intent:** The user wants each implementation slice to be validated and recorded rather than just visually added to Storybook.
 
-**Commit (code):** TBD — test slice will be committed after doc/task updates.
+**Commit (code):** c56fec9 — "HAIR-039 Step 5: Add admin DSL focused tests"; 7184a3a — "HAIR-039 Step 5: Cover confirm admin actions"
 
 ### What I did
 - Added `web/src/admin-dsl/AdminDsl.test.tsx`.
 - Tested that a small admin page built with `admin.page`, `admin.section`, `resource.list`, `resource.row`, and `action.open` round-trips through `JSON.stringify` / `JSON.parse`.
 - Tested that the Services & Pricing demo renders key rows and dispatches the row `Edit` action.
+- Extended the interaction coverage to click an `Archive` confirm action and assert the renderer dispatches `type: "confirm"` targeting `archiveService`.
 
 ### Why
 - The admin DSL's most important invariant is that ergonomic builders still produce plain JSON.
