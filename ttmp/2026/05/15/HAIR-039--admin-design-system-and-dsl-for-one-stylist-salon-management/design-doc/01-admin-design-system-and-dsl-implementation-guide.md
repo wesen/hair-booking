@@ -31,9 +31,13 @@ RelatedFiles:
     - Path: web/src/admin-dsl/AdminDsl.stories.tsx
       Note: Storybook demos for the admin DSL pages and JSON contract
     - Path: web/src/admin-dsl/AdminDsl.test.tsx
-      Note: Focused tests for admin DSL JSON builder invariants and action dispatch
+      Note: |-
+        Focused tests for admin DSL JSON builder invariants and action dispatch
+        Calendar mobile agenda grouping and action dispatch regression tests
     - Path: web/src/admin-dsl/builder.ts
       Note: Fluent admin/resource/field/view/action/query builder API
+    - Path: web/src/admin-dsl/calendar.tsx
+      Note: Extracted admin calendar week/mobile agenda renderer
     - Path: web/src/admin-dsl/examples.ts
       Note: |-
         Concrete one-stylist MVP dashboard/services/calendar demo pages
@@ -82,6 +86,7 @@ LastUpdated: 2026-05-15T00:00:00Z
 WhatFor: Use this guide before implementing admin DSL schema, builders, renderer mappings, Storybook examples, or one-stylist admin screens.
 WhenToUse: Read when adding backend-management UI primitives, resource pages, admin forms, modals/drawers, dashboard pages, or generic admin DSL authoring APIs.
 ---
+
 
 
 

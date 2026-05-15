@@ -130,3 +130,15 @@ Added Phase 6-8 hardening tasks for calendar extraction, mobile agenda tests, an
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records next-phase planning
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Added follow-up hardening phases
 
+
+## 2026-05-15
+
+Extracted Admin DSL calendar rendering into a focused module and added regression tests for mobile agenda grouping plus calendar action dispatch; TypeScript and full frontend tests pass.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records extraction
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — Added mobile agenda and calendar action dispatch tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/calendar.tsx — Extracted calendar renderer
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Delegates calendarWeek nodes to AdminCalendarWeek and supports keyed action maps
+

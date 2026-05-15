@@ -1,7 +1,7 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { action, admin, resource } from "./builder";
-import { servicesAdminPage } from "./examples";
+import { calendarAdminPage, servicesAdminPage } from "./examples";
 import { AdminPageRenderer } from "./render";
 
 describe("admin DSL", () => {
@@ -48,6 +48,33 @@ describe("admin DSL", () => {
     expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
       nodeKind: "resourceRow",
       action: expect.objectContaining({ type: "confirm", target: "archiveService" }),
+    }));
+  });
+
+  it("renders the calendar mobile agenda grouped by day", () => {
+    const { container } = render(<AdminPageRenderer page={calendarAdminPage} />);
+    const agenda = container.querySelector(".adminDslCalendarAgenda");
+
+    expect(agenda).toBeTruthy();
+    expect(agenda).toHaveTextContent("Mon");
+    expect(agenda).toHaveTextContent("Tue");
+    expect(agenda).toHaveTextContent("Lena Ortiz");
+    expect(agenda).toHaveTextContent("Maya Chen");
+    expect(agenda).toHaveTextContent("Jules Park");
+    expect(agenda).toHaveTextContent("Personal errand");
+  });
+
+  it("dispatches calendar appointment actions after component extraction", () => {
+    const dispatch = vi.fn();
+    const { container } = render(<AdminPageRenderer page={calendarAdminPage} context={{ dispatch }} />);
+    const appointment = container.querySelector('[data-admin-dsl-id="apt-1001"]');
+
+    expect(appointment).toBeTruthy();
+    fireEvent.click(appointment!);
+
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      nodeKind: "appointmentBlock",
+      action: expect.objectContaining({ type: "open", target: "appointmentDetail" }),
     }));
   });
 });

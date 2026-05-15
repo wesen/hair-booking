@@ -48,15 +48,15 @@
 
 ## Phase 6 — Component extraction and maintainability
 
-- [ ] Extract calendar rendering from `render.tsx` into a focused admin DSL calendar module.
-- [ ] Keep the desktop week grid and mobile agenda behavior unchanged after extraction.
-- [ ] Keep renderer imports explicit and avoid dynamic component lookup.
+- [x] Extract calendar rendering from `render.tsx` into a focused admin DSL calendar module.
+- [x] Keep the desktop week grid and mobile agenda behavior unchanged after extraction.
+- [x] Keep renderer imports explicit and avoid dynamic component lookup.
 
 ## Phase 7 — Mobile calendar regression coverage
 
-- [ ] Add focused tests for the calendar mobile agenda structure and day grouping.
-- [ ] Add focused tests that calendar action dispatch still works after extraction.
-- [ ] Run TypeScript and frontend tests.
+- [x] Add focused tests for the calendar mobile agenda structure and day grouping.
+- [x] Add focused tests that calendar action dispatch still works after extraction.
+- [x] Run TypeScript and frontend tests.
 
 ## Phase 8 — Review workflow documentation and scripts
 

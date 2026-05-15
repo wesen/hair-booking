@@ -788,3 +788,83 @@ This keeps the work shippable in small commits while protecting the mobile calen
 ### Technical details
 - Task file:
   - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md`
+
+## Step 12: Extract the admin calendar renderer and add regression tests
+
+I extracted the specialized calendar code out of the generic admin DSL renderer into a focused calendar module. The generic renderer now delegates `calendarWeek` nodes to `AdminCalendarWeek`, while the new module owns the desktop grid, mobile agenda, day grouping, and calendar-specific action dispatch.
+
+I also added tests for the behavior that motivated the extraction: the mobile agenda structure must exist, appointments must be grouped by day, and appointment clicks must still dispatch actions after the component split.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 11)
+
+**Assistant interpretation:** Implement the planned component extraction and regression coverage phases, committing at a clean boundary.
+
+**Inferred user intent:** The user wants the current renderer to become maintainable and wants the mobile calendar behavior protected from accidental regressions.
+
+**Commit (code):** TBD — this extraction/test slice will be committed after task/changelog update.
+
+### What I did
+- Added `web/src/admin-dsl/calendar.tsx`.
+- Moved calendar-specific helpers into the new module:
+  - hour label parsing,
+  - row calculation,
+  - desktop calendar block placement,
+  - mobile agenda grouping,
+  - mobile agenda row rendering.
+- Replaced the `calendarWeek` case in `web/src/admin-dsl/render.tsx` with:
+  - `<AdminCalendarWeek ... />`
+- Updated action extraction to support both action arrays and keyed action maps.
+- Added tests to `web/src/admin-dsl/AdminDsl.test.tsx`:
+  - mobile agenda DOM exists and includes `Mon`, `Tue`, and the demo appointments,
+  - clicking `apt-1001` dispatches an `appointmentBlock` action targeting `appointmentDetail`.
+
+### Why
+- The calendar is now complex enough to deserve a focused module.
+- The mobile agenda decision is important UX behavior and should be covered by tests.
+- Keyed action maps are used by `node.action(slot, actionRef)`, so calendar blocks need to understand both array-style and map-style actions.
+
+### What worked
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Full frontend tests passed:
+  - `cd web && pnpm test -- --runInBand`
+  - `7 passed`, `29 passed`.
+
+### What didn't work
+- The first calendar action-dispatch test failed because the appointment blocks used keyed action maps (`actions.open`) while the calendar helper only read array-style `actions`.
+- I fixed this by adding `isActionRef(...)` and supporting both arrays and object maps in `actionList(...)`.
+
+### What I learned
+- The builder supports two useful action shapes:
+  - `.actions(...)` emits an array,
+  - `.action(slot, ...)` emits a keyed map.
+- Render helpers should accept both when they are consuming generic `props.actions`.
+
+### What was tricky to build
+- The DOM contains both the desktop grid and mobile agenda; CSS decides which one is visible. The test asserts structural presence rather than viewport-specific visibility because jsdom does not apply media-query layout the way a browser does.
+- The first click test selected the appointment by `data-admin-dsl-id="apt-1001"` to avoid ambiguity between grid and agenda text content.
+
+### What warrants a second pair of eyes
+- Review whether `calendar.tsx` should live under `web/src/admin-dsl/components/` once more components are extracted.
+- Review whether action-map support should be centralized instead of duplicated between `render.tsx` and `calendar.tsx`.
+
+### What should be done in the future
+- Extract shared renderer helpers (`str`, `num`, `style`, `actionList`, `dispatch`) into a small internal utility module.
+- Add visual tests or screenshot scripts for the mobile agenda.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/calendar.tsx`.
+- Then review the simplified `calendarWeek` case in `web/src/admin-dsl/render.tsx`.
+- Then review new tests in `web/src/admin-dsl/AdminDsl.test.tsx`.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- New file:
+  - `web/src/admin-dsl/calendar.tsx`
+- Changed files:
+  - `web/src/admin-dsl/render.tsx`
+  - `web/src/admin-dsl/AdminDsl.test.tsx`
