@@ -130,6 +130,14 @@
 - [x] Evaluate or build a small Admin DSL MSW fixture framework for declaring action handlers, state transitions, latency, errors, and page re-render responses.
 - [x] Add screenshot-capture script support for scenario stories, not only static page stories.
 
+## Phase 14B — Admin DSL protobuf/HTTP transport integration
+
+- [x] Add HTTP start/get/dispatch endpoints for the backend Admin DSL services flow spike.
+- [x] Emit and accept dedicated `fringe.admin_dsl.v1` protobuf JSON envelopes.
+- [x] Add a frontend Admin DSL backend client using generated TypeScript protobuf bindings.
+- [x] Add server tests for start/get/dispatch and surface-preserving protobuf JSON responses.
+- [x] Document that this is a transport prerequisite for live backend stories and complements, but does not replace, the Phase 16 MSW harness.
+
 ## Phase 16 — MSW-backed Admin DSL interaction test harness
 
 - [ ] Add MSW dependencies/configuration if not already present in the web app.

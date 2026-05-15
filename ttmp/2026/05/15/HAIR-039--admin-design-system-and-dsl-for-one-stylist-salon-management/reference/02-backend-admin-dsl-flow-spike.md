@@ -41,3 +41,15 @@ The spike models these transitions:
 The current spike is Go-host-only. The next integration step is to expose these builders to Goja as controlled host objects/functions. That wrapper should call into `pkg/admindsl`; it should not duplicate schema validity rules in JavaScript.
 
 The Phase 15 Storybook scenario catalog lives in `web/src/admin-dsl/AdminDslServiceScenarios.stories.tsx`. It includes static scenario stories plus MSW-backed click-through stories that post action events to `/api/admin-dsl/scenarios/services/events`. The MSW handlers live in `web/src/admin-dsl/mswHandlers.ts` and are registered in the global mock handler list.
+
+## Transport slotting
+
+The dedicated Admin DSL protobuf contract is now wired through a Phase 14B transport step:
+
+- `POST /api/admin-dsl/flows/{flowId}/start`
+- `GET /api/admin-dsl/flows/{sessionId}`
+- `POST /api/admin-dsl/flows/{sessionId}/events`
+
+These endpoints use `fringe.admin_dsl.v1.AdminFlowState`, `AdminInteractionEvent`, and `AdminDslError` as protobuf JSON envelopes. The frontend client is `web/src/admin-dsl/backendClient.ts`.
+
+This is related to Phase 16, but it is not the same work. Phase 14B provides the real backend/protobuf transport. Phase 16 remains the reusable MSW-backed interaction harness for Storybook and tests, so stories can choose between static fixtures, MSW simulation, and live backend/protobuf transport.

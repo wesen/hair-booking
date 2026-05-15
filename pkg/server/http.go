@@ -102,6 +102,7 @@ type appHandler struct {
 	localUploadsDir     string
 	stylistAuthorizer   *hairstylist.Authorizer
 	dslFlows            *dslFlowStore
+	adminDSLFlows       *adminDSLFlowStore
 	dslSQLitePath       string
 	dslSQLiteMigrate    bool
 	dslConfigSQLitePath string
@@ -240,6 +241,7 @@ func NewHandler(options HandlerOptions) http.Handler {
 		localUploadsDir:     options.LocalUploadsDir,
 		stylistAuthorizer:   hairstylist.NewAuthorizer(authSettings),
 		dslFlows:            newDSLFlowStore(options.DSLConfigDB, stateDB, options.DSLConfigSQLitePath, statePath, options.Storage),
+		adminDSLFlows:       newAdminDSLFlowStore(),
 		dslSQLitePath:       statePath,
 		dslSQLiteMigrate:    options.DSLSQLiteMigrate,
 		dslConfigSQLitePath: options.DSLConfigSQLitePath,
@@ -268,6 +270,9 @@ func NewHandler(options HandlerOptions) http.Handler {
 	mux.HandleFunc("GET /api/dsl/flows/{sessionId}", h.handleDSLGetFlow)
 	mux.HandleFunc("POST /api/dsl/flows/{sessionId}/events", h.handleDSLEvent)
 	mux.HandleFunc("POST /api/dsl/flows/{sessionId}/uploads/{uploadId}", h.handleDSLUpload)
+	mux.HandleFunc("POST /api/admin-dsl/flows/{flowId}/start", h.handleAdminDSLStartFlow)
+	mux.HandleFunc("GET /api/admin-dsl/flows/{sessionId}", h.handleAdminDSLGetFlow)
+	mux.HandleFunc("POST /api/admin-dsl/flows/{sessionId}/events", h.handleAdminDSLEvent)
 	mux.HandleFunc("GET /api/stylist/me", h.handleStylistMe)
 	mux.HandleFunc("GET /api/stylist/dashboard", h.handleStylistDashboard)
 	mux.HandleFunc("GET /api/stylist/intakes", h.handleStylistIntakes)

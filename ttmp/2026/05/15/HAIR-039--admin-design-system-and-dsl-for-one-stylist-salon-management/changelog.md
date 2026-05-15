@@ -353,3 +353,19 @@ Step 28: Added dedicated Admin DSL protobuf transport schema, generated Go/TS bi
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records Admin DSL proto work
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/pb/proto/fringe/admin_dsl/v1/admin_dsl_pb.ts — Generated TypeScript Admin DSL protobuf bindings
 
+
+## 2026-05-15
+
+Step 29: Wired Admin DSL protobuf/HTTP transport as Phase 14B with start/get/dispatch endpoints, frontend backend client, server tests, and task/doc updates. Validation: go test ./... -count=1; cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (8 files, 36 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flow.go — CurrentPage snapshot helper for Admin DSL GET
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl.go — Admin DSL protobuf/HTTP handlers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl_test.go — Admin DSL HTTP transport tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/http.go — Admin DSL route registration and store wiring
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records transport wiring
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/02-backend-admin-dsl-flow-spike.md — Explains transport vs Phase 16 slotting
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Adds completed Phase 14B transport tasks
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/backendClient.ts — Generated-protobuf Admin DSL frontend client
+

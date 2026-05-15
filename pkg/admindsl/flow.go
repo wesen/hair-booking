@@ -69,6 +69,12 @@ func (s *ServicesFlowSession) Start() (*FlowResult, error) {
 	return s.renderLocked(nil)
 }
 
+func (s *ServicesFlowSession) CurrentPage() Page {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return s.page
+}
+
 func (s *ServicesFlowSession) Dispatch(event FlowEvent) (*FlowResult, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()

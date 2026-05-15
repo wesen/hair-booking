@@ -2085,3 +2085,82 @@ I also generated Go and TypeScript bindings and added Go conversion helpers for 
 - Conversion helpers:
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/proto_convert.go`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/proto_convert_test.go`
+
+## Step 29: Wire Admin DSL protobuf/HTTP transport
+
+I wired the dedicated Admin DSL protobuf contract into real HTTP start/get/dispatch endpoints and added a frontend backend client that consumes the generated TypeScript protobuf bindings. This creates a transport bridge for the Phase 14 backend flow spike while keeping Phase 16 scoped to reusable MSW Storybook/test harness work.
+
+This slots into the ticket as a new Phase 14B because it is not exactly Phase 16. Phase 14 proved backend flow behavior and Phase 28 added the proto contract; Phase 14B connects those pieces over HTTP. Phase 16 still remains useful for local Storybook/test simulation across many screens without requiring a live backend.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, go ahead. is this related to phase 16? how does this slot into the current ticket and its tasks. Add all necessary tasks if needed."
+
+**Assistant interpretation:** Implement the Admin DSL protobuf/HTTP transport work, explain its relationship to Phase 16, and add/update ticket tasks as needed.
+
+**Inferred user intent:** The user wants the dedicated Admin DSL proto moved toward real integration while keeping the ticket task model accurate.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Added `pkg/server/handlers_admin_dsl.go` with:
+  - in-memory Admin DSL flow store,
+  - `POST /api/admin-dsl/flows/{flowId}/start`,
+  - `GET /api/admin-dsl/flows/{sessionId}`,
+  - `POST /api/admin-dsl/flows/{sessionId}/events`,
+  - `AdminDslError` protobuf JSON errors.
+- Registered Admin DSL HTTP routes in `pkg/server/http.go`.
+- Added `pkg/server/handlers_admin_dsl_test.go` covering start/get/dispatch and verifying drawers survive through protobuf JSON responses.
+- Added `web/src/admin-dsl/backendClient.ts` using generated `AdminFlowStateSchema`, `AdminInteractionEventSchema`, and `AdminDslErrorSchema`.
+- Added `CurrentPage()` to `pkg/admindsl.ServicesFlowSession` for GET snapshots.
+- Updated `reference/02-backend-admin-dsl-flow-spike.md` with the transport slotting explanation.
+- Added a new `Phase 14B — Admin DSL protobuf/HTTP transport integration` section to `tasks.md` and marked it complete.
+
+### Why
+- The dedicated Admin DSL proto needed actual HTTP integration before it could be used outside tests and MSW stories.
+- Phase 16 should remain focused on reusable mocked interaction harnesses, not live backend transport.
+
+### What worked
+- Full Go validation passed:
+  - `go test ./... -count=1`
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Frontend tests passed:
+  - `cd web && pnpm test -- --runInBand`
+  - `8 passed`, `36 passed`
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The transport work is best treated as Phase 14B: it completes the backend-flow/proto path while leaving MSW harness work as a separate frontend/testing concern.
+
+### What was tricky to build
+- The server test needed to find opaque action ids embedded inside `AdminNode.props.actions`, which is still dynamic protobuf `Struct` data. The helper walks the proto nodes and action maps to find a target and dispatch with the corresponding opaque id.
+
+### What warrants a second pair of eyes
+- Review whether `/api/admin-dsl/flows/...` is the final route namespace or should live under `/api/stylist/admin-dsl/...` once auth/roles are enforced.
+- Review whether the in-memory Admin DSL store should later be persisted like intake DSL sessions.
+
+### What should be done in the future
+- Add a live backend Storybook story that uses `web/src/admin-dsl/backendClient.ts`.
+- Continue Phase 16 by wrapping the existing MSW scenario code into reusable story/test helpers.
+
+### Code review instructions
+- Start with `pkg/server/handlers_admin_dsl.go` and `handlers_admin_dsl_test.go`.
+- Then review `web/src/admin-dsl/backendClient.ts`.
+- Validate with:
+  - `go test ./... -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- Files added:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl_test.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/backendClient.ts`
+- Files changed:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/http.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flow.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/02-backend-admin-dsl-flow-spike.md`
