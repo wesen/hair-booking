@@ -110,3 +110,13 @@ Fixed the Admin DSL calendar renderer so appointment blocks are constrained to t
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records calendar constraint fix and validation
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Calendar week now renders appointment children into day/hour CSS grid cells
 
+
+## 2026-05-15
+
+Added a mobile-specific Admin DSL calendar agenda view that replaces the horizontally scrollable week grid below the mobile breakpoint while preserving the desktop day/hour grid.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records mobile agenda decision
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — calendarWeek now renders a mobile agenda grouped by day
+

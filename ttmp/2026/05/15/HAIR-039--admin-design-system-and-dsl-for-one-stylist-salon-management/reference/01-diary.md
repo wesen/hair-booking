@@ -666,3 +666,73 @@ I changed the calendar week renderer to lay out the time grid as an actual CSS g
 ### Technical details
 - Main file changed:
   - `web/src/admin-dsl/render.tsx`
+
+## Step 10: Add a mobile-specific calendar agenda view
+
+After the calendar grid was constrained to day columns, we decided the mobile interaction model still needed to change. A horizontally scrollable week grid is technically correct, but awkward on a flexible touch surface: the user has to pan sideways inside a component while also scrolling the page vertically.
+
+I added a mobile-specific agenda rendering mode for `calendarWeek`. The desktop/tablet renderer remains the day/hour grid. Below the mobile breakpoint, the grid is hidden and the same appointment nodes are rendered as day-grouped agenda cards with large tap targets.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, yes we want a mobile specific calendar version because the scrolling on a flexible touch surface like the calendar is not easy."
+
+**Assistant interpretation:** Replace the mobile calendar week grid interaction with a dedicated agenda/list view while preserving the desktop week grid.
+
+**Inferred user intent:** The user wants mobile users to review and tap appointments without nested horizontal scrolling.
+
+**Commit (code):** TBD — mobile agenda work will be committed after diary/changelog update.
+
+### What I did
+- Updated `web/src/admin-dsl/render.tsx`:
+  - `calendarWeek` now renders both a desktop grid and a mobile agenda.
+  - added `renderCalendarAgenda(...)` to group appointment nodes by day/column.
+  - added `renderCalendarAgendaItem(...)` for large tap-friendly appointment rows.
+  - responsive CSS hides `.adminDslCalendarScroller` and shows `.adminDslCalendarAgenda` below 720px.
+- Regenerated a cropped mobile calendar screenshot with `css-visual-diff`.
+- Inspected the screenshot directly with `read`.
+- Asked the image review tool whether the mobile agenda solves the usability problem.
+
+### Why
+- Nested horizontal scrolling is not a good primary mobile interaction for an admin calendar.
+- A vertical agenda is easier to scan, easier to tap, and fits the rest of the mobile admin page layout.
+
+### What worked
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Full frontend tests passed:
+  - `cd web && pnpm test -- --runInBand`
+  - `7 passed`, `27 passed`.
+- The image review tool said the agenda solves the touch-scrolling issue for a first pass and found no blocker-level visual issues.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Keeping both renderings in the same `calendarWeek` node lets the DSL stay simple while the renderer adapts interaction model by viewport.
+- `column` is still a weak data model for long-term backend use, but it is enough for grouping the current demo appointments into day cards.
+
+### What was tricky to build
+- The agenda needed to reuse the same calendar child nodes without changing the demo data. I grouped children by `props.column` so existing `appointmentBlock` and `timeOffBlock` fixtures work in both desktop grid and mobile agenda views.
+- The renderer now has two calendar-specific child render paths: one for grid placement and one for agenda rows. This is acceptable for the first pass, but it should be extracted when admin components mature.
+
+### What warrants a second pair of eyes
+- Review whether the mobile breakpoint should be 720px or lower.
+- Review whether the agenda should include empty days or only days with appointments. The first pass only shows populated days.
+
+### What should be done in the future
+- Replace `column` with `dayKey` or `date` in the calendar DSL contract.
+- Add sticky day headers for long agendas.
+- Add a calendar renderer test that verifies mobile agenda rows render grouped by day.
+
+### Code review instructions
+- Review `renderCalendarAgenda(...)` and `renderCalendarAgendaItem(...)` in `web/src/admin-dsl/render.tsx`.
+- Inspect visual evidence:
+  - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/various/mobile-agenda/calendar/url1_screenshot.png`
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- Main changed file:
+  - `web/src/admin-dsl/render.tsx`
