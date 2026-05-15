@@ -91,7 +91,22 @@ func (h *DBHost) configure(ctx context.Context, migrate bool, provision func(con
 }
 
 func ProvisionSchema(ctx context.Context, db *sql.DB) error {
-	return provisionEmbeddedSchema(ctx, db, "schema.sql", "DSL schema")
+	if err := provisionEmbeddedSchema(ctx, db, "schema.sql", "DSL schema"); err != nil {
+		return err
+	}
+	for _, migration := range []struct {
+		table      string
+		column     string
+		definition string
+	}{
+		{table: "dsl_flow_sessions", column: "config_version_id", definition: "config_version_id TEXT"},
+		{table: "dsl_flow_sessions", column: "expires_at", definition: "expires_at TEXT"},
+	} {
+		if err := ensureColumn(ctx, db, migration.table, migration.column, migration.definition); err != nil {
+			return fmt.Errorf("migrate DSL schema %s.%s: %w", migration.table, migration.column, err)
+		}
+	}
+	return nil
 }
 
 func ProvisionConfigSchema(ctx context.Context, db *sql.DB) error {
@@ -110,6 +125,37 @@ func provisionEmbeddedSchema(ctx context.Context, db *sql.DB, filename, label st
 		return fmt.Errorf("provision %s: %w", label, err)
 	}
 	return nil
+}
+
+func ensureColumn(ctx context.Context, db *sql.DB, table, column, definition string) error {
+	if db == nil {
+		return fmt.Errorf("database is nil")
+	}
+	rows, err := db.QueryContext(ctx, fmt.Sprintf("PRAGMA table_info(%s)", table))
+	if err != nil {
+		return err
+	}
+	defer func() { _ = rows.Close() }()
+
+	for rows.Next() {
+		var cid int
+		var name string
+		var columnType string
+		var notNull int
+		var defaultValue sql.NullString
+		var pk int
+		if err := rows.Scan(&cid, &name, &columnType, &notNull, &defaultValue, &pk); err != nil {
+			return err
+		}
+		if name == column {
+			return nil
+		}
+	}
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	_, err = db.ExecContext(ctx, fmt.Sprintf("ALTER TABLE %s ADD COLUMN %s", table, definition))
+	return err
 }
 
 func (h *DBHost) Close() error {

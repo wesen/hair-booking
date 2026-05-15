@@ -54,6 +54,62 @@ func TestProvisionSchemaIsIdempotent(t *testing.T) {
 	}
 }
 
+func TestProvisionSchemaMigratesExistingSessionColumns(t *testing.T) {
+	host, err := OpenDB(context.Background(), DBOptions{Path: ":memory:", Migrate: false})
+	if err != nil {
+		t.Fatalf("OpenDB: %v", err)
+	}
+	defer func() { _ = host.Close() }()
+
+	_, err = host.DB.Exec(`CREATE TABLE dsl_flow_sessions (
+		id TEXT PRIMARY KEY,
+		flow_id TEXT NOT NULL,
+		user_id TEXT,
+		status TEXT NOT NULL DEFAULT 'active',
+		current_page_id TEXT,
+		current_page_version INTEGER NOT NULL DEFAULT 0,
+		state_json TEXT NOT NULL DEFAULT '{}',
+		created_at TEXT NOT NULL DEFAULT (datetime('now')),
+		updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+	)`)
+	if err != nil {
+		t.Fatalf("create old schema: %v", err)
+	}
+
+	if err := ProvisionSchema(context.Background(), host.DB); err != nil {
+		t.Fatalf("ProvisionSchema: %v", err)
+	}
+
+	for _, column := range []string{"config_version_id", "expires_at"} {
+		var found bool
+		rows, err := host.DB.Query(`PRAGMA table_info(dsl_flow_sessions)`)
+		if err != nil {
+			t.Fatalf("table info: %v", err)
+		}
+		for rows.Next() {
+			var cid int
+			var name string
+			var columnType string
+			var notNull int
+			var defaultValue any
+			var pk int
+			if err := rows.Scan(&cid, &name, &columnType, &notNull, &defaultValue, &pk); err != nil {
+				_ = rows.Close()
+				t.Fatalf("scan table info: %v", err)
+			}
+			if name == column {
+				found = true
+			}
+		}
+		if err := rows.Close(); err != nil {
+			t.Fatalf("close rows: %v", err)
+		}
+		if !found {
+			t.Fatalf("column %s was not migrated", column)
+		}
+	}
+}
+
 func TestOpenConfigDBMigratesAndSeedsSchema(t *testing.T) {
 	host, err := OpenConfigDB(context.Background(), DBOptions{Path: filepath.Join(t.TempDir(), "config.sqlite"), Migrate: true})
 	if err != nil {

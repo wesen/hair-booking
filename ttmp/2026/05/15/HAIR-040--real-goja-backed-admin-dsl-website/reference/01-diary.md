@@ -578,3 +578,68 @@ During visual review I noticed an empty red validation box above the form fields
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/various/playwright/01-admin-services-initial.png`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/various/playwright/02-admin-services-drawer-open-fixed.png`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/various/playwright/03-admin-services-validation.png`
+
+## Step 10: Add additive migration for existing DSL session databases
+
+While testing locally, an older SQLite state database failed with `table dsl_flow_sessions has no column named config_version_id`. The checked-in `CREATE TABLE IF NOT EXISTS` schema had the column for fresh databases, but SQLite does not modify an existing table when the `CREATE TABLE IF NOT EXISTS` statement changes.
+
+I added a small additive migration pass after schema provisioning so existing dev databases gain the missing `config_version_id` and `expires_at` columns without needing to delete/recreate the database. Recreating remains acceptable for disposable local state, but the code now handles the common upgrade path automatically.
+
+### Prompt Context
+
+**User prompt (verbatim):** "I get table dsl_flow_sessions has no column named config_version_id"
+
+**Assistant interpretation:** The user hit an old local SQLite schema while trying to run the app.
+
+**Inferred user intent:** They need a concrete fix that lets the dev app start and continue testing.
+
+**User prompt (verbatim):** "maybe we need to migrate / recreate the db / reseed it?"
+
+**Assistant interpretation:** Decide whether this should be solved by deleting local DBs or by adding a migration/reseed path.
+
+**Inferred user intent:** The user wants guidance and likely a robust local-development fix.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Updated `pkg/dslhost/db.go` so `ProvisionSchema` runs additive column checks after the embedded schema.
+- Added `ensureColumn(...)` using `PRAGMA table_info(...)` and `ALTER TABLE ... ADD COLUMN ...`.
+- Added migration coverage in `pkg/dslhost/db_test.go` for an old `dsl_flow_sessions` table without `config_version_id` or `expires_at`.
+- Validated with:
+  - `go test ./pkg/dslhost ./pkg/server -count=1`
+  - `go test ./... -count=1`
+
+### Why
+- Fresh databases already work, but existing SQLite files created before HAIR-038 do not get new columns from `CREATE TABLE IF NOT EXISTS`.
+- An additive migration preserves local sessions/drafts better than forcing deletion.
+
+### What worked
+- The migration test starts from an old table and verifies both missing columns are added.
+- Full Go test suite passed.
+
+### What didn't work
+- Relying on `CREATE TABLE IF NOT EXISTS` alone was insufficient for existing SQLite schemas.
+
+### What I learned
+- The DSL host needs explicit additive migrations for schema evolution, even in local/dev SQLite mode.
+
+### What was tricky to build
+- The migration must be idempotent because `ProvisionSchema` can run repeatedly. `PRAGMA table_info` makes the `ALTER TABLE` conditional.
+
+### What warrants a second pair of eyes
+- If more DSL state columns are added, consider replacing this ad-hoc additive list with a numbered migration table.
+
+### What should be done in the future
+- Add a proper schema migration/versioning mechanism before this state DB carries important production data.
+
+### Code review instructions
+- Start with `pkg/dslhost/db.go:ProvisionSchema` and `ensureColumn`.
+- Review `pkg/dslhost/db_test.go:TestProvisionSchemaMigratesExistingSessionColumns`.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+- The immediate local workaround is still safe for disposable dev state:
+  - stop devctl
+  - remove `var/fringe-dsl.sqlite*`
+  - restart devctl
+- Removing `var/fringe-dsl-config.sqlite*` forces config DB reseeding, but is not required for the `dsl_flow_sessions.config_version_id` error.

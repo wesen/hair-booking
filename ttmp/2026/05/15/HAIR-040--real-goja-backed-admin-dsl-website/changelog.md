@@ -115,3 +115,14 @@ Step 9: Playwright-tested /admin/services, captured initial/drawer/validation sc
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — Regression test for empty errors
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Only render form error box when error entries exist
 
+
+## 2026-05-15
+
+Step 10: Added additive SQLite migration for existing dsl_flow_sessions tables missing config_version_id/expires_at after local Playwright testing exposed old-schema failures. Validation: go test ./... -count=1.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslhost/db.go — Additive schema migration for existing DSL state DBs
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslhost/db_test.go — Regression coverage for old dsl_flow_sessions table migration
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-040--real-goja-backed-admin-dsl-website/reference/01-diary.md — Diary records old SQLite schema issue and migration fix
+
