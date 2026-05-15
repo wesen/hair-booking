@@ -114,21 +114,21 @@
 
 ## Phase 14 — Backend-driven Admin DSL flow spike
 
-- [ ] Add a Go-backed Admin DSL flow spike for a services/pricing admin page using the Go host fluent API as the page construction authority.
-- [ ] Expose the Go builders to Goja only as controlled host objects/functions, not as open-ended browser-side builders.
-- [ ] Reuse existing runtime concepts where appropriate: page versions, opaque action ids, action dispatch, and protobuf/JSON transport boundaries.
-- [ ] Add backend action handlers for open drawer, edit field, validate, save success, save error, cancel, and confirm-delete flows.
-- [ ] Add tests proving stale page-version actions are rejected and malformed Admin DSL pages fail before transport.
-- [ ] Document how the backend-driven Admin DSL differs from the frontend-only Storybook fixture path.
+- [x] Add a Go-backed Admin DSL flow spike for a services/pricing admin page using the Go host fluent API as the page construction authority.
+- [x] Expose the Go builders to Goja only as controlled host objects/functions, not as open-ended browser-side builders.
+- [x] Reuse existing runtime concepts where appropriate: page versions, opaque action ids, action dispatch, and protobuf/JSON transport boundaries.
+- [x] Add backend action handlers for open drawer, edit field, validate, save success, save error, cancel, and confirm-delete flows.
+- [x] Add tests proving stale page-version actions are rejected and malformed Admin DSL pages fail before transport.
+- [x] Document how the backend-driven Admin DSL differs from the frontend-only Storybook fixture path.
 
 ## Phase 15 — Storybook behavior and action scenario catalog
 
-- [ ] Reorganize Admin DSL Storybook into folders per screen, for example `Admin DSL/Services`, `Admin DSL/Calendar`, `Admin DSL/Orders`, and `Admin DSL/Behavior`.
-- [ ] For each representative screen, add multiple scenario stories: default, selected row, drawer open, confirm open, validation error, save pending, save success, save failed, empty, loading, and permission-restricted.
-- [ ] Add interactive `play` functions for key click-through paths so screenshots can capture meaningful post-interaction states.
-- [ ] Use MSW where needed to mock backend action dispatch, resource queries, validation failures, and mutation results.
-- [ ] Evaluate or build a small Admin DSL MSW fixture framework for declaring action handlers, state transitions, latency, errors, and page re-render responses.
-- [ ] Add screenshot-capture script support for scenario stories, not only static page stories.
+- [x] Reorganize Admin DSL Storybook into folders per screen, for example `Admin DSL/Services`, `Admin DSL/Calendar`, `Admin DSL/Orders`, and `Admin DSL/Behavior`.
+- [x] For each representative screen, add multiple scenario stories: default, selected row, drawer open, confirm open, validation error, save pending, save success, save failed, empty, loading, and permission-restricted.
+- [x] Add interactive `play` functions for key click-through paths so screenshots can capture meaningful post-interaction states.
+- [x] Use MSW where needed to mock backend action dispatch, resource queries, validation failures, and mutation results.
+- [x] Evaluate or build a small Admin DSL MSW fixture framework for declaring action handlers, state transitions, latency, errors, and page re-render responses.
+- [x] Add screenshot-capture script support for scenario stories, not only static page stories.
 
 ## Phase 16 — MSW-backed Admin DSL interaction test harness
 

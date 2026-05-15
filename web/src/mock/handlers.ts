@@ -1,5 +1,6 @@
 // mock/handlers.ts — MSW handlers for Fringe portal + booking app dev
 import { http, HttpResponse } from "msw";
+import { adminDslMswHandlers } from "../admin-dsl/mswHandlers";
 
 // ── Auth / session bootstrap
 const mockInfo = {
@@ -113,6 +114,8 @@ let intakeCounter = 1;
 const intakes: Record<string, object> = {};
 
 export const handlers = [
+  ...adminDslMswHandlers,
+
   // Auth bootstrap
   http.get("/api/info", () => HttpResponse.json({ data: mockInfo })),
   http.get("/api/me", () => HttpResponse.json({ data: mockMe })),

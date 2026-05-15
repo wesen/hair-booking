@@ -317,3 +317,25 @@ Step 26: Added dedicated surface Storybook catalog stories and implemented resou
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/builder.ts — Frontend lifecycle helper methods
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Renderer lifecycle state handling
 
+
+## 2026-05-15
+
+Step 27: Implemented Phase 14 backend-driven Admin DSL services flow spike and Phase 15 Storybook Services scenario catalog with MSW-backed click-throughs and scenario screenshot script. Validation: go test ./... -count=1; cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (8 files, 36 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flow.go — Backend-driven Admin DSL services flow spike
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flow_test.go — Backend flow transition and stale action tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/goja_module.go — Controlled Goja exposure for Go host builders
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/goja_module_test.go — Goja host builder module test
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/types.go — Action refs now carry optional opaque id/event fields
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/validate.go — Keyed action validation accepts JSON-cloned object maps
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records Phase 14 and 15 implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/02-backend-admin-dsl-flow-spike.md — Documents backend-driven Admin DSL flow spike
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/scripts/02-capture-admin-dsl-scenarios.sh — Scenario screenshot capture script
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Phase 14 and 15 task completion
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslServiceScenarios.stories.tsx — Services scenario catalog with MSW click-through stories
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/mswHandlers.ts — MSW Admin DSL scenario handlers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/scenarioFixtures.ts — Shared Admin DSL Services scenario fixtures
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/mock/handlers.ts — Registers Admin DSL MSW handlers
+

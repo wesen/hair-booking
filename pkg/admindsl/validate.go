@@ -180,6 +180,16 @@ func validateActions(value JSONValue) error {
 				return fmt.Errorf("actions[%q]: %w", slot, err)
 			}
 		}
+	case map[string]any:
+		for slot, item := range actions {
+			action, err := actionFromJSONValue(item)
+			if err != nil {
+				return fmt.Errorf("actions[%q]: %w", slot, err)
+			}
+			if err := ValidateAction(action); err != nil {
+				return fmt.Errorf("actions[%q]: %w", slot, err)
+			}
+		}
 	default:
 		return fmt.Errorf("actions must be an array or keyed object, got %T", value)
 	}

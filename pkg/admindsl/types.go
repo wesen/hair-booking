@@ -157,6 +157,8 @@ type Page struct {
 }
 
 type ActionRef struct {
+	ID                   string          `json:"id,omitempty"`
+	Event                string          `json:"event,omitempty"`
 	Type                 ActionType      `json:"type"`
 	Target               string          `json:"target"`
 	Label                string          `json:"label,omitempty"`

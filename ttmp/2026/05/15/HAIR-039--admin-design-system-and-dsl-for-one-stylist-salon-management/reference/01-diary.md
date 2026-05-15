@@ -1901,3 +1901,99 @@ The implementation stays additive: TypeScript fixture builders gained lifecycle 
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder.go`
   - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder_test.go`
+
+## Step 27: Implement the backend-driven Admin DSL flow spike and scenario catalog
+
+I completed Phase 14 and Phase 15 together. The backend spike now proves the Admin DSL can be built by Go-host fluent builders, validated before transport, assigned opaque action ids, and re-rendered through page-versioned dispatch. The Storybook work adds a Services scenario catalog with static states and MSW-backed click-through stories so screenshot tooling can capture meaningful interaction results.
+
+The Goja exposure is deliberately controlled: `pkg/admindsl.GojaModule()` exposes Go host builder constructors/functions to Goja rather than loading a JavaScript DSL implementation. This keeps schema validity and serialization in the Go host while still allowing backend scripts to use fluent builder objects.
+
+### Prompt Context
+
+**User prompt (verbatim):** "do phase 14+ 15"
+
+**Assistant interpretation:** Implement the backend-driven Admin DSL flow spike and the Storybook behavior/action scenario catalog phases.
+
+**Inferred user intent:** The user wants the Admin DSL to progress from static/frontend fixtures toward backend-owned flow behavior and screenshot-ready interaction scenarios.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Added `pkg/admindsl/flow.go`:
+  - `ServicesFlowSession`,
+  - page versions,
+  - opaque `admin_act_*` action ids,
+  - dispatch handling,
+  - stale page-version response,
+  - service select/open drawer,
+  - dirty/edit path,
+  - save success,
+  - save validation error,
+  - cancel,
+  - confirm delete.
+- Added `pkg/admindsl/goja_module.go` exposing controlled Go host builders through `GojaModule()`.
+- Added `pkg/admindsl/flow_test.go` for flow transitions, stale page rejection, and malformed page validation before transport.
+- Added `pkg/admindsl/goja_module_test.go` proving Goja can use the controlled host builder module.
+- Extended `ActionRef` with optional `id` and `event` fields for backend-owned opaque action references.
+- Added `web/src/admin-dsl/scenarioFixtures.ts` for shared Services scenario page fixtures.
+- Added `web/src/admin-dsl/mswHandlers.ts` for Admin DSL MSW scenario endpoints.
+- Registered the Admin DSL MSW handlers in `web/src/mock/handlers.ts`.
+- Added `web/src/admin-dsl/AdminDslServiceScenarios.stories.tsx` under `Admin DSL/Services/Scenarios` with static scenarios and MSW-backed click-through stories.
+- Added `scripts/02-capture-admin-dsl-scenarios.sh` to capture scenario stories with `css-visual-diff`.
+- Added `reference/02-backend-admin-dsl-flow-spike.md` documenting backend-driven vs frontend-fixture paths.
+- Marked Phase 14 and Phase 15 complete in `tasks.md`.
+
+### Why
+- Phase 14 needed a concrete backend-admin flow proof point before deeper live integration.
+- Phase 15 needed behavior/story organization that screenshot tools can drive, including MSW-backed transitions for action handling and validation failures.
+
+### What worked
+- Full Go validation passed:
+  - `go test ./... -count=1`
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Frontend tests passed:
+  - `cd web && pnpm test -- --runInBand`
+  - `8 passed`, `36 passed`
+
+### What didn't work
+- The first backend flow validation failed because keyed form actions became `map[string]interface {}` after JSON cloning, while validation only accepted `JSONObject`. I updated validation to accept generic JSON object maps for keyed actions.
+
+### What I learned
+- Backend-driven Admin DSL pages need both semantic action metadata and opaque action ids. The semantic target remains useful for logging and renderer policy, while the opaque id is the trusted dispatch handle.
+- MSW-backed stories provide a useful middle ground between static fixtures and live backend flows.
+
+### What was tricky to build
+- The main sharp edge was preserving Go-host authority while allowing Goja authoring. The `GojaModule()` approach exposes host builder constructors/functions to Goja, so scripts can be fluent without owning the schema rules.
+- Another tricky point was keeping Storybook scenarios screenshot-friendly: static states are still best for many screenshots, while MSW click-through stories demonstrate interactive transitions.
+
+### What warrants a second pair of eyes
+- Review whether `ServicesFlowSession` should remain in `pkg/admindsl` or move to a separate spike/demo package before production integration.
+- Review the shape of Admin DSL backend transport before wiring HTTP endpoints, since current frontend Admin DSL pages include `drawers`/`modals` fields that the older protobuf page contract does not model.
+
+### What should be done in the future
+- Phase 16 should turn the MSW story helpers into a more reusable interaction test harness.
+- A later backend integration should decide whether to extend protobuf `Page` with Admin DSL surface fields or wrap Admin pages in a separate transport envelope.
+
+### Code review instructions
+- Start with `pkg/admindsl/flow.go` and `flow_test.go` for backend flow behavior.
+- Review `goja_module.go` and `goja_module_test.go` for controlled Goja exposure.
+- Review `AdminDslServiceScenarios.stories.tsx`, `scenarioFixtures.ts`, and `mswHandlers.ts` for Storybook/MSW behavior.
+- Validate with:
+  - `go test ./... -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- Backend files:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flow.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flow_test.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/goja_module.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/goja_module_test.go`
+- Frontend/story files:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/scenarioFixtures.ts`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/mswHandlers.ts`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslServiceScenarios.stories.tsx`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/mock/handlers.ts`
+- Script:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/scripts/02-capture-admin-dsl-scenarios.sh`
