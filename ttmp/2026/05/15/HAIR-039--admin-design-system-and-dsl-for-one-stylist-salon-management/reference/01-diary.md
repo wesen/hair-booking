@@ -498,3 +498,171 @@ After devctl startup, I verified that Storybook's `index.json` contains the new 
   - Admin DSL Dashboard: `http://127.0.0.1:6006/?path=/story/admin-dsl-rendered-pages--dashboard`
   - Admin DSL Calendar: `http://127.0.0.1:6006/?path=/story/admin-dsl-rendered-pages--calendar`
   - Admin DSL JSON contract: `http://127.0.0.1:6006/?path=/story/admin-dsl-rendered-pages--json-contract`
+
+## Step 8: Improve mobile responsive layout using cropped screenshots and VLM review
+
+I focused this step on the mobile look of the new Admin DSL Storybook pages. I used `css-visual-diff` to capture cropped screenshots of the rendered Storybook iframe content, targeting `[data-admin-dsl-page]` so the artifacts exclude Storybook chrome and browser whitespace. I then sent the cropped Services & Pricing, Dashboard, and Calendar screenshots to the image review tool in batches for layout critique.
+
+The first review identified the main mobile problems: oversized headlines, cramped cards, side panels stacking awkwardly, action buttons needing larger tap areas, duplicate modal titles, low-contrast metadata, and a cramped calendar grid. I applied a responsive pass in `web/src/admin-dsl/render.tsx` and `web/src/admin-dsl/examples.ts`, regenerated the cropped screenshots, and ran a second review. The final review said the pass is good enough to commit, with only calendar density and save-status contrast as potential blockers; I addressed those too by adding horizontal calendar scrolling and making the save status a clearer pill.
+
+### Prompt Context
+
+**User prompt (verbatim):** "now focus on the mobile look / responsive look of these page,s you can use your VLM image answering tool, and it would be useful to use for example css-visual-diff to extract nicely cropped screenshots of just the page, and not all the storybook chrome or browser whitepsace"
+
+**Assistant interpretation:** Use cropped visual evidence and VLM review to improve the mobile/responsive rendering of the admin DSL Storybook pages.
+
+**Inferred user intent:** The user wants practical visual iteration, not only code changes; screenshots should focus on the actual page region and avoid noisy Storybook/browser chrome.
+
+**Commit (code):** TBD — responsive pass will be committed after diary/changelog update.
+
+### What I did
+- Captured cropped mobile screenshots with `css-visual-diff compare` at `390x844` using selector `[data-admin-dsl-page]`.
+- Reviewed Services & Pricing, Dashboard, and Calendar screenshots with the image review tool.
+- Added responsive CSS inside `AdminPageRenderer`:
+  - mobile root padding reduction,
+  - single-column main/side layout below 720px,
+  - smaller fluid page titles,
+  - smaller section headings,
+  - full-width/tappable action buttons on narrow screens,
+  - single-column resource rows,
+  - stacked save bar,
+  - taller filter pills,
+  - hidden modal/drawer kicker label on mobile.
+- Improved status badge contrast.
+- Removed the duplicate `Edit service` form title inside the `Edit service` modal.
+- Normalized calendar drawer time display from `9:30a – 12:00p` to `09:30 – 12:00`.
+- Added horizontal scrolling/min-width for mobile calendar week grids to avoid five tiny columns.
+- Improved save status contrast by rendering it as a pill.
+
+### Why
+- Admin screens have denser information than intake screens, so mobile behavior needs explicit rules.
+- Cropped screenshot review catches layout issues that are hard to see from code, especially overflow, typography scale, and modal/drawer stacking.
+
+### What worked
+- `css-visual-diff` produced focused page-region artifacts under:
+  - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/various/mobile-cssvd/`
+  - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/various/mobile-cssvd-after/`
+  - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/various/mobile-cssvd-final/`
+- The VLM reviews were useful for prioritizing practical fixes.
+- Final validation passed:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+  - `7 passed`, `27 passed`.
+
+### What didn't work
+- One final `css-visual-diff` run timed out after writing only a partial error screenshot. The screenshot showed a transient Storybook/Vite module error:
+  - `The requested module '/src/admin-dsl/examples.ts?...' does not provide an export named 'adminDslExamples'`
+- The export existed in the source file, so I restarted the devctl-managed Storybook process and regenerated the screenshots successfully.
+- Devctl restart command syntax correction:
+  - Failed: `devctl restart --service hair-booking-storybook`
+  - Correct: `devctl restart hair-booking-storybook --profile storybook`
+
+### What I learned
+- The `read` tool is useful for quickly inspecting a single generated image in-session, while the image review tool is better for comparing multiple screenshots with a shared context.
+- Storybook/Vite can transiently serve stale module state after rapid source edits; restarting the devctl-managed Storybook service fixed the issue.
+- Mobile calendar week views need a different interaction model eventually; horizontal scrolling is acceptable for the first pass, but a real mobile agenda/day view should be a follow-up.
+
+### What was tricky to build
+- The first responsive pass had to avoid overfitting to a single page. I used CSS classes on the renderer output (`adminDslRoot`, `adminDslGrid`, `adminDslResourceRow`, `adminDslOverlaySurface`, `adminDslSaveBar`, etc.) instead of styling each story separately.
+- The calendar is the hardest mobile surface. Five columns at 390px are too dense, so I chose a minimum inner width and horizontal scroll as a pragmatic first-pass fix rather than implementing a new agenda renderer.
+
+### What warrants a second pair of eyes
+- Review the mobile calendar behavior: horizontal scroll is functional, but product may prefer a day/agenda view below 420px.
+- Review whether inline responsive CSS in `render.tsx` should move into a real `admin-dsl.css` or extracted admin component package.
+- Review contrast of all small meta labels on real devices.
+
+### What should be done in the future
+- Add a dedicated mobile calendar node/variant, likely agenda/day view.
+- Add visual regression scripts for the three Admin DSL pages so mobile screenshots are easy to refresh.
+- Extract renderer styling to proper admin design-system components if the renderer grows further.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/render.tsx` responsive CSS and renderer class names.
+- Then inspect `web/src/admin-dsl/examples.ts` for the modal title and calendar time changes.
+- Review the cropped evidence in:
+  - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/various/mobile-cssvd-final/`
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Technical details
+- Main changed files:
+  - `web/src/admin-dsl/render.tsx`
+  - `web/src/admin-dsl/examples.ts`
+- Example screenshot command pattern:
+  - `css-visual-diff compare --url1 "http://127.0.0.1:6006/iframe.html?id=admin-dsl-rendered-pages--services-pricing&viewMode=story" --selector1 '[data-admin-dsl-page]' --url2 "http://127.0.0.1:6006/iframe.html?id=admin-dsl-rendered-pages--services-pricing&viewMode=story" --selector2 '[data-admin-dsl-page]' --viewport-w 390 --viewport-h 844 --wait-ms1 1000 --wait-ms2 1000 --threshold 0 --out ".../mobile-cssvd-final/services-pricing"`
+
+## Step 9: Constrain calendar appointment blocks to their day columns
+
+The mobile responsive pass exposed a real calendar widget bug: appointment blocks were rendered as normal children inside an absolute overlay, so each block visually spanned the whole workweek content area rather than being constrained to a single day column. This made the calendar misleading even if the surrounding responsive layout was improved.
+
+I changed the calendar week renderer to lay out the time grid as an actual CSS grid with day columns and hour rows. Calendar child nodes now render through a dedicated `renderCalendarBlock(...)` helper that reads `column`, `startsAt`, and `span`, then assigns `gridColumn` and `gridRow` so the appointment is constrained to its intended day and time range.
+
+### Prompt Context
+
+**User prompt (verbatim):** "calendar widget is off, because the appointment span the whole workweekk, instead of being constrained to a single day, at least in the current calendar test page"
+
+**Assistant interpretation:** Fix the Admin DSL calendar demo so appointment blocks occupy a specific day column instead of stretching across the full week grid.
+
+**Inferred user intent:** The user wants the demo calendar to communicate correct semantics before continuing visual polish.
+
+**Commit (code):** TBD — this calendar fix will be committed with the responsive pass.
+
+### What I did
+- Updated `web/src/admin-dsl/render.tsx` calendar rendering:
+  - replaced the absolute child overlay with a CSS grid of day columns and hour rows,
+  - added `hourLabelToHour(...)`, `rowForStartTime(...)`, and `renderCalendarBlock(...)`,
+  - mapped `column` to `gridColumn`,
+  - mapped `startsAt` plus `hours` to a starting grid row,
+  - mapped `span` to `gridRow: row / span N`.
+- Regenerated a cropped mobile calendar screenshot with `css-visual-diff`.
+- Inspected the image directly with `read`; appointments are now constrained to columns:
+  - Monday appointments in the Monday column,
+  - Tuesday time-off block in the Tuesday column,
+  - no full-week spanning appointment blocks.
+
+### Why
+- A calendar demo must preserve spatial meaning: day column and time row are the primary semantics.
+- The previous implementation was acceptable as placeholder cards but wrong as a calendar widget.
+
+### What worked
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Focused admin DSL tests passed:
+  - `cd web && pnpm vitest run src/admin-dsl/AdminDsl.test.tsx`
+- Full frontend tests passed:
+  - `cd web && pnpm test -- --runInBand`
+  - `7 passed`, `27 passed`.
+- The cropped calendar screenshot now shows constrained appointment blocks.
+
+### What didn't work
+- N/A after the grid fix.
+
+### What I learned
+- The calendar needs a specialized renderer path for appointment children. Reusing the generic `appointmentBlock` rendering inside an absolute stack loses calendar semantics.
+- Even for a demo page, spatial components need correct data-to-layout mapping early, otherwise visual review gives false confidence.
+
+### What was tricky to build
+- The renderer needed to support both generic appointment blocks and calendar-contained appointment blocks. I kept the generic `appointmentBlock` case, but `calendarWeek` now renders its children with `renderCalendarBlock(...)` instead of calling `renderChildren(...)`.
+- Time parsing is intentionally simple for now: it maps `startsAt` to the matching hour label. This is enough for the demo but not enough for sub-hour accurate placement in a real scheduler.
+
+### What warrants a second pair of eyes
+- Review whether `span` should mean hours, grid rows, or minutes in the long-term DSL contract.
+- Review whether `column` should be replaced by an explicit `day` or `date` prop before backend integration.
+
+### What should be done in the future
+- Add a calendar renderer test that asserts appointment blocks get the expected `gridColumn`/`gridRow` styles.
+- Replace `column` with `date` or `dayKey` once the backend data model is introduced.
+- Implement minute-level positioning for appointments that start at 09:30 instead of snapping to 09:00.
+
+### Code review instructions
+- Review `calendarWeek` and `renderCalendarBlock(...)` in `web/src/admin-dsl/render.tsx`.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+- Inspect visual evidence:
+  - `ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/various/mobile-calendar-fix/calendar/url1_screenshot.png`
+
+### Technical details
+- Main file changed:
+  - `web/src/admin-dsl/render.tsx`

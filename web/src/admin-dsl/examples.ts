@@ -25,7 +25,7 @@ const serviceRows = services.map((service) => resource.row(service.id, {
   action.confirm("archiveService", "Archive", { id: service.id }),
 ));
 
-export const serviceForm = admin.form("serviceForm", { title: "Edit service", submitLabel: "Save service" },
+export const serviceForm = admin.form("serviceForm", { submitLabel: "Save service" },
   admin.fieldGroup("Public service details",
     field.text("title", { label: "Name", value: "Color", required: true }),
     field.textarea("description", { label: "Description", value: "Single-process color, gloss, or root refresh." }),
@@ -146,7 +146,7 @@ export const calendarAdminPage = admin.calendarPage("admin-calendar", "Calendar"
       admin.kvList([
         { label: "Client", value: "Lena Ortiz" },
         { label: "Service", value: "Color + cut" },
-        { label: "Time", value: "9:30a – 12:00p" },
+        { label: "Time", value: "09:30 – 12:00" },
       ]),
     ),
   )

@@ -89,3 +89,24 @@ Added a devctl Storybook profile/service and started Storybook under devctl supe
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/plugins/devctl/hair_booking.py — Added storybook service selection and launch plan
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records devctl Storybook startup and verification
 
+
+## 2026-05-15
+
+Improved Admin DSL mobile responsiveness using cropped css-visual-diff screenshots and VLM review; tightened typography, stacked side panels, enlarged tap targets, improved status contrast, removed duplicate modal title, and made calendar horizontally scrollable on mobile.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records screenshot/VLM workflow and validation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/examples.ts — Removed duplicate modal form title and normalized calendar drawer time
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Responsive layout
+
+
+## 2026-05-15
+
+Fixed the Admin DSL calendar renderer so appointment blocks are constrained to their configured day column and hour-row span instead of stretching across the whole workweek.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records calendar constraint fix and validation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Calendar week now renders appointment children into day/hour CSS grid cells
+

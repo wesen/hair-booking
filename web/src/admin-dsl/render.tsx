@@ -83,9 +83,10 @@ function renderActions(node: AdminNode, ctx: AdminRenderContext | undefined, act
       {actions.map((actionRef, i) => (
         <button
           key={`${actionRef.type}:${actionRef.target}:${i}`}
+          className="adminDslActionButton"
           type="button"
           onClick={() => dispatch(ctx, node, actionRef)}
-          style={{
+          style={{ minHeight: 38,
             border: `1px solid ${actionRef.type === "confirm" ? color.danger : color.ink}`,
             background: actionRef.type === "mutation" || actionRef.type === "open" ? color.ink : color.paper,
             color: actionRef.type === "mutation" || actionRef.type === "open" ? color.paper : actionRef.type === "confirm" ? color.danger : color.ink,
@@ -128,7 +129,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       return (
         <section key={key} {...common} style={{ marginBottom: 28, ...style(props) }}>
           <div style={{ marginBottom: 14 }}>
-            <h2 style={{ ...type.h2, margin: 0 }}>{str(props, "title")}</h2>
+            <h2 className="adminDslSectionTitle" style={{ ...type.h2, margin: 0 }}>{str(props, "title")}</h2>
             {str(props, "description") && <p style={{ ...type.body, color: color.softInk, margin: "8px 0 0" }}>{str(props, "description")}</p>}
           </div>
           <div style={{ display: "grid", gap: 14 }}>{renderChildren(node.children, ctx)}</div>
@@ -165,7 +166,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
         <div key={key} {...common} style={{ display: "flex", gap: 8, flexWrap: "wrap", ...style(props) }}>
           {filters.map((filter) => {
             const active = filter.id === value;
-            return <span key={String(filter.id)} style={{ borderRadius: radius.pill, padding: "8px 12px", border: `1px solid ${active ? color.ink : color.rule}`, background: active ? color.ink : color.paper, color: active ? color.paper : color.ink, ...type.meta }}>{String(filter.label || filter.id)}</span>;
+            return <span key={String(filter.id)} className="adminDslFilterPill" style={{ minHeight: 38, display: "inline-flex", alignItems: "center", borderRadius: radius.pill, padding: "8px 12px", border: `1px solid ${active ? color.ink : color.rule}`, background: active ? color.ink : color.paper, color: active ? color.paper : color.ink, ...type.meta }}>{String(filter.label || filter.id)}</span>;
           })}
         </div>
       );
@@ -180,11 +181,11 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
 
     case "resourceRow":
       return (
-        <article key={key} {...common} style={{ ...surface, padding: 16, display: "grid", gridTemplateColumns: "1fr auto", gap: 14, alignItems: "center", ...style(props) }}>
+        <article key={key} {...common} className="adminDslResourceRow" style={{ ...surface, padding: 16, display: "grid", gridTemplateColumns: "1fr auto", gap: 14, alignItems: "center", ...style(props) }}> 
           <div>
             <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
               <h3 style={{ ...type.h3, margin: 0 }}>{str(props, "title", str(props, "id"))}</h3>
-              {str(props, "badge") && <span style={{ borderRadius: radius.pill, padding: "4px 8px", background: color.cream, color: toneColor(str(props, "tone")), ...type.meta }}>{str(props, "badge")}</span>}
+              {str(props, "badge") && <span style={{ borderRadius: radius.pill, padding: "4px 8px", background: color.paper, border: `1px solid ${color.rule}`, color: toneColor(str(props, "tone")), fontWeight: 700, ...type.meta }}>{str(props, "badge")}</span>}
             </div>
             {str(props, "subtitle") && <p style={{ ...type.bodySm, color: color.softInk, margin: "8px 0 0" }}>{str(props, "subtitle")}</p>}
             {str(props, "description") && <p style={{ ...type.body, color: color.softInk, margin: "8px 0 0" }}>{str(props, "description")}</p>}
@@ -223,8 +224,8 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     case "drawer": {
       const isDrawer = node.kind === "drawer";
       return (
-        <aside key={key} {...common} style={{ ...surface, padding: 18, background: isDrawer ? color.cream : color.paper, borderStyle: bool(props, "open", false) ? "solid" : "dashed", ...style(props) }}>
-          <div style={{ ...type.eyebrow, color: color.softInk }}>{isDrawer ? "Drawer" : "Modal"}</div>
+        <aside key={key} {...common} className={`adminDslOverlaySurface ${isDrawer ? "adminDslDrawerSurface" : "adminDslModalSurface"}`} style={{ ...surface, padding: 18, background: isDrawer ? color.cream : color.paper, borderStyle: bool(props, "open", false) ? "solid" : "dashed", ...style(props) }}>
+          <div className="adminDslSurfaceKicker" style={{ ...type.eyebrow, color: color.softInk }}>{isDrawer ? "Drawer" : "Modal"}</div>
           <h3 style={{ ...type.h2, margin: "8px 0 16px" }}>{str(props, "title", str(props, "id"))}</h3>
           <div style={{ display: "grid", gap: 14 }}>{renderChildren(node.children, ctx)}</div>
         </aside>
@@ -263,25 +264,29 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       return <FieldPreview key={key} node={node} />;
 
     case "saveBar":
-      return <div key={key} {...common} style={{ borderTop: `1px solid ${color.rule}`, paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center", ...style(props) }}><span style={{ ...type.meta, color: color.softInk }}>{str(props, "status", "Ready")}</span>{jsonObject(props, "primary") && renderActions(node, ctx, [jsonObject(props, "primary") as unknown as AdminActionRef])}</div>;
+      return <div key={key} {...common} className="adminDslSaveBar" style={{ borderTop: `1px solid ${color.rule}`, paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, ...style(props) }}><span className="adminDslSaveStatus" style={{ ...type.meta, color: color.ink, fontWeight: 800, background: color.cream, border: `1px solid ${color.rule}`, borderRadius: radius.pill, padding: "6px 10px", justifySelf: "start" }}>{str(props, "status", "Ready")}</span>{jsonObject(props, "primary") && renderActions(node, ctx, [jsonObject(props, "primary") as unknown as AdminActionRef])}</div>;
 
     case "calendarWeek": {
       const days = jsonArray<string>(props, "days");
       const hours = jsonArray<string>(props, "hours");
       return (
-        <div key={key} {...common} style={{ ...surface, overflow: "hidden", ...style(props) }}>
+        <div key={key} {...common} className="adminDslCalendarScroller" style={{ ...surface, overflowX: "auto", overflowY: "hidden", ...style(props) }}>
+          <div className="adminDslCalendarInner" style={{ minWidth: 620 }}>
           <div style={{ display: "grid", gridTemplateColumns: `80px repeat(${Math.max(days.length, 1)}, 1fr)`, borderBottom: `1px solid ${color.rule}` }}>
             <div />
             {days.map((day) => <div key={day} style={{ ...type.meta, padding: 12, textAlign: "center", borderLeft: `1px solid ${color.rule}` }}>{day}</div>)}
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "80px 1fr", minHeight: 420 }}>
-            <div style={{ display: "grid", gridTemplateRows: `repeat(${hours.length}, 1fr)` }}>
+            <div style={{ display: "grid", gridTemplateRows: `repeat(${hours.length}, minmax(58px, 1fr))` }}>
               {hours.map((hour) => <div key={hour} style={{ ...type.meta, color: color.soft, padding: 8, borderBottom: `1px solid ${color.ruleSoft}` }}>{hour}</div>)}
             </div>
-            <div style={{ position: "relative", display: "grid", gridTemplateRows: `repeat(${hours.length}, 1fr)`, background: color.cream }}>
-              {hours.map((hour) => <div key={hour} style={{ borderBottom: `1px solid ${color.ruleSoft}` }} />)}
-              <div style={{ position: "absolute", inset: 10, display: "grid", gap: 10, alignContent: "start" }}>{renderChildren(node.children, ctx)}</div>
+            <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.max(days.length, 1)}, minmax(96px, 1fr))`, gridTemplateRows: `repeat(${hours.length}, minmax(58px, 1fr))`, background: color.cream }}>
+              {days.flatMap((day, dayIndex) => hours.map((hour, hourIndex) => (
+                <div key={`${day}:${hour}`} style={{ gridColumn: dayIndex + 1, gridRow: hourIndex + 1, borderLeft: `1px solid ${color.ruleSoft}`, borderBottom: `1px solid ${color.ruleSoft}` }} />
+              )))}
+              {(node.children || []).map((child, i) => renderCalendarBlock(child, ctx, days.length, hours, nodeKey(child, i)))}
             </div>
+          </div>
           </div>
         </div>
       );
@@ -311,6 +316,62 @@ function renderInlineNode(node: AdminJsonObject | undefined, ctx?: AdminRenderCo
   return renderAdminNode(node as unknown as AdminNode, ctx, String(node.kind));
 }
 
+function hourLabelToHour(label: string): number | null {
+  const match = label.trim().toLowerCase().match(/^(\d{1,2})(?::\d{2})?\s*([ap])?/);
+  if (!match) return null;
+  let hour = Number(match[1]);
+  const meridiem = match[2];
+  if (meridiem === "p" && hour < 12) hour += 12;
+  if (meridiem === "a" && hour === 12) hour = 0;
+  return Number.isFinite(hour) ? hour : null;
+}
+
+function rowForStartTime(startsAt: string, hours: string[]) {
+  const startHour = hourLabelToHour(startsAt);
+  if (startHour == null) return 1;
+  const index = hours.findIndex((hour) => hourLabelToHour(hour) === startHour);
+  return index >= 0 ? index + 1 : 1;
+}
+
+function renderCalendarBlock(node: AdminNode, ctx: AdminRenderContext | undefined, dayCount: number, hours: string[], key: Key) {
+  const props = node.props || {};
+  const column = Math.min(Math.max(num(props, "column", 1), 1), Math.max(dayCount, 1));
+  const row = Math.min(Math.max(num(props, "row", rowForStartTime(str(props, "startsAt"), hours)), 1), Math.max(hours.length, 1));
+  const span = Math.min(Math.max(num(props, "span", 1), 1), Math.max(hours.length - row + 1, 1));
+  const isTimeOff = node.kind === "timeOffBlock";
+
+  return (
+    <button
+      key={key}
+      {...dataAttrs(node)}
+      type="button"
+      onClick={() => actionList(props)[0] && dispatch(ctx, node, actionList(props)[0])}
+      style={{
+        gridColumn: column,
+        gridRow: `${row} / span ${span}`,
+        zIndex: 1,
+        alignSelf: "stretch",
+        justifySelf: "stretch",
+        margin: 6,
+        minHeight: 44,
+        textAlign: "left",
+        border: `1px solid ${isTimeOff ? color.warn : color.plum}`,
+        background: isTimeOff ? "#fbefcf" : color.paper,
+        borderRadius: radius.md,
+        padding: 10,
+        boxShadow: shadow.sm,
+        cursor: actionList(props).length ? "pointer" : "default",
+        overflow: "hidden",
+        ...style(props),
+      }}
+    >
+      <strong style={{ ...type.bodySm, fontWeight: 800, display: "block" }}>{str(props, "clientName", str(props, "title", "Appointment"))}</strong>
+      <span style={{ ...type.bodySm, color: color.softInk, display: "block" }}>{str(props, "service", str(props, "status"))}</span>
+      <span style={{ ...type.meta, display: "block", marginTop: 6 }}>{str(props, "startsAt")} – {str(props, "endsAt")}</span>
+    </button>
+  );
+}
+
 function FieldPreview({ node }: { node: AdminNode }) {
   const props = node.props || {};
   const label = str(props, "label", str(props, "name"));
@@ -335,22 +396,48 @@ function FieldPreview({ node }: { node: AdminNode }) {
   );
 }
 
+const responsiveCss = `
+  .adminDslRoot { box-sizing: border-box; }
+  .adminDslRoot *, .adminDslRoot *::before, .adminDslRoot *::after { box-sizing: border-box; }
+  .adminDslGrid { grid-template-columns: var(--admin-dsl-grid-columns, 1fr); }
+  .adminDslTitle { text-wrap: balance; overflow-wrap: anywhere; }
+  .adminDslSideColumn { min-width: 0; }
+  @media (max-width: 720px) {
+    .adminDslRoot { padding: 16px !important; }
+    .adminDslGrid { grid-template-columns: 1fr !important; gap: 16px !important; }
+    .adminDslTitle { font-size: clamp(30px, 11vw, 40px) !important; line-height: 0.96 !important; letter-spacing: -0.25px !important; }
+    .adminDslSectionTitle { font-size: clamp(20px, 7vw, 24px) !important; line-height: 1.05 !important; }
+    .adminDslActionButton { min-height: 44px !important; flex: 1 1 132px !important; justify-content: center !important; }
+    .adminDslFilterPill { min-height: 44px !important; padding-inline: 14px !important; }
+    .adminDslSaveBar { display: grid !important; grid-template-columns: 1fr !important; align-items: stretch !important; }
+    .adminDslSurfaceKicker { display: none !important; }
+    .adminDslResourceRow { grid-template-columns: 1fr !important; gap: 12px !important; padding: 14px !important; }
+    .adminDslOverlaySurface { max-height: 82dvh !important; overflow: auto !important; border-radius: 14px !important; }
+    .adminDslSideColumn { display: grid !important; grid-template-columns: 1fr !important; }
+  }
+  @media (max-width: 430px) {
+    .adminDslRoot { padding: 12px !important; }
+    .adminDslActionButton { flex-basis: 100% !important; }
+  }
+`;
+
 export function AdminPageRenderer({ page, context }: { page: AdminPage; context?: AdminRenderContext }) {
   const shell = page.shell.kind;
   const sideNodes = [...(page.drawers || []), ...(page.modals || [])];
 
   return (
-    <main style={{ minHeight: "100vh", background: shell === "calendar" ? color.cream : color.creamDeep, color: color.ink, fontFamily: font.sans, padding: 24 }} data-admin-dsl-page={page.id} data-admin-dsl-shell={shell}>
-      <div style={{ maxWidth: 1180, margin: "0 auto", display: "grid", gridTemplateColumns: sideNodes.length ? "minmax(0, 1fr) 340px" : "1fr", gap: 20 }}>
-        <div>
+    <main className="adminDslRoot" style={{ minHeight: "100vh", background: shell === "calendar" ? color.cream : color.creamDeep, color: color.ink, fontFamily: font.sans, padding: 24 }} data-admin-dsl-page={page.id} data-admin-dsl-shell={shell}>
+      <style>{responsiveCss}</style>
+      <div className="adminDslGrid" style={{ maxWidth: 1180, margin: "0 auto", display: "grid", ["--admin-dsl-grid-columns" as string]: sideNodes.length ? "minmax(0, 1fr) 340px" : "1fr", gap: 20 }}>
+        <div style={{ minWidth: 0 }}>
           <header style={{ marginBottom: 24 }}>
             <div style={{ ...type.eyebrow, color: color.plum }}>{str(page.shell.props, "eyebrow", "Admin DSL")}</div>
-            <h1 style={{ ...type.display2, fontSize: 56, margin: "6px 0 8px" }}>{page.title}</h1>
+            <h1 className="adminDslTitle" style={{ ...type.display2, fontSize: 56, margin: "6px 0 8px" }}>{page.title}</h1>
             {page.description && <p style={{ ...type.bodyLg, color: color.softInk, maxWidth: 680, margin: 0 }}>{page.description}</p>}
           </header>
           <div style={{ display: "grid", gap: 4 }}>{page.nodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</div>
         </div>
-        {sideNodes.length > 0 && <div style={{ display: "grid", gap: 14, alignContent: "start" }}>{sideNodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</div>}
+        {sideNodes.length > 0 && <div className="adminDslSideColumn" style={{ display: "grid", gap: 14, alignContent: "start" }}>{sideNodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</div>}
       </div>
     </main>
   );
