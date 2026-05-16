@@ -78,7 +78,8 @@ updated: 2026-05-15
 - [x] Implement create-draft-from-active action.
 - [ ] Implement services/categories editor.
   - [x] First-pass read-only editor view using `editableList`.
-  - [ ] Add create/update/delete/reorder mutations.
+  - [x] Add update mutation and drawer form.
+  - [ ] Add create/delete/reorder mutations.
 - [ ] Implement tone options editor.
   - [x] First-pass read-only editor view using `editableList`.
   - [ ] Add create/update/delete/reorder mutations.

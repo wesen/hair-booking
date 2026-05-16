@@ -816,3 +816,85 @@ The Phase 7 slice makes `/admin/intake` useful for config operations beyond a fl
   - `OK: uploaded HAIR 041 Admin DSL Backend Driven Interfaces Deep Dive.pdf -> /ai/2026/05/16/HAIR-041`
 - The selected config version defaults to the newest draft, falling back to active config when no draft exists.
 - Publish action is enabled only for draft configs with a passing validation report.
+
+## Step 12: Add the first live service config editor mutation
+
+This step turned the Phase 7 service editor from a read-only draft inspector into a real mutation path. Draft service options can now be opened from the `/admin/intake` config screen, edited in a drawer form, validated by the Goja flow, saved through the app-owned `pkg/intakeadmin` store, and audited in the admin audit table.
+
+The implementation deliberately starts with update-only semantics. Create, delete, and reorder still remain open so the editor does not pretend to be complete before the mutation model and interaction details are reviewed.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue, commit at appropriate intervals, and keep a detailed diary as you work"
+
+**Assistant interpretation:** Continue HAIR-041 Phase 7 implementation in focused commits, validating along the way and recording a detailed diary step.
+
+**Inferred user intent:** The user wants steady forward progress on real config editing while preserving reviewable commit boundaries and implementation history.
+
+**Commit (code):** 126b3be — "HAIR-041 Step 12: Add service config editor mutation".
+
+### What I did
+- Added `ConfigServiceOptionInput` and `Store.UpdateServiceOption(...)` in `pkg/intakeadmin/store.go`.
+- Enforced draft-only service editing in the store; active/archived config versions cannot be edited through this method.
+- Added admin audit event recording for service option updates.
+- Exposed `host/intake-admin.updateServiceOption(input)` to Admin Goja flows.
+- Updated `pkg/admindsl/flows/intake_admin.flow.js` so draft service rows can open an edit drawer.
+- Added service drawer form fields for:
+  - id,
+  - category,
+  - value,
+  - title,
+  - subtitle,
+  - badge,
+  - sort order,
+  - enabled.
+- Added flow-level validation for required service fields before calling the host mutation.
+- Closed the drawer and refreshed editor data after save.
+- Added store-level test coverage for service update.
+- Extended the Admin DSL HTTP config test to create a draft, open a service drawer, save a service edit, and verify the SQLite row changed.
+- Updated HAIR-041 Phase 7 task status to mark service update mutation complete while leaving create/delete/reorder open.
+- Validated:
+  - `go test ./pkg/intakeadmin ./pkg/admindsl ./pkg/server -count=1`
+  - `go test ./... -count=1`
+
+### Why
+- The Phase 7 config screen needed at least one real edit mutation to test whether the Admin DSL form/drawer/action path works for live backend config changes.
+- Services are the safest first target because they already drive customer intake choices and have a compact schema.
+
+### What worked
+- Existing Admin DSL form behavior already sends `FormData` for form action clicks, so the backend flow could receive edited values without frontend changes.
+- The Goja host module pattern made the mutation boundary narrow and explicit.
+- The HTTP test exercises the real protobuf/Admin DSL event path rather than only calling store methods directly.
+
+### What didn't work
+- `switchField` is currently rendered as a display-only preview, not an actual form input, so the first editor uses a text field for `enabled` with `true/false` parsing.
+- The editor does not yet support create/delete/reorder, and it does not provide select controls for categories or booleans.
+
+### What I learned
+- The renderer's existing form action value collection is enough for simple backend-owned mutation forms.
+- The next meaningful Admin DSL field improvement is to make `switchField` and `selectField` submit robust values instead of using text-field fallbacks for boolean/enumerated data.
+
+### What was tricky to build
+- The service editor needed to keep all interaction state in the Goja session: selected service id, drawer state, unsaved form values, and validation errors. Keeping this state backend-owned avoids local React state drift, but it means every form save/cancel path must explicitly clear or preserve the right `ctx.state` fields.
+- The store mutation needed to validate the owning config version status before updating the row. This prevents accidental edits to active published config rows.
+
+### What warrants a second pair of eyes
+- Review whether draft-only enforcement should live in every individual mutation method or in a shared helper that resolves editable config rows.
+- Review the audit event payload shape for service updates before additional config entities copy the same pattern.
+- Review the form field contract for booleans and numbers before extending this to tones, budgets, pricing, and availability.
+
+### What should be done in the future
+- Add create/delete/reorder mutations for service options.
+- Add equivalent update drawers for tone, budget, price range, availability day, and time slot editors.
+- Improve Admin DSL `switchField` and `selectField` so config editors can use semantic controls instead of text input fallbacks.
+
+### Code review instructions
+- Start with `pkg/admindsl/flows/intake_admin.flow.js` and review `serviceOptionDrawer`, `serviceFormErrors`, and the `config.service.save` callback.
+- Review `pkg/intakeadmin/store.go` for `UpdateServiceOption` draft-only enforcement and audit recording.
+- Review `pkg/server/host_intake_admin_module.go` for the `updateServiceOption` host export.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+- Form values arrive as strings from browser `FormData`.
+- The Goja flow parses `sortOrder` with `parseIntOrZero(...)` and parses `enabled` with `parseBool(...)`.
+- The store records service updates as `admin_audit_events.entity_type = 'config_service_option'` and `action = 'update'`.

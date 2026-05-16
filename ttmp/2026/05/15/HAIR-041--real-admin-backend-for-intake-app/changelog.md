@@ -150,3 +150,8 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 - Uploaded the Admin DSL backend-driven interfaces report to reMarkable at `/ai/2026/05/16/HAIR-041/HAIR 041 Admin DSL Backend Driven Interfaces Deep Dive.pdf`.
 - Cross-linked the newer backend-driven report from the prior Admin DSL renderer report in the PARC vault (commit `4114f22`).
 - Added first-pass Phase 7 config editor and publishing flow for `/admin/intake` (commit `b6eab66`): config editor data, tabbed config sections, validation report, draft creation, publish modal, publish transaction, and config audit events.
+
+## 2026-05-16 — Service config editor mutation
+
+- Added the first live Phase 7 config edit mutation (commit `126b3be`): draft service options now open in an Admin DSL drawer form, validate required fields, save through `host/intake-admin.updateServiceOption`, update SQLite config rows, and write admin audit events.
+- Validation passed with `go test ./pkg/intakeadmin ./pkg/admindsl ./pkg/server -count=1` and `go test ./... -count=1`.
