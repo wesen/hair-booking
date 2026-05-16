@@ -106,3 +106,15 @@ Step 7: Completed the Phase 6 photo modal path by making imageGallery actionable
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — Gallery dispatch regression coverage
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Actionable imageGallery renderer
 
+
+## 2026-05-16
+
+Step 8: Added dedicated Storybook catalog for new Admin DSL data primitives resourceTable and imageGallery, including dense/mobile/empty/modal/missing-photo/composed request-review states. Validation: cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (10 files, 45 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/01-diary.md — Diary records Storybook coverage step
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md — Tracks Storybook coverage for new primitives
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslDataComponents.stories.tsx — Storybook catalog for resourceTable and imageGallery
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/builder.ts — Frontend builder helpers for new data components
+

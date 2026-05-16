@@ -347,6 +347,7 @@ export const admin = {
   kvList: (items: AdminJsonObject[], props: AdminJsonObject = {}) => node("kvList", { items, ...props }),
   activityFeed: (items: AdminJsonObject[], props: AdminJsonObject = {}) => node("activityFeed", { items, ...props }),
   imageGrid: (items: AdminJsonObject[], props: AdminJsonObject = {}) => node("imageGrid", { items, ...props }),
+  imageGallery: (id: string, images: AdminJsonObject[], props: AdminJsonObject = {}) => node("imageGallery", { id, images, ...props }).id(id),
   loadingState: (title: string, props: AdminJsonObject = {}) => node("loadingState", { title, ...props }),
 
   resourceList: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("resourceList", { id, ...props }, ...children),
@@ -376,6 +377,7 @@ export const surface = {
 export const resource = {
   page: (id: string, title = id) => new AdminPageBuilder(id, title, "resource"),
   list: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("resourceList", { id, ...props }, ...children),
+  table: (id: string, columns: AdminJsonObject[], rows: AdminJsonObject[], props: AdminJsonObject = {}) => node("resourceTable", { id, columns, rows, ...props }).id(id),
   row: (id: string, props: AdminJsonObject = {}) => node("resourceRow", { id, ...props }).id(id),
   detail: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("resourceDetail", { id, ...props }, ...children),
 };

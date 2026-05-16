@@ -55,6 +55,7 @@ updated: 2026-05-15
 - [ ] Add `editableList` or `reorderableList` primitive.
 - [ ] Add `monthAvailabilityGrid` primitive.
 - [x] Add `imageGallery` or `mediaViewer` primitive.
+- [x] Add Storybook coverage for new `resourceTable` and `imageGallery` primitives.
 - [ ] Add `previewFrame` or route-level preview bridge.
 - [ ] Add `diffView` or `changeSummary` primitive.
 - [ ] Fix duplicate desktop/mobile surface accessibility behavior.

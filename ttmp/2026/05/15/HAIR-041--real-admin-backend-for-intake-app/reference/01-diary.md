@@ -477,3 +477,73 @@ This is still not a full lightbox with image zoom/download/redaction, but it cov
 
 ### Technical details
 - Missing-photo modal text is derived from empty `url`/`publicUrl` in the persisted photo object.
+
+## Step 8: Add Storybook coverage for new Admin DSL data components
+
+The new `resourceTable` and `imageGallery` primitives had backend/frontend tests, but they did not yet have the requested broad Storybook visual coverage. This step adds a dedicated Storybook catalog for the new data components so future design/component work can be reviewed visually before wiring more live admin behavior.
+
+The stories cover happy paths, empty states, dense desktop tables, mobile table scrolling, mixed stored/missing photo galleries, modal missing-photo copy, and a composed request-review screen that combines the new primitives with existing cards and surfaces.
+
+### Prompt Context
+
+**User prompt (verbatim):** "actually, don't forget to add a opious amounts of storybook stories for each new widget and dsl component. Did you do so for the new modules already?"
+
+**Assistant interpretation:** The user is asking whether the newly added Admin DSL primitives already have extensive Storybook coverage, and wants that coverage added if missing.
+
+**Inferred user intent:** The user wants visual/design review coverage to stay in lockstep with new DSL/component primitives, not arrive later as an afterthought.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Confirmed that the previous `resourceTable`/`imageGallery` work had tests but no dedicated Storybook catalog yet.
+- Added frontend builder helpers:
+  - `resource.table(...)`
+  - `admin.imageGallery(...)`
+- Added `web/src/admin-dsl/AdminDslDataComponents.stories.tsx`.
+- Added stories:
+  - `RequestTableWithRowActions`
+  - `RequestTableDenseDesktop`
+  - `RequestTableMobileScroll`
+  - `RequestTableEmptyState`
+  - `ConfigVersionsTable`
+  - `ImageGalleryStored`
+  - `ImageGalleryMixedMissingBlob`
+  - `ImageGalleryEmptyState`
+  - `ImageGalleryModalMissingPhoto`
+  - `ComposedRequestReview`
+  - `ComposedRequestReviewMobile`
+- Updated HAIR-041 tasks to explicitly track Storybook coverage for new primitives.
+- Validated:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand` — 10 files, 45 tests passed.
+
+### Why
+- `resourceTable` and `imageGallery` are reusable Admin DSL primitives and need visual fixtures for desktop/mobile and edge states.
+- Storybook is the fastest review surface for new DSL components before live backend state exists for every case.
+
+### What worked
+- Existing `AdminPageRenderer` made it straightforward to build screenshot-friendly static pages for the new primitives.
+- The builder helpers kept stories readable and aligned with other Admin DSL stories.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The project needs a rule: every new Admin DSL node kind should land with tests and a Storybook catalog entry in the same commit or adjacent commit.
+
+### What was tricky to build
+- The stories needed to include edge cases, not just happy-path screenshots, so missing-blob and empty table/gallery states were included explicitly.
+
+### What warrants a second pair of eyes
+- Review whether `Admin DSL/Data Components` is the right sidebar location or whether these should be split into `Tables` and `Media` subsections later.
+
+### What should be done in the future
+- Add visual stories in the same style for upcoming `editableList`, `monthAvailabilityGrid`, `previewFrame`, and `diffView` primitives.
+
+### Code review instructions
+- Open Storybook section `Admin DSL/Data Components`.
+- Review desktop and mobile variants.
+- Validate with `cd web && npx tsc --noEmit` and `cd web && pnpm test -- --runInBand`.
+
+### Technical details
+- The stories are static fixtures; live backend behavior remains covered by `/admin/intake` and HTTP tests.
