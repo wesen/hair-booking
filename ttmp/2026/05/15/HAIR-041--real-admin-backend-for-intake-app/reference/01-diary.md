@@ -710,3 +710,109 @@ The report is intentionally written as a technical article rather than a ticket 
   - `cd75f55 Add Fringe Admin DSL backend-driven interfaces report`
 - The report was stored under the append-only project report path for the current date.
 - No application code changed in this step.
+
+## Step 11: Upload and link the report, then add the first Phase 7 config publishing flow
+
+This step completed the three requested follow-ups: the new Admin DSL report was uploaded to reMarkable, the prior Admin DSL renderer report was cross-linked to the newer backend-driven report, and HAIR-041 Phase 7 received its first real implementation slice.
+
+The Phase 7 slice makes `/admin/intake` useful for config operations beyond a flat versions table. The admin can create a draft from the active config, inspect services, tones, budgets, pricing, availability, and validation through generic Admin DSL primitives, open a publish confirmation modal, and publish the draft through the app-owned store with an audit event.
+
+### Prompt Context
+
+**User prompt (verbatim):** "1 2 3"
+
+**Assistant interpretation:** Execute the three proposed next steps: upload the report to reMarkable, cross-link it from the previous report, and continue HAIR-041 Phase 7.
+
+**Inferred user intent:** The user wants the documentation artifact delivered, connected to the existing knowledge base, and then wants implementation work to continue with proper commits and diary tracking.
+
+**Commit (docs):** 4114f22 — "Link Admin DSL backend interfaces report" in `/home/manuel/code/wesen/go-go-golems/go-go-parc`.
+
+**Commit (code):** b6eab66 — "HAIR-041 Step 11: Add config editor publishing flow".
+
+### What I did
+- Uploaded the new report to reMarkable:
+  - remote path: `/ai/2026/05/16/HAIR-041/HAIR 041 Admin DSL Backend Driven Interfaces Deep Dive.pdf`
+  - command: `remarquee upload bundle ... --non-interactive`
+- Cross-linked the newer backend-driven report from the previous Obsidian Admin DSL renderer report:
+  - `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/05/15/PROJECT REPORT - Fringe Admin DSL and React Renderer Technique Deep Dive.md`
+- Added `pkg/intakeadmin.Store.GetConfigEditorData(...)` and related config DTOs for:
+  - service options,
+  - tone options,
+  - budget options,
+  - price ranges,
+  - availability days,
+  - time slots,
+  - validation report.
+- Added app-owned audit events for config draft creation and publish actions.
+- Exposed new Admin Goja host functions:
+  - `host/intake-admin.getConfigEditor(configVersionId)`
+  - `host/intake-admin.publishConfigVersion(id)`
+- Added `admin.tabs(...)` to the Go-host Admin DSL builder and Goja module export.
+- Expanded `pkg/admindsl/flows/intake_admin.flow.js` config screen with:
+  - config version row-open action,
+  - create-draft action,
+  - selected config metrics,
+  - tabbed config sections,
+  - first-pass services/tones/budgets editable-list views,
+  - first-pass price range table,
+  - first-pass availability grid and time-slot list,
+  - validation diff view,
+  - publish modal and publish callback.
+- Added regression coverage for config editor data, config audit events, and HTTP flow draft creation.
+- Updated Phase 7 task status to mark completed first-pass items honestly while leaving full edit mutations open.
+- Validated:
+  - `go test ./pkg/intakeadmin ./pkg/admindsl ./pkg/server -count=1`
+  - `go test ./... -count=1`
+
+### Why
+- Phase 7 needs to validate whether the Phase 5 primitives can support real config workflows.
+- The app-owned store should supply config editor data rather than letting the generic Admin DSL know about the intake config schema.
+- Publish is a domain mutation and therefore belongs behind `host/intake-admin`, not in the React renderer.
+
+### What worked
+- The existing draft-copy and publish store methods were a good base for a richer admin flow.
+- The new Phase 5 primitives were sufficient for a first-pass config editor without adding more frontend components.
+- Server-side flow tests proved the config screen can be opened and a draft can be created through the real Admin DSL HTTP path.
+
+### What didn't work
+- The existing `surface.confirm` renderer path does not dispatch bound footer actions; it renders a default unbound confirm action from props. I avoided that path for now and used `surface.modal(...)` containing an actionable summary card for publish confirmation.
+- The editors are not full mutation editors yet. They expose read-only/disabled edit affordances so the screen structure is reviewable before create/update/delete/reorder semantics are added.
+- Attempting to relate files directly to the diary failed because this historical diary file has no YAML frontmatter: `docmgr doc relate --doc ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/01-diary.md ...` returned `frontmatter delimiters '---' not found`. I then related the files at the ticket index level with `docmgr doc relate --ticket HAIR-041 ...`.
+
+### What I learned
+- The Admin DSL needs a decision about whether `confirmDialog` should support bound action arrays like modal/drawer children, or whether confirm flows should always be modeled as modal content with explicit action nodes.
+- Returning full config editor data as a single JSON-shaped host result keeps the Goja flow simple and keeps schema ownership inside `pkg/intakeadmin`.
+
+### What was tricky to build
+- The config editor had to remain honest about backend ownership. It would have been easy to make the frontend renderer own tab state, table selection, or publish behavior. Instead, `ctx.state.configSection`, `ctx.state.configVersionId`, and `ctx.state.publishModal` remain backend state in the Goja session.
+- Publish confirmation needed a surface whose actions could dispatch opaque backend ids. The existing `confirmDialog` implementation was too static for this live backend flow, so a modal plus summary card was used as a safe implementation path.
+- Config audit events span the config DB and state DB. The current implementation records audit after the config transaction commits; this is acceptable for the first slice but should be reviewed if strict cross-database atomicity becomes required.
+
+### What warrants a second pair of eyes
+- Review the new `ConfigEditorData` DTOs and make sure the JSON shape is stable enough for subsequent edit mutations.
+- Review whether `GetConfigEditorData` should be split into smaller query methods before the editors become fully interactive.
+- Review the audit-event transaction boundary for config publish and draft creation.
+- Review whether `admin.tabs(...)` should also be added to TypeScript builder parity tests or Go builder tests.
+
+### What should be done in the future
+- Add real create/update/delete/reorder mutations for services, tones, budgets, price ranges, availability days, and time slots.
+- Decide whether to improve `surface.confirm` so it can dispatch bound backend actions.
+- Add Playwright smoke coverage for create draft -> inspect sections -> publish modal.
+- Add Storybook scenario coverage for the new config editor state if the live backend route is not enough for visual review.
+
+### Code review instructions
+- Start with the flow:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows/intake_admin.flow.js`
+- Then review app-owned data retrieval and publishing:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/intakeadmin/store.go`
+- Then review host module exports and HTTP coverage:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/host_intake_admin_module.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl_test.go`
+- Validate with:
+  - `go test ./... -count=1`
+
+### Technical details
+- reMarkable upload output:
+  - `OK: uploaded HAIR 041 Admin DSL Backend Driven Interfaces Deep Dive.pdf -> /ai/2026/05/16/HAIR-041`
+- The selected config version defaults to the newest draft, falling back to active config when no draft exists.
+- Publish action is enabled only for draft configs with a passing validation report.

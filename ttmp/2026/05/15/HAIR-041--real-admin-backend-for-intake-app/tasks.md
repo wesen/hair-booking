@@ -74,16 +74,26 @@ updated: 2026-05-15
 
 ## Phase 7 — Config editing and publishing
 
-- [ ] Implement config versions screen.
-- [ ] Implement create-draft-from-active action.
+- [x] Implement config versions screen.
+- [x] Implement create-draft-from-active action.
 - [ ] Implement services/categories editor.
+  - [x] First-pass read-only editor view using `editableList`.
+  - [ ] Add create/update/delete/reorder mutations.
 - [ ] Implement tone options editor.
+  - [x] First-pass read-only editor view using `editableList`.
+  - [ ] Add create/update/delete/reorder mutations.
 - [ ] Implement budget options editor.
+  - [x] First-pass read-only editor view using `editableList`.
+  - [ ] Add create/update/delete/reorder mutations.
 - [ ] Implement price range editor.
+  - [x] First-pass read-only table view using `resourceTable`.
+  - [ ] Add create/update/delete mutations and money-field validation.
 - [ ] Implement availability and time slot editors.
-- [ ] Implement config validation report.
-- [ ] Implement publish confirm modal.
-- [ ] Implement publish transaction and audit event.
+  - [x] First-pass availability grid and time-slot list view.
+  - [ ] Add day/time-slot mutation semantics.
+- [x] Implement config validation report.
+- [x] Implement publish confirm modal.
+- [x] Implement publish transaction and audit event.
 
 ## Phase 8 — Preview, audit, health, and stress testing
 

@@ -12,13 +12,22 @@ Topics:
 DocType: index
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: ../../../../../../../../../code/wesen/go-go-golems/go-go-parc/Projects/2026/05/16/PROJECT REPORT - Fringe Admin DSL Backend Driven Admin Interfaces Deep Dive.md
+      Note: Obsidian report uploaded to reMarkable and linked from prior report
+    - Path: pkg/admindsl/flows/intake_admin.flow.js
+      Note: Phase 7 config screen
+    - Path: pkg/intakeadmin/store.go
+      Note: Config editor data DTOs
+    - Path: pkg/server/host_intake_admin_module.go
+      Note: Goja host exports for config editor data and publish (commit b6eab66)
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-05-15T19:43:10.470080535-04:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 # Real admin backend for intake app
 
