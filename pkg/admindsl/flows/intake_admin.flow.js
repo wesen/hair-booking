@@ -1,6 +1,5 @@
 const admin = require("fringe/admin-dsl");
 const intakeAdmin = require("host/intake-admin");
-const preview = require("host/intake-preview");
 
 function initialState() {
   return {
@@ -20,58 +19,19 @@ function go(ctx, screen) {
 
 function render(ctx) {
   switch (ctx.state.screen) {
-    case "requests": return requestsScreen(ctx);
-    case "requestDetail": return requestDetailScreen(ctx);
+    case "requests": return requestFlow.requestsScreen(ctx, { render: render, go: go });
+    case "requestDetail": return requestFlow.requestDetailScreen(ctx, { render: render, go: go });
     case "config": return configFlow.configScreen(ctx, { render: render, go: go });
-    case "preview": return previewScreen(ctx);
-    case "audit": return auditScreen(ctx);
-    case "health": return healthScreen(ctx);
+    case "preview": return opsFlow.previewScreen(ctx, { go: go });
+    case "audit": return opsFlow.auditScreen(ctx, { go: go });
+    case "health": return opsFlow.healthScreen(ctx, { go: go });
     default: return dashboardScreen(ctx);
   }
 }
 
-function requestTitle(request) {
-  return (request.customerName || "Anonymous") + " · " + request.serviceValue;
-}
-
-function bookingLabel(request) {
-  if (!request.dayValue && !request.timeValue) return "TBD";
-  return (request.dayValue || "TBD") + (request.timeValue ? " " + request.timeValue : "");
-}
-
-function requestRows(requests) {
-  return (requests || []).map(function(request) {
-    return {
-      id: request.id,
-      status: request.status,
-      customer: request.customerName || "Anonymous",
-      service: request.serviceValue,
-      estimate: request.estimateLabel || "Pending",
-      booking: bookingLabel(request),
-      photos: String(Object.keys(request.photos || {}).filter(function(key) { return !!request.photos[key]; }).length),
-    };
-  });
-}
-
-function requestTable(ctx, requests, emptyTitle) {
-  const openRequest = ctx.bind(admin.open("request.open", "Open").Placement("row"), function(event) {
-    ctx.state.selectedRequestId = event.value && event.value.id;
-    ctx.state.screen = "requestDetail";
-    return render(ctx);
-  });
-  return admin.resourceTable("requests", {
-    columns: [
-      { id: "status", label: "Status" },
-      { id: "customer", label: "Customer" },
-      { id: "service", label: "Service" },
-      { id: "estimate", label: "Estimate" },
-      { id: "booking", label: "Booking" },
-      { id: "photos", label: "Photos" }
-    ],
-    rows: requestRows(requests),
-    emptyTitle: emptyTitle || "No intake requests"
-  }).Actions(openRequest);
-}
+const requestFlow = require("./intake_requests.flow.js");
+const configFlow = require("./intake_config.flow.js");
+const opsFlow = require("./intake_ops.flow.js");
 
 function dashboardScreen(ctx) {
   const stats = intakeAdmin.dashboardStats();
@@ -103,184 +63,7 @@ function dashboardScreen(ctx) {
         admin.metricCard("Draft", stats.hasDraftConfig ? "Yes" : "No", { tone: stats.hasDraftConfig ? "warn" : "success", caption: "Unpublished config changes" })
       ),
       admin.section("Recent requests", { description: "Latest customer intake submissions persisted from the customer DSL flow." },
-        requestTable(ctx, stats.recentRequests || [], "No intake requests yet")
-      )
-    )
-    .MustBuild();
-}
-
-function requestsScreen(ctx) {
-  const back = ctx.bind(admin.secondary("nav.dashboard", "Dashboard").Placement("toolbar"), function() { return go(ctx, "dashboard"); });
-  const setFilter = ctx.bind(admin.secondary("filter.status", "Filter").Placement("toolbar"), function(event) { ctx.state.statusFilter = event.value && event.value.id || ""; return render(ctx); });
-  const search = ctx.bind(admin.secondary("filter.search", "Search").Placement("toolbar"), function(event) { ctx.state.searchQuery = event.value && event.value.query || ""; return render(ctx); });
-  const requests = intakeAdmin.listRequests({ status: ctx.state.statusFilter || "", limit: 50 });
-  return admin.pageResource("admin-intake-requests", "Intake Requests")
-    .Shell("resource", { active: "requests", eyebrow: "Real Admin · Intake" })
-    .Description("Review persisted customer intake submissions.")
-    .Content(
-      admin.toolbar().Actions(back),
-      admin.filterBar("requestStatusFilters", { filters: [
-        { id: "new", label: "New" },
-        { id: "reviewing", label: "Reviewing" },
-        { id: "needs_info", label: "Needs info" },
-        { id: "booked", label: "Booked" },
-        { id: "", label: "All" }
-      ], value: ctx.state.statusFilter || "" }).Actions(setFilter),
-      admin.searchBox("requestSearch", { placeholder: "Search customer or service", value: ctx.state.searchQuery || "" }).Actions(search),
-      admin.section("Request queue", { description: "Dense queue rendered with the HAIR-041 resourceTable primitive." }, requestTable(ctx, requests, "No requests match this filter"))
-    )
-    .MustBuild();
-}
-
-function photosForGallery(request) {
-  const photos = request.photos || {};
-  return Object.keys(photos).map(function(slot) {
-    const photo = photos[slot] || {};
-    return {
-      id: photo.uploadId || slot,
-      slot: slot,
-      title: slot,
-      subtitle: photo.originalFilename || photo.publicUrl || "Uploaded reference",
-      url: photo.publicUrl || photo.url || "",
-      status: photo.publicUrl || photo.url ? "Stored" : "Missing blob",
-      tone: photo.publicUrl || photo.url ? "success" : "danger"
-    };
-  });
-}
-
-function requestDetailScreen(ctx) {
-  const request = intakeAdmin.getRequest(ctx.state.selectedRequestId);
-  const back = ctx.bind(admin.secondary("nav.requests", "Back to requests").Placement("toolbar"), function() { ctx.state.photoModal = null; return go(ctx, "requests"); });
-  const markReviewing = ctx.bind(admin.primary("request.reviewing", "Mark reviewing").Placement("toolbar"), function() {
-    intakeAdmin.updateRequestStatus(request.id, "reviewing", "Marked reviewing from Admin DSL");
-    return render(ctx);
-  });
-  const needsInfo = ctx.bind(admin.secondary("request.needsInfo", "Needs info").Placement("toolbar"), function() {
-    intakeAdmin.updateRequestStatus(request.id, "needs_info", "More information requested");
-    return render(ctx);
-  });
-  const archive = ctx.bind(admin.danger("request.archive", "Archive").Placement("toolbar"), function() {
-    intakeAdmin.updateRequestStatus(request.id, "archived", "Archived from Admin DSL");
-    ctx.state.photoModal = null;
-    return go(ctx, "requests");
-  });
-  const openPhoto = ctx.bind(admin.open("photo.open", "Open photo").Placement("detail"), function(event) {
-    ctx.state.photoModal = event.value;
-    return render(ctx);
-  });
-  const closePhoto = ctx.bind(admin.secondary("photo.close", "Close").Placement("footer"), function() {
-    ctx.state.photoModal = null;
-    return render(ctx);
-  });
-
-  const page = admin.pageResource("admin-intake-request-detail", "Request " + request.id)
-    .Shell("resource", { active: "requests", eyebrow: "Real Admin · Intake" })
-    .Description(requestTitle(request) + " · " + request.status)
-    .Content(
-      admin.toolbar().Actions(back, markReviewing, needsInfo, archive),
-      admin.cardGrid({ columns: 2 },
-        admin.summaryCard("Summary", { body: "Service: " + request.serviceValue + "\nEstimate: " + (request.estimateLabel || "Pending") + "\nBooking: " + bookingLabel(request) + "\nBudget: " + (request.budgetValue || "Not set") }),
-        admin.summaryCard("Internal notes", { body: request.internalNotes || "No internal notes yet." })
-      ),
-      admin.section("Photos", { description: "Uploaded front/side/back customer references. Missing blobs render as explicit error tiles." },
-        admin.imageGallery("requestPhotos", { images: photosForGallery(request), emptyText: "No photos were uploaded for this request." }).Actions(openPhoto)
-      ),
-      admin.section("Raw request snapshot", {},
-        admin.markdown(JSON.stringify(request.request || {}, null, 2), {})
-      )
-    );
-
-  if (ctx.state.photoModal) {
-    const photo = ctx.state.photoModal;
-    const body = photo.url ? "File: " + (photo.subtitle || photo.id || "photo") + "\nStatus: " + (photo.status || "Stored") : "Could not load the stored blob for " + (photo.id || photo.slot || "this photo") + ". The request is still available, but this photo may have been removed.";
-    page.Modals(admin.surface.modal("photoViewer", { title: photo.url ? "Photo · " + (photo.title || photo.slot || "Uploaded") : "Photo unavailable", open: true },
-      admin.summaryCard(photo.url ? "Photo metadata" : "Missing photo", { body: body }).Actions(closePhoto)
-    ));
-  }
-
-  return page.MustBuild();
-}
-
-const configFlow = require("./intake_config.flow.js");
-
-function auditRows(events) {
-  return (events || []).map(function(event) {
-    return {
-      id: event.id,
-      at: event.createdAt || "—",
-      actor: event.actorUserId || "system",
-      role: event.actorRole || "—",
-      entity: event.entityType + " · " + event.entityId,
-      action: event.action
-    };
-  });
-}
-
-function auditScreen(ctx) {
-  const back = ctx.bind(admin.secondary("nav.dashboard", "Dashboard").Placement("toolbar"), function() { return go(ctx, "dashboard"); });
-  const events = intakeAdmin.listAuditEvents(100);
-  return admin.pageResource("admin-intake-audit", "Audit Log")
-    .Shell("resource", { active: "audit", eyebrow: "Real Admin · Intake" })
-    .Description("Review persisted admin mutation events for requests and config changes.")
-    .Content(
-      admin.toolbar().Actions(back),
-      admin.section("Recent audit events", { description: "Rows are read from the app-owned admin_audit_events table." },
-        admin.resourceTable("auditEvents", {
-          columns: [
-            { id: "at", label: "Created" },
-            { id: "actor", label: "Actor" },
-            { id: "role", label: "Role" },
-            { id: "entity", label: "Entity" },
-            { id: "action", label: "Action" }
-          ],
-          rows: auditRows(events),
-          emptyTitle: "No audit events yet"
-        })
-      )
-    )
-    .MustBuild();
-}
-
-function healthScreen(ctx) {
-  const back = ctx.bind(admin.secondary("nav.dashboard", "Dashboard").Placement("toolbar"), function() { return go(ctx, "dashboard"); });
-  const health = intakeAdmin.healthDiagnostics();
-  return admin.pageDashboard("admin-intake-health", "Intake Health")
-    .Shell("dashboard", { active: "health", eyebrow: "Real Admin · Intake" })
-    .Description("Operational diagnostics for the persisted customer intake and Admin DSL backend.")
-    .Content(
-      admin.toolbar().Actions(back),
-      admin.cardGrid({ columns: 4 },
-        admin.metricCard("Status", health.ok ? "OK" : "Issue", { tone: health.ok ? "success" : "danger", caption: health.activeConfigId || "No active config" }),
-        admin.metricCard("Requests", health.requestCount || 0, { tone: "plum", caption: "Persisted intake requests" }),
-        admin.metricCard("Audit events", health.auditEventCount || 0, { tone: "success", caption: health.lastAuditAt || "No events" }),
-        admin.metricCard("Draft configs", health.draftConfigCount || 0, { tone: health.draftConfigCount ? "warn" : "success", caption: "Unpublished drafts" })
-      ),
-      admin.section("Diagnostics", {},
-        admin.diffView("healthDiagnostics", {
-          title: "Runtime checks",
-          body: "These checks are provided by host/intake-admin.healthDiagnostics().",
-          changes: [
-            { field: "State DB", before: "required", after: health.stateDbConfigured ? "configured" : "missing", tone: health.stateDbConfigured ? "success" : "danger" },
-            { field: "Config DB", before: "required", after: health.configDbConfigured ? "configured" : "missing", tone: health.configDbConfigured ? "success" : "danger" },
-            { field: "Active config", before: "required", after: health.activeConfigId || "missing", tone: health.activeConfigId ? "success" : "danger" }
-          ]
-        })
-      )
-    )
-    .MustBuild();
-}
-
-function previewScreen(ctx) {
-  const back = ctx.bind(admin.secondary("nav.dashboard", "Dashboard").Placement("toolbar"), function() { return go(ctx, "dashboard"); });
-  const result = preview.validateConfig("active");
-  return admin.pageResource("admin-intake-preview", "Intake Preview")
-    .Shell("resource", { active: "preview", eyebrow: "Real Admin · Intake" })
-    .Description("First host/intake-preview spike. Full embedded customer preview is a later HAIR-041 component task.")
-    .Content(
-      admin.toolbar().Actions(back),
-      admin.section("Validation", {},
-        admin.summaryCard("Preview bridge", { body: result.ok ? "Preview host module is connected for " + result.configVersionId + "." : "Preview validation failed." }),
-        admin.markdown("The next phase should render customer DSL pages for a selected draft config version.", {})
+        requestFlow.requestTable(ctx, stats.recentRequests || [], "No intake requests yet", { render: render })
       )
     )
     .MustBuild();

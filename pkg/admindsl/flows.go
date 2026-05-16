@@ -16,3 +16,13 @@ var IntakeAdminFlowSource string
 //
 //go:embed flows/intake_config.flow.js
 var IntakeAdminConfigFlowModule string
+
+// IntakeAdminRequestsFlowModule contains request queue/detail helpers required by IntakeAdminFlowSource.
+//
+//go:embed flows/intake_requests.flow.js
+var IntakeAdminRequestsFlowModule string
+
+// IntakeAdminOpsFlowModule contains audit, health, and preview helpers required by IntakeAdminFlowSource.
+//
+//go:embed flows/intake_ops.flow.js
+var IntakeAdminOpsFlowModule string
