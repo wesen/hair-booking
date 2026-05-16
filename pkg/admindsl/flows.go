@@ -17,6 +17,16 @@ var IntakeAdminFlowSource string
 //go:embed flows/intake_config.flow.js
 var IntakeAdminConfigFlowModule string
 
+// IntakeAdminConfigHelpersFlowModule contains config editor mapping/parsing helpers.
+//
+//go:embed flows/intake_config_helpers.flow.js
+var IntakeAdminConfigHelpersFlowModule string
+
+// IntakeAdminConfigFormsFlowModule contains config editor drawer/form helpers.
+//
+//go:embed flows/intake_config_forms.flow.js
+var IntakeAdminConfigFormsFlowModule string
+
 // IntakeAdminRequestsFlowModule contains request queue/detail helpers required by IntakeAdminFlowSource.
 //
 //go:embed flows/intake_requests.flow.js
