@@ -19,6 +19,7 @@ import (
 	hairclients "github.com/go-go-golems/hair-booking/pkg/clients"
 	hairdb "github.com/go-go-golems/hair-booking/pkg/db"
 	hairintake "github.com/go-go-golems/hair-booking/pkg/intake"
+	"github.com/go-go-golems/hair-booking/pkg/intakeadmin"
 	hairservices "github.com/go-go-golems/hair-booking/pkg/services"
 	hairstorage "github.com/go-go-golems/hair-booking/pkg/storage"
 	hairstylist "github.com/go-go-golems/hair-booking/pkg/stylist"
@@ -103,6 +104,7 @@ type appHandler struct {
 	stylistAuthorizer   *hairstylist.Authorizer
 	dslFlows            *dslFlowStore
 	adminDSLFlows       *adminDSLFlowStore
+	intakeAdminStore    *intakeadmin.Store
 	dslSQLitePath       string
 	dslSQLiteMigrate    bool
 	dslConfigSQLitePath string
@@ -227,6 +229,13 @@ func NewHandler(options HandlerOptions) http.Handler {
 		statePath = options.DSLSQLitePath
 	}
 
+	intakeAdminStore := intakeadmin.NewStore(stateDB, options.DSLConfigDB)
+	if options.DSLSQLiteMigrate && stateDB != nil {
+		if err := intakeadmin.ProvisionSchema(context.Background(), stateDB); err != nil {
+			panic(fmt.Sprintf("provision intake admin schema: %v", err))
+		}
+	}
+
 	h := &appHandler{
 		version:             options.Version,
 		startedAt:           options.StartedAt,
@@ -240,8 +249,9 @@ func NewHandler(options HandlerOptions) http.Handler {
 		stylistService:      options.StylistService,
 		localUploadsDir:     options.LocalUploadsDir,
 		stylistAuthorizer:   hairstylist.NewAuthorizer(authSettings),
-		dslFlows:            newDSLFlowStore(options.DSLConfigDB, stateDB, options.DSLConfigSQLitePath, statePath, options.Storage),
+		dslFlows:            newDSLFlowStore(options.DSLConfigDB, stateDB, options.DSLConfigSQLitePath, statePath, options.Storage, intakeAdminStore),
 		adminDSLFlows:       newAdminDSLFlowStore(),
+		intakeAdminStore:    intakeAdminStore,
 		dslSQLitePath:       statePath,
 		dslSQLiteMigrate:    options.DSLSQLiteMigrate,
 		dslConfigSQLitePath: options.DSLConfigSQLitePath,

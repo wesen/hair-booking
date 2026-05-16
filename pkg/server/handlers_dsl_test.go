@@ -146,6 +146,38 @@ func TestDSLFlowPersistsStateJSONOnStartAndDispatch(t *testing.T) {
 	}
 }
 
+func TestDSLConfirmCreatesPersistedIntakeRequest(t *testing.T) {
+	dbHost, err := dslhost.OpenDB(context.Background(), dslhost.DBOptions{Path: filepath.Join(t.TempDir(), "dsl.sqlite"), Migrate: true})
+	if err != nil {
+		t.Fatalf("OpenDB: %v", err)
+	}
+	defer func() { _ = dbHost.Close() }()
+
+	handler := newTestDSLHandler(t, HandlerOptions{Version: "test", DSLStateDB: dbHost.DB, DSLStateSQLitePath: dbHost.Path, DSLSQLiteMigrate: true})
+	state := startDSLFlow(t, handler)
+	for i := 0; i < 6; i++ {
+		state = dispatchShellAction(t, handler, state, "next", "evt_next_")
+	}
+	page := state["page"].(map[string]any)
+	if page["id"] != "intake-confirm" {
+		t.Fatalf("expected confirm page, got %#v", page["id"])
+	}
+	submitID := findActionIDInPage(t, page, "submit-intake-request", "click")
+	state = dispatchActionByID(t, handler, state, "submit-intake-request", "button", submitID, "submit", nil, "evt_submit_intake")
+
+	var count int
+	if err := dbHost.DB.QueryRow(`SELECT count(*) FROM intake_requests WHERE service_value = 'highlights' AND status = 'new'`).Scan(&count); err != nil {
+		t.Fatalf("count intake requests: %v", err)
+	}
+	if count != 1 {
+		t.Fatalf("intake request count = %d, want 1", count)
+	}
+	updatedPage := state["page"].(map[string]any)
+	if updatedPage["id"] != "intake-confirm" {
+		t.Fatalf("updated page id = %#v", updatedPage["id"])
+	}
+}
+
 func TestDSLGetHydratesPersistedSessionWithFreshActions(t *testing.T) {
 	dbHost, err := dslhost.OpenDB(context.Background(), dslhost.DBOptions{Path: filepath.Join(t.TempDir(), "dsl.sqlite"), Migrate: true})
 	if err != nil {
@@ -314,20 +346,30 @@ func startDSLFlow(t *testing.T, handler http.Handler) map[string]any {
 	return data
 }
 
-func dispatchCategory(t *testing.T, handler http.Handler, state map[string]any, value, eventID string) map[string]any {
+func dispatchShellAction(t *testing.T, handler http.Handler, state map[string]any, action, eventPrefix string) map[string]any {
+	t.Helper()
+	page := state["page"].(map[string]any)
+	shell := page["shell"].(map[string]any)
+	props := shell["props"].(map[string]any)
+	actions := props["actions"].(map[string]any)
+	ref := actions[action].(map[string]any)
+	return dispatchActionByID(t, handler, state, "", "shell", ref["id"].(string), ref["event"].(string), nil, eventPrefix+page["id"].(string))
+}
+
+func dispatchActionByID(t *testing.T, handler http.Handler, state map[string]any, nodeID, nodeKind, actionID, event string, value any, eventID string) map[string]any {
 	t.Helper()
 	sessionID := state["sessionId"].(string)
 	pageVersion := int64(state["pageVersion"].(float64))
-	page := state["page"].(map[string]any)
-	setCategoryActionID := findActionIDInPage(t, page, "category-tabs", "change")
 	eventBody := map[string]any{
 		"eventId":     eventID,
 		"pageVersion": pageVersion,
-		"nodeId":      "category-tabs",
-		"nodeKind":    "segmented",
-		"actionId":    setCategoryActionID,
-		"event":       "change",
-		"value":       value,
+		"nodeId":      nodeID,
+		"nodeKind":    nodeKind,
+		"actionId":    actionID,
+		"event":       event,
+	}
+	if value != nil {
+		eventBody["value"] = value
 	}
 	body, _ := json.Marshal(eventBody)
 	eventReq := httptest.NewRequest(http.MethodPost, "/api/dsl/flows/"+sessionID+"/events", bytes.NewReader(body))
@@ -342,6 +384,13 @@ func dispatchCategory(t *testing.T, handler http.Handler, state map[string]any, 
 		t.Fatalf("decode event: %v", err)
 	}
 	return eventData
+}
+
+func dispatchCategory(t *testing.T, handler http.Handler, state map[string]any, value, eventID string) map[string]any {
+	t.Helper()
+	page := state["page"].(map[string]any)
+	setCategoryActionID := findActionIDInPage(t, page, "category-tabs", "change")
+	return dispatchActionByID(t, handler, state, "category-tabs", "segmented", setCategoryActionID, "change", value, eventID)
 }
 
 func findActionIDInPage(t *testing.T, page map[string]any, nodeID, event string) string {

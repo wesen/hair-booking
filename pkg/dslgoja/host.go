@@ -3,8 +3,12 @@ package dslgoja
 import (
 	"database/sql"
 
+	"github.com/dop251/goja"
 	"github.com/go-go-golems/hair-booking/pkg/storage"
 )
+
+type NativeModuleLoader func(*goja.Runtime, *goja.Object)
+type NativeModuleFactory func(*FlowSession) NativeModuleLoader
 
 type RuntimeHost struct {
 	// DB/DBPath are the legacy single-database fields. New code should prefer
@@ -26,6 +30,11 @@ type RuntimeHost struct {
 	StateDBPath string
 
 	BlobStore storage.BlobStore
+
+	// NativeModules are app-owned host modules exposed to Goja flows. Generic DSL
+	// runtime code installs them by name but does not prescribe their schema or
+	// mutation semantics.
+	NativeModules map[string]NativeModuleFactory
 }
 
 func (h RuntimeHost) EffectiveStateDB() *sql.DB {

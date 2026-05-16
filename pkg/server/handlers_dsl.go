@@ -9,21 +9,27 @@ import (
 
 	dslv1 "github.com/go-go-golems/hair-booking/gen/proto/fringe/dsl/v1"
 	"github.com/go-go-golems/hair-booking/pkg/dslgoja"
+	"github.com/go-go-golems/hair-booking/pkg/intakeadmin"
 	"github.com/go-go-golems/hair-booking/pkg/storage"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
 type dslFlowStore struct {
-	mu        sync.RWMutex
-	runtime   *dslgoja.Runtime
-	configDB  *sql.DB
-	stateDB   *sql.DB
-	blobStore storage.BlobStore
-	sessions  map[string]*dslgoja.FlowSession
+	mu               sync.RWMutex
+	runtime          *dslgoja.Runtime
+	configDB         *sql.DB
+	stateDB          *sql.DB
+	blobStore        storage.BlobStore
+	intakeAdminStore *intakeadmin.Store
+	sessions         map[string]*dslgoja.FlowSession
 }
 
-func newDSLFlowStore(configDB, stateDB *sql.DB, configDBPath, stateDBPath string, blobStore storage.BlobStore) *dslFlowStore {
+func newDSLFlowStore(configDB, stateDB *sql.DB, configDBPath, stateDBPath string, blobStore storage.BlobStore, intakeAdminStores ...*intakeadmin.Store) *dslFlowStore {
+	var intakeAdminStore *intakeadmin.Store
+	if len(intakeAdminStores) > 0 {
+		intakeAdminStore = intakeAdminStores[0]
+	}
 	runtime := dslgoja.NewRuntime(dslgoja.WithHost(dslgoja.RuntimeHost{
 		ConfigDB:     configDB,
 		ConfigDBPath: configDBPath,
@@ -33,13 +39,19 @@ func newDSLFlowStore(configDB, stateDB *sql.DB, configDBPath, stateDBPath string
 		DB:        stateDB,
 		DBPath:    stateDBPath,
 		BlobStore: blobStore,
+		NativeModules: map[string]dslgoja.NativeModuleFactory{
+			"host/intake": func(session *dslgoja.FlowSession) dslgoja.NativeModuleLoader {
+				return loadCustomerIntakeModule(intakeAdminStore, session)
+			},
+		},
 	}))
 	return &dslFlowStore{
-		runtime:   runtime,
-		configDB:  configDB,
-		stateDB:   stateDB,
-		blobStore: blobStore,
-		sessions:  map[string]*dslgoja.FlowSession{},
+		runtime:          runtime,
+		configDB:         configDB,
+		stateDB:          stateDB,
+		blobStore:        blobStore,
+		intakeAdminStore: intakeAdminStore,
+		sessions:         map[string]*dslgoja.FlowSession{},
 	}
 }
 

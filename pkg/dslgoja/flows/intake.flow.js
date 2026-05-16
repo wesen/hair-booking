@@ -177,6 +177,32 @@ function editAction(ctx, name, step) {
   return { actions: { edit: ctx.action(name, function () { return goto(ctx, step); }, "edit") } };
 }
 
+function submitIntakeRequest(ctx) {
+  const intake = require("host/intake");
+  var day = configuredDayOptions(ctx).find(function (item) { return item.value === ctx.state.day; });
+  var time = configuredTimeOptions(ctx).find(function (item) { return item.value === ctx.state.time; });
+  var request = intake.createRequest({
+    sessionId: ctx.sessionId,
+    configVersionId: configVersion(ctx),
+    serviceCategory: ctx.state.category,
+    serviceValue: ctx.state.service,
+    tones: ctx.state.tones || [],
+    damage: ctx.state.damage,
+    photos: ctx.state.photos || {},
+    budgetValue: ctx.state.budget,
+    dayValue: ctx.state.day,
+    timeValue: ctx.state.time,
+    estimateLabel: estimateRange(ctx),
+    request: {
+      selectedServiceName: selectedServiceName(ctx),
+      selectedDayLabel: day ? day.day : null,
+      selectedTimeLabel: time ? time.title : null
+    }
+  });
+  ctx.state.submittedRequestId = request.id;
+  return request;
+}
+
 // ── Context panel helpers ────────────────────────────────────────────
 // These nodes get .region("context") so the desktop renderer pulls them
 // into the right-side accent panel. On mobile they just stack below main content.
@@ -411,14 +437,15 @@ function bookingStep(ctx) {
 function confirmStep(ctx) {
   var day = configuredDayOptions(ctx).find(function (item) { return item.value === ctx.state.day; });
   var time = configuredTimeOptions(ctx).find(function (item) { return item.value === ctx.state.time; });
+  var submitted = !!ctx.state.submittedRequestId;
   return page("intake-confirm", "Confirm")
     .intake(shell(ctx, {
-      step: 7, stepId: "confirm", eyebrow: "Chapter VII · Done", title: "Request received",
+      step: 7, stepId: "confirm", eyebrow: "Chapter VII · Done", title: submitted ? "Request received" : "Review and submit",
       back: "booking", next: "service", nextLabel: "Start over",
     }))
     .add(
-      n.note("Your request is ready for stylist review. This prototype loops back to the first step instead of creating an appointment record.", {
-        tone: "success", style: { marginBottom: 16 },
+      n.note(submitted ? "Your request is saved for stylist review. Request id: " + ctx.state.submittedRequestId : "Review your intake details, then submit the request for stylist review.", {
+        tone: submitted ? "success" : "info", style: { marginBottom: 16 },
       }).id("confirm-success"),
       n.card({ accent: "#7a8f6b" },
         n.kvRow("Service", selectedServiceName(ctx), editAction(ctx, "editConfirmService", "service")).id("confirm-service"),
@@ -426,6 +453,11 @@ function confirmStep(ctx) {
         n.kvRow("Date", day ? day.day : "TBD", editAction(ctx, "editConfirmBookingDay", "booking")).id("confirm-day"),
         n.kvRow("Time", time ? time.title : "TBD", editAction(ctx, "editConfirmBookingTime", "booking")).id("confirm-time")
       ).id("confirm-card"),
+      submitted ? n.note("You can start over or close this page.", { tone: "success", style: { marginTop: 16 } }).id("submitted-note") : n.button("Submit request", {
+        variant: "primary",
+        style: { marginTop: 16 },
+        actions: { click: ctx.action("submitIntakeRequest", function () { submitIntakeRequest(ctx); return render(ctx); }, "submit") },
+      }).id("submit-intake-request"),
       // Context panel: stylist + estimate
       stylistContext(),
       n.stat(estimateRange(ctx), { label: "ESTIMATED RANGE" }).region("context").id("confirm-range"),

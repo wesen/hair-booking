@@ -39,6 +39,9 @@ func (rt *Runtime) installModules(vm *goja.Runtime, session *FlowSession) error 
 		)
 		registry.RegisterNativeModule(dbModule.Name(), dbModule.Loader)
 	}
+	for name, factory := range rt.host.NativeModules {
+		registry.RegisterNativeModule(name, require.ModuleLoader(factory(session)))
+	}
 	registry.Enable(vm)
 	return nil
 }

@@ -27,3 +27,19 @@ Step 2: Added pkg/intakeadmin persistent schema and store for intake requests, r
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/intakeadmin/store_test.go — Store regression tests
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/01-diary.md — Diary records persistence step
 
+
+## 2026-05-16
+
+Step 3: Wired customer intake confirm to persist real intake_requests via host/intake, added per-session dslgoja native module factories, provisioned admin schema on server startup, and covered the HTTP confirm-to-row path. Validation: go test ./pkg/dslgoja ./pkg/server ./pkg/intakeadmin -count=1.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/flows/intake.flow.js — Confirm step submits real request
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/host.go — Runtime host module factory support
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/dslgoja/modules_dsl.go — Registers app-owned native modules per flow session
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl.go — Installs host/intake into customer DSL runtime
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_dsl_test.go — HTTP regression for confirm creating intake request
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/host_intake_module.go — host/intake bridge for durable customer submissions
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/http.go — Creates intake admin store and provisions schema
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/01-diary.md — Diary records customer submission persistence
+

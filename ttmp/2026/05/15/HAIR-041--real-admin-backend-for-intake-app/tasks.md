@@ -22,21 +22,21 @@ updated: 2026-05-15
 
 ## Phase 2 — Persistent admin domain schema
 
-- [ ] Design app-owned `pkg/intakeadmin` storage package.
-- [ ] Add schema/migrations for `intake_requests`.
-- [ ] Add schema/migrations for `intake_request_events`.
-- [ ] Add schema/migrations for `admin_audit_events`.
-- [ ] Decide whether `admin_flow_sessions` is required immediately.
-- [ ] Add store tests for request creation/listing/detail/status transitions.
-- [ ] Add store tests for config draft creation and publish transaction.
+- [x] Design app-owned `pkg/intakeadmin` storage package.
+- [x] Add schema/migrations for `intake_requests`.
+- [x] Add schema/migrations for `intake_request_events`.
+- [x] Add schema/migrations for `admin_audit_events`.
+- [x] Decide whether `admin_flow_sessions` is required immediately.
+- [x] Add store tests for request creation/listing/detail/status transitions.
+- [x] Add store tests for config draft creation and publish transaction.
 
 ## Phase 3 — Customer intake submission persistence
 
-- [ ] Add customer submit host module for `intake.flow.js`.
-- [ ] Replace prototype confirm loop with real request creation.
-- [ ] Persist selected config version, service, tones, damage, photos, budget, day, time, estimate.
+- [x] Add customer submit host module for `intake.flow.js`.
+- [x] Replace prototype confirm loop with real request creation.
+- [x] Persist selected config version, service, tones, damage, photos, budget, day, time, estimate.
 - [ ] Ensure upload references belong to the same session/user.
-- [ ] Add tests for customer confirm creating an admin-visible request.
+- [x] Add tests for customer confirm creating an admin-visible request.
 
 ## Phase 4 — Admin runtime host modules and registry
 

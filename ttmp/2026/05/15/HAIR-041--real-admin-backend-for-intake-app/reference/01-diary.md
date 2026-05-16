@@ -132,3 +132,66 @@ The intent is to keep domain write semantics outside the generic Admin DSL runti
 
 ### Technical details
 - The new schema is app-owned and intentionally not part of the generic Admin DSL package.
+
+## Step 3: Persist customer intake submissions from the confirm step
+
+This step wired the customer intake flow to create a real `intake_requests` row when the customer submits the confirm screen. The flow now has a `Submit request` action that calls a narrow app-owned `host/intake` module instead of only looping back to the beginning.
+
+The server installs the host module into the customer DSL runtime and provisions the new intake admin schema when DSL SQLite migration is enabled. This is the first end-to-end bridge from customer-facing DSL state into admin-visible persistent state.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Continue HAIR-041 phases by making customer intake submission durable.
+
+**Inferred user intent:** The user wants real admin data to exist on disk before building admin review screens.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Extended `dslgoja.RuntimeHost` with app-owned native module factories.
+- Registered `host/intake` in `pkg/server/handlers_dsl.go`.
+- Added `pkg/server/host_intake_module.go` with `createRequest(...)` and `dashboardStats()` exports.
+- Updated `pkg/server/http.go` to create an `intakeadmin.Store` and provision its schema when migration is enabled.
+- Updated `pkg/dslgoja/flows/intake.flow.js` confirm step:
+  - title is now `Review and submit` until submission.
+  - added `Submit request` button.
+  - `Submit request` calls `host/intake.createRequest(...)` with config version, service, tones, damage, photos, budget, day, time, estimate, and summary labels.
+  - after save, confirm page shows the persisted request id.
+- Added server regression test `TestDSLConfirmCreatesPersistedIntakeRequest`.
+- Validated with `go test ./pkg/dslgoja ./pkg/server ./pkg/intakeadmin -count=1`.
+
+### Why
+- Admin review screens need durable customer requests.
+- The customer DSL runtime should not directly know SQL table shapes; it calls a host module with a domain payload.
+
+### What worked
+- The end-to-end HTTP test starts the DSL flow, advances through the steps, submits the confirm page, and verifies an `intake_requests` row exists.
+
+### What didn't work
+- The first host module implementation used `goja.ExportTo` directly into a Go struct. The camelCase JS payload did not reliably populate the Go struct fields, so `configVersionId` appeared missing. I changed the module to marshal the exported JS object to JSON and unmarshal into the tagged Go struct.
+
+### What I learned
+- For JS ↔ Go data contracts with JSON tags, JSON round-tripping is more predictable than relying on goja struct export behavior.
+
+### What was tricky to build
+- The host module needs access to the current flow session to fill `flow_session_id` and `user_id`. The generic runtime now accepts module factories keyed by module name so app modules can be installed per session.
+
+### What warrants a second pair of eyes
+- `host/intake.createRequest` currently trusts photo references from flow state. A follow-up must verify uploads belong to the same session/user before marking Phase 3 fully complete.
+- `NewHandler` currently provisions the intake admin schema during handler construction when migration is enabled; review whether this belongs closer to `dslhost.OpenDB` or server startup.
+
+### What should be done in the future
+- Add stricter upload/session ownership checks.
+- Add idempotency for repeated submit events if a browser retries after a network failure.
+
+### Code review instructions
+- Review `pkg/dslgoja/host.go` and `pkg/dslgoja/modules_dsl.go` for the native module factory hook.
+- Review `pkg/server/host_intake_module.go` for the customer submission boundary.
+- Review `pkg/dslgoja/flows/intake.flow.js` confirm behavior.
+- Validate with `go test ./pkg/dslgoja ./pkg/server ./pkg/intakeadmin -count=1`.
+
+### Technical details
+- The immediate persistent row is in `intake_requests`.
+- `flow_session_id` is filled by the host module from the current DSL session.
