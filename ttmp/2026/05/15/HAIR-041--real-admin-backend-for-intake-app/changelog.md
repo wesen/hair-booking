@@ -202,3 +202,9 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 - Centralized embedded Admin DSL flow module registration in `pkg/admindsl/flows.go` (commit `99b0505`).
 - Added draft customer intake preview bridge from `/admin/intake` to the real customer DSL route using `previewConfigVersionId` (commit `e43d337`).
 - Validation passed with `go test ./... -count=1`, `cd web && npx tsc --noEmit`, and `cd web && pnpm test -- --runInBand`.
+
+## 2026-05-16 — Phase 8 admin intake smoke
+
+- Added and ran a ticket-local Playwright smoke script for customer-submit -> admin-review.
+- Captured dashboard and request-queue screenshots in `various/playwright/`.
+- Marked the Phase 8 submit-to-admin smoke task complete.

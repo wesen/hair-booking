@@ -63,6 +63,12 @@ RelatedFiles:
         Goja host export for updateToneOption (commit 4ca5045)
         Goja host exports for Phase 7 config mutations (commits 735c64e
         Goja exports for audit and health queries (commit 8876ddf)
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/03-smoke-admin-intake-phase8.mjs
+      Note: Ticket-local customer submit to admin review smoke
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/various/playwright/phase8-admin-dashboard.png
+      Note: Smoke screenshot of admin dashboard after customer submission
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/various/playwright/phase8-admin-requests.png
+      Note: Smoke screenshot of admin request queue after customer submission
     - Path: web/src/LiveDslDemoApp.tsx
       Note: Customer previewConfigVersionId handling and preview session isolation (commit e43d337)
 ExternalSources: []
@@ -71,6 +77,7 @@ LastUpdated: 2026-05-15T19:43:10.470080535-04:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 

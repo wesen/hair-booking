@@ -102,7 +102,7 @@ updated: 2026-05-15
 - [x] Implement draft customer intake preview.
 - [x] Implement audit log screen.
 - [x] Implement health/diagnostics screen.
-- [ ] Add Playwright smoke for submit-customer-request -> admin-review.
+- [x] Add Playwright smoke for submit-customer-request -> admin-review.
 - [ ] Add Playwright/css-visual-diff screenshots for all major screens.
 - [ ] Record stress-test findings and split follow-up tickets as needed.
 

@@ -1617,3 +1617,83 @@ This is still an iframe preview rather than a deeply embedded Admin DSL/customer
   - `/dsl-goja-demo/service?previewConfigVersionId=<configVersionId>`
 - Customer DSL start endpoint shape:
   - `POST /api/dsl/flows/fringe.intake.v1/start?configVersionId=<configVersionId>`
+
+## Step 23: Add and run Phase 8 submit-to-admin Playwright smoke
+
+This step added a ticket-local smoke script that exercises the customer-to-admin path. It starts a real customer DSL flow through the backend API, advances through the intake pages, submits the request, then opens `/admin/intake` in Chromium and verifies that the Admin DSL request queue renders a submitted request.
+
+The script also captures dashboard and request-queue screenshots into the ticket workspace so the smoke result is reviewable without rerunning the browser.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 21)
+
+**Assistant interpretation:** Continue closing Phase 8 gaps after the draft preview bridge by adding concrete smoke coverage.
+
+**Inferred user intent:** The user wants evidence that the real customer intake submission appears in the real admin review UI.
+
+**Commit (code):** 8744955 — "HAIR-041 Step 23: Add admin intake smoke script".
+
+### What I did
+- Added `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/03-smoke-admin-intake-phase8.mjs`.
+- The script:
+  - starts `fringe.intake.v1` through `POST /api/dsl/flows/fringe.intake.v1/start`,
+  - advances with real backend action ids to the confirm page,
+  - dispatches the real `submit` action,
+  - launches Chromium through Playwright,
+  - opens `/admin/intake`,
+  - clicks `Review requests`,
+  - waits for the request queue and a `highlights` request row,
+  - saves screenshots.
+- Captured screenshots:
+  - `various/playwright/phase8-admin-dashboard.png`
+  - `various/playwright/phase8-admin-requests.png`
+- Marked the Phase 8 submit-to-admin smoke task complete.
+
+### Why
+- The customer/admin integration crosses several layers: customer DSL runtime, intake persistence, Admin DSL runtime, admin host modules, React Admin DSL rendering, and browser routing.
+- A smoke script gives a quick regression check without needing a full Playwright test harness dependency in `web/package.json`.
+
+### What worked
+- The customer DSL API action ids made it possible to submit a realistic request without brittle DOM clicking through every customer step.
+- Playwright with system Chrome (`channel: 'chrome'`) worked once the Vite proxy targeted the live backend.
+
+### What didn't work
+- The first run failed because Playwright's bundled Chromium executable was not installed:
+  - `browserType.launch: Executable doesn't exist at /home/manuel/.cache/ms-playwright/chromium_headless_shell-1222/chrome-headless-shell-linux64/chrome-headless-shell`
+  - Fix: launch with `{ channel: 'chrome' }`.
+- The second run failed because Vite had been started without `HAIR_BOOKING_BACKEND_URL=http://127.0.0.1:19080`, so `/api` proxied to the default `127.0.0.1:8080` and the admin page never loaded:
+  - `locator.waitFor: Timeout 15000ms exceeded ... waiting for getByText('Intake Admin') to be visible`
+  - Fix: restart Vite on port `5175` with the correct backend proxy env and `--strictPort`.
+
+### What I learned
+- The smoke script should document backend and web URL environment variables clearly because Vite proxy configuration is part of the test setup.
+- Keeping the script in the ticket workspace is useful while the repo does not yet have a dedicated E2E test package.
+
+### What was tricky to build
+- The workstation Playwright MCP install had a usable Node package but not a downloaded bundled browser. The script now tries to load Playwright from normal resolution first, then the MCP install path, and launches system Chrome.
+- The existing browser tool was locked by another MCP process, so the smoke used an isolated Playwright launch from the Node script instead of the interactive browser tool.
+
+### What warrants a second pair of eyes
+- The script currently verifies that a `highlights` row appears, not a specific request id. That is acceptable as a smoke but weaker than a future deterministic E2E assertion.
+- The script mixes API-level customer submission with browser-level admin review; a later full E2E test should drive the customer UI too.
+
+### What should be done in the future
+- Promote this into a formal E2E test once Playwright is added as a project dev dependency.
+- Add deterministic request identification in the admin table, or expose the created request id in the customer confirmation state.
+
+### Code review instructions
+- Review `scripts/03-smoke-admin-intake-phase8.mjs` in the HAIR-041 ticket workspace.
+- Run with backend on `127.0.0.1:19080` and Vite on `127.0.0.1:5175` with `HAIR_BOOKING_BACKEND_URL=http://127.0.0.1:19080`.
+- Command:
+  - `node ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/03-smoke-admin-intake-phase8.mjs`
+
+### Technical details
+- Required default URLs:
+  - backend: `http://127.0.0.1:19080`
+  - web: `http://127.0.0.1:5175`
+- Override env vars:
+  - `HAIR_BACKEND_URL`
+  - `HAIR_WEB_URL`
+  - `HAIR_SMOKE_OUT`
+  - `PLAYWRIGHT_PACKAGE`
