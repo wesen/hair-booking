@@ -12,8 +12,9 @@ import (
 )
 
 type adminFlowDefinition struct {
-	ID     string
-	Source string
+	ID         string
+	SourceName string
+	Source     string
 }
 
 type adminDSLFlowStore struct {
@@ -28,13 +29,13 @@ func newAdminDSLFlowStore(intakeStore *intakeadmin.Store) *adminDSLFlowStore {
 	runtime := admindsl.NewScriptRuntime(
 		admindsl.WithNativeModule("host/intake-admin", loadIntakeAdminModule(intakeStore, actor)),
 		admindsl.WithNativeModule("host/intake-preview", loadIntakePreviewModule(intakeStore)),
-		admindsl.WithScriptModule("fringe/admin-flows/intake-config", admindsl.IntakeAdminConfigFlowModule),
+		admindsl.WithScriptModule("/flows/intake_config.flow.js", admindsl.IntakeAdminConfigFlowModule),
 	)
 	return &adminDSLFlowStore{
 		runtime: runtime,
 		flows: map[string]adminFlowDefinition{
-			"fringe.admin.services.v1": {ID: "fringe.admin.services.v1", Source: admindsl.ServicesFlowSource},
-			"fringe.admin.intake.v1":   {ID: "fringe.admin.intake.v1", Source: admindsl.IntakeAdminFlowSource},
+			"fringe.admin.services.v1": {ID: "fringe.admin.services.v1", SourceName: "/flows/services.flow.js", Source: admindsl.ServicesFlowSource},
+			"fringe.admin.intake.v1":   {ID: "fringe.admin.intake.v1", SourceName: "/flows/intake_admin.flow.js", Source: admindsl.IntakeAdminFlowSource},
 		},
 		sessions: map[string]*admindsl.ScriptSession{},
 	}
@@ -65,7 +66,7 @@ func (h *appHandler) handleAdminDSLStartFlow(w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	session, result, err := h.adminDSLFlows.runtime.StartFlow(r.Context(), flowID, flow.Source)
+	session, result, err := h.adminDSLFlows.runtime.StartFlowNamed(r.Context(), flowID, flow.SourceName, flow.Source)
 	if err != nil {
 		writeAdminDSLProtoError(w, http.StatusInternalServerError, "admin_dsl_flow_start_failed", err.Error())
 		return

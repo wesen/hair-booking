@@ -77,7 +77,7 @@ func TestScriptRuntimeRejectsInvalidRenderedPage(t *testing.T) {
 }
 
 func TestScriptRuntimeLoadsScriptModules(t *testing.T) {
-	rt := NewScriptRuntime(WithScriptModule("test/admin-helper", `
+	rt := NewScriptRuntime(WithScriptModule("/flows/admin-helper.js", `
 const admin = require("fringe/admin-dsl");
 function helperPage() {
   return admin.pageResource("helper-page", "Helper Page")
@@ -86,8 +86,8 @@ function helperPage() {
 }
 module.exports = { helperPage };
 `))
-	_, result, err := rt.StartFlow(context.Background(), "module.admin", `
-const helper = require("test/admin-helper");
+	_, result, err := rt.StartFlowNamed(context.Background(), "module.admin", "/flows/root.flow.js", `
+const helper = require("./admin-helper.js");
 function render(ctx) { return helper.helperPage(); }
 `)
 	if err != nil {

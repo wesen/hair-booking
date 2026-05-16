@@ -201,7 +201,7 @@ function requestDetailScreen(ctx) {
   return page.MustBuild();
 }
 
-const configFlow = require("fringe/admin-flows/intake-config");
+const configFlow = require("./intake_config.flow.js");
 
 function auditRows(events) {
   return (events || []).map(function(event) {

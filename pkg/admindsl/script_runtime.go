@@ -4,6 +4,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"path"
+	"strings"
 	"sync"
 	"time"
 
@@ -42,7 +44,7 @@ func WithScriptModule(name string, source string) ScriptRuntimeOption {
 		if rt.scriptModules == nil {
 			rt.scriptModules = map[string]string{}
 		}
-		rt.scriptModules[name] = source
+		rt.scriptModules[normalizeScriptModulePath(name)] = source
 	}
 }
 
@@ -83,11 +85,15 @@ type scriptRenderTransaction struct {
 }
 
 func (rt *ScriptRuntime) StartFlow(ctx context.Context, flowID, source string) (*ScriptSession, *FlowResult, error) {
+	return rt.StartFlowNamed(ctx, flowID, "/flows/"+flowID+".flow.js", source)
+}
+
+func (rt *ScriptRuntime) StartFlowNamed(ctx context.Context, flowID, sourceName, source string) (*ScriptSession, *FlowResult, error) {
 	session, err := rt.newSession(flowID, "admin_"+uuid.NewString())
 	if err != nil {
 		return nil, nil, err
 	}
-	if err := rt.loadFlowSource(session, source); err != nil {
+	if err := rt.loadFlowSource(session, sourceName, source); err != nil {
 		return nil, nil, err
 	}
 	if initialState, ok := goja.AssertFunction(session.flow.Get("initialState")); ok {
@@ -108,7 +114,7 @@ func (rt *ScriptRuntime) StartFlow(ctx context.Context, flowID, source string) (
 
 func (rt *ScriptRuntime) newSession(flowID, sessionID string) (*ScriptSession, error) {
 	vm := goja.New()
-	registry := require.NewRegistry()
+	registry := require.NewRegistry(require.WithLoader(rt.scriptModuleSource), require.WithPathResolver(resolveScriptModulePath))
 	registry.RegisterNativeModule("fringe/admin-dsl", loadAdminDSLModule)
 	for name, loader := range rt.nativeModules {
 		registry.RegisterNativeModule(name, require.ModuleLoader(loader))
@@ -136,7 +142,7 @@ func loadAdminDSLModule(vm *goja.Runtime, moduleObj *goja.Object) {
 
 func loadScriptModuleSource(name, source string) require.ModuleLoader {
 	return func(vm *goja.Runtime, moduleObj *goja.Object) {
-		value, err := vm.RunString("(function(module, exports){\n" + source + "\n})")
+		value, err := vm.RunScript(normalizeScriptModulePath(name), "(function(module, exports){\n"+source+"\n})")
 		if err != nil {
 			panic(vm.ToValue(fmt.Sprintf("load admin script module %q: %v", name, err)))
 		}
@@ -150,8 +156,35 @@ func loadScriptModuleSource(name, source string) require.ModuleLoader {
 	}
 }
 
-func (rt *ScriptRuntime) loadFlowSource(session *ScriptSession, source string) error {
-	value, err := session.VM.RunString("(function(){\n" + source + "\n; return { initialState: (typeof initialState === 'function' ? initialState : undefined), render: render };\n})()")
+func (rt *ScriptRuntime) scriptModuleSource(name string) ([]byte, error) {
+	if rt == nil || rt.scriptModules == nil {
+		return nil, require.ModuleFileDoesNotExistError
+	}
+	if source, ok := rt.scriptModules[normalizeScriptModulePath(name)]; ok {
+		return []byte(source), nil
+	}
+	return nil, require.ModuleFileDoesNotExistError
+}
+
+func normalizeScriptModulePath(name string) string {
+	name = strings.TrimSpace(name)
+	if name == "" || name == "." {
+		return "."
+	}
+	name = path.Clean(strings.ReplaceAll(name, "\\", "/"))
+	return name
+}
+
+func resolveScriptModulePath(base, request string) string {
+	request = strings.ReplaceAll(request, "\\", "/")
+	if strings.HasPrefix(request, ".") || strings.HasPrefix(request, "/") {
+		return normalizeScriptModulePath(path.Join(base, request))
+	}
+	return normalizeScriptModulePath(request)
+}
+
+func (rt *ScriptRuntime) loadFlowSource(session *ScriptSession, sourceName, source string) error {
+	value, err := session.VM.RunScript(normalizeScriptModulePath(sourceName), "(function(){\n"+source+"\n; return { initialState: (typeof initialState === 'function' ? initialState : undefined), render: render };\n})()")
 	if err != nil {
 		return fmt.Errorf("load admin flow %q: %w", session.FlowID, err)
 	}
