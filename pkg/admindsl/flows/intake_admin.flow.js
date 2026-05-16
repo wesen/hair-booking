@@ -209,10 +209,33 @@ function serviceEditorItems(services) {
   return (services || []).map(function(service) {
     return {
       id: service.id,
+      category: service.category,
+      value: service.value,
       title: service.title,
+      subtitleValue: service.subtitle || "",
+      badge: service.badge || "",
+      sortOrder: service.sortOrder,
+      enabled: service.enabled,
       subtitle: service.category + " · " + service.value + " · " + (service.badge || "No badge") + " · sort " + service.sortOrder + (service.enabled ? "" : " · disabled")
     };
   });
+}
+
+function findById(items, id) {
+  for (var i = 0; i < (items || []).length; i++) {
+    if (items[i].id === id) return items[i];
+  }
+  return null;
+}
+
+function parseIntOrZero(value) {
+  var parsed = parseInt(String(value || "0"), 10);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
+function parseBool(value) {
+  var normalized = String(value || "").toLowerCase().trim();
+  return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on" || normalized === "enabled";
 }
 
 function toneEditorItems(tones) {
@@ -279,6 +302,13 @@ function configEditorSection(ctx, editor) {
     return render(ctx);
   });
   const section = ctx.state.configSection || "services";
+  const openService = ctx.bind(admin.open("config.service.open", "Edit").Placement("row"), function(event) {
+    ctx.state.selectedServiceId = event.value && event.value.id;
+    ctx.state.configDrawer = "service";
+    ctx.state.serviceFormValues = null;
+    ctx.state.errors = {};
+    return render(ctx);
+  });
   const disabledEdit = admin.secondary("config.edit.placeholder", "Edit").Placement("row").Disabled(true).AccessibilityLabel("Detailed editing is implemented in the next Phase 7 slice");
   const availabilitySelect = ctx.bind(admin.open("config.availability.selectDay", "Select day").Placement("detail"), function(event) {
     ctx.state.selectedAvailabilityDay = event.value && event.value.value;
@@ -341,7 +371,52 @@ function configEditorSection(ctx, editor) {
   }
   return admin.section("Service and category options", { description: "Draft service menu rows grouped by category and ordered for customer intake." },
     tabs,
-    admin.editableList("serviceOptions", { items: serviceEditorItems(editor.services), emptyTitle: "No service options" }).Actions(disabledEdit)
+    admin.editableList("serviceOptions", { items: serviceEditorItems(editor.services), emptyTitle: "No service options" }).Actions(editor.version.status === "draft" ? openService : disabledEdit)
+  );
+}
+
+function serviceFormValues(ctx, service) {
+  return ctx.state.serviceFormValues || {
+    id: service.id,
+    category: service.category,
+    value: service.value,
+    title: service.title,
+    subtitle: service.subtitle || "",
+    badge: service.badge || "",
+    sortOrder: String(service.sortOrder || 0),
+    enabled: service.enabled ? "true" : "false"
+  };
+}
+
+function serviceFormErrors(values) {
+  const errors = {};
+  if (!String(values.category || "").trim()) errors.category = "Category is required";
+  if (!String(values.value || "").trim()) errors.value = "Value is required";
+  if (!String(values.title || "").trim()) errors.title = "Title is required";
+  return errors;
+}
+
+function serviceOptionDrawer(ctx, editor, saveAction, cancelAction) {
+  const service = findById(editor.services, ctx.state.selectedServiceId);
+  if (!service) {
+    return admin.surface.drawer("serviceOptionEditor", { title: "Service unavailable", open: true },
+      admin.summaryCard("Missing service", { body: "The selected service option no longer exists in this config version." }).Actions(cancelAction)
+    );
+  }
+  const values = serviceFormValues(ctx, service);
+  return admin.surface.drawer("serviceOptionEditor", { title: "Edit service option", open: true },
+    admin.form("serviceOptionForm", { title: service.title, values: values, errors: ctx.state.errors || {} },
+      admin.fieldGroup("Service details",
+        admin.textField("id", { label: "ID", value: values.id }),
+        admin.textField("category", { label: "Category", value: values.category }),
+        admin.textField("value", { label: "Value", value: values.value }),
+        admin.textField("title", { label: "Title", value: values.title }),
+        admin.textField("subtitle", { label: "Subtitle", value: values.subtitle }),
+        admin.textField("badge", { label: "Badge", value: values.badge }),
+        admin.textField("sortOrder", { label: "Sort order", value: values.sortOrder }),
+        admin.textField("enabled", { label: "Enabled (true/false)", value: values.enabled })
+      )
+    ).Actions(saveAction, cancelAction)
   );
 }
 
@@ -366,6 +441,38 @@ function configScreen(ctx) {
   });
   const cancelPublish = ctx.bind(admin.secondary("config.publish.cancel", "Cancel").Placement("footer"), function() {
     ctx.state.publishModal = false;
+    return render(ctx);
+  });
+  const cancelService = ctx.bind(admin.secondary("config.service.cancel", "Cancel").Placement("footer"), function() {
+    ctx.state.configDrawer = null;
+    ctx.state.selectedServiceId = null;
+    ctx.state.serviceFormValues = null;
+    ctx.state.errors = {};
+    return render(ctx);
+  });
+  const saveService = ctx.bind(admin.primary("config.service.save", "Save service").Placement("footer"), function(event) {
+    const values = event.value || {};
+    values.id = values.id || ctx.state.selectedServiceId;
+    ctx.state.serviceFormValues = values;
+    const errors = serviceFormErrors(values);
+    if (Object.keys(errors).length) {
+      ctx.state.errors = errors;
+      return render(ctx);
+    }
+    intakeAdmin.updateServiceOption({
+      id: values.id,
+      category: values.category,
+      value: values.value,
+      title: values.title,
+      subtitle: values.subtitle || "",
+      badge: values.badge || "",
+      sortOrder: parseIntOrZero(values.sortOrder),
+      enabled: parseBool(values.enabled)
+    });
+    ctx.state.configDrawer = null;
+    ctx.state.selectedServiceId = null;
+    ctx.state.serviceFormValues = null;
+    ctx.state.errors = {};
     return render(ctx);
   });
   const confirmPublish = ctx.bind(admin.danger("config.publish.confirm", "Publish").Placement("footer"), function() {
@@ -412,6 +519,9 @@ function configScreen(ctx) {
     page.Modals(admin.surface.modal("publishConfig", { title: "Publish intake config?", open: true },
       admin.summaryCard("Publish " + editor.version.label, { body: "Publishing this draft will archive the current active config and make the selected rows visible to customer intake sessions." }).Actions(cancelPublish, confirmPublish)
     ));
+  }
+  if (ctx.state.configDrawer === "service") {
+    page.Drawers(serviceOptionDrawer(ctx, editor, saveService, cancelService));
   }
 
   return page.MustBuild();

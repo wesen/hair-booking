@@ -132,6 +132,41 @@ func TestAdminDSLHTTPIntakeConfigCreatesDraft(t *testing.T) {
 	if publishID == "" {
 		t.Fatalf("expected publish action for draft config")
 	}
+	openServiceID := findAdminProtoActionID(draftState.Page.Nodes, "config.service.open")
+	if openServiceID == "" {
+		t.Fatalf("config.service.open action not found")
+	}
+	var serviceID string
+	if err := configHost.DB.QueryRow(`SELECT id FROM dsl_service_options WHERE config_version_id IN (SELECT id FROM dsl_config_versions WHERE status = 'draft') ORDER BY sort_order LIMIT 1`).Scan(&serviceID); err != nil {
+		t.Fatalf("select draft service: %v", err)
+	}
+	rowValue, err := structpb.NewValue(map[string]any{"id": serviceID})
+	if err != nil {
+		t.Fatalf("row value: %v", err)
+	}
+	serviceDrawerState := postAdminEvent(t, handler, draftState.SessionId, draftState.PageVersion, openServiceID, rowValue)
+	if len(serviceDrawerState.Page.Drawers) != 1 {
+		t.Fatalf("expected service drawer, got %#v", serviceDrawerState.Page.Drawers)
+	}
+	saveServiceID := findAdminProtoActionID(serviceDrawerState.Page.Drawers, "config.service.save")
+	if saveServiceID == "" {
+		t.Fatalf("config.service.save action not found")
+	}
+	formValue, err := structpb.NewValue(map[string]any{"id": serviceID, "category": "color", "value": "cut", "title": "Precision Cut", "subtitle": "Updated from HTTP test", "badge": "$95+", "sortOrder": "15", "enabled": "true"})
+	if err != nil {
+		t.Fatalf("form value: %v", err)
+	}
+	savedState := postAdminEvent(t, handler, serviceDrawerState.SessionId, serviceDrawerState.PageVersion, saveServiceID, formValue)
+	if len(savedState.Page.Drawers) != 0 {
+		t.Fatalf("expected service drawer to close after save, got %#v", savedState.Page.Drawers)
+	}
+	var serviceTitle string
+	if err := configHost.DB.QueryRow(`SELECT title FROM dsl_service_options WHERE id = ?`, serviceID).Scan(&serviceTitle); err != nil {
+		t.Fatalf("select updated service: %v", err)
+	}
+	if serviceTitle != "Precision Cut" {
+		t.Fatalf("expected updated service title, got %q", serviceTitle)
+	}
 	var drafts int
 	if err := configHost.DB.QueryRow(`SELECT count(*) FROM dsl_config_versions WHERE status = 'draft'`).Scan(&drafts); err != nil {
 		t.Fatalf("count drafts: %v", err)

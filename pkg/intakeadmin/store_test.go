@@ -106,6 +106,13 @@ func TestStoreDashboardStatsAndConfigDraftPublish(t *testing.T) {
 	if editor.Version.ID != draft.ID || len(editor.Services) == 0 || len(editor.Tones) == 0 || len(editor.Budgets) == 0 || len(editor.PriceRanges) == 0 || !editor.Validation.OK {
 		t.Fatalf("unexpected editor data: %#v", editor)
 	}
+	updatedService, err := store.UpdateServiceOption(context.Background(), ConfigServiceOptionInput{ID: editor.Services[0].ID, Category: editor.Services[0].Category, Value: editor.Services[0].Value, Title: "Precision Cut", Subtitle: "Updated subtitle", Badge: "$95+", SortOrder: 15, Enabled: true}, Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("UpdateServiceOption: %v", err)
+	}
+	if updatedService.Title != "Precision Cut" || updatedService.Badge != "$95+" || updatedService.SortOrder != 15 {
+		t.Fatalf("unexpected updated service: %#v", updatedService)
+	}
 
 	published, err := store.PublishConfigVersion(context.Background(), draft.ID, Actor{UserID: "admin_1", Role: "admin"})
 	if err != nil {

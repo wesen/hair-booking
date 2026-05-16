@@ -106,6 +106,17 @@ type ConfigServiceOption struct {
 	Metadata  map[string]any `json:"metadata,omitempty"`
 }
 
+type ConfigServiceOptionInput struct {
+	ID        string `json:"id"`
+	Category  string `json:"category"`
+	Value     string `json:"value"`
+	Title     string `json:"title"`
+	Subtitle  string `json:"subtitle,omitempty"`
+	Badge     string `json:"badge,omitempty"`
+	SortOrder int    `json:"sortOrder"`
+	Enabled   bool   `json:"enabled"`
+}
+
 type ConfigToneOption struct {
 	ID        string `json:"id"`
 	Value     string `json:"value"`
@@ -547,6 +558,65 @@ func (s *Store) listConfigTimeSlots(ctx context.Context, id string) ([]ConfigTim
 	return out, rows.Err()
 }
 
+func (s *Store) UpdateServiceOption(ctx context.Context, input ConfigServiceOptionInput, actor Actor) (ConfigServiceOption, error) {
+	if s == nil || s.ConfigDB == nil {
+		return ConfigServiceOption{}, fmt.Errorf("intake admin config DB is not configured")
+	}
+	input.ID = strings.TrimSpace(input.ID)
+	input.Category = strings.TrimSpace(input.Category)
+	input.Value = strings.TrimSpace(input.Value)
+	input.Title = strings.TrimSpace(input.Title)
+	if input.ID == "" {
+		return ConfigServiceOption{}, fmt.Errorf("service option id is required")
+	}
+	if input.Category == "" {
+		return ConfigServiceOption{}, fmt.Errorf("category is required")
+	}
+	if input.Value == "" {
+		return ConfigServiceOption{}, fmt.Errorf("value is required")
+	}
+	if input.Title == "" {
+		return ConfigServiceOption{}, fmt.Errorf("title is required")
+	}
+	tx, err := s.ConfigDB.BeginTx(ctx, nil)
+	if err != nil {
+		return ConfigServiceOption{}, err
+	}
+	defer func() { _ = tx.Rollback() }()
+	var configVersionID, status string
+	var beforeJSON string
+	if err := tx.QueryRowContext(ctx, `SELECT config_version_id, (SELECT status FROM dsl_config_versions WHERE id = dsl_service_options.config_version_id), json_object('id', id, 'category', category, 'value', value, 'title', title, 'subtitle', COALESCE(subtitle, ''), 'badge', COALESCE(badge, ''), 'sortOrder', sort_order, 'enabled', enabled) FROM dsl_service_options WHERE id = ?`, input.ID).Scan(&configVersionID, &status, &beforeJSON); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ConfigServiceOption{}, ErrNotFound
+		}
+		return ConfigServiceOption{}, err
+	}
+	if status != "draft" {
+		return ConfigServiceOption{}, fmt.Errorf("only draft config service options can be edited")
+	}
+	_, err = tx.ExecContext(ctx, `UPDATE dsl_service_options SET category = ?, value = ?, title = ?, subtitle = ?, badge = ?, sort_order = ?, enabled = ? WHERE id = ?`, input.Category, input.Value, input.Title, nullString(input.Subtitle), nullString(input.Badge), input.SortOrder, boolInt(input.Enabled), input.ID)
+	if err != nil {
+		return ConfigServiceOption{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return ConfigServiceOption{}, err
+	}
+	var before map[string]any
+	_ = json.Unmarshal([]byte(beforeJSON), &before)
+	after := map[string]any{"id": input.ID, "category": input.Category, "value": input.Value, "title": input.Title, "subtitle": input.Subtitle, "badge": input.Badge, "sortOrder": input.SortOrder, "enabled": input.Enabled, "configVersionId": configVersionID}
+	_ = s.insertAdminAuditEvent(ctx, actor, "config_service_option", input.ID, "update", before, after, map[string]any{"configVersionId": configVersionID})
+	services, err := s.listConfigServices(ctx, configVersionID)
+	if err != nil {
+		return ConfigServiceOption{}, err
+	}
+	for _, service := range services {
+		if service.ID == input.ID {
+			return service, nil
+		}
+	}
+	return ConfigServiceOption{}, ErrNotFound
+}
+
 func validateConfigEditorData(data ConfigEditorData) ConfigValidationReport {
 	report := ConfigValidationReport{OK: true}
 	if len(data.Services) == 0 {
@@ -733,6 +803,13 @@ func nullString(value string) any {
 		return nil
 	}
 	return value
+}
+
+func boolInt(value bool) int {
+	if value {
+		return 1
+	}
+	return 0
 }
 
 func nullableJSON(value map[string]any) any {

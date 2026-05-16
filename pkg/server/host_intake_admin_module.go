@@ -94,6 +94,18 @@ func loadIntakeAdminModule(store *intakeadmin.Store, actor intakeadmin.Actor) ad
 			}
 			return vm.ToValue(gojaJSONValue(version))
 		})
+		_ = exports.Set("updateServiceOption", func(call goja.FunctionCall) goja.Value {
+			var input intakeadmin.ConfigServiceOptionInput
+			if len(call.Arguments) > 0 && !goja.IsUndefined(call.Argument(0)) && !goja.IsNull(call.Argument(0)) {
+				payload, _ := json.Marshal(call.Argument(0).Export())
+				_ = json.Unmarshal(payload, &input)
+			}
+			service, err := store.UpdateServiceOption(context.Background(), input, actor)
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.updateServiceOption: " + err.Error()))
+			}
+			return vm.ToValue(gojaJSONValue(service))
+		})
 	}
 }
 
