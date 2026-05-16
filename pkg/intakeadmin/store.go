@@ -249,6 +249,17 @@ type AuditEvent struct {
 	CreatedAt   string         `json:"createdAt"`
 }
 
+type HealthDiagnostics struct {
+	OK                 bool   `json:"ok"`
+	StateDBConfigured  bool   `json:"stateDbConfigured"`
+	ConfigDBConfigured bool   `json:"configDbConfigured"`
+	RequestCount       int    `json:"requestCount"`
+	AuditEventCount    int    `json:"auditEventCount"`
+	ActiveConfigID     string `json:"activeConfigId,omitempty"`
+	DraftConfigCount   int    `json:"draftConfigCount"`
+	LastAuditAt        string `json:"lastAuditAt,omitempty"`
+}
+
 func NewStore(stateDB, configDB *sql.DB) *Store {
 	return &Store{StateDB: stateDB, ConfigDB: configDB}
 }
@@ -406,6 +417,46 @@ func (s *Store) DashboardStats(ctx context.Context) (DashboardStats, error) {
 		stats.HasDraftConfig = draftCount > 0
 	}
 	return stats, nil
+}
+
+func (s *Store) ListAuditEvents(ctx context.Context, limit int) ([]AuditEvent, error) {
+	if s == nil || s.StateDB == nil {
+		return nil, fmt.Errorf("intake admin state DB is not configured")
+	}
+	if limit <= 0 || limit > 200 {
+		limit = 50
+	}
+	rows, err := s.StateDB.QueryContext(ctx, `SELECT id, COALESCE(actor_user_id, ''), COALESCE(actor_role, ''), entity_type, entity_id, action, COALESCE(before_json, '{}'), COALESCE(after_json, '{}'), metadata_json, created_at FROM admin_audit_events ORDER BY created_at DESC LIMIT ?`, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+	var out []AuditEvent
+	for rows.Next() {
+		var event AuditEvent
+		var beforeJSON, afterJSON, metadataJSON string
+		if err := rows.Scan(&event.ID, &event.ActorUserID, &event.ActorRole, &event.EntityType, &event.EntityID, &event.Action, &beforeJSON, &afterJSON, &metadataJSON, &event.CreatedAt); err != nil {
+			return nil, err
+		}
+		_ = json.Unmarshal([]byte(beforeJSON), &event.Before)
+		_ = json.Unmarshal([]byte(afterJSON), &event.After)
+		_ = json.Unmarshal([]byte(metadataJSON), &event.Metadata)
+		out = append(out, event)
+	}
+	return out, rows.Err()
+}
+
+func (s *Store) HealthDiagnostics(ctx context.Context) (HealthDiagnostics, error) {
+	health := HealthDiagnostics{StateDBConfigured: s != nil && s.StateDB != nil, ConfigDBConfigured: s != nil && s.ConfigDB != nil}
+	if !health.StateDBConfigured || !health.ConfigDBConfigured {
+		return health, fmt.Errorf("intake admin databases are not fully configured")
+	}
+	_ = s.StateDB.QueryRowContext(ctx, `SELECT count(*) FROM intake_requests`).Scan(&health.RequestCount)
+	_ = s.StateDB.QueryRowContext(ctx, `SELECT count(*), COALESCE(max(created_at), '') FROM admin_audit_events`).Scan(&health.AuditEventCount, &health.LastAuditAt)
+	_ = s.ConfigDB.QueryRowContext(ctx, `SELECT COALESCE(id, '') FROM dsl_config_versions WHERE status = 'active' ORDER BY activated_at DESC LIMIT 1`).Scan(&health.ActiveConfigID)
+	_ = s.ConfigDB.QueryRowContext(ctx, `SELECT count(*) FROM dsl_config_versions WHERE status = 'draft'`).Scan(&health.DraftConfigCount)
+	health.OK = health.ActiveConfigID != ""
+	return health, nil
 }
 
 func (s *Store) ListConfigVersions(ctx context.Context) ([]ConfigVersion, error) {

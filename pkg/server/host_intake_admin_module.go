@@ -65,6 +65,24 @@ func loadIntakeAdminModule(store *intakeadmin.Store, actor intakeadmin.Actor) ad
 			}
 			return vm.ToValue(gojaJSONValue(versions))
 		})
+		_ = exports.Set("listAuditEvents", func(call goja.FunctionCall) goja.Value {
+			limit := 50
+			if len(call.Arguments) > 0 && !goja.IsUndefined(call.Argument(0)) && !goja.IsNull(call.Argument(0)) {
+				limit = int(call.Argument(0).ToInteger())
+			}
+			events, err := store.ListAuditEvents(context.Background(), limit)
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.listAuditEvents: " + err.Error()))
+			}
+			return vm.ToValue(gojaJSONValue(events))
+		})
+		_ = exports.Set("healthDiagnostics", func() goja.Value {
+			health, err := store.HealthDiagnostics(context.Background())
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.healthDiagnostics: " + err.Error()))
+			}
+			return vm.ToValue(gojaJSONValue(health))
+		})
 		_ = exports.Set("createDraftFromActive", func(call goja.FunctionCall) goja.Value {
 			label := "Admin draft"
 			if len(call.Arguments) > 0 && !goja.IsUndefined(call.Argument(0)) && !goja.IsNull(call.Argument(0)) {

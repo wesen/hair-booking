@@ -174,4 +174,18 @@ func TestStoreDashboardStatsAndConfigDraftPublish(t *testing.T) {
 	if audits < 2 {
 		t.Fatalf("expected create draft and publish audit events, got %d", audits)
 	}
+	events, err := store.ListAuditEvents(context.Background(), 10)
+	if err != nil {
+		t.Fatalf("ListAuditEvents: %v", err)
+	}
+	if len(events) == 0 {
+		t.Fatalf("expected audit events")
+	}
+	health, err := store.HealthDiagnostics(context.Background())
+	if err != nil {
+		t.Fatalf("HealthDiagnostics: %v", err)
+	}
+	if !health.OK || health.ActiveConfigID == "" || health.AuditEventCount == 0 {
+		t.Fatalf("unexpected health diagnostics: %#v", health)
+	}
 }
