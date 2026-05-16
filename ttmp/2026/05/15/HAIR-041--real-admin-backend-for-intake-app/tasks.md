@@ -114,3 +114,20 @@ updated: 2026-05-15
 - [ ] Update implementation diary.
 - [ ] Update changelog.
 - [ ] Upload final docs/screenshots bundle to reMarkable.
+
+## Phase 10 — Follow-up hardening backlog
+
+- [ ] Split `pkg/admindsl/flows/intake_admin.flow.js` into focused required modules once Admin ScriptRuntime supports embedded JS modules.
+- [ ] Add delete confirmation surfaces for destructive config row actions.
+- [ ] Replace boolean text fields with semantic `switchField` submit semantics.
+- [ ] Replace service/category/value text fallbacks with semantic `selectField` submit semantics where options are known.
+- [ ] Replace raw cents text fields with semantic money fields and formatter/parser coverage.
+- [ ] Add drag/drop or explicit move-up/move-down reorder events for `editableList`; keep sort-order editing as the Phase 7 fallback.
+- [ ] Add Playwright smoke for `/admin/intake`: create draft, add/edit/delete config rows, publish, and verify customer intake sees the published config.
+- [ ] Add visual screenshot/css-visual-diff coverage for Phase 7 config sections.
+- [ ] Add real admin auth/role guard for Admin DSL flows.
+- [ ] Verify uploaded photo references belong to the same customer session/user before request creation.
+- [ ] Review cross-database audit atomicity for config DB mutations that write audit rows to the state DB after commit.
+- [ ] Decide whether Admin DSL sessions must be persisted rather than in-memory.
+- [ ] Add stricter before/after audit payloads for all config mutation methods.
+- [ ] Add accessibility review for resource tables, editable lists, drawer forms, and modal/confirm surfaces.

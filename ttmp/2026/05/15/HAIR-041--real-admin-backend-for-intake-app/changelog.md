@@ -167,3 +167,7 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 - Added create/delete support across services, tones, budgets, price ranges, availability days, and time slots (commit `5d484e6`).
 - Marked Phase 7 resource editor tasks complete with reorder represented as editable sort order for this slice.
 - Validation passed with `go test ./... -count=1`, `cd web && npx tsc --noEmit`, and `cd web && pnpm test -- --runInBand`.
+
+## 2026-05-16 — Add follow-up hardening backlog
+
+- Added HAIR-041 Phase 10 follow-up tasks for known hardening issues: flow module splitting, delete confirmations, semantic form controls, drag/reorder, Playwright/visual coverage, admin auth, upload ownership, audit atomicity, session persistence, audit payloads, and accessibility review.
