@@ -118,6 +118,54 @@ func loadIntakeAdminModule(store *intakeadmin.Store, actor intakeadmin.Actor) ad
 			}
 			return vm.ToValue(gojaJSONValue(tone))
 		})
+		_ = exports.Set("updateBudgetOption", func(call goja.FunctionCall) goja.Value {
+			var input intakeadmin.ConfigBudgetOptionInput
+			if len(call.Arguments) > 0 && !goja.IsUndefined(call.Argument(0)) && !goja.IsNull(call.Argument(0)) {
+				payload, _ := json.Marshal(call.Argument(0).Export())
+				_ = json.Unmarshal(payload, &input)
+			}
+			budget, err := store.UpdateBudgetOption(context.Background(), input, actor)
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.updateBudgetOption: " + err.Error()))
+			}
+			return vm.ToValue(gojaJSONValue(budget))
+		})
+		_ = exports.Set("updatePriceRange", func(call goja.FunctionCall) goja.Value {
+			var input intakeadmin.ConfigPriceRangeInput
+			if len(call.Arguments) > 0 && !goja.IsUndefined(call.Argument(0)) && !goja.IsNull(call.Argument(0)) {
+				payload, _ := json.Marshal(call.Argument(0).Export())
+				_ = json.Unmarshal(payload, &input)
+			}
+			priceRange, err := store.UpdatePriceRange(context.Background(), input, actor)
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.updatePriceRange: " + err.Error()))
+			}
+			return vm.ToValue(gojaJSONValue(priceRange))
+		})
+		_ = exports.Set("updateAvailabilityDay", func(call goja.FunctionCall) goja.Value {
+			var input intakeadmin.ConfigAvailabilityDayInput
+			if len(call.Arguments) > 0 && !goja.IsUndefined(call.Argument(0)) && !goja.IsNull(call.Argument(0)) {
+				payload, _ := json.Marshal(call.Argument(0).Export())
+				_ = json.Unmarshal(payload, &input)
+			}
+			day, err := store.UpdateAvailabilityDay(context.Background(), input, actor)
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.updateAvailabilityDay: " + err.Error()))
+			}
+			return vm.ToValue(gojaJSONValue(day))
+		})
+		_ = exports.Set("updateTimeSlot", func(call goja.FunctionCall) goja.Value {
+			var input intakeadmin.ConfigTimeSlotInput
+			if len(call.Arguments) > 0 && !goja.IsUndefined(call.Argument(0)) && !goja.IsNull(call.Argument(0)) {
+				payload, _ := json.Marshal(call.Argument(0).Export())
+				_ = json.Unmarshal(payload, &input)
+			}
+			slot, err := store.UpdateTimeSlot(context.Background(), input, actor)
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.updateTimeSlot: " + err.Error()))
+			}
+			return vm.ToValue(gojaJSONValue(slot))
+		})
 	}
 }
 

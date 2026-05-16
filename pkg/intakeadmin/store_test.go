@@ -120,6 +120,35 @@ func TestStoreDashboardStatsAndConfigDraftPublish(t *testing.T) {
 	if updatedTone.Label != "Soft neutral" || updatedTone.SortOrder != 12 {
 		t.Fatalf("unexpected updated tone: %#v", updatedTone)
 	}
+	updatedBudget, err := store.UpdateBudgetOption(context.Background(), ConfigBudgetOptionInput{ID: editor.Budgets[0].ID, Value: editor.Budgets[0].Value, Title: "Under $225", Subtitle: "Updated budget", SortOrder: 14, Enabled: true}, Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("UpdateBudgetOption: %v", err)
+	}
+	if updatedBudget.Title != "Under $225" || updatedBudget.SortOrder != 14 {
+		t.Fatalf("unexpected updated budget: %#v", updatedBudget)
+	}
+	minCents, maxCents := 9000, 18000
+	updatedPrice, err := store.UpdatePriceRange(context.Background(), ConfigPriceRangeInput{ID: editor.PriceRanges[0].ID, ServiceValue: editor.PriceRanges[0].ServiceValue, BudgetValue: editor.PriceRanges[0].BudgetValue, Label: "$90–$180", MinCents: &minCents, MaxCents: &maxCents}, Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("UpdatePriceRange: %v", err)
+	}
+	if updatedPrice.Label != "$90–$180" || updatedPrice.MinCents == nil || *updatedPrice.MinCents != 9000 {
+		t.Fatalf("unexpected updated price: %#v", updatedPrice)
+	}
+	updatedDay, err := store.UpdateAvailabilityDay(context.Background(), ConfigAvailabilityDayInput{ID: editor.AvailabilityDays[0].ID, Value: editor.AvailabilityDays[0].Value, Day: editor.AvailabilityDays[0].Day, Date: editor.AvailabilityDays[0].Date, Dot: false, Disabled: true, DisabledReason: "Private event", SortOrder: 11}, Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("UpdateAvailabilityDay: %v", err)
+	}
+	if !updatedDay.Disabled || updatedDay.DisabledReason != "Private event" {
+		t.Fatalf("unexpected updated day: %#v", updatedDay)
+	}
+	updatedSlot, err := store.UpdateTimeSlot(context.Background(), ConfigTimeSlotInput{ID: editor.TimeSlots[0].ID, Value: "11:00", Title: "11:00a", SortOrder: 16, Enabled: true}, Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("UpdateTimeSlot: %v", err)
+	}
+	if updatedSlot.Value != "11:00" || updatedSlot.Title != "11:00a" {
+		t.Fatalf("unexpected updated slot: %#v", updatedSlot)
+	}
 
 	published, err := store.PublishConfigVersion(context.Background(), draft.ID, Actor{UserID: "admin_1", Role: "admin"})
 	if err != nil {

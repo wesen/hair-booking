@@ -143,7 +143,25 @@ type ConfigBudgetOption struct {
 	Metadata  map[string]any `json:"metadata,omitempty"`
 }
 
+type ConfigBudgetOptionInput struct {
+	ID        string `json:"id"`
+	Value     string `json:"value"`
+	Title     string `json:"title"`
+	Subtitle  string `json:"subtitle,omitempty"`
+	SortOrder int    `json:"sortOrder"`
+	Enabled   bool   `json:"enabled"`
+}
+
 type ConfigPriceRange struct {
+	ID           string `json:"id"`
+	ServiceValue string `json:"serviceValue,omitempty"`
+	BudgetValue  string `json:"budgetValue,omitempty"`
+	Label        string `json:"label"`
+	MinCents     *int   `json:"minCents,omitempty"`
+	MaxCents     *int   `json:"maxCents,omitempty"`
+}
+
+type ConfigPriceRangeInput struct {
 	ID           string `json:"id"`
 	ServiceValue string `json:"serviceValue,omitempty"`
 	BudgetValue  string `json:"budgetValue,omitempty"`
@@ -163,7 +181,26 @@ type ConfigAvailabilityDay struct {
 	SortOrder      int    `json:"sortOrder"`
 }
 
+type ConfigAvailabilityDayInput struct {
+	ID             string `json:"id"`
+	Value          string `json:"value"`
+	Day            string `json:"day"`
+	Date           string `json:"date"`
+	Dot            bool   `json:"dot"`
+	Disabled       bool   `json:"disabled"`
+	DisabledReason string `json:"disabledReason,omitempty"`
+	SortOrder      int    `json:"sortOrder"`
+}
+
 type ConfigTimeSlot struct {
+	ID        string `json:"id"`
+	Value     string `json:"value"`
+	Title     string `json:"title"`
+	SortOrder int    `json:"sortOrder"`
+	Enabled   bool   `json:"enabled"`
+}
+
+type ConfigTimeSlotInput struct {
 	ID        string `json:"id"`
 	Value     string `json:"value"`
 	Title     string `json:"title"`
@@ -686,6 +723,189 @@ func (s *Store) UpdateToneOption(ctx context.Context, input ConfigToneOptionInpu
 	return ConfigToneOption{}, ErrNotFound
 }
 
+func (s *Store) UpdateBudgetOption(ctx context.Context, input ConfigBudgetOptionInput, actor Actor) (ConfigBudgetOption, error) {
+	if s == nil || s.ConfigDB == nil {
+		return ConfigBudgetOption{}, fmt.Errorf("intake admin config DB is not configured")
+	}
+	input.ID = strings.TrimSpace(input.ID)
+	input.Value = strings.TrimSpace(input.Value)
+	input.Title = strings.TrimSpace(input.Title)
+	if input.ID == "" {
+		return ConfigBudgetOption{}, fmt.Errorf("budget option id is required")
+	}
+	if input.Value == "" {
+		return ConfigBudgetOption{}, fmt.Errorf("value is required")
+	}
+	if input.Title == "" {
+		return ConfigBudgetOption{}, fmt.Errorf("title is required")
+	}
+	tx, err := s.ConfigDB.BeginTx(ctx, nil)
+	if err != nil {
+		return ConfigBudgetOption{}, err
+	}
+	defer func() { _ = tx.Rollback() }()
+	configVersionID, _, err := s.ensureConfigRowIsDraft(ctx, tx, "dsl_budget_options", input.ID)
+	if err != nil {
+		return ConfigBudgetOption{}, err
+	}
+	_, err = tx.ExecContext(ctx, `UPDATE dsl_budget_options SET value = ?, title = ?, subtitle = ?, sort_order = ?, enabled = ? WHERE id = ?`, input.Value, input.Title, nullString(input.Subtitle), input.SortOrder, boolInt(input.Enabled), input.ID)
+	if err != nil {
+		return ConfigBudgetOption{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return ConfigBudgetOption{}, err
+	}
+	after := map[string]any{"id": input.ID, "value": input.Value, "title": input.Title, "subtitle": input.Subtitle, "sortOrder": input.SortOrder, "enabled": input.Enabled, "configVersionId": configVersionID}
+	_ = s.insertAdminAuditEvent(ctx, actor, "config_budget_option", input.ID, "update", nil, after, map[string]any{"configVersionId": configVersionID})
+	items, err := s.listConfigBudgets(ctx, configVersionID)
+	if err != nil {
+		return ConfigBudgetOption{}, err
+	}
+	for _, item := range items {
+		if item.ID == input.ID {
+			return item, nil
+		}
+	}
+	return ConfigBudgetOption{}, ErrNotFound
+}
+
+func (s *Store) UpdatePriceRange(ctx context.Context, input ConfigPriceRangeInput, actor Actor) (ConfigPriceRange, error) {
+	if s == nil || s.ConfigDB == nil {
+		return ConfigPriceRange{}, fmt.Errorf("intake admin config DB is not configured")
+	}
+	input.ID = strings.TrimSpace(input.ID)
+	input.ServiceValue = strings.TrimSpace(input.ServiceValue)
+	input.BudgetValue = strings.TrimSpace(input.BudgetValue)
+	input.Label = strings.TrimSpace(input.Label)
+	if input.ID == "" {
+		return ConfigPriceRange{}, fmt.Errorf("price range id is required")
+	}
+	if input.Label == "" {
+		return ConfigPriceRange{}, fmt.Errorf("label is required")
+	}
+	if input.MinCents != nil && *input.MinCents < 0 || input.MaxCents != nil && *input.MaxCents < 0 {
+		return ConfigPriceRange{}, fmt.Errorf("price cents must be non-negative")
+	}
+	if input.MinCents != nil && input.MaxCents != nil && *input.MinCents > *input.MaxCents {
+		return ConfigPriceRange{}, fmt.Errorf("minCents must be less than or equal to maxCents")
+	}
+	tx, err := s.ConfigDB.BeginTx(ctx, nil)
+	if err != nil {
+		return ConfigPriceRange{}, err
+	}
+	defer func() { _ = tx.Rollback() }()
+	configVersionID, _, err := s.ensureConfigRowIsDraft(ctx, tx, "dsl_price_ranges", input.ID)
+	if err != nil {
+		return ConfigPriceRange{}, err
+	}
+	_, err = tx.ExecContext(ctx, `UPDATE dsl_price_ranges SET service_value = ?, budget_value = ?, label = ?, min_cents = ?, max_cents = ? WHERE id = ?`, nullString(input.ServiceValue), nullString(input.BudgetValue), input.Label, nullableInt(input.MinCents), nullableInt(input.MaxCents), input.ID)
+	if err != nil {
+		return ConfigPriceRange{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return ConfigPriceRange{}, err
+	}
+	after := map[string]any{"id": input.ID, "serviceValue": input.ServiceValue, "budgetValue": input.BudgetValue, "label": input.Label, "minCents": input.MinCents, "maxCents": input.MaxCents, "configVersionId": configVersionID}
+	_ = s.insertAdminAuditEvent(ctx, actor, "config_price_range", input.ID, "update", nil, after, map[string]any{"configVersionId": configVersionID})
+	items, err := s.listConfigPriceRanges(ctx, configVersionID)
+	if err != nil {
+		return ConfigPriceRange{}, err
+	}
+	for _, item := range items {
+		if item.ID == input.ID {
+			return item, nil
+		}
+	}
+	return ConfigPriceRange{}, ErrNotFound
+}
+
+func (s *Store) UpdateAvailabilityDay(ctx context.Context, input ConfigAvailabilityDayInput, actor Actor) (ConfigAvailabilityDay, error) {
+	if s == nil || s.ConfigDB == nil {
+		return ConfigAvailabilityDay{}, fmt.Errorf("intake admin config DB is not configured")
+	}
+	input.ID = strings.TrimSpace(input.ID)
+	input.Value = strings.TrimSpace(input.Value)
+	input.Day = strings.TrimSpace(input.Day)
+	input.Date = strings.TrimSpace(input.Date)
+	if input.ID == "" {
+		return ConfigAvailabilityDay{}, fmt.Errorf("availability day id is required")
+	}
+	if input.Value == "" || input.Day == "" || input.Date == "" {
+		return ConfigAvailabilityDay{}, fmt.Errorf("value, day, and date are required")
+	}
+	tx, err := s.ConfigDB.BeginTx(ctx, nil)
+	if err != nil {
+		return ConfigAvailabilityDay{}, err
+	}
+	defer func() { _ = tx.Rollback() }()
+	configVersionID, _, err := s.ensureConfigRowIsDraft(ctx, tx, "dsl_availability_days", input.ID)
+	if err != nil {
+		return ConfigAvailabilityDay{}, err
+	}
+	_, err = tx.ExecContext(ctx, `UPDATE dsl_availability_days SET value = ?, day = ?, date = ?, dot = ?, disabled = ?, disabled_reason = ?, sort_order = ? WHERE id = ?`, input.Value, input.Day, input.Date, boolInt(input.Dot), boolInt(input.Disabled), nullString(input.DisabledReason), input.SortOrder, input.ID)
+	if err != nil {
+		return ConfigAvailabilityDay{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return ConfigAvailabilityDay{}, err
+	}
+	after := map[string]any{"id": input.ID, "value": input.Value, "day": input.Day, "date": input.Date, "dot": input.Dot, "disabled": input.Disabled, "disabledReason": input.DisabledReason, "sortOrder": input.SortOrder, "configVersionId": configVersionID}
+	_ = s.insertAdminAuditEvent(ctx, actor, "config_availability_day", input.ID, "update", nil, after, map[string]any{"configVersionId": configVersionID})
+	items, err := s.listConfigAvailabilityDays(ctx, configVersionID)
+	if err != nil {
+		return ConfigAvailabilityDay{}, err
+	}
+	for _, item := range items {
+		if item.ID == input.ID {
+			return item, nil
+		}
+	}
+	return ConfigAvailabilityDay{}, ErrNotFound
+}
+
+func (s *Store) UpdateTimeSlot(ctx context.Context, input ConfigTimeSlotInput, actor Actor) (ConfigTimeSlot, error) {
+	if s == nil || s.ConfigDB == nil {
+		return ConfigTimeSlot{}, fmt.Errorf("intake admin config DB is not configured")
+	}
+	input.ID = strings.TrimSpace(input.ID)
+	input.Value = strings.TrimSpace(input.Value)
+	input.Title = strings.TrimSpace(input.Title)
+	if input.ID == "" {
+		return ConfigTimeSlot{}, fmt.Errorf("time slot id is required")
+	}
+	if input.Value == "" || input.Title == "" {
+		return ConfigTimeSlot{}, fmt.Errorf("value and title are required")
+	}
+	tx, err := s.ConfigDB.BeginTx(ctx, nil)
+	if err != nil {
+		return ConfigTimeSlot{}, err
+	}
+	defer func() { _ = tx.Rollback() }()
+	configVersionID, _, err := s.ensureConfigRowIsDraft(ctx, tx, "dsl_time_slots", input.ID)
+	if err != nil {
+		return ConfigTimeSlot{}, err
+	}
+	_, err = tx.ExecContext(ctx, `UPDATE dsl_time_slots SET value = ?, title = ?, sort_order = ?, enabled = ? WHERE id = ?`, input.Value, input.Title, input.SortOrder, boolInt(input.Enabled), input.ID)
+	if err != nil {
+		return ConfigTimeSlot{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return ConfigTimeSlot{}, err
+	}
+	after := map[string]any{"id": input.ID, "value": input.Value, "title": input.Title, "sortOrder": input.SortOrder, "enabled": input.Enabled, "configVersionId": configVersionID}
+	_ = s.insertAdminAuditEvent(ctx, actor, "config_time_slot", input.ID, "update", nil, after, map[string]any{"configVersionId": configVersionID})
+	items, err := s.listConfigTimeSlots(ctx, configVersionID)
+	if err != nil {
+		return ConfigTimeSlot{}, err
+	}
+	for _, item := range items {
+		if item.ID == input.ID {
+			return item, nil
+		}
+	}
+	return ConfigTimeSlot{}, ErrNotFound
+}
+
 func validateConfigEditorData(data ConfigEditorData) ConfigValidationReport {
 	report := ConfigValidationReport{OK: true}
 	if len(data.Services) == 0 {
@@ -879,6 +1099,13 @@ func boolInt(value bool) int {
 		return 1
 	}
 	return 0
+}
+
+func nullableInt(value *int) any {
+	if value == nil {
+		return nil
+	}
+	return *value
 }
 
 func nullableJSON(value map[string]any) any {

@@ -233,6 +233,13 @@ function parseIntOrZero(value) {
   return isNaN(parsed) ? 0 : parsed;
 }
 
+function parseOptionalInt(value) {
+  var text = String(value == null ? "" : value).trim();
+  if (!text) return null;
+  var parsed = parseInt(text, 10);
+  return isNaN(parsed) ? null : parsed;
+}
+
 function parseBool(value) {
   var normalized = String(value || "").toLowerCase().trim();
   return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "on" || normalized === "enabled";
@@ -316,9 +323,34 @@ function configEditorSection(ctx, editor) {
     ctx.state.errors = {};
     return render(ctx);
   });
+  const openBudget = ctx.bind(admin.open("config.budget.open", "Edit").Placement("row"), function(event) {
+    ctx.state.selectedBudgetId = event.value && event.value.id;
+    ctx.state.configDrawer = "budget";
+    ctx.state.budgetFormValues = null;
+    ctx.state.errors = {};
+    return render(ctx);
+  });
+  const openPrice = ctx.bind(admin.open("config.price.open", "Edit").Placement("row"), function(event) {
+    ctx.state.selectedPriceId = event.value && event.value.id;
+    ctx.state.configDrawer = "price";
+    ctx.state.priceFormValues = null;
+    ctx.state.errors = {};
+    return render(ctx);
+  });
+  const openTimeSlot = ctx.bind(admin.open("config.timeSlot.open", "Edit").Placement("row"), function(event) {
+    ctx.state.selectedTimeSlotId = event.value && event.value.id;
+    ctx.state.configDrawer = "timeSlot";
+    ctx.state.timeSlotFormValues = null;
+    ctx.state.errors = {};
+    return render(ctx);
+  });
   const disabledEdit = admin.secondary("config.edit.placeholder", "Edit").Placement("row").Disabled(true).AccessibilityLabel("Detailed editing is implemented in the next Phase 7 slice");
-  const availabilitySelect = ctx.bind(admin.open("config.availability.selectDay", "Select day").Placement("detail"), function(event) {
+  const availabilitySelect = ctx.bind(admin.open("config.availability.open", "Edit day").Placement("detail"), function(event) {
     ctx.state.selectedAvailabilityDay = event.value && event.value.value;
+    ctx.state.selectedAvailabilityId = event.value && event.value.id;
+    ctx.state.configDrawer = editor.version.status === "draft" ? "availability" : null;
+    ctx.state.availabilityFormValues = null;
+    ctx.state.errors = {};
     return render(ctx);
   });
 
@@ -340,7 +372,7 @@ function configEditorSection(ctx, editor) {
   if (section === "budgets") {
     return admin.section("Budget options", { description: "Budget choices and explanatory copy." },
       tabs,
-      admin.editableList("budgetOptions", { items: budgetEditorItems(editor.budgets), emptyTitle: "No budget options" }).Actions(disabledEdit)
+      admin.editableList("budgetOptions", { items: budgetEditorItems(editor.budgets), emptyTitle: "No budget options" }).Actions(editor.version.status === "draft" ? openBudget : disabledEdit)
     );
   }
   if (section === "pricing") {
@@ -356,14 +388,14 @@ function configEditorSection(ctx, editor) {
         ],
         rows: priceRows(editor.priceRanges),
         emptyTitle: "No price ranges"
-      }).Actions(disabledEdit)
+      }).Actions(editor.version.status === "draft" ? openPrice : disabledEdit)
     );
   }
   if (section === "availability") {
     return admin.section("Availability and time slots", { description: "Published booking days and selectable appointment times." },
       tabs,
       admin.monthAvailabilityGrid("availabilityDays", { days: editor.availabilityDays || [], selected: ctx.state.selectedAvailabilityDay || "" }).Actions(availabilitySelect),
-      admin.editableList("timeSlots", { items: timeSlotItems(editor.timeSlots), emptyTitle: "No time slots" }).Actions(disabledEdit)
+      admin.editableList("timeSlots", { items: timeSlotItems(editor.timeSlots), emptyTitle: "No time slots" }).Actions(editor.version.status === "draft" ? openTimeSlot : disabledEdit)
     );
   }
   if (section === "validation") {
@@ -465,6 +497,173 @@ function serviceOptionDrawer(ctx, editor, saveAction, cancelAction) {
   );
 }
 
+function budgetFormValues(ctx, budget) {
+  return ctx.state.budgetFormValues || {
+    id: budget.id,
+    value: budget.value,
+    title: budget.title,
+    subtitle: budget.subtitle || "",
+    sortOrder: String(budget.sortOrder || 0),
+    enabled: budget.enabled ? "true" : "false"
+  };
+}
+
+function budgetFormErrors(values) {
+  const errors = {};
+  if (!String(values.value || "").trim()) errors.value = "Value is required";
+  if (!String(values.title || "").trim()) errors.title = "Title is required";
+  return errors;
+}
+
+function budgetOptionDrawer(ctx, editor, saveAction, cancelAction) {
+  const budget = findById(editor.budgets, ctx.state.selectedBudgetId);
+  if (!budget) {
+    return admin.surface.drawer("budgetOptionEditor", { title: "Budget unavailable", open: true },
+      admin.summaryCard("Missing budget", { body: "The selected budget option no longer exists in this config version." }).Actions(cancelAction)
+    );
+  }
+  const values = budgetFormValues(ctx, budget);
+  return admin.surface.drawer("budgetOptionEditor", { title: "Edit budget option", open: true },
+    admin.form("budgetOptionForm", { title: budget.title, values: values, errors: ctx.state.errors || {} },
+      admin.fieldGroup("Budget details",
+        admin.textField("id", { label: "ID", value: values.id }),
+        admin.textField("value", { label: "Value", value: values.value }),
+        admin.textField("title", { label: "Title", value: values.title }),
+        admin.textField("subtitle", { label: "Subtitle", value: values.subtitle }),
+        admin.textField("sortOrder", { label: "Sort order", value: values.sortOrder }),
+        admin.textField("enabled", { label: "Enabled (true/false)", value: values.enabled })
+      )
+    ).Actions(saveAction, cancelAction)
+  );
+}
+
+function priceFormValues(ctx, price) {
+  return ctx.state.priceFormValues || {
+    id: price.id,
+    serviceValue: price.serviceValue || "",
+    budgetValue: price.budgetValue || "",
+    label: price.label,
+    minCents: price.minCents == null ? "" : String(price.minCents),
+    maxCents: price.maxCents == null ? "" : String(price.maxCents)
+  };
+}
+
+function priceFormErrors(values) {
+  const errors = {};
+  if (!String(values.label || "").trim()) errors.label = "Label is required";
+  const min = parseOptionalInt(values.minCents);
+  const max = parseOptionalInt(values.maxCents);
+  if (String(values.minCents || "").trim() && min === null) errors.minCents = "Minimum cents must be a number";
+  if (String(values.maxCents || "").trim() && max === null) errors.maxCents = "Maximum cents must be a number";
+  if (min !== null && max !== null && min > max) errors.maxCents = "Maximum must be greater than or equal to minimum";
+  return errors;
+}
+
+function priceRangeDrawer(ctx, editor, saveAction, cancelAction) {
+  const price = findById(editor.priceRanges, ctx.state.selectedPriceId);
+  if (!price) {
+    return admin.surface.drawer("priceRangeEditor", { title: "Price range unavailable", open: true },
+      admin.summaryCard("Missing price range", { body: "The selected price range no longer exists in this config version." }).Actions(cancelAction)
+    );
+  }
+  const values = priceFormValues(ctx, price);
+  return admin.surface.drawer("priceRangeEditor", { title: "Edit price range", open: true },
+    admin.form("priceRangeForm", { title: price.label, values: values, errors: ctx.state.errors || {} },
+      admin.fieldGroup("Price rule",
+        admin.textField("id", { label: "ID", value: values.id }),
+        admin.textField("serviceValue", { label: "Service value", value: values.serviceValue }),
+        admin.textField("budgetValue", { label: "Budget value", value: values.budgetValue }),
+        admin.textField("label", { label: "Label", value: values.label }),
+        admin.textField("minCents", { label: "Minimum cents", value: values.minCents }),
+        admin.textField("maxCents", { label: "Maximum cents", value: values.maxCents })
+      )
+    ).Actions(saveAction, cancelAction)
+  );
+}
+
+function availabilityFormValues(ctx, day) {
+  return ctx.state.availabilityFormValues || {
+    id: day.id,
+    value: day.value,
+    day: day.day,
+    date: day.date,
+    dot: day.dot ? "true" : "false",
+    disabled: day.disabled ? "true" : "false",
+    disabledReason: day.disabledReason || "",
+    sortOrder: String(day.sortOrder || 0)
+  };
+}
+
+function availabilityFormErrors(values) {
+  const errors = {};
+  if (!String(values.value || "").trim()) errors.value = "Value is required";
+  if (!String(values.day || "").trim()) errors.day = "Day label is required";
+  if (!String(values.date || "").trim()) errors.date = "Date is required";
+  return errors;
+}
+
+function availabilityDayDrawer(ctx, editor, saveAction, cancelAction) {
+  const day = findById(editor.availabilityDays, ctx.state.selectedAvailabilityId);
+  if (!day) {
+    return admin.surface.drawer("availabilityDayEditor", { title: "Availability day unavailable", open: true },
+      admin.summaryCard("Missing availability day", { body: "The selected availability day no longer exists in this config version." }).Actions(cancelAction)
+    );
+  }
+  const values = availabilityFormValues(ctx, day);
+  return admin.surface.drawer("availabilityDayEditor", { title: "Edit availability day", open: true },
+    admin.form("availabilityDayForm", { title: day.date, values: values, errors: ctx.state.errors || {} },
+      admin.fieldGroup("Availability day",
+        admin.textField("id", { label: "ID", value: values.id }),
+        admin.textField("value", { label: "Value", value: values.value }),
+        admin.textField("day", { label: "Day label", value: values.day }),
+        admin.textField("date", { label: "Date", value: values.date }),
+        admin.textField("dot", { label: "Has availability dot (true/false)", value: values.dot }),
+        admin.textField("disabled", { label: "Disabled (true/false)", value: values.disabled }),
+        admin.textField("disabledReason", { label: "Disabled reason", value: values.disabledReason }),
+        admin.textField("sortOrder", { label: "Sort order", value: values.sortOrder })
+      )
+    ).Actions(saveAction, cancelAction)
+  );
+}
+
+function timeSlotFormValues(ctx, slot) {
+  return ctx.state.timeSlotFormValues || {
+    id: slot.id,
+    value: slot.value,
+    title: slot.title,
+    sortOrder: String(slot.sortOrder || 0),
+    enabled: slot.enabled ? "true" : "false"
+  };
+}
+
+function timeSlotFormErrors(values) {
+  const errors = {};
+  if (!String(values.value || "").trim()) errors.value = "Value is required";
+  if (!String(values.title || "").trim()) errors.title = "Title is required";
+  return errors;
+}
+
+function timeSlotDrawer(ctx, editor, saveAction, cancelAction) {
+  const slot = findById(editor.timeSlots, ctx.state.selectedTimeSlotId);
+  if (!slot) {
+    return admin.surface.drawer("timeSlotEditor", { title: "Time slot unavailable", open: true },
+      admin.summaryCard("Missing time slot", { body: "The selected time slot no longer exists in this config version." }).Actions(cancelAction)
+    );
+  }
+  const values = timeSlotFormValues(ctx, slot);
+  return admin.surface.drawer("timeSlotEditor", { title: "Edit time slot", open: true },
+    admin.form("timeSlotForm", { title: slot.title, values: values, errors: ctx.state.errors || {} },
+      admin.fieldGroup("Time slot",
+        admin.textField("id", { label: "ID", value: values.id }),
+        admin.textField("value", { label: "Value", value: values.value }),
+        admin.textField("title", { label: "Title", value: values.title }),
+        admin.textField("sortOrder", { label: "Sort order", value: values.sortOrder }),
+        admin.textField("enabled", { label: "Enabled (true/false)", value: values.enabled })
+      )
+    ).Actions(saveAction, cancelAction)
+  );
+}
+
 function configScreen(ctx) {
   const back = ctx.bind(admin.secondary("nav.dashboard", "Dashboard").Placement("toolbar"), function() { ctx.state.publishModal = false; return go(ctx, "dashboard"); });
   const createDraft = ctx.bind(admin.primary("config.createDraft", "Create draft").Placement("toolbar"), function() {
@@ -499,6 +698,34 @@ function configScreen(ctx) {
     ctx.state.configDrawer = null;
     ctx.state.selectedToneId = null;
     ctx.state.toneFormValues = null;
+    ctx.state.errors = {};
+    return render(ctx);
+  });
+  const cancelBudget = ctx.bind(admin.secondary("config.budget.cancel", "Cancel").Placement("footer"), function() {
+    ctx.state.configDrawer = null;
+    ctx.state.selectedBudgetId = null;
+    ctx.state.budgetFormValues = null;
+    ctx.state.errors = {};
+    return render(ctx);
+  });
+  const cancelPrice = ctx.bind(admin.secondary("config.price.cancel", "Cancel").Placement("footer"), function() {
+    ctx.state.configDrawer = null;
+    ctx.state.selectedPriceId = null;
+    ctx.state.priceFormValues = null;
+    ctx.state.errors = {};
+    return render(ctx);
+  });
+  const cancelAvailability = ctx.bind(admin.secondary("config.availability.cancel", "Cancel").Placement("footer"), function() {
+    ctx.state.configDrawer = null;
+    ctx.state.selectedAvailabilityId = null;
+    ctx.state.availabilityFormValues = null;
+    ctx.state.errors = {};
+    return render(ctx);
+  });
+  const cancelTimeSlot = ctx.bind(admin.secondary("config.timeSlot.cancel", "Cancel").Placement("footer"), function() {
+    ctx.state.configDrawer = null;
+    ctx.state.selectedTimeSlotId = null;
+    ctx.state.timeSlotFormValues = null;
     ctx.state.errors = {};
     return render(ctx);
   });
@@ -547,6 +774,46 @@ function configScreen(ctx) {
     ctx.state.selectedToneId = null;
     ctx.state.toneFormValues = null;
     ctx.state.errors = {};
+    return render(ctx);
+  });
+  const saveBudget = ctx.bind(admin.primary("config.budget.save", "Save budget").Placement("footer"), function(event) {
+    const values = event.value || {};
+    values.id = values.id || ctx.state.selectedBudgetId;
+    ctx.state.budgetFormValues = values;
+    const errors = budgetFormErrors(values);
+    if (Object.keys(errors).length) { ctx.state.errors = errors; return render(ctx); }
+    intakeAdmin.updateBudgetOption({ id: values.id, value: values.value, title: values.title, subtitle: values.subtitle || "", sortOrder: parseIntOrZero(values.sortOrder), enabled: parseBool(values.enabled) });
+    ctx.state.configDrawer = null; ctx.state.selectedBudgetId = null; ctx.state.budgetFormValues = null; ctx.state.errors = {};
+    return render(ctx);
+  });
+  const savePrice = ctx.bind(admin.primary("config.price.save", "Save price").Placement("footer"), function(event) {
+    const values = event.value || {};
+    values.id = values.id || ctx.state.selectedPriceId;
+    ctx.state.priceFormValues = values;
+    const errors = priceFormErrors(values);
+    if (Object.keys(errors).length) { ctx.state.errors = errors; return render(ctx); }
+    intakeAdmin.updatePriceRange({ id: values.id, serviceValue: values.serviceValue || "", budgetValue: values.budgetValue || "", label: values.label, minCents: parseOptionalInt(values.minCents), maxCents: parseOptionalInt(values.maxCents) });
+    ctx.state.configDrawer = null; ctx.state.selectedPriceId = null; ctx.state.priceFormValues = null; ctx.state.errors = {};
+    return render(ctx);
+  });
+  const saveAvailability = ctx.bind(admin.primary("config.availability.save", "Save day").Placement("footer"), function(event) {
+    const values = event.value || {};
+    values.id = values.id || ctx.state.selectedAvailabilityId;
+    ctx.state.availabilityFormValues = values;
+    const errors = availabilityFormErrors(values);
+    if (Object.keys(errors).length) { ctx.state.errors = errors; return render(ctx); }
+    intakeAdmin.updateAvailabilityDay({ id: values.id, value: values.value, day: values.day, date: values.date, dot: parseBool(values.dot), disabled: parseBool(values.disabled), disabledReason: values.disabledReason || "", sortOrder: parseIntOrZero(values.sortOrder) });
+    ctx.state.configDrawer = null; ctx.state.selectedAvailabilityId = null; ctx.state.availabilityFormValues = null; ctx.state.errors = {};
+    return render(ctx);
+  });
+  const saveTimeSlot = ctx.bind(admin.primary("config.timeSlot.save", "Save time slot").Placement("footer"), function(event) {
+    const values = event.value || {};
+    values.id = values.id || ctx.state.selectedTimeSlotId;
+    ctx.state.timeSlotFormValues = values;
+    const errors = timeSlotFormErrors(values);
+    if (Object.keys(errors).length) { ctx.state.errors = errors; return render(ctx); }
+    intakeAdmin.updateTimeSlot({ id: values.id, value: values.value, title: values.title, sortOrder: parseIntOrZero(values.sortOrder), enabled: parseBool(values.enabled) });
+    ctx.state.configDrawer = null; ctx.state.selectedTimeSlotId = null; ctx.state.timeSlotFormValues = null; ctx.state.errors = {};
     return render(ctx);
   });
   const confirmPublish = ctx.bind(admin.danger("config.publish.confirm", "Publish").Placement("footer"), function() {
@@ -599,6 +866,18 @@ function configScreen(ctx) {
   }
   if (ctx.state.configDrawer === "tone") {
     page.Drawers(toneOptionDrawer(ctx, editor, saveTone, cancelTone));
+  }
+  if (ctx.state.configDrawer === "budget") {
+    page.Drawers(budgetOptionDrawer(ctx, editor, saveBudget, cancelBudget));
+  }
+  if (ctx.state.configDrawer === "price") {
+    page.Drawers(priceRangeDrawer(ctx, editor, savePrice, cancelPrice));
+  }
+  if (ctx.state.configDrawer === "availability") {
+    page.Drawers(availabilityDayDrawer(ctx, editor, saveAvailability, cancelAvailability));
+  }
+  if (ctx.state.configDrawer === "timeSlot") {
+    page.Drawers(timeSlotDrawer(ctx, editor, saveTimeSlot, cancelTimeSlot));
   }
 
   return page.MustBuild();
