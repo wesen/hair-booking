@@ -1697,3 +1697,135 @@ The script also captures dashboard and request-queue screenshots into the ticket
   - `HAIR_WEB_URL`
   - `HAIR_SMOKE_OUT`
   - `PLAYWRIGHT_PACKAGE`
+
+## Step 24: Capture dense admin layout reference and DSL gap analysis
+
+This step captured the two user-provided layout screenshots into the HAIR-041 ticket and turned them into a design analysis document. The target screenshot shows a denser operational admin workbench than the current Admin DSL page: persistent sidebar navigation, compact KPI cards, table-first resources, a true month calendar, comparison-table draft changes, recent activity, and a compact preview panel.
+
+The analysis focuses on what the DSL needs to describe those pages semantically instead of forcing backend flows to compose admin screens from frontend-inspired, spacious widgets.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Copy this image into the ticket, along with the original layout (as it is right now): /tmp/pi-clipboard-fc066c42-9b6f-4153-9c1d-1c50781ff59e.png \n\nNow examine the first one in detail, and study what the components are and the differences and the layout changes, and what DSL constructs would be necessary to make it possible to render / describe admin pages like that, beecause currently the fac tthat we are using mostly frontend / frontend inspired widgets makes our admit layouts a bit inefficient, since the needs are different."
+
+**Assistant interpretation:** Copy both screenshots into the HAIR-041 ticket, compare the target dense admin reference against the current layout, and document the Admin DSL constructs needed to support this more efficient admin style.
+
+**Inferred user intent:** The user wants the Admin DSL to evolve toward operational back-office layout semantics rather than continuing to build admin pages from oversized frontend/customer-flow widgets.
+
+**Commit (code):** N/A — documentation and reference assets only.
+
+### What I did
+- Copied the target screenshot into:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/various/design-reference/01-target-efficient-admin-layout.png`
+- Copied the current/original screenshot into:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/various/design-reference/02-current-original-admin-layout.png`
+- Created:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/02-admin-layout-density-reference-analysis.md`
+- Related the new design document to the copied screenshots and current Admin DSL schema files.
+
+### Why
+- The visual difference is substantial enough to deserve a durable design note before implementation.
+- The target image highlights missing semantic constructs: workbench shell, page header, dashboard grid, compact panels, richer resource tables, comparison tables, month calendar, and density policies.
+
+### What worked
+- The copied images are now tracked in the ticket workspace and embedded in the design document.
+- The existing Admin DSL schema already has several useful lower-level primitives, so the recommendation can focus on adding semantic composition and density policies instead of replacing everything.
+
+### What didn't work
+- N/A. This was documentation/reference capture only.
+
+### What I learned
+- The current layout is not inefficient because the renderer is incapable; it is inefficient because the DSL lacks admin-native composition grammar.
+- The target page is mostly a different layout semantics problem, not a need for many bespoke widgets.
+
+### What was tricky to build
+- The main judgement call was separating what should become new DSL node kinds from what can be expressed as richer props on existing nodes such as `panel`, `cardGrid`, `resourceTable`, `activityFeed`, and `monthAvailabilityGrid`.
+
+### What warrants a second pair of eyes
+- Review whether `dashboardGrid`, `pageHeader`, `monthCalendar`, and `comparisonTable` should be new node kinds or evolutions of existing primitives.
+- Review whether shell/sidebar should be sent on every page response or managed as a reusable app-shell descriptor.
+
+### What should be done in the future
+- Implement a target-style Storybook fixture before changing `/admin/intake` production flow screens.
+- Add visual regression captures against the new workbench-style fixture.
+- Decide which constructs become schema additions versus prop extensions.
+
+### Code review instructions
+- Start with `design-doc/02-admin-layout-density-reference-analysis.md`.
+- Compare the two embedded screenshots in `various/design-reference/`.
+- Cross-check proposed constructs against `web/src/admin-dsl/schema.ts` and `pkg/admindsl/types.go`.
+
+### Technical details
+- Target screenshot dimensions: 1297×1212.
+- Current screenshot dimensions: 1113×1042.
+- The design note proposes an Admin Workbench layer with shell/sidebar, page header, dashboard grid, structured panel, table column grammar, comparison table, month calendar, activity feed, action placement, and density tokens.
+
+## Step 25: Write intern implementation guide and upload to reMarkable
+
+This step turned the dense admin layout analysis into a long-form intern guide. The guide explains the Admin DSL system from first principles, maps the backend/runtime/frontend layers, studies the target and current screenshots, and gives a concrete phased implementation plan for adding an Admin Workbench DSL layer.
+
+The document is intended to be handed to a new engineer before they implement workbench shell/sidebar, page header, dashboard grid, compact panels, richer tables, comparison tables, month calendars, and density policies.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Create  a detailed analysis / design / implementation guide that is for a new intern, explaining all the parts of the system needed to understand what it is, with prose paragraphs and bullet point sand pseudocode and diagrams and api references and file references. It should be very clear and technical. Store in the ticket and the nupload to remarkable."
+
+**Assistant interpretation:** Create a thorough technical onboarding/design/implementation document in the HAIR-041 ticket and upload it as a PDF to reMarkable.
+
+**Inferred user intent:** The user wants the next Admin Workbench DSL implementation to be approachable for a new contributor, with enough context to understand the architecture and enough specificity to execute the work safely.
+
+**Commit (code):** N/A — documentation and reference assets only.
+
+### What I did
+- Created `design-doc/03-admin-workbench-dsl-intern-implementation-guide.md`.
+- The guide includes:
+  - system overview diagrams,
+  - visual comparison of target vs current screenshots,
+  - file-by-file references,
+  - Admin DSL runtime/HTTP/action architecture,
+  - proposed workbench constructs,
+  - JSON/Go/TS/JS pseudocode,
+  - implementation phases,
+  - testing and Storybook strategy,
+  - validation commands and API references.
+- Related the guide to the copied screenshots and core Admin DSL files using `docmgr doc relate`.
+- Uploaded the guide to reMarkable:
+  - `/ai/2026/05/16/HAIR-041/HAIR 041 Admin Workbench DSL Intern Guide.pdf`
+
+### Why
+- The Admin Workbench direction touches Go schema, Go builders, Goja modules, backend flow modules, frontend schema, React renderer, Storybook, visual review, and live `/admin/intake` behavior.
+- A new contributor needs a single coherent guide before changing any of these layers.
+
+### What worked
+- `remarquee upload bundle ... --non-interactive` succeeded directly.
+- The guide could reuse the copied screenshot references already stored in the ticket workspace.
+
+### What didn't work
+- My first frontmatter validation command used a `ttmp/...` path, and `docmgr` prepended the docs root again:
+  - `docmgr validate frontmatter --doc ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/02-admin-layout-density-reference-analysis.md --suggest-fixes`
+  - Error: `open /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/02-admin-layout-density-reference-analysis.md: no such file or directory`
+- The corrected validation path omitted the leading `ttmp/`, and both new design docs validated successfully.
+- The reMarkable upload succeeded without requiring status/list/account checks.
+
+### What I learned
+- The clearest way to explain the work is not by starting with individual widgets, but by explaining the JSON page contract and then showing how workbench semantics sit above existing primitives.
+
+### What was tricky to build
+- The guide needed to be implementation-oriented without prematurely deciding every schema detail. It therefore distinguishes recommended constructs from open questions such as whether `dashboardGrid` should be a new node or an extension of `cardGrid`.
+
+### What warrants a second pair of eyes
+- Review whether the proposed phased plan should start frontend-only in Storybook or add Go schema constants first.
+- Review whether `pageHeader`, `dashboardGrid`, `comparisonTable`, and `monthCalendar` should be new node kinds or prop extensions of existing primitives.
+
+### What should be done in the future
+- Use the guide as the checklist for the next implementation slice.
+- Add the target workbench Storybook fixture before modifying live `/admin/intake` flows.
+
+### Code review instructions
+- Start with `design-doc/03-admin-workbench-dsl-intern-implementation-guide.md`.
+- Compare it with `design-doc/02-admin-layout-density-reference-analysis.md` and the screenshots in `various/design-reference/`.
+- Confirm the file references still match the current codebase before assigning implementation work.
+
+### Technical details
+- reMarkable command used:
+  - `remarquee upload bundle ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/03-admin-workbench-dsl-intern-implementation-guide.md --name "HAIR 041 Admin Workbench DSL Intern Guide" --remote-dir "/ai/2026/05/16/HAIR-041" --toc-depth 2 --non-interactive`

@@ -208,3 +208,14 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 - Added and ran a ticket-local Playwright smoke script for customer-submit -> admin-review.
 - Captured dashboard and request-queue screenshots in `various/playwright/`.
 - Marked the Phase 8 submit-to-admin smoke task complete.
+
+## 2026-05-16 — Dense admin layout reference analysis
+
+- Copied user-provided target and current/original admin layout screenshots into `various/design-reference/`.
+- Added `design-doc/02-admin-layout-density-reference-analysis.md` comparing the layouts and proposing Admin Workbench DSL constructs: sidebar shell, page header, dashboard grid, structured panels, richer resource tables, comparison table, month calendar, activity feed, action placement, and density policies.
+
+## 2026-05-16 — Admin Workbench DSL intern guide
+
+- Added `design-doc/03-admin-workbench-dsl-intern-implementation-guide.md`, a detailed intern-oriented analysis/design/implementation guide for evolving Admin DSL toward dense workbench-style pages.
+- Related the guide to the target/current screenshots and core Admin DSL schema/runtime/renderer files.
+- Uploaded the guide to reMarkable: `/ai/2026/05/16/HAIR-041/HAIR 041 Admin Workbench DSL Intern Guide.pdf`.
