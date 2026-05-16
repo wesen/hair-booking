@@ -76,23 +76,23 @@ updated: 2026-05-15
 
 - [x] Implement config versions screen.
 - [x] Implement create-draft-from-active action.
-- [ ] Implement services/categories editor.
+- [x] Implement services/categories editor.
   - [x] First-pass read-only editor view using `editableList`.
   - [x] Add update mutation and drawer form.
-  - [ ] Add create/delete/reorder mutations.
-- [ ] Implement tone options editor.
+  - [x] Add create/delete/reorder-by-sort-order mutations.
+- [x] Implement tone options editor.
   - [x] First-pass read-only editor view using `editableList`.
   - [x] Add update mutation and drawer form.
-  - [ ] Add create/delete/reorder mutations.
-- [ ] Implement budget options editor.
+  - [x] Add create/delete/reorder-by-sort-order mutations.
+- [x] Implement budget options editor.
   - [x] First-pass read-only editor view using `editableList`.
-  - [ ] Add create/update/delete/reorder mutations.
-- [ ] Implement price range editor.
+  - [x] Add create/update/delete/reorder-by-sort-order mutations.
+- [x] Implement price range editor.
   - [x] First-pass read-only table view using `resourceTable`.
-  - [ ] Add create/update/delete mutations and money-field validation.
-- [ ] Implement availability and time slot editors.
+  - [x] Add create/update/delete mutations and money-field validation.
+- [x] Implement availability and time slot editors.
   - [x] First-pass availability grid and time-slot list view.
-  - [ ] Add day/time-slot mutation semantics.
+  - [x] Add day/time-slot mutation semantics.
 - [x] Implement config validation report.
 - [x] Implement publish confirm modal.
 - [x] Implement publish transaction and audit event.

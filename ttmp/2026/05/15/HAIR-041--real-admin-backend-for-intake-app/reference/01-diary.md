@@ -970,3 +970,151 @@ The goal was to prove that the service editor pattern can be repeated across ano
 ### Technical details
 - Tone updates are audited as `admin_audit_events.entity_type = 'config_tone_option'` and `action = 'update'`.
 - Tone form values are string-based at the browser boundary; sort order and enabled are parsed by the Goja flow before calling the host module.
+
+## Step 14: Add remaining config update mutations
+
+This step completed update support for the remaining Phase 7 config entities: budgets, price ranges, availability days, and time slots. Each editor now has a drawer form, Goja validation, a host module call, app-owned SQLite mutation logic, and audit-event recording.
+
+The update model continues the same backend-owned interaction pattern used by services and tones. React renders forms and dispatches opaque actions; the Goja flow validates form values and calls `host/intake-admin`; the `pkg/intakeadmin` store owns schema-specific writes and draft-only enforcement.
+
+### Prompt Context
+
+**User prompt (verbatim):** "all of phase 7"
+
+**Assistant interpretation:** Complete the remaining HAIR-041 Phase 7 config editing and publishing items, not only the first update slices.
+
+**Inferred user intent:** The user wants the config editor to cover all planned intake config resources and to move Phase 7 to completion with commits and diary entries.
+
+**Commit (code):** 735c64e — "HAIR-041 Step 14: Add remaining config update mutations".
+
+### What I did
+- Added update DTOs and store methods for:
+  - `ConfigBudgetOptionInput` / `UpdateBudgetOption`,
+  - `ConfigPriceRangeInput` / `UpdatePriceRange`,
+  - `ConfigAvailabilityDayInput` / `UpdateAvailabilityDay`,
+  - `ConfigTimeSlotInput` / `UpdateTimeSlot`.
+- Added host module exports:
+  - `updateBudgetOption`,
+  - `updatePriceRange`,
+  - `updateAvailabilityDay`,
+  - `updateTimeSlot`.
+- Added Admin DSL drawer forms and save/cancel callbacks for budgets, price ranges, availability days, and time slots.
+- Added price validation for required label and min/max cents ordering.
+- Added store test coverage for each new update method.
+- Validated:
+  - `go test ./pkg/intakeadmin ./pkg/admindsl ./pkg/server -count=1`
+  - `go test ./... -count=1`
+
+### Why
+- Phase 7 requires all config resources used by the customer intake flow to be editable, not only service and tone rows.
+- Price range and availability updates are especially important because they affect customer estimates and booking slot selection.
+
+### What worked
+- The same store/host/Goja drawer architecture scaled across the remaining config row types.
+- No generic Admin DSL renderer changes were needed.
+
+### What didn't work
+- These forms still use text fields for booleans and cents. The renderer needs stronger semantic field support before this becomes production-grade.
+
+### What I learned
+- Repetition in the Goja flow is now high enough that the user's suggestion to split the file into modules is directionally correct.
+- The current Admin runtime supports registered native modules, but file-relative JavaScript `require(...)` is not yet wired for embedded flow helper files. That should be a follow-up runtime/refactor slice.
+
+### What was tricky to build
+- Price-range validation has to handle optional values while still catching invalid min/max ordering. The flow validates string form values before sending parsed optional integers to Go.
+- Availability combines visual calendar state with persisted row state; selecting a day now opens a backend-owned drawer only for draft configs.
+
+### What warrants a second pair of eyes
+- Review whether price-range min/max cents should use a dedicated money field before relying on raw cents entry.
+- Review whether availability day date/value/day should be separately editable or derived from one canonical date.
+
+### What should be done in the future
+- Refactor the large intake admin flow into required helper modules once Admin ScriptRuntime supports embedded JS module loading.
+- Improve field widgets for booleans, money, dates, and times.
+
+### Code review instructions
+- Review `pkg/intakeadmin/store.go` update methods for draft-only checks and validation.
+- Review `pkg/admindsl/flows/intake_admin.flow.js` drawer forms and save callbacks.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+- Price range form values use cents to match the existing config schema columns `min_cents` and `max_cents`.
+- Availability and time-slot ordering is currently controlled through `sortOrder` fields.
+
+## Step 15: Complete config create/delete mutations and close Phase 7 functionality
+
+This step added create and delete support across the Phase 7 config editor. Each config section now has add buttons for draft configs, drawer forms can create new rows by saving `__new__` selections, and existing rows can be deleted through backend-owned actions. Reordering is represented by editable `sortOrder` fields for this phase.
+
+This completes the functional Phase 7 scope: config versions, draft creation, per-resource editors, validation report, publish confirmation, publish transaction, and audit events are all present. Some interaction quality remains intentionally visible for later hardening, especially semantic field controls and drag/drop reorder UX.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 14)
+
+**Assistant interpretation:** Finish the remaining Phase 7 resource editor capabilities and mark the phase honestly complete.
+
+**Inferred user intent:** The user wants the ticket to move past first-pass read-only config inspection into a complete backend-backed config editing workflow.
+
+**Commit (code):** 5d484e6 — "HAIR-041 Step 15: Complete config create delete mutations".
+
+### What I did
+- Added `ConfigEntityInput`, `CreateConfigEntity(...)`, and `DeleteConfigEntity(...)` in `pkg/intakeadmin/store.go`.
+- Added host module exports:
+  - `createConfigEntity(input)`,
+  - `deleteConfigEntity(kind, id)`.
+- Added add buttons to draft config sections for:
+  - services,
+  - tones,
+  - budgets,
+  - price ranges,
+  - availability days,
+  - time slots.
+- Updated drawer save callbacks so `id === "__new__"` creates rows and existing ids update rows.
+- Added delete actions for existing config rows.
+- Added store tests for create/delete through the generic config entity API.
+- Updated Phase 7 tasks to complete resource editor items, with reorder explicitly represented as reorder-by-sort-order for this slice.
+- Ran final validation for this slice:
+  - `go test ./pkg/intakeadmin ./pkg/admindsl ./pkg/server -count=1`
+  - `go test ./... -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand` — 10 files, 46 tests passed.
+
+### Why
+- Without create/delete, the editor could modify seeded draft rows but could not manage real evolving salon configuration.
+- The generic create/delete API keeps the Goja flow small enough to finish Phase 7 while preserving app-owned schema switches in `pkg/intakeadmin` rather than in the renderer.
+
+### What worked
+- Add buttons can be represented with existing Admin DSL `toolbar` nodes inside sections.
+- Drawer forms could reuse the same save callbacks by treating `__new__` as a create sentinel.
+- Existing update methods plus `sortOrder` fields provide a first-pass reorder mechanism without implementing drag/drop.
+
+### What didn't work
+- File structure is now strained: `pkg/admindsl/flows/intake_admin.flow.js` is too large. The user's note about splitting files is correct; the current runtime should gain embedded JavaScript module loading so flow helpers can be moved behind `require(...)`.
+- Delete actions are immediate backend actions. A future UX hardening pass should add confirm surfaces for destructive row deletion.
+
+### What I learned
+- Completing Phase 7 confirms that the Admin DSL can express a real config editor with backend-owned state, but authoring ergonomics now need attention.
+- Generic entity create/delete is acceptable inside the app-owned store because it switches over known intake config entity kinds; it would not belong in the generic Admin DSL package.
+
+### What was tricky to build
+- The `__new__` sentinel keeps the drawer forms simple but must be handled carefully in each save callback. Existing rows update by id; new rows create through `createConfigEntity` and then close the drawer.
+- Generic delete needs a table allowlist to avoid letting arbitrary table names reach SQL. The store maps known entity kinds to known config tables.
+
+### What warrants a second pair of eyes
+- Review whether generic `CreateConfigEntity` should be split into typed methods before further production hardening.
+- Review delete behavior and decide whether every destructive config row action should require a confirm modal.
+- Review whether sort-order editing is acceptable as Phase 7 reorder support or whether drag/drop should be promoted from follow-up to required scope.
+
+### What should be done in the future
+- Add embedded JS module support to `pkg/admindsl.ScriptRuntime` and split `intake_admin.flow.js` into focused required modules.
+- Replace text booleans and raw cents with semantic Admin DSL fields.
+- Add visual/Playwright smoke coverage for create/edit/delete/publish config workflows.
+
+### Code review instructions
+- Review generic create/delete in `pkg/intakeadmin/store.go` first.
+- Review add/save/delete flow wiring in `pkg/admindsl/flows/intake_admin.flow.js`.
+- Validate with the four commands listed above.
+
+### Technical details
+- New row creation uses id prefixes such as `svc_`, `tone_`, `budget_`, `range_`, `day_`, and `time_` with UUID suffixes.
+- Delete uses a hard-coded kind-to-table allowlist and draft-row enforcement before deleting.

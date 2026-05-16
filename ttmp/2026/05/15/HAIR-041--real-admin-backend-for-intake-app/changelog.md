@@ -160,3 +160,10 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 
 - Added draft tone option editing for the `/admin/intake` config screen (commit `4ca5045`): tone rows open a drawer form, validate required fields, save through `host/intake-admin.updateToneOption`, persist to SQLite, and record admin audit events.
 - Validation passed with `go test ./pkg/intakeadmin ./pkg/admindsl ./pkg/server -count=1` and `go test ./... -count=1`.
+
+## 2026-05-16 — Complete Phase 7 config editors
+
+- Added update mutations for budgets, price ranges, availability days, and time slots (commit `735c64e`).
+- Added create/delete support across services, tones, budgets, price ranges, availability days, and time slots (commit `5d484e6`).
+- Marked Phase 7 resource editor tasks complete with reorder represented as editable sort order for this slice.
+- Validation passed with `go test ./... -count=1`, `cd web && npx tsc --noEmit`, and `cd web && pnpm test -- --runInBand`.
