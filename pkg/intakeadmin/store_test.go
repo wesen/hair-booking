@@ -113,6 +113,13 @@ func TestStoreDashboardStatsAndConfigDraftPublish(t *testing.T) {
 	if updatedService.Title != "Precision Cut" || updatedService.Badge != "$95+" || updatedService.SortOrder != 15 {
 		t.Fatalf("unexpected updated service: %#v", updatedService)
 	}
+	updatedTone, err := store.UpdateToneOption(context.Background(), ConfigToneOptionInput{ID: editor.Tones[0].ID, Value: editor.Tones[0].Value, Label: "Soft neutral", SortOrder: 12, Enabled: true}, Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("UpdateToneOption: %v", err)
+	}
+	if updatedTone.Label != "Soft neutral" || updatedTone.SortOrder != 12 {
+		t.Fatalf("unexpected updated tone: %#v", updatedTone)
+	}
 
 	published, err := store.PublishConfigVersion(context.Background(), draft.ID, Actor{UserID: "admin_1", Role: "admin"})
 	if err != nil {

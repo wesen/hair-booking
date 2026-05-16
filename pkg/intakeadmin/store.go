@@ -125,6 +125,14 @@ type ConfigToneOption struct {
 	Enabled   bool   `json:"enabled"`
 }
 
+type ConfigToneOptionInput struct {
+	ID        string `json:"id"`
+	Value     string `json:"value"`
+	Label     string `json:"label"`
+	SortOrder int    `json:"sortOrder"`
+	Enabled   bool   `json:"enabled"`
+}
+
 type ConfigBudgetOption struct {
 	ID        string         `json:"id"`
 	Value     string         `json:"value"`
@@ -558,6 +566,21 @@ func (s *Store) listConfigTimeSlots(ctx context.Context, id string) ([]ConfigTim
 	return out, rows.Err()
 }
 
+func (s *Store) ensureConfigRowIsDraft(ctx context.Context, tx *sql.Tx, table, id string) (string, string, error) {
+	query := fmt.Sprintf(`SELECT config_version_id, (SELECT status FROM dsl_config_versions WHERE id = %s.config_version_id) FROM %s WHERE id = ?`, table, table)
+	var configVersionID, status string
+	if err := tx.QueryRowContext(ctx, query, id).Scan(&configVersionID, &status); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return "", "", ErrNotFound
+		}
+		return "", "", err
+	}
+	if status != "draft" {
+		return "", "", fmt.Errorf("only draft config rows can be edited")
+	}
+	return configVersionID, status, nil
+}
+
 func (s *Store) UpdateServiceOption(ctx context.Context, input ConfigServiceOptionInput, actor Actor) (ConfigServiceOption, error) {
 	if s == nil || s.ConfigDB == nil {
 		return ConfigServiceOption{}, fmt.Errorf("intake admin config DB is not configured")
@@ -615,6 +638,52 @@ func (s *Store) UpdateServiceOption(ctx context.Context, input ConfigServiceOpti
 		}
 	}
 	return ConfigServiceOption{}, ErrNotFound
+}
+
+func (s *Store) UpdateToneOption(ctx context.Context, input ConfigToneOptionInput, actor Actor) (ConfigToneOption, error) {
+	if s == nil || s.ConfigDB == nil {
+		return ConfigToneOption{}, fmt.Errorf("intake admin config DB is not configured")
+	}
+	input.ID = strings.TrimSpace(input.ID)
+	input.Value = strings.TrimSpace(input.Value)
+	input.Label = strings.TrimSpace(input.Label)
+	if input.ID == "" {
+		return ConfigToneOption{}, fmt.Errorf("tone option id is required")
+	}
+	if input.Value == "" {
+		return ConfigToneOption{}, fmt.Errorf("value is required")
+	}
+	if input.Label == "" {
+		return ConfigToneOption{}, fmt.Errorf("label is required")
+	}
+	tx, err := s.ConfigDB.BeginTx(ctx, nil)
+	if err != nil {
+		return ConfigToneOption{}, err
+	}
+	defer func() { _ = tx.Rollback() }()
+	configVersionID, _, err := s.ensureConfigRowIsDraft(ctx, tx, "dsl_tone_options", input.ID)
+	if err != nil {
+		return ConfigToneOption{}, err
+	}
+	_, err = tx.ExecContext(ctx, `UPDATE dsl_tone_options SET value = ?, label = ?, sort_order = ?, enabled = ? WHERE id = ?`, input.Value, input.Label, input.SortOrder, boolInt(input.Enabled), input.ID)
+	if err != nil {
+		return ConfigToneOption{}, err
+	}
+	if err := tx.Commit(); err != nil {
+		return ConfigToneOption{}, err
+	}
+	after := map[string]any{"id": input.ID, "value": input.Value, "label": input.Label, "sortOrder": input.SortOrder, "enabled": input.Enabled, "configVersionId": configVersionID}
+	_ = s.insertAdminAuditEvent(ctx, actor, "config_tone_option", input.ID, "update", nil, after, map[string]any{"configVersionId": configVersionID})
+	toneOptions, err := s.listConfigTones(ctx, configVersionID)
+	if err != nil {
+		return ConfigToneOption{}, err
+	}
+	for _, tone := range toneOptions {
+		if tone.ID == input.ID {
+			return tone, nil
+		}
+	}
+	return ConfigToneOption{}, ErrNotFound
 }
 
 func validateConfigEditorData(data ConfigEditorData) ConfigValidationReport {

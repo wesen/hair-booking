@@ -309,6 +309,13 @@ function configEditorSection(ctx, editor) {
     ctx.state.errors = {};
     return render(ctx);
   });
+  const openTone = ctx.bind(admin.open("config.tone.open", "Edit").Placement("row"), function(event) {
+    ctx.state.selectedToneId = event.value && event.value.id;
+    ctx.state.configDrawer = "tone";
+    ctx.state.toneFormValues = null;
+    ctx.state.errors = {};
+    return render(ctx);
+  });
   const disabledEdit = admin.secondary("config.edit.placeholder", "Edit").Placement("row").Disabled(true).AccessibilityLabel("Detailed editing is implemented in the next Phase 7 slice");
   const availabilitySelect = ctx.bind(admin.open("config.availability.selectDay", "Select day").Placement("detail"), function(event) {
     ctx.state.selectedAvailabilityDay = event.value && event.value.value;
@@ -327,7 +334,7 @@ function configEditorSection(ctx, editor) {
   if (section === "tones") {
     return admin.section("Tone options", { description: "Draft tone labels read by the customer intake flow." },
       tabs,
-      admin.editableList("toneOptions", { items: toneEditorItems(editor.tones), emptyTitle: "No tone options" }).Actions(disabledEdit)
+      admin.editableList("toneOptions", { items: toneEditorItems(editor.tones), emptyTitle: "No tone options" }).Actions(editor.version.status === "draft" ? openTone : disabledEdit)
     );
   }
   if (section === "budgets") {
@@ -396,6 +403,44 @@ function serviceFormErrors(values) {
   return errors;
 }
 
+function toneFormValues(ctx, tone) {
+  return ctx.state.toneFormValues || {
+    id: tone.id,
+    value: tone.value,
+    label: tone.label,
+    sortOrder: String(tone.sortOrder || 0),
+    enabled: tone.enabled ? "true" : "false"
+  };
+}
+
+function toneFormErrors(values) {
+  const errors = {};
+  if (!String(values.value || "").trim()) errors.value = "Value is required";
+  if (!String(values.label || "").trim()) errors.label = "Label is required";
+  return errors;
+}
+
+function toneOptionDrawer(ctx, editor, saveAction, cancelAction) {
+  const tone = findById(editor.tones, ctx.state.selectedToneId);
+  if (!tone) {
+    return admin.surface.drawer("toneOptionEditor", { title: "Tone unavailable", open: true },
+      admin.summaryCard("Missing tone", { body: "The selected tone option no longer exists in this config version." }).Actions(cancelAction)
+    );
+  }
+  const values = toneFormValues(ctx, tone);
+  return admin.surface.drawer("toneOptionEditor", { title: "Edit tone option", open: true },
+    admin.form("toneOptionForm", { title: tone.label, values: values, errors: ctx.state.errors || {} },
+      admin.fieldGroup("Tone details",
+        admin.textField("id", { label: "ID", value: values.id }),
+        admin.textField("value", { label: "Value", value: values.value }),
+        admin.textField("label", { label: "Label", value: values.label }),
+        admin.textField("sortOrder", { label: "Sort order", value: values.sortOrder }),
+        admin.textField("enabled", { label: "Enabled (true/false)", value: values.enabled })
+      )
+    ).Actions(saveAction, cancelAction)
+  );
+}
+
 function serviceOptionDrawer(ctx, editor, saveAction, cancelAction) {
   const service = findById(editor.services, ctx.state.selectedServiceId);
   if (!service) {
@@ -450,6 +495,13 @@ function configScreen(ctx) {
     ctx.state.errors = {};
     return render(ctx);
   });
+  const cancelTone = ctx.bind(admin.secondary("config.tone.cancel", "Cancel").Placement("footer"), function() {
+    ctx.state.configDrawer = null;
+    ctx.state.selectedToneId = null;
+    ctx.state.toneFormValues = null;
+    ctx.state.errors = {};
+    return render(ctx);
+  });
   const saveService = ctx.bind(admin.primary("config.service.save", "Save service").Placement("footer"), function(event) {
     const values = event.value || {};
     values.id = values.id || ctx.state.selectedServiceId;
@@ -472,6 +524,28 @@ function configScreen(ctx) {
     ctx.state.configDrawer = null;
     ctx.state.selectedServiceId = null;
     ctx.state.serviceFormValues = null;
+    ctx.state.errors = {};
+    return render(ctx);
+  });
+  const saveTone = ctx.bind(admin.primary("config.tone.save", "Save tone").Placement("footer"), function(event) {
+    const values = event.value || {};
+    values.id = values.id || ctx.state.selectedToneId;
+    ctx.state.toneFormValues = values;
+    const errors = toneFormErrors(values);
+    if (Object.keys(errors).length) {
+      ctx.state.errors = errors;
+      return render(ctx);
+    }
+    intakeAdmin.updateToneOption({
+      id: values.id,
+      value: values.value,
+      label: values.label,
+      sortOrder: parseIntOrZero(values.sortOrder),
+      enabled: parseBool(values.enabled)
+    });
+    ctx.state.configDrawer = null;
+    ctx.state.selectedToneId = null;
+    ctx.state.toneFormValues = null;
     ctx.state.errors = {};
     return render(ctx);
   });
@@ -522,6 +596,9 @@ function configScreen(ctx) {
   }
   if (ctx.state.configDrawer === "service") {
     page.Drawers(serviceOptionDrawer(ctx, editor, saveService, cancelService));
+  }
+  if (ctx.state.configDrawer === "tone") {
+    page.Drawers(toneOptionDrawer(ctx, editor, saveTone, cancelTone));
   }
 
   return page.MustBuild();

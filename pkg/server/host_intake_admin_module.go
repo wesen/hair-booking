@@ -106,6 +106,18 @@ func loadIntakeAdminModule(store *intakeadmin.Store, actor intakeadmin.Actor) ad
 			}
 			return vm.ToValue(gojaJSONValue(service))
 		})
+		_ = exports.Set("updateToneOption", func(call goja.FunctionCall) goja.Value {
+			var input intakeadmin.ConfigToneOptionInput
+			if len(call.Arguments) > 0 && !goja.IsUndefined(call.Argument(0)) && !goja.IsNull(call.Argument(0)) {
+				payload, _ := json.Marshal(call.Argument(0).Export())
+				_ = json.Unmarshal(payload, &input)
+			}
+			tone, err := store.UpdateToneOption(context.Background(), input, actor)
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.updateToneOption: " + err.Error()))
+			}
+			return vm.ToValue(gojaJSONValue(tone))
+		})
 	}
 }
 
