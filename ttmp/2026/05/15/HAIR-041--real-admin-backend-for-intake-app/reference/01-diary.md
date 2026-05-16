@@ -1332,3 +1332,82 @@ The implementation still uses embedded sources controlled by Go. It does not ope
 - Root flow virtual filename: `/flows/intake_admin.flow.js`.
 - Config helper virtual filename: `/flows/intake_config.flow.js`.
 - Relative require used by root flow: `require("./intake_config.flow.js")`.
+
+## Step 19: Split request-review and ops screens into helper flow modules
+
+This step continued the Admin DSL flow restructuring now that relative embedded `require("./...")` is available. The root intake admin flow is now only the session state, navigation switch, dashboard, and module wiring. Request queue/detail behavior lives in a request module, and audit/health/preview behavior lives in an ops module.
+
+The result is a much smaller root flow and a clearer place to add future Phase 8 features. New backend-owned screens no longer have to grow the same monolithic JavaScript file.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead, commit at appropriate intervals, remember to keep a detailed diary"
+
+**Assistant interpretation:** Continue restructuring and Phase 8 work in focused commits, validating and recording the implementation narrative.
+
+**Inferred user intent:** The user wants sustained implementation progress without losing auditability or letting the JavaScript flow files become unmaintainable.
+
+**Commit (code):** 987ff70 — "HAIR-041 Step 19: Split intake admin request and ops flows".
+
+### What I did
+- Created `pkg/admindsl/flows/intake_requests.flow.js` for:
+  - request table row mapping,
+  - request queue screen,
+  - request detail screen,
+  - photo gallery/modal behavior.
+- Created `pkg/admindsl/flows/intake_ops.flow.js` for:
+  - audit log screen,
+  - health diagnostics screen,
+  - preview screen.
+- Updated `pkg/admindsl/flows/intake_admin.flow.js` to require:
+  - `./intake_requests.flow.js`,
+  - `./intake_config.flow.js`,
+  - `./intake_ops.flow.js`.
+- Embedded and registered the new modules in:
+  - `pkg/admindsl/flows.go`,
+  - `pkg/server/handlers_admin_dsl.go`.
+- Reduced the root intake admin flow from roughly 287 lines to roughly 71 lines.
+- Validated:
+  - `go test ./pkg/admindsl ./pkg/server -count=1`
+  - `go test ./... -count=1`
+
+### Why
+- The request/detail and ops screens are separate authoring concerns from dashboard navigation and config editing.
+- Splitting modules now prevents Phase 8 preview/smoke work from recreating a giant root flow.
+
+### What worked
+- Relative embedded `require("./...")` support made the split straightforward.
+- Existing runtime validation and HTTP tests exercised the split modules through the real Admin DSL start/dispatch path.
+
+### What didn't work
+- A mechanical replacement briefly changed the dashboard `Review requests` callback to call `deps.go(...)` even though dashboard remains in the root module. This was fixed before validation.
+
+### What I learned
+- The root flow should remain an orchestrator, not a container for all screen implementation details.
+- Helper modules need small dependency objects (`{ render, go }`) only when they need to re-render or navigate through root state.
+
+### What was tricky to build
+- The dashboard still uses `requestFlow.requestTable(...)` for recent requests. That means the request module must export both full screens and small reusable rendering helpers.
+- Keeping module boundaries clean requires care: request screens need `render/go`, ops screens only need `go`, and the config module needs both.
+
+### What warrants a second pair of eyes
+- Review whether `dashboardScreen` should move into its own module as the root flow shrinks further.
+- Review whether the dependency object pattern should be standardized for all flow helper modules.
+
+### What should be done in the future
+- Continue adding Phase 8 preview/smoke code in the focused ops module rather than the root flow.
+- Consider splitting config editor forms into submodules if `intake_config.flow.js` continues to grow.
+
+### Code review instructions
+- Start with `pkg/admindsl/flows/intake_admin.flow.js` to understand the orchestration layer.
+- Then review `pkg/admindsl/flows/intake_requests.flow.js` and `pkg/admindsl/flows/intake_ops.flow.js`.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+- New virtual module paths:
+  - `/flows/intake_requests.flow.js`
+  - `/flows/intake_ops.flow.js`
+- Root requires:
+  - `require("./intake_requests.flow.js")`
+  - `require("./intake_config.flow.js")`
+  - `require("./intake_ops.flow.js")`

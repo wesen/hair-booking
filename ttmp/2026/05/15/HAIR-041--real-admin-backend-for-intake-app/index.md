@@ -24,8 +24,13 @@ RelatedFiles:
         Root intake admin flow after config split (commit dbc6204)
         Audit and health screens for Phase 8 (commit 8876ddf)
         Root flow uses relative require for config helper (commit 8c7e698)
+        Root flow router/dashboard after request/ops module split (commit 987ff70)
     - Path: pkg/admindsl/flows/intake_config.flow.js
       Note: Extracted Phase 7 config editor module (commit dbc6204)
+    - Path: pkg/admindsl/flows/intake_ops.flow.js
+      Note: Audit
+    - Path: pkg/admindsl/flows/intake_requests.flow.js
+      Note: Request queue/detail/photo review helper module (commit 987ff70)
     - Path: pkg/admindsl/script_runtime.go
       Note: |-
         Embedded script module support for Admin DSL require() (commit dbc6204)
@@ -52,6 +57,7 @@ LastUpdated: 2026-05-15T19:43:10.470080535-04:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 

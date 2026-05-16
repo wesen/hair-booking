@@ -186,3 +186,8 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 
 - Added virtual embedded module resolution for relative Admin DSL flow helper imports such as `require("./intake_config.flow.js")` (commit `8c7e698`).
 - Root flow sources now load with stable virtual filenames via `StartFlowNamed(...)`, and helper modules are loaded from `WithScriptModule(...)` sources through the Goja require source loader.
+
+## 2026-05-16 — Split request and ops flow helpers
+
+- Split request queue/detail code into `pkg/admindsl/flows/intake_requests.flow.js` and audit/health/preview code into `pkg/admindsl/flows/intake_ops.flow.js` (commit `987ff70`).
+- Root `intake_admin.flow.js` now acts as the screen router/dashboard and requires focused helper modules.
