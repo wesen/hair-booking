@@ -1118,3 +1118,76 @@ This completes the functional Phase 7 scope: config versions, draft creation, pe
 ### Technical details
 - New row creation uses id prefixes such as `svc_`, `tone_`, `budget_`, `range_`, `day_`, and `time_` with UUID suffixes.
 - Delete uses a hard-coded kind-to-table allowlist and draft-row enforcement before deleting.
+
+## Step 16: Add embedded Admin DSL script modules and split the config flow
+
+This step addressed the file-structure issue raised after Phase 7. The Admin DSL runtime can now register embedded JavaScript helper modules and expose them through `require(...)`, and the large intake admin config editor has been split out of `intake_admin.flow.js` into its own required module.
+
+The runtime still keeps module registration explicit from Go. This preserves the existing deployment model: embedded sources are registered by the host, then JavaScript flows require stable module names. It avoids arbitrary filesystem access while making large flows maintainable.
+
+### Prompt Context
+
+**User prompt (verbatim):** "btw, you can split the files into multiple and use require, i think, to make things easier to structure and work with."
+
+**Assistant interpretation:** Confirm and act on the suggestion by adding module support and splitting the large Admin DSL flow into required helper files.
+
+**Inferred user intent:** The user wants the flow authoring structure to stay maintainable as Phase 7 and Phase 8 add more backend-owned screens.
+
+**User prompt (verbatim):** "also make tasks for the other issues we have so we can tackle them in the future, then continue"
+
+**Assistant interpretation:** Add explicit backlog tasks for known hardening issues, then continue implementation with the flow split.
+
+**Inferred user intent:** The user wants known weaknesses tracked instead of being lost, while still moving forward.
+
+**Commit (code):** dbc6204 — "HAIR-041 Step 16: Split intake admin config flow module".
+
+### What I did
+- Added `ScriptRuntime` support for embedded JavaScript script modules:
+  - `WithScriptModule(name, source)`.
+  - `loadScriptModuleSource(...)` wraps source in a CommonJS-style `(module, exports)` function.
+- Added runtime test coverage for requiring an embedded script module from an Admin DSL flow.
+- Embedded a new module source:
+  - `pkg/admindsl/flows/intake_config.flow.js`.
+- Registered it in the server runtime as:
+  - `fringe/admin-flows/intake-config`.
+- Reduced `pkg/admindsl/flows/intake_admin.flow.js` from roughly 934 lines to roughly 212 lines by moving config editor helpers/screens into the new module.
+- Updated Phase 10 backlog tasks to mark the flow split complete.
+- Validated:
+  - `go test ./pkg/admindsl ./pkg/server -count=1`
+  - `go test ./... -count=1`
+
+### Why
+- The Phase 7 config editor made `intake_admin.flow.js` too large to maintain safely.
+- Required helper modules let each Admin DSL screen cluster stay focused without changing the browser/runtime contract.
+
+### What worked
+- The existing goja-nodejs registry already supports native module registration, so embedded script modules could be implemented as controlled native module loaders.
+- The split did not require any React or protobuf changes.
+
+### What didn't work
+- This is not full filesystem-relative Node resolution. Modules are explicit embedded sources registered by Go. That is intentional for now, but authors need to know module names are host-registered.
+
+### What I learned
+- Script module support is the right authoring abstraction for larger backend-owned Admin DSL flows.
+- Keeping module registration explicit preserves runtime control while still allowing JavaScript flow code to use `require(...)`.
+
+### What was tricky to build
+- The config module callbacks needed access to `render(ctx)` and `go(ctx, screen)` from the root flow. The module now receives dependencies as `{ render, go }` when `configScreen(...)` is called.
+- Embedded module source is executed in a CommonJS wrapper, so errors need to be surfaced as Goja panics that the existing runtime error handling can report.
+
+### What warrants a second pair of eyes
+- Review whether script modules should eventually support relative names or remain explicitly registered by Go.
+- Review whether `WithScriptModule` should cache compiled programs rather than wrapping and running strings for each session.
+
+### What should be done in the future
+- Split request-review screens into another module if Phase 8 makes the root flow grow again.
+- Consider a small package-level registry for all embedded Admin DSL flow modules.
+
+### Code review instructions
+- Start with `pkg/admindsl/script_runtime.go` and `TestScriptRuntimeLoadsScriptModules`.
+- Review `pkg/admindsl/flows/intake_admin.flow.js` and `pkg/admindsl/flows/intake_config.flow.js` together.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+- Registered module name: `fringe/admin-flows/intake-config`.
+- The module exports `{ configScreen }`.

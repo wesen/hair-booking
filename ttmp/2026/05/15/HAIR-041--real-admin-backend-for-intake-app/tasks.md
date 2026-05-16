@@ -117,7 +117,7 @@ updated: 2026-05-15
 
 ## Phase 10 — Follow-up hardening backlog
 
-- [ ] Split `pkg/admindsl/flows/intake_admin.flow.js` into focused required modules once Admin ScriptRuntime supports embedded JS modules.
+- [x] Split `pkg/admindsl/flows/intake_admin.flow.js` into focused required modules once Admin ScriptRuntime supports embedded JS modules.
 - [ ] Add delete confirmation surfaces for destructive config row actions.
 - [ ] Replace boolean text fields with semantic `switchField` submit semantics.
 - [ ] Replace service/category/value text fallbacks with semantic `selectField` submit semantics where options are known.

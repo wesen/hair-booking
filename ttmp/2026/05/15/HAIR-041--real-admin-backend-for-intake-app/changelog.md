@@ -171,3 +171,8 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 ## 2026-05-16 — Add follow-up hardening backlog
 
 - Added HAIR-041 Phase 10 follow-up tasks for known hardening issues: flow module splitting, delete confirmations, semantic form controls, drag/reorder, Playwright/visual coverage, admin auth, upload ownership, audit atomicity, session persistence, audit payloads, and accessibility review.
+
+## 2026-05-16 — Split intake admin config flow module
+
+- Added embedded Admin DSL script-module support and split the Phase 7 config editor into `pkg/admindsl/flows/intake_config.flow.js` (commit `dbc6204`).
+- Registered the config module as `fringe/admin-flows/intake-config` and kept the root intake admin flow focused on navigation/request/preview screens.

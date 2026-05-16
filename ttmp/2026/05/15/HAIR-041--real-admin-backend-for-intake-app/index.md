@@ -21,6 +21,11 @@ RelatedFiles:
         Service config edit drawer and save callback (commit 126b3be)
         Tone config edit drawer and save callback (commit 4ca5045)
         Complete Phase 7 config editor flow with update/create/delete drawers and publish workflow (commits 735c64e
+        Root intake admin flow after config split (commit dbc6204)
+    - Path: pkg/admindsl/flows/intake_config.flow.js
+      Note: Extracted Phase 7 config editor module (commit dbc6204)
+    - Path: pkg/admindsl/script_runtime.go
+      Note: Embedded script module support for Admin DSL require() (commit dbc6204)
     - Path: pkg/intakeadmin/store.go
       Note: |-
         Config editor data DTOs
@@ -39,6 +44,7 @@ LastUpdated: 2026-05-15T19:43:10.470080535-04:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 
