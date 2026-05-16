@@ -898,3 +898,75 @@ The implementation deliberately starts with update-only semantics. Create, delet
 - Form values arrive as strings from browser `FormData`.
 - The Goja flow parses `sortOrder` with `parseIntOrZero(...)` and parses `enabled` with `parseBool(...)`.
 - The store records service updates as `admin_audit_events.entity_type = 'config_service_option'` and `action = 'update'`.
+
+## Step 13: Add tone config editor mutation
+
+This step extended the Phase 7 config editing pattern from service options to tone options. Draft tone rows can now open an edit drawer, validate required fields in the Goja flow, save through the app-owned host module, persist to SQLite, and record an admin audit event.
+
+The goal was to prove that the service editor pattern can be repeated across another config entity without adding app-specific React components or weakening the Admin DSL boundary.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 12)
+
+**Assistant interpretation:** Continue HAIR-041 Phase 7 implementation in focused commits, validating along the way and recording a detailed diary step.
+
+**Inferred user intent:** The user wants additional real config editing progress while keeping each mutation slice reviewable.
+
+**Commit (code):** 4ca5045 — "HAIR-041 Step 13: Add tone config editor mutation".
+
+### What I did
+- Added `ConfigToneOptionInput` and `Store.UpdateToneOption(...)` in `pkg/intakeadmin/store.go`.
+- Added a shared draft-row helper for config mutation methods:
+  - `ensureConfigRowIsDraft(...)`.
+- Exposed `host/intake-admin.updateToneOption(input)` to the Admin Goja flow.
+- Updated `pkg/admindsl/flows/intake_admin.flow.js` with:
+  - tone row open action,
+  - tone drawer form,
+  - tone required-field validation,
+  - save/cancel callbacks,
+  - form state cleanup after save/cancel.
+- Extended store tests to update a draft tone option and verify the persisted label/sort order.
+- Updated HAIR-041 task status for tone update mutation.
+- Validated:
+  - `go test ./pkg/intakeadmin ./pkg/admindsl ./pkg/server -count=1`
+  - `go test ./... -count=1`
+
+### Why
+- Tone options are another customer-facing config entity used by the intake flow, so they are a good second mutation target after services.
+- Repeating the pattern tests whether the store/host/flow structure can scale before moving to more complex entities such as pricing and availability.
+
+### What worked
+- The service editor pattern transferred cleanly to tone options.
+- The app-owned store can enforce draft-only editing for tone rows before the Admin DSL runtime sees a successful mutation result.
+- No frontend renderer changes were required.
+
+### What didn't work
+- The UI still uses text input for `enabled` instead of a semantic switch input, for the same reason recorded in Step 12.
+- Tone editor still lacks create/delete/reorder mutations.
+
+### What I learned
+- Shared draft-row resolution is worth extracting before implementing more config entity updates.
+- The most useful next refactor is likely a small helper around config row mutation/audit payloads to reduce duplication in budget, price, availability, and time-slot updates.
+
+### What was tricky to build
+- The Goja flow now has multiple drawer states (`service`, `tone`) that use similar but separate form state fields. This is explicit and understandable for two entities, but it will become repetitive as more editors are added.
+- A future cleanup should consider a generic config drawer state shape while keeping each app-owned mutation explicit.
+
+### What warrants a second pair of eyes
+- Review whether the shared `ensureConfigRowIsDraft(...)` helper should be hardened against non-constant table names or replaced with typed helper methods per table.
+- Review whether tone update audit events need before/after payload parity with service updates.
+
+### What should be done in the future
+- Add create/delete/reorder tone mutations.
+- Add budget update mutation next, since it is structurally similar to service/tone and still uses simple text fields.
+- Consider improving field widgets before price/availability editors become more complex.
+
+### Code review instructions
+- Start with `pkg/intakeadmin/store.go` and review `UpdateToneOption` plus `ensureConfigRowIsDraft`.
+- Review `pkg/admindsl/flows/intake_admin.flow.js` for `toneOptionDrawer` and `config.tone.save`.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+- Tone updates are audited as `admin_audit_events.entity_type = 'config_tone_option'` and `action = 'update'`.
+- Tone form values are string-based at the browser boundary; sort order and enabled are parsed by the Goja flow before calling the host module.

@@ -19,20 +19,24 @@ RelatedFiles:
       Note: |-
         Phase 7 config screen
         Service config edit drawer and save callback (commit 126b3be)
+        Tone config edit drawer and save callback (commit 4ca5045)
     - Path: pkg/intakeadmin/store.go
       Note: |-
         Config editor data DTOs
         Draft-only service option update mutation and audit event (commit 126b3be)
+        Draft-only tone option update mutation and shared draft-row helper (commit 4ca5045)
     - Path: pkg/server/host_intake_admin_module.go
       Note: |-
         Goja host exports for config editor data and publish (commit b6eab66)
         Goja host export for updateServiceOption (commit 126b3be)
+        Goja host export for updateToneOption (commit 4ca5045)
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-05-15T19:43:10.470080535-04:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 

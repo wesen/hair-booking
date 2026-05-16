@@ -155,3 +155,8 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 
 - Added the first live Phase 7 config edit mutation (commit `126b3be`): draft service options now open in an Admin DSL drawer form, validate required fields, save through `host/intake-admin.updateServiceOption`, update SQLite config rows, and write admin audit events.
 - Validation passed with `go test ./pkg/intakeadmin ./pkg/admindsl ./pkg/server -count=1` and `go test ./... -count=1`.
+
+## 2026-05-16 — Tone config editor mutation
+
+- Added draft tone option editing for the `/admin/intake` config screen (commit `4ca5045`): tone rows open a drawer form, validate required fields, save through `host/intake-admin.updateToneOption`, persist to SQLite, and record admin audit events.
+- Validation passed with `go test ./pkg/intakeadmin ./pkg/admindsl ./pkg/server -count=1` and `go test ./... -count=1`.
