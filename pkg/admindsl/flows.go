@@ -36,3 +36,27 @@ var IntakeAdminRequestsFlowModule string
 //
 //go:embed flows/intake_ops.flow.js
 var IntakeAdminOpsFlowModule string
+
+type EmbeddedScriptModule struct {
+	Name   string
+	Source string
+}
+
+func IntakeAdminScriptModules() []EmbeddedScriptModule {
+	return []EmbeddedScriptModule{
+		{Name: "/flows/intake_config.flow.js", Source: IntakeAdminConfigFlowModule},
+		{Name: "/flows/intake_config_helpers.flow.js", Source: IntakeAdminConfigHelpersFlowModule},
+		{Name: "/flows/intake_config_forms.flow.js", Source: IntakeAdminConfigFormsFlowModule},
+		{Name: "/flows/intake_requests.flow.js", Source: IntakeAdminRequestsFlowModule},
+		{Name: "/flows/intake_ops.flow.js", Source: IntakeAdminOpsFlowModule},
+	}
+}
+
+func IntakeAdminScriptModuleOptions() []ScriptRuntimeOption {
+	modules := IntakeAdminScriptModules()
+	options := make([]ScriptRuntimeOption, 0, len(modules))
+	for _, module := range modules {
+		options = append(options, WithScriptModule(module.Name, module.Source))
+	}
+	return options
+}
