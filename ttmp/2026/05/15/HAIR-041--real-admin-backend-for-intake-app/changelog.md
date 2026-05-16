@@ -181,3 +181,8 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 
 - Added `/admin/intake` audit-log and health-diagnostics screens backed by `host/intake-admin` store queries (commit `8876ddf`).
 - Marked Phase 8 audit-log and health-diagnostics tasks complete.
+
+## 2026-05-16 — Relative Admin DSL flow requires
+
+- Added virtual embedded module resolution for relative Admin DSL flow helper imports such as `require("./intake_config.flow.js")` (commit `8c7e698`).
+- Root flow sources now load with stable virtual filenames via `StartFlowNamed(...)`, and helper modules are loaded from `WithScriptModule(...)` sources through the Goja require source loader.

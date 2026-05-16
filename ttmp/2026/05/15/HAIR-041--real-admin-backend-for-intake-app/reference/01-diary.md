@@ -1258,3 +1258,77 @@ The work keeps the same boundary as the Phase 7 config editor: the Admin DSL ren
 ### Technical details
 - Audit table screen reads from `admin_audit_events`.
 - Health screen currently checks state DB, config DB, active config, request count, audit count, draft count, and last audit timestamp.
+
+## Step 18: Support relative `require("./...")` in Admin DSL flow files
+
+This step upgraded the Admin DSL script module support from explicit host-registered module names to relative embedded module loading. Flow files can now require helper files with paths such as `require("./intake_config.flow.js")`, which is the authoring style needed to keep larger backend-owned flows split into small files.
+
+The implementation still uses embedded sources controlled by Go. It does not open arbitrary filesystem access; the runtime resolves paths against the current script/module name and loads only sources registered through `WithScriptModule(...)`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "can you require(..) in the flow.js files?"
+
+**Assistant interpretation:** Clarify current require support and then implement proper relative helper-file require support for Admin DSL flows.
+
+**Inferred user intent:** The user wants flow authors to structure Admin DSL JavaScript like normal modular code instead of growing one giant file.
+
+**User prompt (verbatim):** "go ahead, add require support and that way we can start building helper js files and do more structuring of the flows js to avoid having huge files like these"
+
+**Assistant interpretation:** Implement relative embedded `require(...)` support, wire the existing intake config module through it, validate, and commit.
+
+**Inferred user intent:** The user wants a reusable runtime capability, not just a one-off named-module workaround.
+
+**Commit (code):** 8c7e698 — "HAIR-041 Step 18: Support relative admin flow requires".
+
+### What I did
+- Added `ScriptRuntime.StartFlowNamed(...)` so flow source has a stable virtual filename such as `/flows/intake_admin.flow.js`.
+- Updated the Goja require registry to use:
+  - a runtime script-module source loader,
+  - a virtual path resolver for embedded module paths.
+- Kept `WithScriptModule(name, source)` but normalized names as virtual module paths.
+- Registered the intake config helper as `/flows/intake_config.flow.js`.
+- Changed the root flow to use relative require:
+  - `const configFlow = require("./intake_config.flow.js");`
+- Added test coverage proving a root flow loaded as `/flows/root.flow.js` can require `./admin-helper.js` from embedded module sources.
+- Validated:
+  - `go test ./pkg/admindsl ./pkg/server -count=1`
+  - `go test ./... -count=1`
+
+### Why
+- Explicit module names solved the first split, but relative requires are the better authoring model for future helper files.
+- Virtual embedded paths preserve deployment safety while making JavaScript source organization familiar.
+
+### What worked
+- goja-nodejs `require.Registry` already supports source loaders and path resolvers, so the runtime could layer virtual embedded module paths on top.
+- The root flow now has a source filename, so `require("./...")` resolves relative to that virtual filename.
+
+### What didn't work
+- This still is not arbitrary filesystem module loading. That is intentional, but it means every helper file must be embedded by Go and registered with `WithScriptModule(...)`.
+
+### What I learned
+- Source names matter for relative require resolution because the require package derives the current module directory from the call stack source name.
+- The correct runtime boundary is virtual embedded files, not direct filesystem lookup.
+
+### What was tricky to build
+- The previous implementation registered script modules as native modules. Native modules work for explicit names, but they cannot model relative `./helper.js` resolution. The runtime now also provides a `SourceLoader` and `PathResolver` for virtual paths.
+- The server needed to call `StartFlowNamed(...)` with `/flows/intake_admin.flow.js` so the root flow has a useful base path.
+
+### What warrants a second pair of eyes
+- Review whether virtual module paths should always live under `/flows/` or whether each flow should get its own subdirectory.
+- Review whether module compilation should be cached more aggressively if many Admin DSL sessions start concurrently.
+
+### What should be done in the future
+- Split additional request, audit, health, and preview helpers if the root flow grows again.
+- Consider an embedded module registry helper so adding new flow helper files only requires one line in `flows.go`.
+
+### Code review instructions
+- Start with `pkg/admindsl/script_runtime.go` and `TestScriptRuntimeLoadsScriptModules`.
+- Review server wiring in `pkg/server/handlers_admin_dsl.go`.
+- Review the root flow require in `pkg/admindsl/flows/intake_admin.flow.js`.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+- Root flow virtual filename: `/flows/intake_admin.flow.js`.
+- Config helper virtual filename: `/flows/intake_config.flow.js`.
+- Relative require used by root flow: `require("./intake_config.flow.js")`.

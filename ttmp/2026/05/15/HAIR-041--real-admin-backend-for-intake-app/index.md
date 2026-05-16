@@ -23,10 +23,13 @@ RelatedFiles:
         Complete Phase 7 config editor flow with update/create/delete drawers and publish workflow (commits 735c64e
         Root intake admin flow after config split (commit dbc6204)
         Audit and health screens for Phase 8 (commit 8876ddf)
+        Root flow uses relative require for config helper (commit 8c7e698)
     - Path: pkg/admindsl/flows/intake_config.flow.js
       Note: Extracted Phase 7 config editor module (commit dbc6204)
     - Path: pkg/admindsl/script_runtime.go
-      Note: Embedded script module support for Admin DSL require() (commit dbc6204)
+      Note: |-
+        Embedded script module support for Admin DSL require() (commit dbc6204)
+        Virtual embedded source loader and relative require support for Admin DSL flows (commit 8c7e698)
     - Path: pkg/intakeadmin/store.go
       Note: |-
         Config editor data DTOs
@@ -34,6 +37,8 @@ RelatedFiles:
         Draft-only tone option update mutation and shared draft-row helper (commit 4ca5045)
         Phase 7 config update/create/delete store methods and audit events (commits 735c64e
         Audit listing and health diagnostics queries (commit 8876ddf)
+    - Path: pkg/server/handlers_admin_dsl.go
+      Note: StartFlowNamed source filenames and registered config helper module path (commit 8c7e698)
     - Path: pkg/server/host_intake_admin_module.go
       Note: |-
         Goja host exports for config editor data and publish (commit b6eab66)
@@ -47,6 +52,7 @@ LastUpdated: 2026-05-15T19:43:10.470080535-04:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 
