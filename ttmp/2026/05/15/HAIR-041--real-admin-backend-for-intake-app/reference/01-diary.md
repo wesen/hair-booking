@@ -626,3 +626,87 @@ The implementations are intentionally pragmatic first versions. They make the re
 ### Technical details
 - New Storybook section: `Admin DSL/Advanced Components`.
 - New/expanded request queue controls are in `pkg/admindsl/flows/intake_admin.flow.js`.
+
+## Step 10: Write Obsidian deep-dive report for the Admin DSL technique
+
+This step captured the Admin DSL design and implementation work as a standalone Obsidian project report. The report focuses on the technique behind the backend-driven Admin DSL: pages as data, explicit React interpretation, Goja-hosted backend callbacks, protobuf transport, app-owned persistence, and the way HAIR-041 pressure-tested the design with a real intake admin backend.
+
+The report is intentionally written as a technical article rather than a ticket status note. It explains the reusable principles behind the implementation so the pattern can be understood outside the immediate HAIR-041 code changes.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Create a deep-dive technical project report about the design and implementation work on the ADMIN DSL, store it in the Obsidian vault, and write it in a textbook style without analogies. The article should showcase the technique and principles behind the DSL approach."
+
+**Assistant interpretation:** Write a long-form Obsidian project report that explains the Admin DSL architecture and implementation principles in a clear textbook style.
+
+**Inferred user intent:** The user wants durable knowledge capture for the Admin DSL approach, not only code commits and ticket notes.
+
+**User prompt (verbatim):** "continue, what's next? Don't forget to commit at appropriate intervals and to keep a detailed diary."
+
+**Assistant interpretation:** Continue the report workflow by committing the Obsidian article and recording the work in the ticket diary.
+
+**Inferred user intent:** The user wants the documentation artifact to be safely committed and the project history kept auditable.
+
+**Commit (docs):** cd75f55 — "Add Fringe Admin DSL backend-driven interfaces report" in `/home/manuel/code/wesen/go-go-golems/go-go-parc`.
+
+### What I did
+- Created `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/05/16/PROJECT REPORT - Fringe Admin DSL Backend Driven Admin Interfaces Deep Dive.md`.
+- Used the prior Admin DSL report as a formatting/style reference.
+- Wrote a new report covering:
+  - why the Admin DSL exists,
+  - page/node/action/surface model,
+  - React renderer as an explicit interpreter,
+  - Goja backend execution and page-version-scoped action dispatch,
+  - real `/admin/intake` backend flow,
+  - app-owned persistence through `pkg/intakeadmin`,
+  - Storybook as a DSL contract surface,
+  - protobuf transport boundaries,
+  - implementation invariants,
+  - current status and unfinished production hardening.
+- Committed only the new Obsidian report file in the PARC vault.
+- Left `.obsidian/workspace.json` unstaged because it only contained local Obsidian UI state changes.
+
+### Why
+- The Admin DSL work now spans multiple tickets and several architectural layers. A single textbook-style article makes the technique easier to review, reuse, and explain.
+- The report complements the HAIR-041 diary by emphasizing reusable design principles rather than only chronological implementation steps.
+
+### What worked
+- The previous Obsidian project report provided a useful frontmatter and article structure.
+- The existing HAIR-039/040/041 implementation details were enough to write a concrete report with file paths, flow diagrams, and code-bound examples.
+- The vault commit was cleanly scoped to the new report file.
+
+### What didn't work
+- The Obsidian vault had unrelated `.obsidian/workspace.json` changes from local UI state. Those were intentionally not committed.
+
+### What I learned
+- The most important Admin DSL story is the boundary discipline: fluent authoring is allowed, but transport remains data; the renderer interprets known nodes; app-owned stores perform domain writes.
+- HAIR-041 gives the report practical weight because it shows the DSL under real persistence and request-review pressure, not only fixture/demo pressure.
+
+### What was tricky to build
+- The report needed to be broad enough to explain HAIR-039 through HAIR-041 while staying focused on the Admin DSL technique. The solution was to organize it around invariants and runtime boundaries rather than a pure chronological changelog.
+- The report also needed to avoid treating first-pass primitives as finished production widgets. The status section explicitly distinguishes implemented foundation from remaining hardening.
+
+### What warrants a second pair of eyes
+- Review whether the report should also be uploaded to reMarkable, since the original prompt only required Obsidian storage.
+- Review whether the report should be cross-linked from HAIR-039 or HAIR-041 reference docs.
+- Review the unfinished-production list to ensure no critical Admin DSL hardening item is missing.
+
+### What should be done in the future
+- Optionally upload the report to reMarkable as a PDF bundle.
+- Optionally add an Obsidian link from the previous Admin DSL report to this newer backend-driven report.
+- Continue HAIR-041 Phase 7 with config editing and publishing.
+
+### Code review instructions
+- Start with the report in the PARC vault:
+  - `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/05/16/PROJECT REPORT - Fringe Admin DSL Backend Driven Admin Interfaces Deep Dive.md`
+- Compare against the implementation files it references:
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/script_runtime.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows/intake_admin.flow.js`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/intakeadmin/store.go`
+  - `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx`
+
+### Technical details
+- Obsidian vault commit:
+  - `cd75f55 Add Fringe Admin DSL backend-driven interfaces report`
+- The report was stored under the append-only project report path for the current date.
+- No application code changed in this step.

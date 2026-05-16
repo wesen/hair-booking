@@ -138,3 +138,9 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Renderer support for actionable controls
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts — Frontend schema for advanced primitives
 
+
+## 2026-05-16 — Admin DSL deep-dive report
+
+- Added and committed an Obsidian project report explaining the backend-driven Admin DSL technique and HAIR-041 intake admin implementation pressure test.
+- Report path: `/home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/05/16/PROJECT REPORT - Fringe Admin DSL Backend Driven Admin Interfaces Deep Dive.md`.
+- Vault commit: `cd75f55 Add Fringe Admin DSL backend-driven interfaces report`.
