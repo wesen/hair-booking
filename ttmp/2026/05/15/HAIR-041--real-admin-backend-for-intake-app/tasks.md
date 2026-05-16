@@ -40,11 +40,11 @@ updated: 2026-05-15
 
 ## Phase 4 — Admin runtime host modules and registry
 
-- [ ] Extend `pkg/admindsl.ScriptRuntime` to register app host modules.
-- [ ] Implement `host/intake-admin` module.
-- [ ] Implement `host/intake-preview` module.
+- [x] Extend `pkg/admindsl.ScriptRuntime` to register app host modules.
+- [x] Implement `host/intake-admin` module.
+- [x] Implement `host/intake-preview` module.
 - [ ] Implement audited mutation wrappers.
-- [ ] Replace hard-coded admin flow handling with an admin flow registry.
+- [x] Replace hard-coded admin flow handling with an admin flow registry.
 - [ ] Add auth/role guard for admin flows.
 
 ## Phase 5 — Admin DSL component gaps

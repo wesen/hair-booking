@@ -14,8 +14,11 @@ import (
 
 const defaultScriptCallbackTimeout = 2 * time.Second
 
+type NativeModuleLoader func(*goja.Runtime, *goja.Object)
+
 type ScriptRuntime struct {
 	callbackTimeout time.Duration
+	nativeModules   map[string]NativeModuleLoader
 }
 
 type ScriptRuntimeOption func(*ScriptRuntime)
@@ -24,8 +27,17 @@ func WithScriptCallbackTimeout(timeout time.Duration) ScriptRuntimeOption {
 	return func(rt *ScriptRuntime) { rt.callbackTimeout = timeout }
 }
 
+func WithNativeModule(name string, loader NativeModuleLoader) ScriptRuntimeOption {
+	return func(rt *ScriptRuntime) {
+		if rt.nativeModules == nil {
+			rt.nativeModules = map[string]NativeModuleLoader{}
+		}
+		rt.nativeModules[name] = loader
+	}
+}
+
 func NewScriptRuntime(options ...ScriptRuntimeOption) *ScriptRuntime {
-	rt := &ScriptRuntime{callbackTimeout: defaultScriptCallbackTimeout}
+	rt := &ScriptRuntime{callbackTimeout: defaultScriptCallbackTimeout, nativeModules: map[string]NativeModuleLoader{}}
 	for _, option := range options {
 		option(rt)
 	}
@@ -88,6 +100,9 @@ func (rt *ScriptRuntime) newSession(flowID, sessionID string) (*ScriptSession, e
 	vm := goja.New()
 	registry := require.NewRegistry()
 	registry.RegisterNativeModule("fringe/admin-dsl", loadAdminDSLModule)
+	for name, loader := range rt.nativeModules {
+		registry.RegisterNativeModule(name, require.ModuleLoader(loader))
+	}
 	registry.Enable(vm)
 	return &ScriptSession{
 		ID:             sessionID,

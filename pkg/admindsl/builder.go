@@ -346,8 +346,24 @@ func Panel(title string, props JSONObject, children ...*NodeBuilder) *NodeBuilde
 	return NodeOf(NodePanel, merge(JSONObject{"title": title}, props), children...)
 }
 
+func CardGrid(props JSONObject, children ...*NodeBuilder) *NodeBuilder {
+	return NodeOf(NodeCardGrid, props, children...)
+}
+
 func Metric(label string, value JSONValue, props JSONObject) *NodeBuilder {
 	return NodeOf(NodeMetricCard, merge(JSONObject{"label": label, "value": value}, props))
+}
+
+func SummaryCard(title string, props JSONObject, children ...*NodeBuilder) *NodeBuilder {
+	return NodeOf(NodeSummaryCard, merge(JSONObject{"title": title}, props), children...)
+}
+
+func EmptyState(title string, props JSONObject) *NodeBuilder {
+	return NodeOf(NodeEmptyState, merge(JSONObject{"title": title}, props))
+}
+
+func Markdown(markdown string, props JSONObject) *NodeBuilder {
+	return NodeOf(NodeMarkdownBlock, merge(JSONObject{"markdown": markdown}, props))
 }
 
 func ResourceList(id string, props JSONObject, children ...*NodeBuilder) *NodeBuilder {

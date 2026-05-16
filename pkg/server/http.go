@@ -250,7 +250,7 @@ func NewHandler(options HandlerOptions) http.Handler {
 		localUploadsDir:     options.LocalUploadsDir,
 		stylistAuthorizer:   hairstylist.NewAuthorizer(authSettings),
 		dslFlows:            newDSLFlowStore(options.DSLConfigDB, stateDB, options.DSLConfigSQLitePath, statePath, options.Storage, intakeAdminStore),
-		adminDSLFlows:       newAdminDSLFlowStore(),
+		adminDSLFlows:       newAdminDSLFlowStore(intakeAdminStore),
 		intakeAdminStore:    intakeAdminStore,
 		dslSQLitePath:       statePath,
 		dslSQLiteMigrate:    options.DSLSQLiteMigrate,

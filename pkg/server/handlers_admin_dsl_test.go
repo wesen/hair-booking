@@ -2,11 +2,15 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"net/http"
 	"net/http/httptest"
+	"path/filepath"
 	"testing"
 
 	admindslv1 "github.com/go-go-golems/hair-booking/gen/proto/fringe/admin_dsl/v1"
+	"github.com/go-go-golems/hair-booking/pkg/dslhost"
+	"github.com/go-go-golems/hair-booking/pkg/intakeadmin"
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
@@ -17,6 +21,41 @@ func TestAdminDSLHTTPRejectsUnknownFlow(t *testing.T) {
 	handler.ServeHTTP(rec, req)
 	if rec.Code != http.StatusNotFound {
 		t.Fatalf("status %d body %s", rec.Code, rec.Body.String())
+	}
+}
+
+func TestAdminDSLHTTPStartsRealIntakeAdminFlow(t *testing.T) {
+	stateHost, err := dslhost.OpenDB(context.Background(), dslhost.DBOptions{Path: filepath.Join(t.TempDir(), "state.sqlite"), Migrate: true})
+	if err != nil {
+		t.Fatalf("OpenDB: %v", err)
+	}
+	defer func() { _ = stateHost.Close() }()
+	configHost, err := dslhost.OpenConfigDB(context.Background(), dslhost.DBOptions{Path: filepath.Join(t.TempDir(), "config.sqlite"), Migrate: true})
+	if err != nil {
+		t.Fatalf("OpenConfigDB: %v", err)
+	}
+	defer func() { _ = configHost.Close() }()
+	if err := intakeadmin.ProvisionSchema(context.Background(), stateHost.DB); err != nil {
+		t.Fatalf("ProvisionSchema: %v", err)
+	}
+	store := intakeadmin.NewStore(stateHost.DB, configHost.DB)
+	if _, err := store.CreateRequest(context.Background(), intakeadmin.RequestInput{ConfigVersionID: "cfg_default", ServiceCategory: "color", ServiceValue: "highlights", EstimateLabel: "$220–$420"}); err != nil {
+		t.Fatalf("CreateRequest: %v", err)
+	}
+
+	handler := NewHandler(HandlerOptions{DSLStateDB: stateHost.DB, DSLConfigDB: configHost.DB, DSLSQLiteMigrate: true})
+	startReq := httptest.NewRequest(http.MethodPost, "/api/admin-dsl/flows/fringe.admin.intake.v1/start", nil)
+	startRec := httptest.NewRecorder()
+	handler.ServeHTTP(startRec, startReq)
+	if startRec.Code != http.StatusOK {
+		t.Fatalf("start status %d body %s", startRec.Code, startRec.Body.String())
+	}
+	var state admindslv1.AdminFlowState
+	if err := protojson.Unmarshal(startRec.Body.Bytes(), &state); err != nil {
+		t.Fatalf("decode start: %v", err)
+	}
+	if state.Page == nil || state.Page.Id != "admin-intake-dashboard" {
+		t.Fatalf("unexpected page: %#v", state.Page)
 	}
 }
 

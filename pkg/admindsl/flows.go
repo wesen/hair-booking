@@ -6,3 +6,8 @@ import _ "embed"
 //
 //go:embed flows/services.flow.js
 var ServicesFlowSource string
+
+// IntakeAdminFlowSource is the real Goja-authored intake admin backend flow.
+//
+//go:embed flows/intake_admin.flow.js
+var IntakeAdminFlowSource string

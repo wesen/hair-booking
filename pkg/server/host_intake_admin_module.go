@@ -1,0 +1,76 @@
+package server
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+
+	"github.com/dop251/goja"
+	"github.com/go-go-golems/hair-booking/pkg/admindsl"
+	"github.com/go-go-golems/hair-booking/pkg/intakeadmin"
+)
+
+func loadIntakeAdminModule(store *intakeadmin.Store, actor intakeadmin.Actor) admindsl.NativeModuleLoader {
+	return func(vm *goja.Runtime, moduleObj *goja.Object) {
+		exports := moduleObj.Get("exports").(*goja.Object)
+		_ = exports.Set("dashboardStats", func() goja.Value {
+			stats, err := store.DashboardStats(context.Background())
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.dashboardStats: " + err.Error()))
+			}
+			return vm.ToValue(stats)
+		})
+		_ = exports.Set("listRequests", func(call goja.FunctionCall) goja.Value {
+			filters := intakeadmin.RequestFilters{Limit: 50}
+			if len(call.Arguments) > 0 && !goja.IsUndefined(call.Argument(0)) && !goja.IsNull(call.Argument(0)) {
+				payload, _ := json.Marshal(call.Argument(0).Export())
+				_ = json.Unmarshal(payload, &filters)
+			}
+			requests, err := store.ListRequests(context.Background(), filters)
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.listRequests: " + err.Error()))
+			}
+			return vm.ToValue(requests)
+		})
+		_ = exports.Set("listConfigVersions", func() goja.Value {
+			versions, err := store.ListConfigVersions(context.Background())
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.listConfigVersions: " + err.Error()))
+			}
+			return vm.ToValue(versions)
+		})
+		_ = exports.Set("createDraftFromActive", func(call goja.FunctionCall) goja.Value {
+			label := "Admin draft"
+			if len(call.Arguments) > 0 && !goja.IsUndefined(call.Argument(0)) && !goja.IsNull(call.Argument(0)) {
+				label = call.Argument(0).String()
+			}
+			version, err := store.CreateDraftFromActive(context.Background(), label, actor)
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.createDraftFromActive: " + err.Error()))
+			}
+			return vm.ToValue(version)
+		})
+	}
+}
+
+func loadIntakePreviewModule(store *intakeadmin.Store) admindsl.NativeModuleLoader {
+	return func(vm *goja.Runtime, moduleObj *goja.Object) {
+		exports := moduleObj.Get("exports").(*goja.Object)
+		_ = exports.Set("validateConfig", func(configVersionID string) map[string]any {
+			if store == nil || store.ConfigDB == nil {
+				return map[string]any{"ok": false, "errors": []string{"config DB is not configured"}}
+			}
+			var count int
+			queryID := configVersionID
+			if queryID == "" || queryID == "active" {
+				if err := store.ConfigDB.QueryRowContext(context.Background(), `SELECT id FROM dsl_config_versions WHERE status = 'active' ORDER BY activated_at DESC LIMIT 1`).Scan(&queryID); err != nil {
+					return map[string]any{"ok": false, "errors": []string{fmt.Sprintf("active config not found: %v", err)}}
+				}
+			}
+			if err := store.ConfigDB.QueryRowContext(context.Background(), `SELECT count(*) FROM dsl_service_options WHERE config_version_id = ? AND enabled = 1`, queryID).Scan(&count); err != nil {
+				return map[string]any{"ok": false, "errors": []string{err.Error()}}
+			}
+			return map[string]any{"ok": count > 0, "configVersionId": queryID, "serviceOptionCount": count}
+		})
+	}
+}

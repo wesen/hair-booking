@@ -7,17 +7,36 @@ import (
 
 	admindslv1 "github.com/go-go-golems/hair-booking/gen/proto/fringe/admin_dsl/v1"
 	"github.com/go-go-golems/hair-booking/pkg/admindsl"
+	"github.com/go-go-golems/hair-booking/pkg/intakeadmin"
 	"google.golang.org/protobuf/encoding/protojson"
 )
+
+type adminFlowDefinition struct {
+	ID     string
+	Source string
+}
 
 type adminDSLFlowStore struct {
 	mu       sync.RWMutex
 	runtime  *admindsl.ScriptRuntime
+	flows    map[string]adminFlowDefinition
 	sessions map[string]*admindsl.ScriptSession
 }
 
-func newAdminDSLFlowStore() *adminDSLFlowStore {
-	return &adminDSLFlowStore{runtime: admindsl.NewScriptRuntime(), sessions: map[string]*admindsl.ScriptSession{}}
+func newAdminDSLFlowStore(intakeStore *intakeadmin.Store) *adminDSLFlowStore {
+	actor := intakeadmin.Actor{UserID: "local-user", Role: "admin"}
+	runtime := admindsl.NewScriptRuntime(
+		admindsl.WithNativeModule("host/intake-admin", loadIntakeAdminModule(intakeStore, actor)),
+		admindsl.WithNativeModule("host/intake-preview", loadIntakePreviewModule(intakeStore)),
+	)
+	return &adminDSLFlowStore{
+		runtime: runtime,
+		flows: map[string]adminFlowDefinition{
+			"fringe.admin.services.v1": {ID: "fringe.admin.services.v1", Source: admindsl.ServicesFlowSource},
+			"fringe.admin.intake.v1":   {ID: "fringe.admin.intake.v1", Source: admindsl.IntakeAdminFlowSource},
+		},
+		sessions: map[string]*admindsl.ScriptSession{},
+	}
 }
 
 func (s *adminDSLFlowStore) put(session *admindsl.ScriptSession) {
@@ -39,12 +58,13 @@ func writeAdminDSLProtoError(w http.ResponseWriter, status int, code, message st
 
 func (h *appHandler) handleAdminDSLStartFlow(w http.ResponseWriter, r *http.Request) {
 	flowID := r.PathValue("flowId")
-	if flowID != "fringe.admin.services.v1" {
+	flow, ok := h.adminDSLFlows.flows[flowID]
+	if !ok {
 		writeAdminDSLProtoError(w, http.StatusNotFound, "admin_dsl_flow_not_found", "Admin DSL flow not found")
 		return
 	}
 
-	session, result, err := h.adminDSLFlows.runtime.StartFlow(r.Context(), flowID, admindsl.ServicesFlowSource)
+	session, result, err := h.adminDSLFlows.runtime.StartFlow(r.Context(), flowID, flow.Source)
 	if err != nil {
 		writeAdminDSLProtoError(w, http.StatusInternalServerError, "admin_dsl_flow_start_failed", err.Error())
 		return

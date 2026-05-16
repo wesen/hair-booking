@@ -195,3 +195,86 @@ The server installs the host module into the customer DSL runtime and provisions
 ### Technical details
 - The immediate persistent row is in `intake_requests`.
 - `flow_session_id` is filled by the host module from the current DSL session.
+
+## Step 4: Add real intake admin flow registry and host modules
+
+This step moved the Admin DSL runtime from a one-flow hard-coded services demo toward a registry capable of serving a real intake admin flow. It also added app-owned admin host modules that expose dashboard/request/config data from `pkg/intakeadmin` to Goja-authored Admin DSL pages.
+
+The new `/admin/intake` frontend route starts `fringe.admin.intake.v1`, which renders a first real dashboard backed by persisted intake request rows and config version data. This is still the beginning of Phase 4: role enforcement and fully audited mutation wrappers remain open.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Continue phases 1-4 by adding Admin DSL runtime host modules and a real intake admin flow route.
+
+**Inferred user intent:** The user wants the admin side to stop being only an in-memory services demo and begin reading real backend data.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Extended `pkg/admindsl.ScriptRuntime` with `WithNativeModule(...)`.
+- Added Admin DSL Goja module exports for dashboard/layout primitives needed by the intake admin flow:
+  - `pageDashboard`
+  - `toolbar`
+  - `cardGrid`
+  - `metricCard`
+  - `summaryCard`
+  - `emptyState`
+  - `markdown`
+- Added `pkg/admindsl/flows/intake_admin.flow.js`.
+- Embedded it as `admindsl.IntakeAdminFlowSource`.
+- Added `pkg/server/host_intake_admin_module.go`:
+  - `host/intake-admin.dashboardStats()`
+  - `host/intake-admin.listRequests(filters)`
+  - `host/intake-admin.listConfigVersions()`
+  - `host/intake-admin.createDraftFromActive(label)`
+  - `host/intake-preview.validateConfig(configVersionId)`
+- Replaced the hard-coded Admin DSL flow start branch with a registry containing:
+  - `fringe.admin.services.v1`
+  - `fringe.admin.intake.v1`
+- Added `/admin/intake` route in `web/src/App.tsx`.
+- Made `BackendAdminDslPage` accept a `flowId` prop and use per-flow sessionStorage keys.
+- Added HTTP regression coverage for starting the real intake admin flow against SQLite-backed state/config DBs.
+- Validated:
+  - `go test ./pkg/admindsl ./pkg/server ./pkg/intakeadmin ./pkg/dslgoja -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand` — 10 files, 43 tests passed.
+
+### Why
+- A real admin backend needs host modules and a flow registry before individual screens can grow.
+- `/admin/intake` gives the project a concrete route for the real backend while `/admin/services` can remain a smaller demo/smoke route.
+
+### What worked
+- The intake admin dashboard can start through the existing Admin DSL protobuf HTTP transport.
+- The flow can read persisted request counts and config version data through `host/intake-admin`.
+- Existing services flow tests continue to pass through the registry.
+
+### What didn't work
+- The first version of `intake_admin.flow.js` used `admin.pageDashboard(...)`, but the Goja module only exposed `pageResource` and `pageAdmin`. I added the missing exports and the small builder helpers needed by the new flow.
+
+### What I learned
+- The Admin DSL Go package already had more builder functions than the Goja module exposed. Real backend flows will continue to reveal export gaps.
+
+### What was tricky to build
+- The runtime-level module registration is global to the `ScriptRuntime`, while actor identity should eventually be request/session-specific. This step uses a dev-local actor for the initial host module. A production-ready role/actor model is still needed.
+
+### What warrants a second pair of eyes
+- Review whether host modules should be registered globally, per flow definition, or per session with actor context.
+- Review whether the first intake admin flow should remain one flow with internal screens or split into multiple flow ids.
+
+### What should be done in the future
+- Implement real admin auth/role guard.
+- Add audited mutation wrappers for every `host/intake-admin` write.
+- Persist Admin DSL sessions if multi-step admin edits become long-lived.
+
+### Code review instructions
+- Start with `pkg/server/handlers_admin_dsl.go` for the registry change.
+- Review `pkg/server/host_intake_admin_module.go` for host module boundaries.
+- Review `pkg/admindsl/flows/intake_admin.flow.js` for first-screen behavior.
+- Review `web/src/admin-dsl/BackendAdminDslPage.tsx` and `web/src/App.tsx` for frontend routing.
+
+### Technical details
+- New route: `/admin/intake`.
+- New flow id: `fringe.admin.intake.v1`.
+- Existing route preserved: `/admin/services` -> `fringe.admin.services.v1`.

@@ -4,19 +4,22 @@ import { getAdminDslFlow, postAdminDslEvent, startAdminDslFlow, type AdminDslFlo
 import type { AdminRenderEvent } from "./schema";
 import { color, font, radius, type } from "../fringe-ui/tokens";
 
-const FLOW_ID = "fringe.admin.services.v1";
-const SESSION_STORAGE_KEY = `fringe.admin-dsl.${FLOW_ID}.sessionId`;
+const DEFAULT_FLOW_ID = "fringe.admin.services.v1";
 
-function readStoredSessionId() {
-  try { return window.sessionStorage.getItem(SESSION_STORAGE_KEY) || undefined; } catch { return undefined; }
+function sessionStorageKey(flowId: string) {
+  return `fringe.admin-dsl.${flowId}.sessionId`;
 }
 
-function writeStoredSessionId(sessionId: string) {
-  try { window.sessionStorage.setItem(SESSION_STORAGE_KEY, sessionId); } catch { /* ignore */ }
+function readStoredSessionId(flowId: string) {
+  try { return window.sessionStorage.getItem(sessionStorageKey(flowId)) || undefined; } catch { return undefined; }
 }
 
-function clearStoredSessionId() {
-  try { window.sessionStorage.removeItem(SESSION_STORAGE_KEY); } catch { /* ignore */ }
+function writeStoredSessionId(flowId: string, sessionId: string) {
+  try { window.sessionStorage.setItem(sessionStorageKey(flowId), sessionId); } catch { /* ignore */ }
+}
+
+function clearStoredSessionId(flowId: string) {
+  try { window.sessionStorage.removeItem(sessionStorageKey(flowId)); } catch { /* ignore */ }
 }
 
 export function adminInteractionEventFromRenderEvent(renderEvent: AdminRenderEvent, pageVersion: number): AdminDslInteractionEvent {
@@ -48,7 +51,7 @@ function StatusPanel({ title, body, action }: { title: string; body?: string; ac
   );
 }
 
-export function BackendAdminDslPage() {
+export function BackendAdminDslPage({ flowId = DEFAULT_FLOW_ID }: { flowId?: string }) {
   const [flowState, setFlowState] = useState<AdminDslFlowState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
@@ -57,30 +60,30 @@ export function BackendAdminDslPage() {
     setError(null);
     setPending(true);
     try {
-      clearStoredSessionId();
-      const next = await startAdminDslFlow(FLOW_ID);
-      writeStoredSessionId(next.sessionId);
+      clearStoredSessionId(flowId);
+      const next = await startAdminDslFlow(flowId);
+      writeStoredSessionId(flowId, next.sessionId);
       setFlowState(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setPending(false);
     }
-  }, []);
+  }, [flowId]);
 
   useEffect(() => {
     let cancelled = false;
     async function boot() {
       setPending(true);
       try {
-        const existing = readStoredSessionId();
-        const next = existing ? await getAdminDslFlow(existing) : await startAdminDslFlow(FLOW_ID);
+        const existing = readStoredSessionId(flowId);
+        const next = existing ? await getAdminDslFlow(existing) : await startAdminDslFlow(flowId);
         if (cancelled) return;
-        writeStoredSessionId(next.sessionId);
+        writeStoredSessionId(flowId, next.sessionId);
         setFlowState(next);
       } catch (err) {
         if (cancelled) return;
-        clearStoredSessionId();
+        clearStoredSessionId(flowId);
         setError(err instanceof Error ? err.message : String(err));
       } finally {
         if (!cancelled) setPending(false);
@@ -88,7 +91,7 @@ export function BackendAdminDslPage() {
     }
     void boot();
     return () => { cancelled = true; };
-  }, []);
+  }, [flowId]);
 
   const dispatch = useCallback(async (event: AdminRenderEvent) => {
     if (!flowState) return;
@@ -96,14 +99,14 @@ export function BackendAdminDslPage() {
     setError(null);
     try {
       const next = await postAdminDslEvent(flowState.sessionId, adminInteractionEventFromRenderEvent(event, flowState.pageVersion));
-      writeStoredSessionId(next.sessionId);
+      writeStoredSessionId(flowId, next.sessionId);
       setFlowState(next);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
       setPending(false);
     }
-  }, [flowState]);
+  }, [flowId, flowState]);
 
   const effectText = useMemo(() => flowState?.effects?.map((effect) => effect.message).filter(Boolean).join(" · "), [flowState?.effects]);
 
