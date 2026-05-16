@@ -1191,3 +1191,70 @@ The runtime still keeps module registration explicit from Go. This preserves the
 ### Technical details
 - Registered module name: `fringe/admin-flows/intake-config`.
 - The module exports `{ configScreen }`.
+
+## Step 17: Add audit and health screens
+
+This step started Phase 8 by adding real audit-log and health-diagnostics screens to `/admin/intake`. The screens are backed by app-owned store queries exposed through `host/intake-admin`, then rendered with existing Admin DSL primitives.
+
+The work keeps the same boundary as the Phase 7 config editor: the Admin DSL renderer knows how to render tables, metrics, and diff views; the app-owned store knows how to query audit rows and runtime health details.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead."
+
+**Assistant interpretation:** Continue after Phase 7 by addressing the known flow-structure issue and beginning Phase 8 follow-up work.
+
+**Inferred user intent:** The user wants forward progress on the next hardening and Phase 8 items while maintaining commits and diary entries.
+
+**Commit (code):** 8876ddf — "HAIR-041 Step 17: Add admin audit and health screens".
+
+### What I did
+- Added `AuditEvent` listing support through `Store.ListAuditEvents(...)`.
+- Added `HealthDiagnostics` and `Store.HealthDiagnostics(...)`.
+- Exposed host module functions:
+  - `host/intake-admin.listAuditEvents(limit)`
+  - `host/intake-admin.healthDiagnostics()`
+- Added dashboard navigation actions for Audit log and Health.
+- Added `/admin/intake` internal screens:
+  - `admin-intake-audit`
+  - `admin-intake-health`
+- Added store test coverage for audit listing and health diagnostics.
+- Marked Phase 8 audit-log and health-diagnostics tasks complete.
+- Validated:
+  - `go test ./pkg/intakeadmin ./pkg/admindsl ./pkg/server -count=1`
+  - `go test ./... -count=1`
+
+### Why
+- Phase 8 calls for audit and health views so the admin backend can inspect operational state, not only mutate config and review requests.
+- The existing `admin_audit_events` table should be visible from the admin interface to make mutation behavior reviewable.
+
+### What worked
+- Existing `resourceTable`, `metricCard`, and `diffView` primitives were enough for first-pass audit and health screens.
+- The new screens required no renderer changes.
+
+### What didn't work
+- Health diagnostics are intentionally basic. They report DB configuration, counts, active config, drafts, and last audit timestamp, but do not yet include deep runtime/session/upload checks.
+
+### What I learned
+- The Admin DSL vocabulary is now sufficient for several operational admin screens without adding new widgets.
+- Phase 8 can continue with preview and Playwright/visual smoke rather than more schema work first.
+
+### What was tricky to build
+- Audit events have JSON before/after payloads, but the first audit screen stays tabular and compact. A future detail surface can show expanded JSON payloads per row.
+
+### What warrants a second pair of eyes
+- Review whether health diagnostics should live in `pkg/intakeadmin` or a separate app operations package once checks become broader.
+- Review what additional checks should be included before calling the health screen production-ready.
+
+### What should be done in the future
+- Add audit-event detail drawer for before/after payload inspection.
+- Add deeper health checks for upload storage, admin sessions, customer DSL sessions, and preview route availability.
+
+### Code review instructions
+- Review `pkg/intakeadmin/store.go` for `ListAuditEvents` and `HealthDiagnostics`.
+- Review `pkg/admindsl/flows/intake_admin.flow.js` for `auditScreen` and `healthScreen`.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+- Audit table screen reads from `admin_audit_events`.
+- Health screen currently checks state DB, config DB, active config, request count, audit count, draft count, and last audit timestamp.

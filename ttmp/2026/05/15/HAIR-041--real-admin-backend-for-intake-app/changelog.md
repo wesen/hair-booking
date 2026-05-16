@@ -176,3 +176,8 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 
 - Added embedded Admin DSL script-module support and split the Phase 7 config editor into `pkg/admindsl/flows/intake_config.flow.js` (commit `dbc6204`).
 - Registered the config module as `fringe/admin-flows/intake-config` and kept the root intake admin flow focused on navigation/request/preview screens.
+
+## 2026-05-16 — Audit and health screens
+
+- Added `/admin/intake` audit-log and health-diagnostics screens backed by `host/intake-admin` store queries (commit `8876ddf`).
+- Marked Phase 8 audit-log and health-diagnostics tasks complete.

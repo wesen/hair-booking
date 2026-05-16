@@ -22,6 +22,7 @@ RelatedFiles:
         Tone config edit drawer and save callback (commit 4ca5045)
         Complete Phase 7 config editor flow with update/create/delete drawers and publish workflow (commits 735c64e
         Root intake admin flow after config split (commit dbc6204)
+        Audit and health screens for Phase 8 (commit 8876ddf)
     - Path: pkg/admindsl/flows/intake_config.flow.js
       Note: Extracted Phase 7 config editor module (commit dbc6204)
     - Path: pkg/admindsl/script_runtime.go
@@ -32,18 +33,21 @@ RelatedFiles:
         Draft-only service option update mutation and audit event (commit 126b3be)
         Draft-only tone option update mutation and shared draft-row helper (commit 4ca5045)
         Phase 7 config update/create/delete store methods and audit events (commits 735c64e
+        Audit listing and health diagnostics queries (commit 8876ddf)
     - Path: pkg/server/host_intake_admin_module.go
       Note: |-
         Goja host exports for config editor data and publish (commit b6eab66)
         Goja host export for updateServiceOption (commit 126b3be)
         Goja host export for updateToneOption (commit 4ca5045)
         Goja host exports for Phase 7 config mutations (commits 735c64e
+        Goja exports for audit and health queries (commit 8876ddf)
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-05-15T19:43:10.470080535-04:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 
