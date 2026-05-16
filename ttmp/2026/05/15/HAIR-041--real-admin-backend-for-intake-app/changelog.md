@@ -196,3 +196,9 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 
 - Split config editor helpers into `pkg/admindsl/flows/intake_config_helpers.flow.js` and drawer/form builders into `pkg/admindsl/flows/intake_config_forms.flow.js` (commit `81a2698`).
 - Registered the new embedded modules and revalidated the Admin DSL runtime/server packages plus `go test ./... -count=1`.
+
+## 2026-05-16 — Module registry and draft preview bridge
+
+- Centralized embedded Admin DSL flow module registration in `pkg/admindsl/flows.go` (commit `99b0505`).
+- Added draft customer intake preview bridge from `/admin/intake` to the real customer DSL route using `previewConfigVersionId` (commit `e43d337`).
+- Validation passed with `go test ./... -count=1`, `cd web && npx tsc --noEmit`, and `cd web && pnpm test -- --runInBand`.

@@ -15,6 +15,8 @@ Owners: []
 RelatedFiles:
     - Path: ../../../../../../../../../code/wesen/go-go-golems/go-go-parc/Projects/2026/05/16/PROJECT REPORT - Fringe Admin DSL Backend Driven Admin Interfaces Deep Dive.md
       Note: Obsidian report uploaded to reMarkable and linked from prior report
+    - Path: pkg/admindsl/flows.go
+      Note: Centralized embedded intake admin module registry (commit 99b0505)
     - Path: pkg/admindsl/flows/intake_admin.flow.js
       Note: |-
         Phase 7 config screen
@@ -34,13 +36,17 @@ RelatedFiles:
     - Path: pkg/admindsl/flows/intake_config_helpers.flow.js
       Note: Config row mappers and parser helpers (commit 81a2698)
     - Path: pkg/admindsl/flows/intake_ops.flow.js
-      Note: Audit
+      Note: |-
+        Audit
+        Admin previewFrame bridge to customer DSL route (commit e43d337)
     - Path: pkg/admindsl/flows/intake_requests.flow.js
       Note: Request queue/detail/photo review helper module (commit 987ff70)
     - Path: pkg/admindsl/script_runtime.go
       Note: |-
         Embedded script module support for Admin DSL require() (commit dbc6204)
         Virtual embedded source loader and relative require support for Admin DSL flows (commit 8c7e698)
+    - Path: pkg/dslgoja/runtime.go
+      Note: WithInitialState support for preview sessions (commit e43d337)
     - Path: pkg/intakeadmin/store.go
       Note: |-
         Config editor data DTOs
@@ -57,12 +63,15 @@ RelatedFiles:
         Goja host export for updateToneOption (commit 4ca5045)
         Goja host exports for Phase 7 config mutations (commits 735c64e
         Goja exports for audit and health queries (commit 8876ddf)
+    - Path: web/src/LiveDslDemoApp.tsx
+      Note: Customer previewConfigVersionId handling and preview session isolation (commit e43d337)
 ExternalSources: []
 Summary: ""
 LastUpdated: 2026-05-15T19:43:10.470080535-04:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 

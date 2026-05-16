@@ -1488,3 +1488,132 @@ The practical goal was to keep new Phase 8 and hardening work from happening in 
 - Config module requires:
   - `require("./intake_config_helpers.flow.js")`
   - `require("./intake_config_forms.flow.js")`
+
+## Step 21: Centralize embedded Admin flow module registration
+
+This step removed the most obvious source of mistakes in the new modular flow setup. Instead of registering every embedded helper module by hand in the server, `pkg/admindsl` now exposes a small module registry for the intake admin flow and converts that registry into `ScriptRuntimeOption` values.
+
+This directly addresses the failure from the previous split where a helper file existed but had not been registered, causing an `Invalid module` startup error.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Continue hardening the modular Admin DSL flow setup and then continue into Phase 8 functionality.
+
+**Inferred user intent:** The user wants the implementation to keep moving while reducing known friction introduced by the new module structure.
+
+**Commit (code):** 99b0505 — "HAIR-041 Step 21: Centralize admin flow module registry".
+
+### What I did
+- Added `EmbeddedScriptModule` in `pkg/admindsl/flows.go`.
+- Added `IntakeAdminScriptModules()` returning all embedded helper module paths and sources.
+- Added `IntakeAdminScriptModuleOptions()` to build `WithScriptModule(...)` options from that registry.
+- Simplified `pkg/server/handlers_admin_dsl.go` so it appends `admindsl.IntakeAdminScriptModuleOptions()` instead of registering each helper inline.
+- Validated:
+  - `go test ./pkg/admindsl ./pkg/server -count=1`
+  - `go test ./... -count=1`
+
+### Why
+- New helper files should be registered in one obvious place.
+- The server should not need to know every implementation detail of the intake admin flow's helper module graph.
+
+### What worked
+- The existing `ScriptRuntimeOption` shape made this a small refactor.
+- Runtime behavior did not change; only registration ownership moved.
+
+### What didn't work
+- This still requires adding a `go:embed` variable and a registry entry in `flows.go` for each new helper file. It is centralized, but not automatic.
+
+### What I learned
+- Centralizing module registration is enough for the current repo, but an embedded FS loader could eventually discover modules under `/flows/` automatically.
+
+### What was tricky to build
+- Keeping registration explicit while removing server coupling required the registry to live in `pkg/admindsl`, not in `pkg/server`.
+
+### What warrants a second pair of eyes
+- Review whether the registry type should be reused for other Admin DSL flows beyond intake.
+
+### What should be done in the future
+- Consider an embedded FS based loader if the number of helper modules grows substantially.
+
+### Code review instructions
+- Review `pkg/admindsl/flows.go` and `pkg/server/handlers_admin_dsl.go`.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+- The runtime still receives ordinary `WithScriptModule(path, source)` options.
+- The server now appends the options returned by `IntakeAdminScriptModuleOptions()`.
+
+## Step 22: Add draft intake preview bridge
+
+This step implemented the first real draft customer intake preview bridge for `/admin/intake`. The admin preview screen now selects the current draft-or-active config, validates it, and renders a `previewFrame` pointing at the real customer DSL route with `previewConfigVersionId` in the URL. The customer frontend passes that config version into the DSL start endpoint, and the backend seeds the new customer DSL session state with that config version.
+
+This is still an iframe preview rather than a deeply embedded Admin DSL/customer DSL composition, but it exercises the real customer route, real customer DSL runtime, and real config DB rows.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 21)
+
+**Assistant interpretation:** Continue from modularization into the next Phase 8 feature: draft customer intake preview.
+
+**Inferred user intent:** The user wants the admin backend to become operationally useful and test the customer/admin bridge.
+
+**Commit (code):** e43d337 — "HAIR-041 Step 22: Add draft intake preview bridge".
+
+### What I did
+- Added `dslgoja.WithInitialState(...)` to seed new customer DSL sessions with selected state values.
+- Updated `handleDSLStartFlow` to accept `?configVersionId=...` and pass it into `WithInitialState`.
+- Updated frontend `startDslFlow(...)` to accept `DslStartOptions` and serialize `configVersionId` into the start URL.
+- Updated `BackendDslPage` to accept `startOptions` and use them for fresh and recovered sessions.
+- Updated `LiveDslDemoApp` to read `previewConfigVersionId` from the URL and avoid reusing/storing the normal session id for preview sessions.
+- Updated `intake_ops.flow.js` preview screen to:
+  - load the selected draft-or-active config editor data,
+  - validate that config through `host/intake-preview`,
+  - render a `previewFrame` iframe at `/dsl-goja-demo/service?previewConfigVersionId=<configVersionId>`.
+- Marked the Phase 8 draft preview task complete.
+- Validated:
+  - `go test ./pkg/dslgoja ./pkg/server ./pkg/admindsl -count=1`
+  - `go test ./... -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand` — 10 files, 46 tests passed.
+
+### Why
+- Admin config editing needs a way to preview draft changes in the real customer intake flow before publishing.
+- Passing a config version into the customer DSL start path keeps preview behavior explicit and session-scoped.
+
+### What worked
+- The existing customer DSL state already respects `ctx.state.configVersionId`, so seeding initial state was sufficient.
+- The existing Admin DSL `previewFrame` primitive was enough for the first preview bridge.
+
+### What didn't work
+- This is not yet a fully isolated preview environment. It starts a customer DSL session with a selected config version, but it still uses the normal customer route shell.
+- The preview iframe can navigate internally like the normal customer route; future smoke tests should verify the query parameter is applied on first start.
+
+### What I learned
+- `WithInitialState` is a useful generic customer DSL runtime primitive beyond preview, but it should be used carefully because it overrides flow-provided initial defaults.
+- Preview sessions should not reuse the user's ordinary sessionStorage key, otherwise previewing a draft could contaminate the normal customer flow session.
+
+### What was tricky to build
+- The frontend had to avoid reusing stored customer sessions when `previewConfigVersionId` is present, otherwise the preview would show an old session's config instead of starting with the requested draft.
+- Backend and frontend changes had to line up: URL query -> frontend start options -> DSL start endpoint query -> runtime initial state.
+
+### What warrants a second pair of eyes
+- Review whether `configVersionId` should be validated earlier in `handleDSLStartFlow` instead of letting the flow fail during config queries.
+- Review whether preview sessions need a dedicated route or visual chrome distinct from normal customer intake.
+
+### What should be done in the future
+- Add Playwright coverage that creates a draft, changes a visible service label, opens preview, and verifies the iframe/customer route uses the draft label.
+- Consider adding a preview-only banner inside the customer DSL shell when `previewConfigVersionId` is present.
+
+### Code review instructions
+- Start with `pkg/dslgoja/runtime.go` and `pkg/server/handlers_dsl.go` for the backend preview seed path.
+- Then review `web/src/page-dsl/backendClient.ts`, `web/src/page-dsl/BackendDslPage.tsx`, and `web/src/LiveDslDemoApp.tsx`.
+- Review `pkg/admindsl/flows/intake_ops.flow.js` for the admin preview screen.
+- Validate with the four commands listed above.
+
+### Technical details
+- Admin preview iframe URL shape:
+  - `/dsl-goja-demo/service?previewConfigVersionId=<configVersionId>`
+- Customer DSL start endpoint shape:
+  - `POST /api/dsl/flows/fringe.intake.v1/start?configVersionId=<configVersionId>`

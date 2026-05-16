@@ -99,7 +99,7 @@ updated: 2026-05-15
 
 ## Phase 8 — Preview, audit, health, and stress testing
 
-- [ ] Implement draft customer intake preview.
+- [x] Implement draft customer intake preview.
 - [x] Implement audit log screen.
 - [x] Implement health/diagnostics screen.
 - [ ] Add Playwright smoke for submit-customer-request -> admin-review.
@@ -119,6 +119,7 @@ updated: 2026-05-15
 
 - [x] Split `pkg/admindsl/flows/intake_admin.flow.js` into focused required modules once Admin ScriptRuntime supports embedded JS modules.
 - [x] Add relative embedded JS `require("./...")` support for Admin DSL flow helper files.
+- [x] Centralize embedded Admin DSL flow module registration to avoid missed helper-file registration.
 - [ ] Add delete confirmation surfaces for destructive config row actions.
 - [ ] Replace boolean text fields with semantic `switchField` submit semantics.
 - [ ] Replace service/category/value text fallbacks with semantic `selectField` submit semantics where options are known.
