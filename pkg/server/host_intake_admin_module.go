@@ -166,6 +166,24 @@ func loadIntakeAdminModule(store *intakeadmin.Store, actor intakeadmin.Actor) ad
 			}
 			return vm.ToValue(gojaJSONValue(slot))
 		})
+		_ = exports.Set("createConfigEntity", func(call goja.FunctionCall) goja.Value {
+			var input intakeadmin.ConfigEntityInput
+			if len(call.Arguments) > 0 && !goja.IsUndefined(call.Argument(0)) && !goja.IsNull(call.Argument(0)) {
+				payload, _ := json.Marshal(call.Argument(0).Export())
+				_ = json.Unmarshal(payload, &input)
+			}
+			id, err := store.CreateConfigEntity(context.Background(), input, actor)
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.createConfigEntity: " + err.Error()))
+			}
+			return vm.ToValue(map[string]any{"id": id})
+		})
+		_ = exports.Set("deleteConfigEntity", func(kind string, id string) goja.Value {
+			if err := store.DeleteConfigEntity(context.Background(), kind, id, actor); err != nil {
+				panic(vm.ToValue("host/intake-admin.deleteConfigEntity: " + err.Error()))
+			}
+			return vm.ToValue(map[string]any{"ok": true})
+		})
 	}
 }
 

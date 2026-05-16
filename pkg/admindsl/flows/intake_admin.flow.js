@@ -309,6 +309,21 @@ function configEditorSection(ctx, editor) {
     return render(ctx);
   });
   const section = ctx.state.configSection || "services";
+  const addEntity = function(kind, selectedKey, formKey) {
+    return function() {
+      ctx.state[selectedKey] = "__new__";
+      ctx.state.configDrawer = kind;
+      ctx.state[formKey] = null;
+      ctx.state.errors = {};
+      return render(ctx);
+    };
+  };
+  const addService = ctx.bind(admin.primary("config.service.add", "Add service").Placement("toolbar"), addEntity("service", "selectedServiceId", "serviceFormValues"));
+  const addTone = ctx.bind(admin.primary("config.tone.add", "Add tone").Placement("toolbar"), addEntity("tone", "selectedToneId", "toneFormValues"));
+  const addBudget = ctx.bind(admin.primary("config.budget.add", "Add budget").Placement("toolbar"), addEntity("budget", "selectedBudgetId", "budgetFormValues"));
+  const addPrice = ctx.bind(admin.primary("config.price.add", "Add price").Placement("toolbar"), addEntity("price", "selectedPriceId", "priceFormValues"));
+  const addAvailability = ctx.bind(admin.primary("config.availability.add", "Add day").Placement("toolbar"), addEntity("availability", "selectedAvailabilityId", "availabilityFormValues"));
+  const addTimeSlot = ctx.bind(admin.primary("config.timeSlot.add", "Add time").Placement("toolbar"), addEntity("timeSlot", "selectedTimeSlotId", "timeSlotFormValues"));
   const openService = ctx.bind(admin.open("config.service.open", "Edit").Placement("row"), function(event) {
     ctx.state.selectedServiceId = event.value && event.value.id;
     ctx.state.configDrawer = "service";
@@ -366,18 +381,21 @@ function configEditorSection(ctx, editor) {
   if (section === "tones") {
     return admin.section("Tone options", { description: "Draft tone labels read by the customer intake flow." },
       tabs,
+      admin.toolbar().Actions(editor.version.status === "draft" ? addTone : admin.primary("config.tone.add.disabled", "Add tone").Disabled(true)),
       admin.editableList("toneOptions", { items: toneEditorItems(editor.tones), emptyTitle: "No tone options" }).Actions(editor.version.status === "draft" ? openTone : disabledEdit)
     );
   }
   if (section === "budgets") {
     return admin.section("Budget options", { description: "Budget choices and explanatory copy." },
       tabs,
+      admin.toolbar().Actions(editor.version.status === "draft" ? addBudget : admin.primary("config.budget.add.disabled", "Add budget").Disabled(true)),
       admin.editableList("budgetOptions", { items: budgetEditorItems(editor.budgets), emptyTitle: "No budget options" }).Actions(editor.version.status === "draft" ? openBudget : disabledEdit)
     );
   }
   if (section === "pricing") {
     return admin.section("Price ranges", { description: "Service/budget price range rules used by estimates." },
       tabs,
+      admin.toolbar().Actions(editor.version.status === "draft" ? addPrice : admin.primary("config.price.add.disabled", "Add price").Disabled(true)),
       admin.resourceTable("priceRanges", {
         columns: [
           { id: "service", label: "Service" },
@@ -394,6 +412,7 @@ function configEditorSection(ctx, editor) {
   if (section === "availability") {
     return admin.section("Availability and time slots", { description: "Published booking days and selectable appointment times." },
       tabs,
+      admin.toolbar().Actions(editor.version.status === "draft" ? addAvailability : admin.primary("config.availability.add.disabled", "Add day").Disabled(true), editor.version.status === "draft" ? addTimeSlot : admin.primary("config.timeSlot.add.disabled", "Add time").Disabled(true)),
       admin.monthAvailabilityGrid("availabilityDays", { days: editor.availabilityDays || [], selected: ctx.state.selectedAvailabilityDay || "" }).Actions(availabilitySelect),
       admin.editableList("timeSlots", { items: timeSlotItems(editor.timeSlots), emptyTitle: "No time slots" }).Actions(editor.version.status === "draft" ? openTimeSlot : disabledEdit)
     );
@@ -410,6 +429,7 @@ function configEditorSection(ctx, editor) {
   }
   return admin.section("Service and category options", { description: "Draft service menu rows grouped by category and ordered for customer intake." },
     tabs,
+    admin.toolbar().Actions(editor.version.status === "draft" ? addService : admin.primary("config.service.add.disabled", "Add service").Disabled(true)),
     admin.editableList("serviceOptions", { items: serviceEditorItems(editor.services), emptyTitle: "No service options" }).Actions(editor.version.status === "draft" ? openService : disabledEdit)
   );
 }
@@ -452,8 +472,8 @@ function toneFormErrors(values) {
   return errors;
 }
 
-function toneOptionDrawer(ctx, editor, saveAction, cancelAction) {
-  const tone = findById(editor.tones, ctx.state.selectedToneId);
+function toneOptionDrawer(ctx, editor, saveAction, cancelAction, deleteAction) {
+  const tone = ctx.state.selectedToneId === "__new__" ? { id: "__new__", value: "", label: "New tone", sortOrder: (editor.tones || []).length * 10 + 10, enabled: true } : findById(editor.tones, ctx.state.selectedToneId);
   if (!tone) {
     return admin.surface.drawer("toneOptionEditor", { title: "Tone unavailable", open: true },
       admin.summaryCard("Missing tone", { body: "The selected tone option no longer exists in this config version." }).Actions(cancelAction)
@@ -469,12 +489,12 @@ function toneOptionDrawer(ctx, editor, saveAction, cancelAction) {
         admin.textField("sortOrder", { label: "Sort order", value: values.sortOrder }),
         admin.textField("enabled", { label: "Enabled (true/false)", value: values.enabled })
       )
-    ).Actions(saveAction, cancelAction)
+    ).Actions(saveAction, cancelAction, deleteAction)
   );
 }
 
-function serviceOptionDrawer(ctx, editor, saveAction, cancelAction) {
-  const service = findById(editor.services, ctx.state.selectedServiceId);
+function serviceOptionDrawer(ctx, editor, saveAction, cancelAction, deleteAction) {
+  const service = ctx.state.selectedServiceId === "__new__" ? { id: "__new__", category: "color", value: "", title: "New service", subtitle: "", badge: "", sortOrder: (editor.services || []).length * 10 + 10, enabled: true } : findById(editor.services, ctx.state.selectedServiceId);
   if (!service) {
     return admin.surface.drawer("serviceOptionEditor", { title: "Service unavailable", open: true },
       admin.summaryCard("Missing service", { body: "The selected service option no longer exists in this config version." }).Actions(cancelAction)
@@ -493,7 +513,7 @@ function serviceOptionDrawer(ctx, editor, saveAction, cancelAction) {
         admin.textField("sortOrder", { label: "Sort order", value: values.sortOrder }),
         admin.textField("enabled", { label: "Enabled (true/false)", value: values.enabled })
       )
-    ).Actions(saveAction, cancelAction)
+    ).Actions(saveAction, cancelAction, deleteAction)
   );
 }
 
@@ -515,8 +535,8 @@ function budgetFormErrors(values) {
   return errors;
 }
 
-function budgetOptionDrawer(ctx, editor, saveAction, cancelAction) {
-  const budget = findById(editor.budgets, ctx.state.selectedBudgetId);
+function budgetOptionDrawer(ctx, editor, saveAction, cancelAction, deleteAction) {
+  const budget = ctx.state.selectedBudgetId === "__new__" ? { id: "__new__", value: "", title: "New budget", subtitle: "", sortOrder: (editor.budgets || []).length * 10 + 10, enabled: true } : findById(editor.budgets, ctx.state.selectedBudgetId);
   if (!budget) {
     return admin.surface.drawer("budgetOptionEditor", { title: "Budget unavailable", open: true },
       admin.summaryCard("Missing budget", { body: "The selected budget option no longer exists in this config version." }).Actions(cancelAction)
@@ -533,7 +553,7 @@ function budgetOptionDrawer(ctx, editor, saveAction, cancelAction) {
         admin.textField("sortOrder", { label: "Sort order", value: values.sortOrder }),
         admin.textField("enabled", { label: "Enabled (true/false)", value: values.enabled })
       )
-    ).Actions(saveAction, cancelAction)
+    ).Actions(saveAction, cancelAction, deleteAction)
   );
 }
 
@@ -559,8 +579,8 @@ function priceFormErrors(values) {
   return errors;
 }
 
-function priceRangeDrawer(ctx, editor, saveAction, cancelAction) {
-  const price = findById(editor.priceRanges, ctx.state.selectedPriceId);
+function priceRangeDrawer(ctx, editor, saveAction, cancelAction, deleteAction) {
+  const price = ctx.state.selectedPriceId === "__new__" ? { id: "__new__", serviceValue: "", budgetValue: "", label: "New price range", minCents: null, maxCents: null } : findById(editor.priceRanges, ctx.state.selectedPriceId);
   if (!price) {
     return admin.surface.drawer("priceRangeEditor", { title: "Price range unavailable", open: true },
       admin.summaryCard("Missing price range", { body: "The selected price range no longer exists in this config version." }).Actions(cancelAction)
@@ -577,7 +597,7 @@ function priceRangeDrawer(ctx, editor, saveAction, cancelAction) {
         admin.textField("minCents", { label: "Minimum cents", value: values.minCents }),
         admin.textField("maxCents", { label: "Maximum cents", value: values.maxCents })
       )
-    ).Actions(saveAction, cancelAction)
+    ).Actions(saveAction, cancelAction, deleteAction)
   );
 }
 
@@ -602,8 +622,8 @@ function availabilityFormErrors(values) {
   return errors;
 }
 
-function availabilityDayDrawer(ctx, editor, saveAction, cancelAction) {
-  const day = findById(editor.availabilityDays, ctx.state.selectedAvailabilityId);
+function availabilityDayDrawer(ctx, editor, saveAction, cancelAction, deleteAction) {
+  const day = ctx.state.selectedAvailabilityId === "__new__" ? { id: "__new__", value: "", day: "", date: "", dot: true, disabled: false, disabledReason: "", sortOrder: (editor.availabilityDays || []).length * 10 + 10 } : findById(editor.availabilityDays, ctx.state.selectedAvailabilityId);
   if (!day) {
     return admin.surface.drawer("availabilityDayEditor", { title: "Availability day unavailable", open: true },
       admin.summaryCard("Missing availability day", { body: "The selected availability day no longer exists in this config version." }).Actions(cancelAction)
@@ -622,7 +642,7 @@ function availabilityDayDrawer(ctx, editor, saveAction, cancelAction) {
         admin.textField("disabledReason", { label: "Disabled reason", value: values.disabledReason }),
         admin.textField("sortOrder", { label: "Sort order", value: values.sortOrder })
       )
-    ).Actions(saveAction, cancelAction)
+    ).Actions(saveAction, cancelAction, deleteAction)
   );
 }
 
@@ -643,8 +663,8 @@ function timeSlotFormErrors(values) {
   return errors;
 }
 
-function timeSlotDrawer(ctx, editor, saveAction, cancelAction) {
-  const slot = findById(editor.timeSlots, ctx.state.selectedTimeSlotId);
+function timeSlotDrawer(ctx, editor, saveAction, cancelAction, deleteAction) {
+  const slot = ctx.state.selectedTimeSlotId === "__new__" ? { id: "__new__", value: "", title: "New time", sortOrder: (editor.timeSlots || []).length * 10 + 10, enabled: true } : findById(editor.timeSlots, ctx.state.selectedTimeSlotId);
   if (!slot) {
     return admin.surface.drawer("timeSlotEditor", { title: "Time slot unavailable", open: true },
       admin.summaryCard("Missing time slot", { body: "The selected time slot no longer exists in this config version." }).Actions(cancelAction)
@@ -660,7 +680,7 @@ function timeSlotDrawer(ctx, editor, saveAction, cancelAction) {
         admin.textField("sortOrder", { label: "Sort order", value: values.sortOrder }),
         admin.textField("enabled", { label: "Enabled (true/false)", value: values.enabled })
       )
-    ).Actions(saveAction, cancelAction)
+    ).Actions(saveAction, cancelAction, deleteAction)
   );
 }
 
@@ -729,6 +749,23 @@ function configScreen(ctx) {
     ctx.state.errors = {};
     return render(ctx);
   });
+  function deleteSelected(kind, selectedKey, formKey) {
+    return function() {
+      const id = ctx.state[selectedKey];
+      if (id && id !== "__new__") intakeAdmin.deleteConfigEntity(kind, id);
+      ctx.state.configDrawer = null;
+      ctx.state[selectedKey] = null;
+      ctx.state[formKey] = null;
+      ctx.state.errors = {};
+      return render(ctx);
+    };
+  }
+  const deleteService = ctx.bind(admin.danger("config.service.delete", "Delete service").Placement("footer"), deleteSelected("service", "selectedServiceId", "serviceFormValues"));
+  const deleteTone = ctx.bind(admin.danger("config.tone.delete", "Delete tone").Placement("footer"), deleteSelected("tone", "selectedToneId", "toneFormValues"));
+  const deleteBudget = ctx.bind(admin.danger("config.budget.delete", "Delete budget").Placement("footer"), deleteSelected("budget", "selectedBudgetId", "budgetFormValues"));
+  const deletePrice = ctx.bind(admin.danger("config.price.delete", "Delete price").Placement("footer"), deleteSelected("price", "selectedPriceId", "priceFormValues"));
+  const deleteAvailability = ctx.bind(admin.danger("config.availability.delete", "Delete day").Placement("footer"), deleteSelected("availability", "selectedAvailabilityId", "availabilityFormValues"));
+  const deleteTimeSlot = ctx.bind(admin.danger("config.timeSlot.delete", "Delete time").Placement("footer"), deleteSelected("timeSlot", "selectedTimeSlotId", "timeSlotFormValues"));
   const saveService = ctx.bind(admin.primary("config.service.save", "Save service").Placement("footer"), function(event) {
     const values = event.value || {};
     values.id = values.id || ctx.state.selectedServiceId;
@@ -738,16 +775,9 @@ function configScreen(ctx) {
       ctx.state.errors = errors;
       return render(ctx);
     }
-    intakeAdmin.updateServiceOption({
-      id: values.id,
-      category: values.category,
-      value: values.value,
-      title: values.title,
-      subtitle: values.subtitle || "",
-      badge: values.badge || "",
-      sortOrder: parseIntOrZero(values.sortOrder),
-      enabled: parseBool(values.enabled)
-    });
+    const payload = { category: values.category, value: values.value, title: values.title, subtitle: values.subtitle || "", badge: values.badge || "", sortOrder: parseIntOrZero(values.sortOrder), enabled: parseBool(values.enabled) };
+    if (values.id === "__new__") intakeAdmin.createConfigEntity({ kind: "service", configVersionId: ctx.state.configVersionId, values: payload });
+    else intakeAdmin.updateServiceOption({ id: values.id, category: payload.category, value: payload.value, title: payload.title, subtitle: payload.subtitle, badge: payload.badge, sortOrder: payload.sortOrder, enabled: payload.enabled });
     ctx.state.configDrawer = null;
     ctx.state.selectedServiceId = null;
     ctx.state.serviceFormValues = null;
@@ -763,13 +793,9 @@ function configScreen(ctx) {
       ctx.state.errors = errors;
       return render(ctx);
     }
-    intakeAdmin.updateToneOption({
-      id: values.id,
-      value: values.value,
-      label: values.label,
-      sortOrder: parseIntOrZero(values.sortOrder),
-      enabled: parseBool(values.enabled)
-    });
+    const payload = { value: values.value, label: values.label, sortOrder: parseIntOrZero(values.sortOrder), enabled: parseBool(values.enabled) };
+    if (values.id === "__new__") intakeAdmin.createConfigEntity({ kind: "tone", configVersionId: ctx.state.configVersionId, values: payload });
+    else intakeAdmin.updateToneOption({ id: values.id, value: payload.value, label: payload.label, sortOrder: payload.sortOrder, enabled: payload.enabled });
     ctx.state.configDrawer = null;
     ctx.state.selectedToneId = null;
     ctx.state.toneFormValues = null;
@@ -782,7 +808,9 @@ function configScreen(ctx) {
     ctx.state.budgetFormValues = values;
     const errors = budgetFormErrors(values);
     if (Object.keys(errors).length) { ctx.state.errors = errors; return render(ctx); }
-    intakeAdmin.updateBudgetOption({ id: values.id, value: values.value, title: values.title, subtitle: values.subtitle || "", sortOrder: parseIntOrZero(values.sortOrder), enabled: parseBool(values.enabled) });
+    const payload = { value: values.value, title: values.title, subtitle: values.subtitle || "", sortOrder: parseIntOrZero(values.sortOrder), enabled: parseBool(values.enabled) };
+    if (values.id === "__new__") intakeAdmin.createConfigEntity({ kind: "budget", configVersionId: ctx.state.configVersionId, values: payload });
+    else intakeAdmin.updateBudgetOption({ id: values.id, value: payload.value, title: payload.title, subtitle: payload.subtitle, sortOrder: payload.sortOrder, enabled: payload.enabled });
     ctx.state.configDrawer = null; ctx.state.selectedBudgetId = null; ctx.state.budgetFormValues = null; ctx.state.errors = {};
     return render(ctx);
   });
@@ -792,7 +820,9 @@ function configScreen(ctx) {
     ctx.state.priceFormValues = values;
     const errors = priceFormErrors(values);
     if (Object.keys(errors).length) { ctx.state.errors = errors; return render(ctx); }
-    intakeAdmin.updatePriceRange({ id: values.id, serviceValue: values.serviceValue || "", budgetValue: values.budgetValue || "", label: values.label, minCents: parseOptionalInt(values.minCents), maxCents: parseOptionalInt(values.maxCents) });
+    const payload = { serviceValue: values.serviceValue || "", budgetValue: values.budgetValue || "", label: values.label, minCents: parseOptionalInt(values.minCents), maxCents: parseOptionalInt(values.maxCents) };
+    if (values.id === "__new__") intakeAdmin.createConfigEntity({ kind: "price", configVersionId: ctx.state.configVersionId, values: payload });
+    else intakeAdmin.updatePriceRange({ id: values.id, serviceValue: payload.serviceValue, budgetValue: payload.budgetValue, label: payload.label, minCents: payload.minCents, maxCents: payload.maxCents });
     ctx.state.configDrawer = null; ctx.state.selectedPriceId = null; ctx.state.priceFormValues = null; ctx.state.errors = {};
     return render(ctx);
   });
@@ -802,7 +832,9 @@ function configScreen(ctx) {
     ctx.state.availabilityFormValues = values;
     const errors = availabilityFormErrors(values);
     if (Object.keys(errors).length) { ctx.state.errors = errors; return render(ctx); }
-    intakeAdmin.updateAvailabilityDay({ id: values.id, value: values.value, day: values.day, date: values.date, dot: parseBool(values.dot), disabled: parseBool(values.disabled), disabledReason: values.disabledReason || "", sortOrder: parseIntOrZero(values.sortOrder) });
+    const payload = { value: values.value, day: values.day, date: values.date, dot: parseBool(values.dot), disabled: parseBool(values.disabled), disabledReason: values.disabledReason || "", sortOrder: parseIntOrZero(values.sortOrder) };
+    if (values.id === "__new__") intakeAdmin.createConfigEntity({ kind: "availability", configVersionId: ctx.state.configVersionId, values: payload });
+    else intakeAdmin.updateAvailabilityDay({ id: values.id, value: payload.value, day: payload.day, date: payload.date, dot: payload.dot, disabled: payload.disabled, disabledReason: payload.disabledReason, sortOrder: payload.sortOrder });
     ctx.state.configDrawer = null; ctx.state.selectedAvailabilityId = null; ctx.state.availabilityFormValues = null; ctx.state.errors = {};
     return render(ctx);
   });
@@ -812,7 +844,9 @@ function configScreen(ctx) {
     ctx.state.timeSlotFormValues = values;
     const errors = timeSlotFormErrors(values);
     if (Object.keys(errors).length) { ctx.state.errors = errors; return render(ctx); }
-    intakeAdmin.updateTimeSlot({ id: values.id, value: values.value, title: values.title, sortOrder: parseIntOrZero(values.sortOrder), enabled: parseBool(values.enabled) });
+    const payload = { value: values.value, title: values.title, sortOrder: parseIntOrZero(values.sortOrder), enabled: parseBool(values.enabled) };
+    if (values.id === "__new__") intakeAdmin.createConfigEntity({ kind: "timeSlot", configVersionId: ctx.state.configVersionId, values: payload });
+    else intakeAdmin.updateTimeSlot({ id: values.id, value: payload.value, title: payload.title, sortOrder: payload.sortOrder, enabled: payload.enabled });
     ctx.state.configDrawer = null; ctx.state.selectedTimeSlotId = null; ctx.state.timeSlotFormValues = null; ctx.state.errors = {};
     return render(ctx);
   });
@@ -862,22 +896,22 @@ function configScreen(ctx) {
     ));
   }
   if (ctx.state.configDrawer === "service") {
-    page.Drawers(serviceOptionDrawer(ctx, editor, saveService, cancelService));
+    page.Drawers(serviceOptionDrawer(ctx, editor, saveService, cancelService, deleteService));
   }
   if (ctx.state.configDrawer === "tone") {
-    page.Drawers(toneOptionDrawer(ctx, editor, saveTone, cancelTone));
+    page.Drawers(toneOptionDrawer(ctx, editor, saveTone, cancelTone, deleteTone));
   }
   if (ctx.state.configDrawer === "budget") {
-    page.Drawers(budgetOptionDrawer(ctx, editor, saveBudget, cancelBudget));
+    page.Drawers(budgetOptionDrawer(ctx, editor, saveBudget, cancelBudget, deleteBudget));
   }
   if (ctx.state.configDrawer === "price") {
-    page.Drawers(priceRangeDrawer(ctx, editor, savePrice, cancelPrice));
+    page.Drawers(priceRangeDrawer(ctx, editor, savePrice, cancelPrice, deletePrice));
   }
   if (ctx.state.configDrawer === "availability") {
-    page.Drawers(availabilityDayDrawer(ctx, editor, saveAvailability, cancelAvailability));
+    page.Drawers(availabilityDayDrawer(ctx, editor, saveAvailability, cancelAvailability, deleteAvailability));
   }
   if (ctx.state.configDrawer === "timeSlot") {
-    page.Drawers(timeSlotDrawer(ctx, editor, saveTimeSlot, cancelTimeSlot));
+    page.Drawers(timeSlotDrawer(ctx, editor, saveTimeSlot, cancelTimeSlot, deleteTimeSlot));
   }
 
   return page.MustBuild();

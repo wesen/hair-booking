@@ -149,6 +149,16 @@ func TestStoreDashboardStatsAndConfigDraftPublish(t *testing.T) {
 	if updatedSlot.Value != "11:00" || updatedSlot.Title != "11:00a" {
 		t.Fatalf("unexpected updated slot: %#v", updatedSlot)
 	}
+	createdServiceID, err := store.CreateConfigEntity(context.Background(), ConfigEntityInput{Kind: "service", ConfigVersionID: draft.ID, Values: map[string]any{"category": "color", "value": "consult", "title": "Consultation", "sortOrder": 99, "enabled": true}}, Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("CreateConfigEntity service: %v", err)
+	}
+	if createdServiceID == "" {
+		t.Fatalf("expected created service id")
+	}
+	if err := store.DeleteConfigEntity(context.Background(), "service", createdServiceID, Actor{UserID: "admin_1", Role: "admin"}); err != nil {
+		t.Fatalf("DeleteConfigEntity service: %v", err)
+	}
 
 	published, err := store.PublishConfigVersion(context.Background(), draft.ID, Actor{UserID: "admin_1", Role: "admin"})
 	if err != nil {

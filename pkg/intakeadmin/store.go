@@ -230,6 +230,12 @@ type ConfigEditorData struct {
 	Validation       ConfigValidationReport  `json:"validation"`
 }
 
+type ConfigEntityInput struct {
+	Kind            string         `json:"kind"`
+	ConfigVersionID string         `json:"configVersionId"`
+	Values          map[string]any `json:"values"`
+}
+
 type AuditEvent struct {
 	ID          string         `json:"id"`
 	ActorUserID string         `json:"actorUserId,omitempty"`
@@ -723,6 +729,117 @@ func (s *Store) UpdateToneOption(ctx context.Context, input ConfigToneOptionInpu
 	return ConfigToneOption{}, ErrNotFound
 }
 
+func (s *Store) CreateConfigEntity(ctx context.Context, input ConfigEntityInput, actor Actor) (string, error) {
+	if s == nil || s.ConfigDB == nil {
+		return "", fmt.Errorf("intake admin config DB is not configured")
+	}
+	input.Kind = strings.TrimSpace(input.Kind)
+	input.ConfigVersionID = strings.TrimSpace(input.ConfigVersionID)
+	if input.Kind == "" || input.ConfigVersionID == "" {
+		return "", fmt.Errorf("kind and configVersionId are required")
+	}
+	values := nonNilMap(input.Values)
+	tx, err := s.ConfigDB.BeginTx(ctx, nil)
+	if err != nil {
+		return "", err
+	}
+	defer func() { _ = tx.Rollback() }()
+	if err := ensureConfigVersionDraft(ctx, tx, input.ConfigVersionID); err != nil {
+		return "", err
+	}
+	id := ""
+	switch input.Kind {
+	case "service":
+		id = "svc_" + strings.ReplaceAll(uuid.NewString(), "-", "_")
+		category, value, title := stringValue(values, "category"), stringValue(values, "value"), stringValue(values, "title")
+		if category == "" || value == "" || title == "" {
+			return "", fmt.Errorf("category, value, and title are required")
+		}
+		_, err = tx.ExecContext(ctx, `INSERT INTO dsl_service_options(id, config_version_id, category, value, title, subtitle, badge, sort_order, enabled, metadata_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, '{}')`, id, input.ConfigVersionID, category, value, title, nullString(stringValue(values, "subtitle")), nullString(stringValue(values, "badge")), intValue(values, "sortOrder"), boolInt(boolValue(values, "enabled", true)))
+	case "tone":
+		id = "tone_" + strings.ReplaceAll(uuid.NewString(), "-", "_")
+		value, label := stringValue(values, "value"), stringValue(values, "label")
+		if value == "" || label == "" {
+			return "", fmt.Errorf("value and label are required")
+		}
+		_, err = tx.ExecContext(ctx, `INSERT INTO dsl_tone_options(id, config_version_id, value, label, sort_order, enabled) VALUES (?, ?, ?, ?, ?, ?)`, id, input.ConfigVersionID, value, label, intValue(values, "sortOrder"), boolInt(boolValue(values, "enabled", true)))
+	case "budget":
+		id = "budget_" + strings.ReplaceAll(uuid.NewString(), "-", "_")
+		value, title := stringValue(values, "value"), stringValue(values, "title")
+		if value == "" || title == "" {
+			return "", fmt.Errorf("value and title are required")
+		}
+		_, err = tx.ExecContext(ctx, `INSERT INTO dsl_budget_options(id, config_version_id, value, title, subtitle, sort_order, enabled, metadata_json) VALUES (?, ?, ?, ?, ?, ?, ?, '{}')`, id, input.ConfigVersionID, value, title, nullString(stringValue(values, "subtitle")), intValue(values, "sortOrder"), boolInt(boolValue(values, "enabled", true)))
+	case "price":
+		id = "range_" + strings.ReplaceAll(uuid.NewString(), "-", "_")
+		label := stringValue(values, "label")
+		if label == "" {
+			return "", fmt.Errorf("label is required")
+		}
+		_, err = tx.ExecContext(ctx, `INSERT INTO dsl_price_ranges(id, config_version_id, service_value, budget_value, label, min_cents, max_cents) VALUES (?, ?, ?, ?, ?, ?, ?)`, id, input.ConfigVersionID, nullString(stringValue(values, "serviceValue")), nullString(stringValue(values, "budgetValue")), label, nullableInt(anyIntPtr(values, "minCents")), nullableInt(anyIntPtr(values, "maxCents")))
+	case "availability":
+		id = "day_" + strings.ReplaceAll(uuid.NewString(), "-", "_")
+		value, day, date := stringValue(values, "value"), stringValue(values, "day"), stringValue(values, "date")
+		if value == "" || day == "" || date == "" {
+			return "", fmt.Errorf("value, day, and date are required")
+		}
+		_, err = tx.ExecContext(ctx, `INSERT INTO dsl_availability_days(id, config_version_id, value, day, date, dot, disabled, disabled_reason, sort_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, id, input.ConfigVersionID, value, day, date, boolInt(boolValue(values, "dot", false)), boolInt(boolValue(values, "disabled", false)), nullString(stringValue(values, "disabledReason")), intValue(values, "sortOrder"))
+	case "timeSlot":
+		id = "time_" + strings.ReplaceAll(uuid.NewString(), "-", "_")
+		value, title := stringValue(values, "value"), stringValue(values, "title")
+		if value == "" || title == "" {
+			return "", fmt.Errorf("value and title are required")
+		}
+		_, err = tx.ExecContext(ctx, `INSERT INTO dsl_time_slots(id, config_version_id, value, title, sort_order, enabled) VALUES (?, ?, ?, ?, ?, ?)`, id, input.ConfigVersionID, value, title, intValue(values, "sortOrder"), boolInt(boolValue(values, "enabled", true)))
+	default:
+		return "", fmt.Errorf("unsupported config entity kind %q", input.Kind)
+	}
+	if err != nil {
+		return "", err
+	}
+	if err := tx.Commit(); err != nil {
+		return "", err
+	}
+	_ = s.insertAdminAuditEvent(ctx, actor, "config_"+input.Kind, id, "create", nil, map[string]any{"id": id, "configVersionId": input.ConfigVersionID, "values": values}, map[string]any{"configVersionId": input.ConfigVersionID})
+	return id, nil
+}
+
+func (s *Store) DeleteConfigEntity(ctx context.Context, kind, id string, actor Actor) error {
+	if s == nil || s.ConfigDB == nil {
+		return fmt.Errorf("intake admin config DB is not configured")
+	}
+	kind, id = strings.TrimSpace(kind), strings.TrimSpace(id)
+	if kind == "" || id == "" {
+		return fmt.Errorf("kind and id are required")
+	}
+	tables := map[string]string{"service": "dsl_service_options", "tone": "dsl_tone_options", "budget": "dsl_budget_options", "price": "dsl_price_ranges", "availability": "dsl_availability_days", "timeSlot": "dsl_time_slots"}
+	table, ok := tables[kind]
+	if !ok {
+		return fmt.Errorf("unsupported config entity kind %q", kind)
+	}
+	tx, err := s.ConfigDB.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer func() { _ = tx.Rollback() }()
+	configVersionID, _, err := s.ensureConfigRowIsDraft(ctx, tx, table, id)
+	if err != nil {
+		return err
+	}
+	result, err := tx.ExecContext(ctx, fmt.Sprintf(`DELETE FROM %s WHERE id = ?`, table), id)
+	if err != nil {
+		return err
+	}
+	if n, _ := result.RowsAffected(); n == 0 {
+		return ErrNotFound
+	}
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+	_ = s.insertAdminAuditEvent(ctx, actor, "config_"+kind, id, "delete", map[string]any{"id": id, "configVersionId": configVersionID}, nil, map[string]any{"configVersionId": configVersionID})
+	return nil
+}
+
 func (s *Store) UpdateBudgetOption(ctx context.Context, input ConfigBudgetOptionInput, actor Actor) (ConfigBudgetOption, error) {
 	if s == nil || s.ConfigDB == nil {
 		return ConfigBudgetOption{}, fmt.Errorf("intake admin config DB is not configured")
@@ -1023,6 +1140,20 @@ func (s *Store) PublishConfigVersion(ctx context.Context, id string, actor Actor
 	return ConfigVersion{}, ErrNotFound
 }
 
+func ensureConfigVersionDraft(ctx context.Context, tx *sql.Tx, id string) error {
+	var status string
+	if err := tx.QueryRowContext(ctx, `SELECT status FROM dsl_config_versions WHERE id = ?`, id).Scan(&status); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ErrNotFound
+		}
+		return err
+	}
+	if status != "draft" {
+		return fmt.Errorf("only draft config versions can be edited")
+	}
+	return nil
+}
+
 func validateConfigVersion(ctx context.Context, tx *sql.Tx, id string) error {
 	checks := []struct{ query, message string }{
 		{`SELECT count(*) FROM dsl_service_options WHERE config_version_id = ? AND enabled = 1 AND trim(title) != ''`, "config must have at least one enabled service option"},
@@ -1106,6 +1237,56 @@ func nullableInt(value *int) any {
 		return nil
 	}
 	return *value
+}
+
+func stringValue(values map[string]any, key string) string {
+	if values == nil || values[key] == nil {
+		return ""
+	}
+	return strings.TrimSpace(fmt.Sprint(values[key]))
+}
+
+func intValue(values map[string]any, key string) int {
+	switch v := values[key].(type) {
+	case int:
+		return v
+	case int64:
+		return int(v)
+	case float64:
+		return int(v)
+	case json.Number:
+		i, _ := v.Int64()
+		return int(i)
+	case string:
+		var out int
+		_, _ = fmt.Sscanf(strings.TrimSpace(v), "%d", &out)
+		return out
+	default:
+		return 0
+	}
+}
+
+func anyIntPtr(values map[string]any, key string) *int {
+	if _, ok := values[key]; !ok || values[key] == nil || strings.TrimSpace(fmt.Sprint(values[key])) == "" {
+		return nil
+	}
+	v := intValue(values, key)
+	return &v
+}
+
+func boolValue(values map[string]any, key string, fallback bool) bool {
+	if _, ok := values[key]; !ok || values[key] == nil {
+		return fallback
+	}
+	switch v := values[key].(type) {
+	case bool:
+		return v
+	case string:
+		s := strings.ToLower(strings.TrimSpace(v))
+		return s == "true" || s == "1" || s == "yes" || s == "on" || s == "enabled"
+	default:
+		return fmt.Sprint(v) == "1"
+	}
 }
 
 func nullableJSON(value map[string]any) any {
