@@ -21,6 +21,7 @@ export type AdminNodeKind =
   | "activityFeed"
   | "kvList"
   | "imageGrid"
+  | "imageGallery"
   | "markdownBlock"
   | "emptyState"
   | "loadingState"
@@ -28,6 +29,7 @@ export type AdminNodeKind =
   // Resource/list
   | "resourcePage"
   | "resourceList"
+  | "resourceTable"
   | "resourceRow"
   | "resourceDetail"
   | "filterBar"

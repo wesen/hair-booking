@@ -50,25 +50,25 @@ updated: 2026-05-15
 ## Phase 5 — Admin DSL component gaps
 
 - [ ] Add actionable tabs/filter/search controls.
-- [ ] Add `resourceTable` or `dataTable` primitive.
+- [x] Add `resourceTable` or `dataTable` primitive.
 - [ ] Add pagination/bulk action support.
 - [ ] Add `editableList` or `reorderableList` primitive.
 - [ ] Add `monthAvailabilityGrid` primitive.
-- [ ] Add `imageGallery` or `mediaViewer` primitive.
+- [x] Add `imageGallery` or `mediaViewer` primitive.
 - [ ] Add `previewFrame` or route-level preview bridge.
 - [ ] Add `diffView` or `changeSummary` primitive.
 - [ ] Fix duplicate desktop/mobile surface accessibility behavior.
 
 ## Phase 6 — Dashboard and request review
 
-- [ ] Build `/admin/intake` frontend route.
-- [ ] Add `fringe.admin.intake.v1` flow source.
-- [ ] Implement dashboard screen.
-- [ ] Implement request queue with filters.
-- [ ] Implement request empty/loading/error states.
-- [ ] Implement request detail screen.
+- [x] Build `/admin/intake` frontend route.
+- [x] Add `fringe.admin.intake.v1` flow source.
+- [x] Implement dashboard screen.
+- [x] Implement request queue with filters.
+- [x] Implement request empty/loading/error states.
+- [x] Implement request detail screen.
 - [ ] Implement photo gallery modal and missing-photo error state.
-- [ ] Implement status transitions and internal notes.
+- [x] Implement status transitions and internal notes.
 
 ## Phase 7 — Config editing and publishing
 

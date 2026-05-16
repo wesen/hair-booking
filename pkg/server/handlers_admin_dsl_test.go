@@ -12,6 +12,7 @@ import (
 	"github.com/go-go-golems/hair-booking/pkg/dslhost"
 	"github.com/go-go-golems/hair-booking/pkg/intakeadmin"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 func TestAdminDSLHTTPRejectsUnknownFlow(t *testing.T) {
@@ -39,7 +40,8 @@ func TestAdminDSLHTTPStartsRealIntakeAdminFlow(t *testing.T) {
 		t.Fatalf("ProvisionSchema: %v", err)
 	}
 	store := intakeadmin.NewStore(stateHost.DB, configHost.DB)
-	if _, err := store.CreateRequest(context.Background(), intakeadmin.RequestInput{ConfigVersionID: "cfg_default", ServiceCategory: "color", ServiceValue: "highlights", EstimateLabel: "$220–$420"}); err != nil {
+	request, err := store.CreateRequest(context.Background(), intakeadmin.RequestInput{ConfigVersionID: "cfg_default", ServiceCategory: "color", ServiceValue: "highlights", EstimateLabel: "$220–$420", Photos: map[string]any{"front": map[string]any{"publicUrl": "/uploads/front.jpg", "originalFilename": "front.jpg"}}})
+	if err != nil {
 		t.Fatalf("CreateRequest: %v", err)
 	}
 
@@ -56,6 +58,32 @@ func TestAdminDSLHTTPStartsRealIntakeAdminFlow(t *testing.T) {
 	}
 	if state.Page == nil || state.Page.Id != "admin-intake-dashboard" {
 		t.Fatalf("unexpected page: %#v", state.Page)
+	}
+	openID := findAdminProtoActionID(state.Page.Nodes, "request.open")
+	if openID == "" {
+		t.Fatalf("request.open action not found")
+	}
+	rowValue, err := structpb.NewValue(map[string]any{"id": request.ID})
+	if err != nil {
+		t.Fatalf("row value: %v", err)
+	}
+	event := &admindslv1.AdminInteractionEvent{EventId: "evt-open-request", SessionId: state.SessionId, PageVersion: state.PageVersion, ActionId: openID, Event: "click", Value: rowValue}
+	body, err := protojson.Marshal(event)
+	if err != nil {
+		t.Fatalf("marshal event: %v", err)
+	}
+	eventReq := httptest.NewRequest(http.MethodPost, "/api/admin-dsl/flows/"+state.SessionId+"/events", bytes.NewReader(body))
+	eventRec := httptest.NewRecorder()
+	handler.ServeHTTP(eventRec, eventReq)
+	if eventRec.Code != http.StatusOK {
+		t.Fatalf("event status %d body %s", eventRec.Code, eventRec.Body.String())
+	}
+	var detailState admindslv1.AdminFlowState
+	if err := protojson.Unmarshal(eventRec.Body.Bytes(), &detailState); err != nil {
+		t.Fatalf("decode detail: %v", err)
+	}
+	if detailState.Page == nil || detailState.Page.Id != "admin-intake-request-detail" {
+		t.Fatalf("unexpected detail page: %#v", detailState.Page)
 	}
 }
 

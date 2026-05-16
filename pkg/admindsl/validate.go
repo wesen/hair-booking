@@ -11,8 +11,8 @@ var allowedShellKinds = map[ShellKind]struct{}{
 
 var allowedNodeKinds = map[NodeKind]struct{}{
 	NodeSection: {}, NodeToolbar: {}, NodeCardGrid: {}, NodePanel: {}, NodeSplitPane: {}, NodeTabs: {},
-	NodeMetricCard: {}, NodeSummaryCard: {}, NodeStatusBadge: {}, NodeActivityFeed: {}, NodeKVList: {}, NodeImageGrid: {}, NodeMarkdownBlock: {}, NodeEmptyState: {}, NodeLoadingState: {}, NodeInlineError: {},
-	NodeResourcePage: {}, NodeResourceList: {}, NodeResourceRow: {}, NodeResourceDetail: {}, NodeFilterBar: {}, NodeSearchBox: {}, NodeActionMenu: {},
+	NodeMetricCard: {}, NodeSummaryCard: {}, NodeStatusBadge: {}, NodeActivityFeed: {}, NodeKVList: {}, NodeImageGrid: {}, NodeImageGallery: {}, NodeMarkdownBlock: {}, NodeEmptyState: {}, NodeLoadingState: {}, NodeInlineError: {},
+	NodeResourcePage: {}, NodeResourceList: {}, NodeResourceTable: {}, NodeResourceRow: {}, NodeResourceDetail: {}, NodeFilterBar: {}, NodeSearchBox: {}, NodeActionMenu: {},
 	NodeForm: {}, NodeFieldGroup: {}, NodeTextField: {}, NodeTextareaField: {}, NodeMoneyField: {}, NodeDurationField: {}, NodeDateField: {}, NodeTimeField: {}, NodeSelectField: {}, NodeSwitchField: {}, NodeImageField: {}, NodeSaveBar: {},
 	NodeCalendarWeek: {}, NodeAppointmentBlock: {}, NodeAvailabilityBlock: {}, NodeTimeOffBlock: {},
 	NodeModal: {}, NodeDrawer: {}, NodeSheet: {}, NodeDetailPanel: {}, NodeInlinePanel: {}, NodeConfirmDialog: {},

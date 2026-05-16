@@ -6,13 +6,13 @@ function initialState() {
   return {
     screen: "dashboard",
     selectedRequestId: null,
+    statusFilter: "new",
     errors: {},
   };
 }
 
 function go(ctx, screen) {
   ctx.state.screen = screen;
-  ctx.state.selectedRequestId = null;
   ctx.state.errors = {};
   return render(ctx);
 }
@@ -20,10 +20,54 @@ function go(ctx, screen) {
 function render(ctx) {
   switch (ctx.state.screen) {
     case "requests": return requestsScreen(ctx);
+    case "requestDetail": return requestDetailScreen(ctx);
     case "config": return configScreen(ctx);
     case "preview": return previewScreen(ctx);
     default: return dashboardScreen(ctx);
   }
+}
+
+function requestTitle(request) {
+  return (request.customerName || "Anonymous") + " · " + request.serviceValue;
+}
+
+function bookingLabel(request) {
+  if (!request.dayValue && !request.timeValue) return "TBD";
+  return (request.dayValue || "TBD") + (request.timeValue ? " " + request.timeValue : "");
+}
+
+function requestRows(requests) {
+  return (requests || []).map(function(request) {
+    return {
+      id: request.id,
+      status: request.status,
+      customer: request.customerName || "Anonymous",
+      service: request.serviceValue,
+      estimate: request.estimateLabel || "Pending",
+      booking: bookingLabel(request),
+      photos: String(Object.keys(request.photos || {}).filter(function(key) { return !!request.photos[key]; }).length),
+    };
+  });
+}
+
+function requestTable(ctx, requests, emptyTitle) {
+  const openRequest = ctx.bind(admin.open("request.open", "Open").Placement("row"), function(event) {
+    ctx.state.selectedRequestId = event.value && event.value.id;
+    ctx.state.screen = "requestDetail";
+    return render(ctx);
+  });
+  return admin.resourceTable("requests", {
+    columns: [
+      { id: "status", label: "Status" },
+      { id: "customer", label: "Customer" },
+      { id: "service", label: "Service" },
+      { id: "estimate", label: "Estimate" },
+      { id: "booking", label: "Booking" },
+      { id: "photos", label: "Photos" }
+    ],
+    rows: requestRows(requests),
+    emptyTitle: emptyTitle || "No intake requests"
+  }).Actions(openRequest);
 }
 
 function dashboardScreen(ctx) {
@@ -50,37 +94,74 @@ function dashboardScreen(ctx) {
         admin.metricCard("Draft", stats.hasDraftConfig ? "Yes" : "No", { tone: stats.hasDraftConfig ? "warn" : "success", caption: "Unpublished config changes" })
       ),
       admin.section("Recent requests", { description: "Latest customer intake submissions persisted from the customer DSL flow." },
-        requestList(ctx, stats.recentRequests || [])
+        requestTable(ctx, stats.recentRequests || [], "No intake requests yet")
       )
     )
     .MustBuild();
 }
 
-function requestList(ctx, requests) {
-  if (!requests.length) {
-    return admin.emptyState("No intake requests yet", { body: "Submit the customer intake flow to create the first request." });
-  }
-  return admin.resourceList("requests", { state: "idle" },
-    ...requests.map(function(request) {
-      return admin.resourceRow(request.id, {
-        title: (request.customerName || "Anonymous") + " · " + request.serviceValue,
-        subtitle: (request.estimateLabel || "Estimate pending") + " · " + (request.dayValue || "TBD") + " " + (request.timeValue || ""),
-        badge: request.status,
-        tone: request.status === "needs_info" ? "warn" : "success"
-      });
-    })
-  );
-}
-
 function requestsScreen(ctx) {
   const back = ctx.bind(admin.secondary("nav.dashboard", "Dashboard").Placement("toolbar"), function() { return go(ctx, "dashboard"); });
-  const requests = intakeAdmin.listRequests({ limit: 50 });
+  const showNew = ctx.bind(admin.secondary("filter.new", "New").Placement("toolbar"), function() { ctx.state.statusFilter = "new"; return render(ctx); });
+  const showAll = ctx.bind(admin.secondary("filter.all", "All").Placement("toolbar"), function() { ctx.state.statusFilter = ""; return render(ctx); });
+  const requests = intakeAdmin.listRequests({ status: ctx.state.statusFilter || "", limit: 50 });
   return admin.pageResource("admin-intake-requests", "Intake Requests")
     .Shell("resource", { active: "requests", eyebrow: "Real Admin · Intake" })
     .Description("Review persisted customer intake submissions.")
     .Content(
-      admin.toolbar().Actions(back),
-      admin.section("Request queue", { description: "This starts as resource rows; HAIR-041 will promote dense queues to resourceTable." }, requestList(ctx, requests))
+      admin.toolbar().Actions(back, showNew, showAll),
+      admin.section("Request queue", { description: "Dense queue rendered with the HAIR-041 resourceTable primitive." }, requestTable(ctx, requests, "No requests match this filter"))
+    )
+    .MustBuild();
+}
+
+function photosForGallery(request) {
+  const photos = request.photos || {};
+  return Object.keys(photos).map(function(slot) {
+    const photo = photos[slot] || {};
+    return {
+      id: photo.uploadId || slot,
+      slot: slot,
+      title: slot,
+      subtitle: photo.originalFilename || photo.publicUrl || "Uploaded reference",
+      url: photo.publicUrl || photo.url || "",
+      status: photo.publicUrl || photo.url ? "Stored" : "Missing blob",
+      tone: photo.publicUrl || photo.url ? "success" : "danger"
+    };
+  });
+}
+
+function requestDetailScreen(ctx) {
+  const request = intakeAdmin.getRequest(ctx.state.selectedRequestId);
+  const back = ctx.bind(admin.secondary("nav.requests", "Back to requests").Placement("toolbar"), function() { return go(ctx, "requests"); });
+  const markReviewing = ctx.bind(admin.primary("request.reviewing", "Mark reviewing").Placement("toolbar"), function() {
+    intakeAdmin.updateRequestStatus(request.id, "reviewing", "Marked reviewing from Admin DSL");
+    return render(ctx);
+  });
+  const needsInfo = ctx.bind(admin.secondary("request.needsInfo", "Needs info").Placement("toolbar"), function() {
+    intakeAdmin.updateRequestStatus(request.id, "needs_info", "More information requested");
+    return render(ctx);
+  });
+  const archive = ctx.bind(admin.danger("request.archive", "Archive").Placement("toolbar"), function() {
+    intakeAdmin.updateRequestStatus(request.id, "archived", "Archived from Admin DSL");
+    return go(ctx, "requests");
+  });
+
+  return admin.pageResource("admin-intake-request-detail", "Request " + request.id)
+    .Shell("resource", { active: "requests", eyebrow: "Real Admin · Intake" })
+    .Description(requestTitle(request) + " · " + request.status)
+    .Content(
+      admin.toolbar().Actions(back, markReviewing, needsInfo, archive),
+      admin.cardGrid({ columns: 2 },
+        admin.summaryCard("Summary", { body: "Service: " + request.serviceValue + "\nEstimate: " + (request.estimateLabel || "Pending") + "\nBooking: " + bookingLabel(request) + "\nBudget: " + (request.budgetValue || "Not set") }),
+        admin.summaryCard("Internal notes", { body: request.internalNotes || "No internal notes yet." })
+      ),
+      admin.section("Photos", { description: "Uploaded front/side/back customer references. Missing blobs render as explicit error tiles." },
+        admin.imageGallery("requestPhotos", { images: photosForGallery(request), emptyText: "No photos were uploaded for this request." })
+      ),
+      admin.section("Raw request snapshot", {},
+        admin.markdown(JSON.stringify(request.request || {}, null, 2), {})
+      )
     )
     .MustBuild();
 }
@@ -98,16 +179,16 @@ function configScreen(ctx) {
     .Content(
       admin.toolbar().Actions(back, createDraft),
       admin.section("Config versions", {},
-        admin.resourceList("configVersions", { state: "idle" },
-          ...versions.map(function(version) {
-            return admin.resourceRow(version.id, {
-              title: version.label,
-              subtitle: version.id,
-              badge: version.status,
-              tone: version.status === "active" ? "success" : version.status === "draft" ? "warn" : "neutral"
-            });
-          })
-        )
+        admin.resourceTable("configVersions", {
+          columns: [
+            { id: "status", label: "Status" },
+            { id: "label", label: "Label" },
+            { id: "id", label: "ID" },
+            { id: "activatedAt", label: "Activated" }
+          ],
+          rows: versions,
+          emptyTitle: "No config versions"
+        })
       )
     )
     .MustBuild();
@@ -122,8 +203,8 @@ function previewScreen(ctx) {
     .Content(
       admin.toolbar().Actions(back),
       admin.section("Validation", {},
-        admin.summaryCard("Preview bridge", { body: result.ok ? "Preview host module is connected." : "Preview validation failed." }),
-        admin.markdown("The next phase should render customer DSL pages for a selected draft config version.")
+        admin.summaryCard("Preview bridge", { body: result.ok ? "Preview host module is connected for " + result.configVersionId + "." : "Preview validation failed." }),
+        admin.markdown("The next phase should render customer DSL pages for a selected draft config version.", {})
       )
     )
     .MustBuild();

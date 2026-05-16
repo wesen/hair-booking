@@ -38,7 +38,7 @@ func loadCustomerIntakeModule(store *intakeadmin.Store, session *dslgoja.FlowSes
 			if err != nil {
 				panic(vm.ToValue("host/intake.createRequest: " + err.Error()))
 			}
-			return vm.ToValue(request)
+			return vm.ToValue(gojaJSONValue(request))
 		})
 		_ = exports.Set("dashboardStats", func() goja.Value {
 			stats, err := store.DashboardStats(context.Background())

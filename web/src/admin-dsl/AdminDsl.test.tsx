@@ -136,6 +136,30 @@ describe("admin DSL", () => {
     }));
   });
 
+  it("renders resource tables and dispatches row values", () => {
+    const dispatch = vi.fn();
+    const page = admin.page("table", "Table")
+      .content({
+        kind: "resourceTable",
+        props: {
+          id: "requests",
+          columns: [{ id: "customer", label: "Customer" }, { id: "service", label: "Service" }],
+          rows: [{ id: "req_1", customer: "Maya", service: "Highlights" }],
+          actions: [action.open("request.open", "Open").placement("row").toJSON()],
+        },
+        meta: { id: "requests" },
+      })
+      .toJSON();
+
+    render(<AdminPageRenderer page={page} context={{ dispatch }} />);
+    expect(screen.getByText("Maya")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Open" }));
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      nodeKind: "resourceTable",
+      value: expect.objectContaining({ id: "req_1" }),
+    }));
+  });
+
   it("serializes surface builders as plain JSON nodes", () => {
     const page = admin.page("surfaces", "Surfaces")
       .content(surface.inlinePanel("inline-help", { title: "Inline help" }, admin.markdown("Help text")))

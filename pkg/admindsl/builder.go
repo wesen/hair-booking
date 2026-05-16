@@ -362,12 +362,20 @@ func EmptyState(title string, props JSONObject) *NodeBuilder {
 	return NodeOf(NodeEmptyState, merge(JSONObject{"title": title}, props))
 }
 
+func ImageGallery(id string, props JSONObject) *NodeBuilder {
+	return NodeOf(NodeImageGallery, merge(JSONObject{"id": id}, props)).ID(id)
+}
+
 func Markdown(markdown string, props JSONObject) *NodeBuilder {
 	return NodeOf(NodeMarkdownBlock, merge(JSONObject{"markdown": markdown}, props))
 }
 
 func ResourceList(id string, props JSONObject, children ...*NodeBuilder) *NodeBuilder {
 	return NodeOf(NodeResourceList, merge(JSONObject{"id": id}, props), children...)
+}
+
+func ResourceTable(id string, props JSONObject) *NodeBuilder {
+	return NodeOf(NodeResourceTable, merge(JSONObject{"id": id}, props)).ID(id)
 }
 
 func ResourceRow(id string, props JSONObject) *NodeBuilder {

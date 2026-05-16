@@ -336,3 +336,88 @@ The remaining Phase 3/4 gaps are intentionally tracked rather than hidden: uploa
 
 ### Technical details
 - reMarkable destination: `/ai/2026/05/15/HAIR-041`.
+
+## Step 6: Add resource tables, image gallery, and request review flow
+
+This step started Phase 5 and Phase 6 by adding the first two missing Admin DSL primitives that the real intake backend immediately needed: a dense `resourceTable` for request/config queues and an `imageGallery` for uploaded intake photos. The intake admin flow now uses those primitives for a dashboard, request queue, request detail screen, config table, and photo review section.
+
+The request review flow is now backed by persisted `intake_requests`: admins can open a request from the dashboard/queue, inspect summary/photo/raw snapshot data, and apply status transitions such as reviewing, needs-info, and archive through `host/intake-admin`.
+
+### Prompt Context
+
+**User prompt (verbatim):** "do phases 5-6"
+
+**Assistant interpretation:** Continue HAIR-041 by adding the missing Admin DSL components needed for real admin layouts and building out the dashboard/request review screens.
+
+**Inferred user intent:** The user wants the admin backend to move from plumbing to usable screens, while still surfacing remaining component gaps honestly.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Added Admin DSL node kinds:
+  - `resourceTable`
+  - `imageGallery`
+- Added Go builders and Goja exports:
+  - `admin.resourceTable(...)`
+  - `admin.imageGallery(...)`
+- Added React renderer support for:
+  - table columns/rows with row action dispatch and row values,
+  - gallery tiles with stored and missing-photo states.
+- Added frontend regression coverage for `resourceTable` row-value dispatch.
+- Extended `host/intake-admin` with:
+  - `getRequest(id)`
+  - `updateRequestStatus(id, status, note)`
+- Made host module return JSON-shaped values so JavaScript sees camelCase fields from Go structs reliably.
+- Reworked `pkg/admindsl/flows/intake_admin.flow.js`:
+  - dashboard uses request table for recent requests,
+  - request queue uses `resourceTable` and simple New/All filters,
+  - request detail shows summary cards, internal notes, image gallery, and raw request snapshot,
+  - status toolbar actions update persisted request status,
+  - config versions screen uses `resourceTable`.
+- Extended server HTTP test to open a request from the real intake admin flow and verify the request-detail page renders.
+- Validated:
+  - `go test ./pkg/admindsl ./pkg/server ./pkg/intakeadmin -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+
+### Why
+- The existing card-row list was not enough for a realistic request queue.
+- The admin backend needs a photo-specific primitive because intake photos are operationally important and have missing-blob/error states.
+
+### What worked
+- `resourceTable` is enough to make the request queue and config versions feel closer to a real admin tool.
+- Row actions can dispatch the selected row object back to Goja, which keeps browser actions opaque while still passing row context.
+- `imageGallery` can show uploaded image metadata or explicit missing-photo tiles.
+
+### What didn't work
+- This step did not implement a full photo modal; the gallery is inline for now. The task remains partially open because the requested modal/lightbox behavior still needs a surface flow.
+- Tabs/filter/search are still not generalized. The request queue uses toolbar actions for New/All filters rather than a reusable actionable filter primitive.
+
+### What I learned
+- Real screens quickly reveal which DSL gaps matter first. `resourceTable` and `imageGallery` were more immediately valuable than speculative navigation/diff components.
+- Goja host modules should return JSON-shaped maps/slices when exposing Go structs with JSON tags.
+
+### What was tricky to build
+- `resourceTable` needed to preserve backend-owned action ids while still sending row context. The renderer dispatches the row object as the event value, and the backend callback uses `event.value.id` to load the request.
+
+### What warrants a second pair of eyes
+- Review the `resourceTable` prop contract before more screens depend on it. It currently supports columns, rows, empty title, and one row action.
+- Review accessibility of row action buttons and table responsiveness.
+- Review whether request status transitions should use confirmation surfaces for archive/decline.
+
+### What should be done in the future
+- Add pagination, sorting, and bulk action support to `resourceTable`.
+- Add a real photo modal/lightbox surface from gallery tiles.
+- Add actionable `filterBar`, `tabs`, and `searchBox` primitives.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/render.tsx` for `resourceTable` and `imageGallery` rendering.
+- Review `pkg/admindsl/types.go`, `builder.go`, `goja_module.go`, and `validate.go` for schema/builder additions.
+- Review `pkg/admindsl/flows/intake_admin.flow.js` for request review behavior.
+- Validate with the commands listed above.
+
+### Technical details
+- `resourceTable` row action dispatch shape:
+  - node kind: `resourceTable`
+  - action: opaque backend `request.open`
+  - value: row object, including `id`

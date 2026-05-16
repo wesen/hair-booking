@@ -73,3 +73,23 @@ Step 5: Completed Phase 1-4 validation and uploaded HAIR-041 design/tasks bundle
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/01-diary.md — Diary records validation and reMarkable upload
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md — Updated Phase 1-4 task status
 
+
+## 2026-05-16
+
+Step 6: Started Phases 5-6 by adding Admin DSL resourceTable and imageGallery primitives, rendering request/config tables, adding request detail/status actions, exposing host/intake-admin get/update APIs, and testing table row dispatch plus real request detail routing. Validation: go test ./pkg/admindsl ./pkg/server ./pkg/intakeadmin -count=1; cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (10 files, 44 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder.go — Go builders for resourceTable and imageGallery
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows/intake_admin.flow.js — Dashboard
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/goja_module.go — Goja exports for new Admin DSL primitives
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/types.go — resourceTable and imageGallery node kinds
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/validate.go — Validation whitelist for new node kinds
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl_test.go — Request-detail dispatch regression
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/host_intake_admin_module.go — Request get/update host APIs and JSON-shaped exports
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/host_intake_module.go — JSON-shaped customer request export
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/01-diary.md — Diary records Phase 5-6 screen/component work
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — resourceTable row dispatch coverage
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — resourceTable and imageGallery renderer
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts — Frontend schema node kinds
+

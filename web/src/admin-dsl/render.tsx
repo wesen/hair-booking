@@ -125,6 +125,35 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       );
     }
 
+    case "resourceTable": {
+      const columns = jsonArray<AdminJsonObject>(props, "columns");
+      const rows = jsonArray<AdminJsonObject>(props, "rows");
+      const rowAction = actionList(props)[0];
+      if (!rows.length) return renderInlineNode(jsonObject(props, "empty"), ctx) || renderAdminNode({ kind: "emptyState", props: { title: str(props, "emptyTitle", "No records"), body: str(props, "emptyBody") }, meta: node.meta }, ctx, key);
+      return (
+        <div key={key} {...common} className="adminDslResourceTable" style={{ ...surface, overflow: "hidden", ...style(props) }}>
+          <div style={{ overflowX: "auto" }}>
+            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 620 }}>
+              <thead>
+                <tr>
+                  {columns.map((column) => <th key={String(column.id)} style={{ ...type.meta, color: color.softInk, textAlign: "left", padding: "12px 14px", borderBottom: `1px solid ${color.rule}` }}>{String(column.label || column.id)}</th>)}
+                  {rowAction && <th style={{ ...type.meta, color: color.softInk, textAlign: "right", padding: "12px 14px", borderBottom: `1px solid ${color.rule}` }}>Action</th>}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row, i) => (
+                  <tr key={String(row.id || i)} style={{ borderBottom: i === rows.length - 1 ? "none" : `1px solid ${color.ruleSoft}` }}>
+                    {columns.map((column) => <td key={String(column.id)} style={{ ...type.bodySm, padding: "12px 14px", verticalAlign: "top" }}>{String(row[String(column.id)] ?? "")}</td>)}
+                    {rowAction && <td style={{ padding: "10px 14px", textAlign: "right" }}><button type="button" className="adminDslActionButton" aria-label={rowAction.label || "Open"} onClick={() => dispatchAdminAction(ctx, node, rowAction, row)} style={{ minHeight: 34, border: `1px solid ${color.ink}`, background: color.ink, color: color.paper, borderRadius: radius.pill, padding: "7px 11px", fontFamily: font.mono, fontSize: 10, letterSpacing: 0.5, textTransform: "uppercase", cursor: "pointer" }}>{rowAction.label || "Open"}</button></td>}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      );
+    }
+
     case "resourceList": {
       const state = str(props, "state", "idle");
       if (state === "loading") return renderAdminNode({ kind: "loadingState", props: { title: str(props, "loadingTitle", "Loading resources"), body: str(props, "loadingBody", "Fetching the latest data.") }, meta: node.meta }, ctx, key);
@@ -186,6 +215,12 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     case "imageGrid": {
       const items = jsonArray<AdminJsonObject>(props, "items");
       return <div key={key} {...common} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, ...style(props) }}>{items.map((item) => <article key={String(item.id || item.title)} style={{ ...surface, overflow: "hidden" }}><div style={{ aspectRatio: "4 / 3", background: `linear-gradient(135deg, ${color.peachSoft}, ${color.creamDeep})`, borderBottom: `1px solid ${color.rule}` }} /><div style={{ padding: 12 }}><div style={{ ...type.h3, fontSize: 18 }}>{String(item.title || "Asset")}</div><div style={{ ...type.bodySm, color: color.softInk, marginTop: 4 }}>{String(item.subtitle || "")}</div>{item.status && <span style={{ display: "inline-flex", marginTop: 8, borderRadius: radius.pill, padding: "4px 8px", background: color.paper, border: `1px solid ${color.rule}`, color: toneColor(String(item.tone || "")), fontWeight: 700, ...type.meta }}>{String(item.status)}</span>}</div></article>)}</div>;
+    }
+
+    case "imageGallery": {
+      const images = jsonArray<AdminJsonObject>(props, "images");
+      if (!images.length) return <div key={key} {...common} style={{ ...surface, padding: 18, color: color.softInk, ...type.bodySm, ...style(props) }}>{str(props, "emptyText", "No photos uploaded yet.")}</div>;
+      return <div key={key} {...common} className="adminDslImageGallery" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, ...style(props) }}>{images.map((image) => <article key={String(image.id || image.slot || image.title)} style={{ ...surface, overflow: "hidden" }}>{image.url ? <img src={String(image.url)} alt={String(image.alt || image.title || "Uploaded image")} style={{ width: "100%", aspectRatio: "4 / 3", objectFit: "cover", display: "block", borderBottom: `1px solid ${color.rule}` }} /> : <div style={{ aspectRatio: "4 / 3", display: "grid", placeItems: "center", background: color.cream, borderBottom: `1px solid ${color.rule}`, color: color.danger, ...type.meta }}>Missing photo</div>}<div style={{ padding: 12 }}><div style={{ ...type.h3, fontSize: 18 }}>{String(image.title || image.slot || "Photo")}</div>{image.subtitle && <div style={{ ...type.bodySm, color: color.softInk, marginTop: 4 }}>{String(image.subtitle)}</div>}{image.status && <span style={{ display: "inline-flex", marginTop: 8, borderRadius: radius.pill, padding: "4px 8px", background: color.paper, border: `1px solid ${color.rule}`, color: toneColor(String(image.tone || "")), fontWeight: 700, ...type.meta }}>{String(image.status)}</span>}</div></article>)}</div>;
     }
 
     case "loadingState":

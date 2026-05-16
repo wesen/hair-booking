@@ -10,6 +10,18 @@ import (
 	"github.com/go-go-golems/hair-booking/pkg/intakeadmin"
 )
 
+func gojaJSONValue(value any) any {
+	payload, err := json.Marshal(value)
+	if err != nil {
+		return value
+	}
+	var out any
+	if err := json.Unmarshal(payload, &out); err != nil {
+		return value
+	}
+	return out
+}
+
 func loadIntakeAdminModule(store *intakeadmin.Store, actor intakeadmin.Actor) admindsl.NativeModuleLoader {
 	return func(vm *goja.Runtime, moduleObj *goja.Object) {
 		exports := moduleObj.Get("exports").(*goja.Object)
@@ -18,7 +30,7 @@ func loadIntakeAdminModule(store *intakeadmin.Store, actor intakeadmin.Actor) ad
 			if err != nil {
 				panic(vm.ToValue("host/intake-admin.dashboardStats: " + err.Error()))
 			}
-			return vm.ToValue(stats)
+			return vm.ToValue(gojaJSONValue(stats))
 		})
 		_ = exports.Set("listRequests", func(call goja.FunctionCall) goja.Value {
 			filters := intakeadmin.RequestFilters{Limit: 50}
@@ -30,14 +42,28 @@ func loadIntakeAdminModule(store *intakeadmin.Store, actor intakeadmin.Actor) ad
 			if err != nil {
 				panic(vm.ToValue("host/intake-admin.listRequests: " + err.Error()))
 			}
-			return vm.ToValue(requests)
+			return vm.ToValue(gojaJSONValue(requests))
+		})
+		_ = exports.Set("getRequest", func(id string) goja.Value {
+			request, err := store.GetRequest(context.Background(), id)
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.getRequest: " + err.Error()))
+			}
+			return vm.ToValue(gojaJSONValue(request))
+		})
+		_ = exports.Set("updateRequestStatus", func(id string, status string, note string) goja.Value {
+			request, err := store.UpdateRequestStatus(context.Background(), id, status, actor, note)
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.updateRequestStatus: " + err.Error()))
+			}
+			return vm.ToValue(gojaJSONValue(request))
 		})
 		_ = exports.Set("listConfigVersions", func() goja.Value {
 			versions, err := store.ListConfigVersions(context.Background())
 			if err != nil {
 				panic(vm.ToValue("host/intake-admin.listConfigVersions: " + err.Error()))
 			}
-			return vm.ToValue(versions)
+			return vm.ToValue(gojaJSONValue(versions))
 		})
 		_ = exports.Set("createDraftFromActive", func(call goja.FunctionCall) goja.Value {
 			label := "Admin draft"
@@ -48,7 +74,7 @@ func loadIntakeAdminModule(store *intakeadmin.Store, actor intakeadmin.Actor) ad
 			if err != nil {
 				panic(vm.ToValue("host/intake-admin.createDraftFromActive: " + err.Error()))
 			}
-			return vm.ToValue(version)
+			return vm.ToValue(gojaJSONValue(version))
 		})
 	}
 }
