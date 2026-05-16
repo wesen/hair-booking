@@ -14,6 +14,10 @@ export type AdminNodeKind =
   | "panel"
   | "splitPane"
   | "tabs"
+  | "editableList"
+  | "monthAvailabilityGrid"
+  | "previewFrame"
+  | "diffView"
   // Display
   | "metricCard"
   | "summaryCard"

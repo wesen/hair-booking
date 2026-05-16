@@ -182,6 +182,32 @@ describe("admin DSL", () => {
     }));
   });
 
+  it("dispatches actionable filter and search controls", () => {
+    const dispatch = vi.fn();
+    const page = admin.page("controls", "Controls")
+      .content(
+        admin.filterBar([{ id: "new", label: "New" }, { id: "", label: "All" }], "new")
+          .actions(action.secondary("filter.change", "Filter")),
+        admin.searchBox("Search requests")
+          .actions(action.secondary("search.submit", "Search")),
+      )
+      .toJSON();
+
+    render(<AdminPageRenderer page={page} context={{ dispatch }} />);
+    fireEvent.click(screen.getByRole("button", { name: "All" }));
+    fireEvent.change(screen.getByRole("textbox", { name: "Search" }), { target: { value: "Maya" } });
+    fireEvent.click(screen.getByRole("button", { name: "Search" }));
+
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      nodeKind: "filterBar",
+      value: expect.objectContaining({ id: "" }),
+    }));
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      nodeKind: "searchBox",
+      value: { query: "Maya" },
+    }));
+  });
+
   it("serializes surface builders as plain JSON nodes", () => {
     const page = admin.page("surfaces", "Surfaces")
       .content(surface.inlinePanel("inline-help", { title: "Inline help" }, admin.markdown("Help text")))

@@ -547,3 +547,82 @@ The stories cover happy paths, empty states, dense desktop tables, mobile table 
 
 ### Technical details
 - The stories are static fixtures; live backend behavior remains covered by `/admin/intake` and HTTP tests.
+
+## Step 9: Complete Phase 5 Admin DSL component gap pass
+
+This step completed the remaining HAIR-041 Phase 5 component-gap pass and tightened Phase 6 request-review controls. The Admin DSL now has first-pass primitives for actionable controls, editable/reorderable lists, month availability editing, preview frames, diff/change summaries, and table pagination/bulk actions, all with Storybook fixtures.
+
+The implementations are intentionally pragmatic first versions. They make the real intake admin backend possible without pretending every primitive is final: pagination is metadata/action based, editable list reorder handles are visual for now, preview frame can embed a route or show a placeholder, and diff view is a readable before/after summary rather than a full merge tool.
+
+### Prompt Context
+
+**User prompt (verbatim):** "phase 5 + 6"
+
+**Assistant interpretation:** Continue and finish the Phase 5 component gaps while keeping Phase 6 request review usable.
+
+**Inferred user intent:** The user wants the Admin DSL surface to be broad enough to support the real intake admin backend, not just the first request-review path.
+
+### What I did
+- Added Admin DSL node kinds and Go/Goja builders for:
+  - `editableList`
+  - `monthAvailabilityGrid`
+  - `previewFrame`
+  - `diffView`
+- Made `tabs`, `filterBar`, and `searchBox` actionable in the React renderer.
+- Added `resourceTable` pagination/footer rendering, visible-row bulk action bar, and selectable checkboxes.
+- Removed duplicate desktop/mobile side-surface rendering; side surfaces now render once and stack responsively, reducing duplicate accessible controls.
+- Updated `/admin/intake` request queue to use actionable `filterBar` and `searchBox` instead of purely toolbar-based filters.
+- Added frontend builder helpers for advanced components.
+- Added `web/src/admin-dsl/AdminDslAdvancedComponents.stories.tsx` with extensive stories for:
+  - actionable controls,
+  - editable list normal/dense/empty,
+  - month availability normal/readonly/dense,
+  - preview frame placeholder/iframe/mobile,
+  - diff view publish/conflict/empty,
+  - resource table pagination/bulk,
+  - advanced matrix desktop/mobile.
+- Added frontend regression coverage for actionable filter/search controls.
+- Marked Phase 5 tasks complete.
+- Validated:
+  - `go test ./... -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand` — 10 files, 46 tests passed.
+
+### Why
+- The planned real admin backend needs more than request rows and image tiles. Config editing, availability, preview, publish, and conflict/error workflows need reusable DSL primitives.
+- Storybook coverage was explicitly required for every new widget/DSL component.
+
+### What worked
+- The Admin DSL's explicit interpreter model made it straightforward to add new semantic node kinds without dynamic component lookup.
+- Storybook fixtures provide good visual review coverage before each primitive is used deeply in live flows.
+
+### What didn't work
+- These are first-pass primitives, not production-complete widgets. For example, `editableList` does not implement drag-and-drop yet, and `diffView` does not support field-level merge actions.
+
+### What I learned
+- The current renderer can absorb a fairly broad set of admin primitives while keeping the JSON DSL explicit and understandable.
+- The strongest pattern is still semantic primitive first, app-specific meaning in props/data.
+
+### What was tricky to build
+- `resourceTable` needed to support row actions, bulk actions, selectable UI, and pagination without taking over table state locally. The first version keeps backend ownership by dispatching action payloads such as visible rows or selected row data.
+- Removing duplicate side surfaces required simplifying the responsive layout so the same surface DOM stacks on mobile instead of rendering a second copy.
+
+### What warrants a second pair of eyes
+- Review the prop contracts for all first-pass Phase 5 primitives before Phase 7 depends on them heavily.
+- Review accessibility for actionable tabs, filters, search, table selection, and availability day buttons.
+- Review whether `previewFrame` should allow arbitrary iframe URLs or only internal preview routes.
+
+### What should be done in the future
+- Add drag-and-drop/reorder event semantics for `editableList`.
+- Add real page/selection state for `resourceTable` once pagination/bulk workflows become live.
+- Expand `diffView` with grouped entity diffs and publish/rollback actions.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/render.tsx` for renderer semantics.
+- Review `pkg/admindsl/types.go`, `builder.go`, `goja_module.go`, and `validate.go` for schema/builder changes.
+- Review `web/src/admin-dsl/AdminDslAdvancedComponents.stories.tsx` in Storybook under `Admin DSL/Advanced Components`.
+- Validate with the commands listed above.
+
+### Technical details
+- New Storybook section: `Admin DSL/Advanced Components`.
+- New/expanded request queue controls are in `pkg/admindsl/flows/intake_admin.flow.js`.

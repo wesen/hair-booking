@@ -3,7 +3,7 @@ import type { AdminActionRef, AdminJsonObject, AdminNode, AdminPage, AdminRender
 import { color, font, radius, shadow, type } from "../fringe-ui/tokens";
 import { AdminCalendarWeek } from "./calendar";
 
-import { actionIsDanger, actionIsPrimary, actionKey, actionList, dispatchAdminAction } from "./actions";
+import { actionIsDanger, actionIsPrimary, actionKey, actionList, dispatchAdminAction, isActionRef } from "./actions";
 import { bool, dataAttrs, jsonArray, jsonObject, nodeKey, str, style, toneColor } from "./renderUtils";
 
 function renderActions(node: AdminNode, ctx: AdminRenderContext | undefined, actions: AdminActionRef[] = actionList(node.props)) {
@@ -86,11 +86,36 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     case "tabs": {
       const tabs = jsonArray<AdminJsonObject>(props, "tabs");
       const value = str(props, "value");
-      return <div key={key} {...common} style={{ display: "flex", gap: 8, flexWrap: "wrap", ...style(props) }}>{tabs.map((tab) => { const active = tab.id === value; return <span key={String(tab.id)} className="adminDslFilterPill" style={{ minHeight: 38, display: "inline-flex", alignItems: "center", borderRadius: radius.pill, padding: "8px 12px", border: `1px solid ${active ? color.ink : color.rule}`, background: active ? color.ink : color.paper, color: active ? color.paper : color.ink, ...type.meta }}>{String(tab.label || tab.id)}</span>; })}</div>;
+      const tabAction = actionList(props)[0];
+      return <div key={key} {...common} role="tablist" style={{ display: "flex", gap: 8, flexWrap: "wrap", ...style(props) }}>{tabs.map((tab) => { const id = String(tab.id); const active = id === value; const content = String(tab.label || tab.id); const sharedStyle: CSSProperties = { minHeight: 38, display: "inline-flex", alignItems: "center", borderRadius: radius.pill, padding: "8px 12px", border: `1px solid ${active ? color.ink : color.rule}`, background: active ? color.ink : color.paper, color: active ? color.paper : color.ink, ...type.meta }; return tabAction ? <button key={id} type="button" role="tab" aria-selected={active} className="adminDslFilterPill" onClick={() => dispatchAdminAction(ctx, node, tabAction, tab)} style={{ ...sharedStyle, cursor: "pointer" }}>{content}</button> : <span key={id} role="tab" aria-selected={active} className="adminDslFilterPill" style={sharedStyle}>{content}</span>; })}</div>;
     }
 
-    case "searchBox":
-      return <div key={key} {...common} style={{ ...surface, padding: 12, display: "flex", alignItems: "center", gap: 10, color: color.softInk, ...style(props) }}><span aria-hidden="true" style={{ ...type.body, color: color.softInk }}>{str(props, "placeholder", "Search")}</span></div>;
+    case "searchBox": {
+      const searchAction = actionList(props)[0];
+      return <form key={key} {...common} role="search" onSubmit={(event) => { event.preventDefault(); const value = String(new FormData(event.currentTarget).get("search") || ""); if (searchAction) dispatchAdminAction(ctx, node, searchAction, { query: value }); }} style={{ ...surface, padding: 12, display: "flex", alignItems: "center", gap: 10, color: color.softInk, ...style(props) }}><input name="search" defaultValue={str(props, "value")} placeholder={str(props, "placeholder", "Search")} aria-label={str(props, "label", "Search")} style={{ flex: 1, minHeight: 38, border: "none", outline: "none", background: "transparent", ...type.body }} />{searchAction && <button type="submit" className="adminDslActionButton" style={{ minHeight: 34, border: `1px solid ${color.ink}`, background: color.ink, color: color.paper, borderRadius: radius.pill, padding: "7px 11px", fontFamily: font.mono, fontSize: 10, letterSpacing: 0.5, textTransform: "uppercase", cursor: "pointer" }}>{searchAction.label || "Search"}</button>}</form>;
+    }
+
+    case "editableList": {
+      const items = jsonArray<AdminJsonObject>(props, "items");
+      const itemAction = actionList(props)[0];
+      if (!items.length) return renderAdminNode({ kind: "emptyState", props: { title: str(props, "emptyTitle", "No items"), body: str(props, "emptyBody") }, meta: node.meta }, ctx, key);
+      return <div key={key} {...common} className="adminDslEditableList" style={{ display: "grid", gap: 10, ...style(props) }}>{items.map((item, i) => <article key={String(item.id || i)} style={{ ...surface, padding: 14, display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 12, alignItems: "center" }}><span aria-hidden="true" style={{ ...type.meta, color: color.softInk }}>⋮⋮</span><div><div style={{ ...type.h3, margin: 0 }}>{String(item.title || item.label || item.id || "Item")}</div>{item.subtitle && <div style={{ ...type.bodySm, color: color.softInk, marginTop: 4 }}>{String(item.subtitle)}</div>}</div>{itemAction && <button type="button" className="adminDslActionButton" aria-label={itemAction.label || "Edit"} onClick={() => dispatchAdminAction(ctx, node, itemAction, item)} style={{ minHeight: 34, border: `1px solid ${color.ink}`, background: color.ink, color: color.paper, borderRadius: radius.pill, padding: "7px 11px", fontFamily: font.mono, fontSize: 10, letterSpacing: 0.5, textTransform: "uppercase", cursor: "pointer" }}>{itemAction.label || "Edit"}</button>}</article>)}</div>;
+    }
+
+    case "monthAvailabilityGrid": {
+      const days = jsonArray<AdminJsonObject>(props, "days");
+      const selected = str(props, "selected");
+      const dayAction = actionList(props)[0];
+      return <div key={key} {...common} className="adminDslMonthAvailabilityGrid" style={{ ...surface, padding: 14, display: "grid", gridTemplateColumns: "repeat(7, minmax(42px, 1fr))", gap: 8, ...style(props) }}>{days.map((day, i) => { const value = String(day.value || day.date || i); const disabled = Boolean(day.disabled); const active = selected === value; return <button key={value} type="button" disabled={!dayAction} aria-pressed={active} aria-label={`${String(day.label || day.day || value)}${disabled ? " disabled" : " available"}`} onClick={() => dayAction && dispatchAdminAction(ctx, node, dayAction, day)} style={{ minHeight: 58, borderRadius: radius.md, border: `1px solid ${active ? color.ink : disabled ? color.warn : color.rule}`, background: disabled ? "#fbefcf" : active ? color.ink : color.paper, color: active ? color.paper : color.ink, cursor: dayAction ? "pointer" : "default", display: "grid", placeItems: "center", gap: 2 }}><span style={{ ...type.h3, fontSize: 18 }}>{String(day.day || day.label || "")}</span>{day.dot && <span aria-hidden="true" style={{ width: 7, height: 7, borderRadius: radius.pill, background: disabled ? color.warn : color.success }} />}</button>; })}</div>;
+    }
+
+    case "previewFrame":
+      return <div key={key} {...common} className="adminDslPreviewFrame" style={{ ...surface, padding: 14, display: "grid", gap: 12, ...style(props) }}><div><div style={{ ...type.eyebrow, color: color.softInk }}>{str(props, "kicker", "Preview")}</div><h3 style={{ ...type.h2, margin: "4px 0 0" }}>{str(props, "title", "Customer preview")}</h3>{str(props, "body") && <p style={{ ...type.bodySm, color: color.softInk, margin: "8px 0 0" }}>{str(props, "body")}</p>}</div>{str(props, "url") ? <iframe title={str(props, "title", "Preview")} src={str(props, "url")} style={{ width: "100%", minHeight: Number(props.height || 420), border: `1px solid ${color.rule}`, borderRadius: radius.md, background: color.paper }} /> : <div style={{ minHeight: Number(props.height || 260), border: `1px dashed ${color.rule}`, borderRadius: radius.md, display: "grid", placeItems: "center", color: color.softInk, ...type.bodySm }}>{str(props, "placeholder", "Preview route not connected yet")}</div>}{renderActions(node, ctx)}</div>;
+
+    case "diffView": {
+      const changes = jsonArray<AdminJsonObject>(props, "changes");
+      return <div key={key} {...common} className="adminDslDiffView" style={{ ...surface, overflow: "hidden", ...style(props) }}><div style={{ padding: 14, borderBottom: `1px solid ${color.rule}` }}><h3 style={{ ...type.h3, margin: 0 }}>{str(props, "title", "Changes")}</h3>{str(props, "body") && <p style={{ ...type.bodySm, color: color.softInk, margin: "6px 0 0" }}>{str(props, "body")}</p>}</div>{changes.map((change, i) => <div key={String(change.id || change.field || i)} style={{ display: "grid", gridTemplateColumns: "150px 1fr 1fr", gap: 10, padding: 14, borderBottom: i === changes.length - 1 ? "none" : `1px solid ${color.ruleSoft}` }}><div style={{ ...type.meta, color: toneColor(String(change.tone || "")) }}>{String(change.field || change.label || "Field")}</div><div style={{ ...type.bodySm, color: color.softInk }}>{String(change.before ?? "—")}</div><div style={{ ...type.bodySm, fontWeight: 800 }}>{String(change.after ?? "—")}</div></div>)}</div>;
+    }
 
     case "panel":
     case "summaryCard":
@@ -115,11 +140,14 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     case "filterBar": {
       const filters = jsonArray<AdminJsonObject>(props, "filters");
       const value = str(props, "value");
+      const filterAction = actionList(props)[0];
       return (
         <div key={key} {...common} style={{ display: "flex", gap: 8, flexWrap: "wrap", ...style(props) }}>
           {filters.map((filter) => {
-            const active = filter.id === value;
-            return <span key={String(filter.id)} className="adminDslFilterPill" style={{ minHeight: 38, display: "inline-flex", alignItems: "center", borderRadius: radius.pill, padding: "8px 12px", border: `1px solid ${active ? color.ink : color.rule}`, background: active ? color.ink : color.paper, color: active ? color.paper : color.ink, ...type.meta }}>{String(filter.label || filter.id)}</span>;
+            const id = String(filter.id);
+            const active = id === value;
+            const sharedStyle: CSSProperties = { minHeight: 38, display: "inline-flex", alignItems: "center", borderRadius: radius.pill, padding: "8px 12px", border: `1px solid ${active ? color.ink : color.rule}`, background: active ? color.ink : color.paper, color: active ? color.paper : color.ink, ...type.meta };
+            return filterAction ? <button key={id} type="button" className="adminDslFilterPill" aria-pressed={active} onClick={() => dispatchAdminAction(ctx, node, filterAction, filter)} style={{ ...sharedStyle, cursor: "pointer" }}>{String(filter.label || filter.id)}</button> : <span key={id} className="adminDslFilterPill" style={sharedStyle}>{String(filter.label || filter.id)}</span>;
           })}
         </div>
       );
@@ -128,14 +156,20 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     case "resourceTable": {
       const columns = jsonArray<AdminJsonObject>(props, "columns");
       const rows = jsonArray<AdminJsonObject>(props, "rows");
-      const rowAction = actionList(props)[0];
+      const tableActions = actionList(props);
+      const rowAction = tableActions.find((a) => a.placement === "row") || tableActions[0];
+      const bulkActions = jsonArray<AdminActionRef>(props, "bulkActions").filter(isActionRef);
+      const pagination = jsonObject(props, "pagination");
+      const selectable = bool(props, "selectable") || bulkActions.length > 0;
       if (!rows.length) return renderInlineNode(jsonObject(props, "empty"), ctx) || renderAdminNode({ kind: "emptyState", props: { title: str(props, "emptyTitle", "No records"), body: str(props, "emptyBody") }, meta: node.meta }, ctx, key);
       return (
         <div key={key} {...common} className="adminDslResourceTable" style={{ ...surface, overflow: "hidden", ...style(props) }}>
+          {bulkActions.length > 0 && <div className="adminDslBulkActionBar" style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", padding: 12, borderBottom: `1px solid ${color.rule}`, background: color.cream }}><span style={{ ...type.meta, color: color.softInk }}>{str(props, "bulkLabel", "Bulk actions")}</span><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{bulkActions.map((bulkAction, i) => <button key={actionKey(bulkAction, i)} type="button" className="adminDslActionButton" onClick={() => dispatchAdminAction(ctx, node, bulkAction, { scope: "visible", rows })} style={{ minHeight: 34, border: `1px solid ${actionIsDanger(bulkAction) ? color.danger : color.ink}`, background: actionIsPrimary(bulkAction) ? color.ink : color.paper, color: actionIsPrimary(bulkAction) ? color.paper : actionIsDanger(bulkAction) ? color.danger : color.ink, borderRadius: radius.pill, padding: "7px 11px", fontFamily: font.mono, fontSize: 10, letterSpacing: 0.5, textTransform: "uppercase", cursor: "pointer" }}>{bulkAction.label || bulkAction.target}</button>)}</div></div>}
           <div style={{ overflowX: "auto" }}>
             <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 620 }}>
               <thead>
                 <tr>
+                  {selectable && <th style={{ width: 42, padding: "12px 14px", borderBottom: `1px solid ${color.rule}` }}><span className="sr-only">Select</span></th>}
                   {columns.map((column) => <th key={String(column.id)} style={{ ...type.meta, color: color.softInk, textAlign: "left", padding: "12px 14px", borderBottom: `1px solid ${color.rule}` }}>{String(column.label || column.id)}</th>)}
                   {rowAction && <th style={{ ...type.meta, color: color.softInk, textAlign: "right", padding: "12px 14px", borderBottom: `1px solid ${color.rule}` }}>Action</th>}
                 </tr>
@@ -143,6 +177,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
               <tbody>
                 {rows.map((row, i) => (
                   <tr key={String(row.id || i)} style={{ borderBottom: i === rows.length - 1 ? "none" : `1px solid ${color.ruleSoft}` }}>
+                    {selectable && <td style={{ padding: "12px 14px" }}><input type="checkbox" aria-label={`Select ${String(row.id || i)}`} /></td>}
                     {columns.map((column) => <td key={String(column.id)} style={{ ...type.bodySm, padding: "12px 14px", verticalAlign: "top" }}>{String(row[String(column.id)] ?? "")}</td>)}
                     {rowAction && <td style={{ padding: "10px 14px", textAlign: "right" }}><button type="button" className="adminDslActionButton" aria-label={rowAction.label || "Open"} onClick={() => dispatchAdminAction(ctx, node, rowAction, row)} style={{ minHeight: 34, border: `1px solid ${color.ink}`, background: color.ink, color: color.paper, borderRadius: radius.pill, padding: "7px 11px", fontFamily: font.mono, fontSize: 10, letterSpacing: 0.5, textTransform: "uppercase", cursor: "pointer" }}>{rowAction.label || "Open"}</button></td>}
                   </tr>
@@ -150,6 +185,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
               </tbody>
             </table>
           </div>
+          {pagination && <div className="adminDslPagination" style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", padding: 12, borderTop: `1px solid ${color.rule}`, background: color.paper }}><span style={{ ...type.meta, color: color.softInk }}>Page {String(pagination.page || 1)} · {String(pagination.total || rows.length)} total</span>{renderActions(node, ctx, tableActions.filter((a) => a.placement !== "row"))}</div>}
         </div>
       );
     }
@@ -342,10 +378,10 @@ function FieldPreview({ node }: { node: AdminNode }) {
 const responsiveCss = `
   .adminDslRoot { box-sizing: border-box; }
   .adminDslRoot *, .adminDslRoot *::before, .adminDslRoot *::after { box-sizing: border-box; }
+  .adminDslRoot .sr-only { position: absolute !important; width: 1px !important; height: 1px !important; padding: 0 !important; margin: -1px !important; overflow: hidden !important; clip: rect(0, 0, 0, 0) !important; white-space: nowrap !important; border: 0 !important; }
   .adminDslGrid { grid-template-columns: var(--admin-dsl-grid-columns, 1fr); }
   .adminDslTitle { text-wrap: balance; overflow-wrap: anywhere; }
   .adminDslSideColumn { min-width: 0; }
-  .adminDslMobileSideColumn { display: none !important; }
   @media (max-width: 720px) {
     .adminDslRoot { padding: 16px !important; overflow-x: hidden !important; }
     .adminDslGrid { grid-template-columns: 1fr !important; gap: 16px !important; }
@@ -360,8 +396,7 @@ const responsiveCss = `
     .adminDslCalendarAgenda { display: grid !important; }
     .adminDslResourceRow { grid-template-columns: 1fr !important; gap: 12px !important; padding: 14px !important; }
     .adminDslOverlaySurface { max-height: none !important; overflow: auto !important; border-radius: 14px !important; border-style: solid !important; border-left-width: 4px !important; }
-    .adminDslDesktopSideColumn { display: none !important; }
-    .adminDslMobileSideColumn { display: grid !important; grid-template-columns: 1fr !important; margin: 16px 0 22px !important; }
+    .adminDslSideColumn { display: grid !important; grid-template-columns: 1fr !important; margin: 16px 0 22px !important; }
   }
   @media (max-width: 430px) {
     .adminDslRoot { padding: 12px !important; }
@@ -385,10 +420,9 @@ export function AdminPageRenderer({ page, context }: { page: AdminPage; context?
             <h1 className="adminDslTitle" style={{ ...type.display2, fontSize: 56, margin: "6px 0 8px" }}>{page.title}</h1>
             {page.description && <p style={{ ...type.bodyLg, color: color.softInk, maxWidth: 680, margin: 0 }}>{page.description}</p>}
           </header>
-          {sideNodes.length > 0 && <div className="adminDslSideColumn adminDslMobileSideColumn" style={{ display: "grid", gap: 14, alignContent: "start" }}>{sideNodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</div>}
           <div style={{ display: "grid", gap: 4 }}>{page.nodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</div>
         </div>
-        {sideNodes.length > 0 && <div className="adminDslSideColumn adminDslDesktopSideColumn" style={{ display: "grid", gap: 14, alignContent: "start" }}>{sideNodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</div>}
+        {sideNodes.length > 0 && <div className="adminDslSideColumn" style={{ display: "grid", gap: 14, alignContent: "start" }}>{sideNodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</div>}
       </div>
     </main>
   );

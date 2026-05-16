@@ -7,6 +7,7 @@ function initialState() {
     screen: "dashboard",
     selectedRequestId: null,
     statusFilter: "new",
+    searchQuery: "",
     errors: {},
   };
 }
@@ -102,14 +103,22 @@ function dashboardScreen(ctx) {
 
 function requestsScreen(ctx) {
   const back = ctx.bind(admin.secondary("nav.dashboard", "Dashboard").Placement("toolbar"), function() { return go(ctx, "dashboard"); });
-  const showNew = ctx.bind(admin.secondary("filter.new", "New").Placement("toolbar"), function() { ctx.state.statusFilter = "new"; return render(ctx); });
-  const showAll = ctx.bind(admin.secondary("filter.all", "All").Placement("toolbar"), function() { ctx.state.statusFilter = ""; return render(ctx); });
+  const setFilter = ctx.bind(admin.secondary("filter.status", "Filter").Placement("toolbar"), function(event) { ctx.state.statusFilter = event.value && event.value.id || ""; return render(ctx); });
+  const search = ctx.bind(admin.secondary("filter.search", "Search").Placement("toolbar"), function(event) { ctx.state.searchQuery = event.value && event.value.query || ""; return render(ctx); });
   const requests = intakeAdmin.listRequests({ status: ctx.state.statusFilter || "", limit: 50 });
   return admin.pageResource("admin-intake-requests", "Intake Requests")
     .Shell("resource", { active: "requests", eyebrow: "Real Admin · Intake" })
     .Description("Review persisted customer intake submissions.")
     .Content(
-      admin.toolbar().Actions(back, showNew, showAll),
+      admin.toolbar().Actions(back),
+      admin.filterBar("requestStatusFilters", { filters: [
+        { id: "new", label: "New" },
+        { id: "reviewing", label: "Reviewing" },
+        { id: "needs_info", label: "Needs info" },
+        { id: "booked", label: "Booked" },
+        { id: "", label: "All" }
+      ], value: ctx.state.statusFilter || "" }).Actions(setFilter),
+      admin.searchBox("requestSearch", { placeholder: "Search customer or service", value: ctx.state.searchQuery || "" }).Actions(search),
       admin.section("Request queue", { description: "Dense queue rendered with the HAIR-041 resourceTable primitive." }, requestTable(ctx, requests, "No requests match this filter"))
     )
     .MustBuild();

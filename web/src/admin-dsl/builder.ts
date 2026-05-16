@@ -337,6 +337,10 @@ export const admin = {
   panel: (title: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("panel", { title, ...props }, ...children),
   splitPane: (props: AdminJsonObject = {}, ...children: NodeInput[]) => node("splitPane", props, ...children),
   tabs: (tabs: AdminJsonObject[], value: string, props: AdminJsonObject = {}) => node("tabs", { tabs, value, ...props }),
+  editableList: (id: string, items: AdminJsonObject[], props: AdminJsonObject = {}) => node("editableList", { id, items, ...props }).id(id),
+  monthAvailabilityGrid: (id: string, days: AdminJsonObject[], props: AdminJsonObject = {}) => node("monthAvailabilityGrid", { id, days, ...props }).id(id),
+  previewFrame: (id: string, props: AdminJsonObject = {}) => node("previewFrame", { id, ...props }).id(id),
+  diffView: (id: string, changes: AdminJsonObject[], props: AdminJsonObject = {}) => node("diffView", { id, changes, ...props }).id(id),
 
   metric: (label: string, value: string | number, props: AdminJsonObject = {}) => node("metricCard", { label, value, ...props }),
   summary: (title: string, props: AdminJsonObject = {}) => node("summaryCard", { title, ...props }),
@@ -351,8 +355,8 @@ export const admin = {
   loadingState: (title: string, props: AdminJsonObject = {}) => node("loadingState", { title, ...props }),
 
   resourceList: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("resourceList", { id, ...props }, ...children),
-  filterBar: (filters: AdminJsonObject[], value?: string) => node("filterBar", { filters, value: value || null }),
-  searchBox: (placeholder = "Search") => node("searchBox", { placeholder }),
+  filterBar: (filters: AdminJsonObject[], value?: string, props: AdminJsonObject = {}) => node("filterBar", { filters, value: value || null, ...props }),
+  searchBox: (placeholder = "Search", props: AdminJsonObject = {}) => node("searchBox", { placeholder, ...props }),
 
   form: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("form", { id, ...props }, ...children),
   fieldGroup: (title: string, ...children: NodeInput[]) => node("fieldGroup", { title }, ...children),

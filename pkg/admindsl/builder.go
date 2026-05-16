@@ -350,6 +350,22 @@ func CardGrid(props JSONObject, children ...*NodeBuilder) *NodeBuilder {
 	return NodeOf(NodeCardGrid, props, children...)
 }
 
+func EditableList(id string, props JSONObject) *NodeBuilder {
+	return NodeOf(NodeEditableList, merge(JSONObject{"id": id}, props)).ID(id)
+}
+
+func MonthAvailabilityGrid(id string, props JSONObject) *NodeBuilder {
+	return NodeOf(NodeMonthAvailability, merge(JSONObject{"id": id}, props)).ID(id)
+}
+
+func PreviewFrame(id string, props JSONObject) *NodeBuilder {
+	return NodeOf(NodePreviewFrame, merge(JSONObject{"id": id}, props)).ID(id)
+}
+
+func DiffView(id string, props JSONObject) *NodeBuilder {
+	return NodeOf(NodeDiffView, merge(JSONObject{"id": id}, props)).ID(id)
+}
+
 func Metric(label string, value JSONValue, props JSONObject) *NodeBuilder {
 	return NodeOf(NodeMetricCard, merge(JSONObject{"label": label, "value": value}, props))
 }
@@ -376,6 +392,14 @@ func ResourceList(id string, props JSONObject, children ...*NodeBuilder) *NodeBu
 
 func ResourceTable(id string, props JSONObject) *NodeBuilder {
 	return NodeOf(NodeResourceTable, merge(JSONObject{"id": id}, props)).ID(id)
+}
+
+func FilterBar(id string, props JSONObject) *NodeBuilder {
+	return NodeOf(NodeFilterBar, merge(JSONObject{"id": id}, props)).ID(id)
+}
+
+func SearchBox(id string, props JSONObject) *NodeBuilder {
+	return NodeOf(NodeSearchBox, merge(JSONObject{"id": id}, props)).ID(id)
 }
 
 func ResourceRow(id string, props JSONObject) *NodeBuilder {

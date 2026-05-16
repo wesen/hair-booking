@@ -49,16 +49,17 @@ updated: 2026-05-15
 
 ## Phase 5 — Admin DSL component gaps
 
-- [ ] Add actionable tabs/filter/search controls.
+- [x] Add actionable tabs/filter/search controls.
 - [x] Add `resourceTable` or `dataTable` primitive.
-- [ ] Add pagination/bulk action support.
-- [ ] Add `editableList` or `reorderableList` primitive.
-- [ ] Add `monthAvailabilityGrid` primitive.
+- [x] Add pagination/bulk action support.
+- [x] Add `editableList` or `reorderableList` primitive.
+- [x] Add `monthAvailabilityGrid` primitive.
 - [x] Add `imageGallery` or `mediaViewer` primitive.
 - [x] Add Storybook coverage for new `resourceTable` and `imageGallery` primitives.
-- [ ] Add `previewFrame` or route-level preview bridge.
-- [ ] Add `diffView` or `changeSummary` primitive.
-- [ ] Fix duplicate desktop/mobile surface accessibility behavior.
+- [x] Add Storybook coverage for advanced Phase 5 primitives.
+- [x] Add `previewFrame` or route-level preview bridge.
+- [x] Add `diffView` or `changeSummary` primitive.
+- [x] Fix duplicate desktop/mobile surface accessibility behavior.
 
 ## Phase 6 — Dashboard and request review
 
