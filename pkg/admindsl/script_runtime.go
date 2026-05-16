@@ -19,6 +19,7 @@ type NativeModuleLoader func(*goja.Runtime, *goja.Object)
 type ScriptRuntime struct {
 	callbackTimeout time.Duration
 	nativeModules   map[string]NativeModuleLoader
+	scriptModules   map[string]string
 }
 
 type ScriptRuntimeOption func(*ScriptRuntime)
@@ -36,8 +37,17 @@ func WithNativeModule(name string, loader NativeModuleLoader) ScriptRuntimeOptio
 	}
 }
 
+func WithScriptModule(name string, source string) ScriptRuntimeOption {
+	return func(rt *ScriptRuntime) {
+		if rt.scriptModules == nil {
+			rt.scriptModules = map[string]string{}
+		}
+		rt.scriptModules[name] = source
+	}
+}
+
 func NewScriptRuntime(options ...ScriptRuntimeOption) *ScriptRuntime {
-	rt := &ScriptRuntime{callbackTimeout: defaultScriptCallbackTimeout, nativeModules: map[string]NativeModuleLoader{}}
+	rt := &ScriptRuntime{callbackTimeout: defaultScriptCallbackTimeout, nativeModules: map[string]NativeModuleLoader{}, scriptModules: map[string]string{}}
 	for _, option := range options {
 		option(rt)
 	}
@@ -103,6 +113,9 @@ func (rt *ScriptRuntime) newSession(flowID, sessionID string) (*ScriptSession, e
 	for name, loader := range rt.nativeModules {
 		registry.RegisterNativeModule(name, require.ModuleLoader(loader))
 	}
+	for name, source := range rt.scriptModules {
+		registry.RegisterNativeModule(name, loadScriptModuleSource(name, source))
+	}
 	registry.Enable(vm)
 	return &ScriptSession{
 		ID:             sessionID,
@@ -118,6 +131,22 @@ func loadAdminDSLModule(vm *goja.Runtime, moduleObj *goja.Object) {
 	exports := moduleObj.Get("exports").(*goja.Object)
 	for name, value := range GojaModule() {
 		_ = exports.Set(name, value)
+	}
+}
+
+func loadScriptModuleSource(name, source string) require.ModuleLoader {
+	return func(vm *goja.Runtime, moduleObj *goja.Object) {
+		value, err := vm.RunString("(function(module, exports){\n" + source + "\n})")
+		if err != nil {
+			panic(vm.ToValue(fmt.Sprintf("load admin script module %q: %v", name, err)))
+		}
+		fn, ok := goja.AssertFunction(value)
+		if !ok {
+			panic(vm.ToValue(fmt.Sprintf("admin script module %q did not compile to a function", name)))
+		}
+		if _, err := fn(goja.Undefined(), moduleObj, moduleObj.Get("exports")); err != nil {
+			panic(vm.ToValue(fmt.Sprintf("execute admin script module %q: %v", name, err)))
+		}
 	}
 }
 

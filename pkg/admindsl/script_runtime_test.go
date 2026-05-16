@@ -75,3 +75,25 @@ func TestScriptRuntimeRejectsInvalidRenderedPage(t *testing.T) {
 		t.Fatalf("expected invalid node kind error, got %v", err)
 	}
 }
+
+func TestScriptRuntimeLoadsScriptModules(t *testing.T) {
+	rt := NewScriptRuntime(WithScriptModule("test/admin-helper", `
+const admin = require("fringe/admin-dsl");
+function helperPage() {
+  return admin.pageResource("helper-page", "Helper Page")
+    .Content(admin.section("From helper", {}))
+    .MustBuild();
+}
+module.exports = { helperPage };
+`))
+	_, result, err := rt.StartFlow(context.Background(), "module.admin", `
+const helper = require("test/admin-helper");
+function render(ctx) { return helper.helperPage(); }
+`)
+	if err != nil {
+		t.Fatalf("start flow with helper module: %v", err)
+	}
+	if result.Page.ID != "helper-page" || len(result.Page.Nodes) != 1 {
+		t.Fatalf("unexpected helper page: %#v", result.Page)
+	}
+}

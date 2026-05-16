@@ -11,3 +11,8 @@ var ServicesFlowSource string
 //
 //go:embed flows/intake_admin.flow.js
 var IntakeAdminFlowSource string
+
+// IntakeAdminConfigFlowModule contains the config-editor helper module required by IntakeAdminFlowSource.
+//
+//go:embed flows/intake_config.flow.js
+var IntakeAdminConfigFlowModule string

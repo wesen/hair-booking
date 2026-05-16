@@ -28,6 +28,7 @@ func newAdminDSLFlowStore(intakeStore *intakeadmin.Store) *adminDSLFlowStore {
 	runtime := admindsl.NewScriptRuntime(
 		admindsl.WithNativeModule("host/intake-admin", loadIntakeAdminModule(intakeStore, actor)),
 		admindsl.WithNativeModule("host/intake-preview", loadIntakePreviewModule(intakeStore)),
+		admindsl.WithScriptModule("fringe/admin-flows/intake-config", admindsl.IntakeAdminConfigFlowModule),
 	)
 	return &adminDSLFlowStore{
 		runtime: runtime,
