@@ -74,3 +74,61 @@ Add asdcii screenshots of all the screens, and also cover things that wouldn't i
 
 ### Technical details
 - Ticket path: `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/`.
+
+## Step 2: Add intake admin persistence schema and store
+
+This step created the first app-owned persistence package for the real intake admin backend. The package defines durable request, request-event, admin-audit, and admin-flow-session tables, plus a Go store that can create/list/update intake requests and manage config draft/publish basics.
+
+The intent is to keep domain write semantics outside the generic Admin DSL runtime. Admin flows will eventually call this store through narrow host modules rather than issuing arbitrary SQL from JavaScript.
+
+### Prompt Context
+
+**User prompt (verbatim):** "work on phase 1-4. commit at appropriate intervals, keep a diary as you work."
+
+**Assistant interpretation:** Begin implementing the planned HAIR-041 foundation, commit coherent increments, and keep the ticket diary current.
+
+**Inferred user intent:** The user wants actual backend foundations, not just planning docs, while preserving a reviewable implementation narrative.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Added `pkg/intakeadmin/schema.sql`.
+- Added `pkg/intakeadmin/store.go`.
+- Added `pkg/intakeadmin/store_test.go`.
+- Implemented `ProvisionSchema` for admin-domain state tables.
+- Implemented `CreateRequest`, `ListRequests`, `GetRequest`, `UpdateRequestStatus`, and `DashboardStats`.
+- Implemented config draft creation by copying active config rows to a new draft config version.
+- Implemented basic config publish with validation and active/archive transition.
+- Validated with `go test ./pkg/intakeadmin -count=1`.
+
+### Why
+- The admin backend needs app-owned durable rows before Admin DSL flows can become real.
+- The package establishes the boundary between generic UI DSL and salon/intake business semantics.
+
+### What worked
+- Existing `dslhost` in-memory DB helpers made it easy to test state and config DB behavior together.
+- Draft config copying works against the existing seeded config schema.
+
+### What didn't work
+- The first request creation test used a fake `flow_session_id`, which violated the `dsl_flow_sessions` foreign key. The test now omits the session id unless a real session row exists.
+
+### What I learned
+- Request rows should allow nullable `flow_session_id` for admin-imported/test-created requests, while real customer submissions can still set the session id.
+
+### What was tricky to build
+- Config draft copying needs to preserve app-facing values while generating new primary ids. The current implementation appends the draft id to copied row ids.
+
+### What warrants a second pair of eyes
+- The draft row id strategy is simple and deterministic enough for now, but should be reviewed before production use.
+- The publish validation is intentionally minimal and should be expanded before real publish flows are exposed.
+
+### What should be done in the future
+- Add numbered migrations or additive migration helpers for the new admin schema before relying on long-lived SQLite files.
+
+### Code review instructions
+- Start with `pkg/intakeadmin/schema.sql`.
+- Then review `pkg/intakeadmin/store.go` request and config methods.
+- Validate with `go test ./pkg/intakeadmin -count=1`.
+
+### Technical details
+- The new schema is app-owned and intentionally not part of the generic Admin DSL package.
