@@ -20,6 +20,7 @@ func GojaModule() map[string]any {
 		"section":               Section,
 		"toolbar":               Toolbar,
 		"cardGrid":              CardGrid,
+		"tabs":                  Tabs,
 		"editableList":          EditableList,
 		"monthAvailabilityGrid": MonthAvailabilityGrid,
 		"previewFrame":          PreviewFrame,

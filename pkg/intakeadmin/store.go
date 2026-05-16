@@ -94,6 +94,86 @@ type ConfigVersion struct {
 	ActivatedAt string `json:"activatedAt,omitempty"`
 }
 
+type ConfigServiceOption struct {
+	ID        string         `json:"id"`
+	Category  string         `json:"category"`
+	Value     string         `json:"value"`
+	Title     string         `json:"title"`
+	Subtitle  string         `json:"subtitle,omitempty"`
+	Badge     string         `json:"badge,omitempty"`
+	SortOrder int            `json:"sortOrder"`
+	Enabled   bool           `json:"enabled"`
+	Metadata  map[string]any `json:"metadata,omitempty"`
+}
+
+type ConfigToneOption struct {
+	ID        string `json:"id"`
+	Value     string `json:"value"`
+	Label     string `json:"label"`
+	SortOrder int    `json:"sortOrder"`
+	Enabled   bool   `json:"enabled"`
+}
+
+type ConfigBudgetOption struct {
+	ID        string         `json:"id"`
+	Value     string         `json:"value"`
+	Title     string         `json:"title"`
+	Subtitle  string         `json:"subtitle,omitempty"`
+	SortOrder int            `json:"sortOrder"`
+	Enabled   bool           `json:"enabled"`
+	Metadata  map[string]any `json:"metadata,omitempty"`
+}
+
+type ConfigPriceRange struct {
+	ID           string `json:"id"`
+	ServiceValue string `json:"serviceValue,omitempty"`
+	BudgetValue  string `json:"budgetValue,omitempty"`
+	Label        string `json:"label"`
+	MinCents     *int   `json:"minCents,omitempty"`
+	MaxCents     *int   `json:"maxCents,omitempty"`
+}
+
+type ConfigAvailabilityDay struct {
+	ID             string `json:"id"`
+	Value          string `json:"value"`
+	Day            string `json:"day"`
+	Date           string `json:"date"`
+	Dot            bool   `json:"dot"`
+	Disabled       bool   `json:"disabled"`
+	DisabledReason string `json:"disabledReason,omitempty"`
+	SortOrder      int    `json:"sortOrder"`
+}
+
+type ConfigTimeSlot struct {
+	ID        string `json:"id"`
+	Value     string `json:"value"`
+	Title     string `json:"title"`
+	SortOrder int    `json:"sortOrder"`
+	Enabled   bool   `json:"enabled"`
+}
+
+type ConfigValidationIssue struct {
+	Severity string `json:"severity"`
+	Message  string `json:"message"`
+	Entity   string `json:"entity,omitempty"`
+}
+
+type ConfigValidationReport struct {
+	OK     bool                    `json:"ok"`
+	Issues []ConfigValidationIssue `json:"issues"`
+}
+
+type ConfigEditorData struct {
+	Version          ConfigVersion           `json:"version"`
+	Services         []ConfigServiceOption   `json:"services"`
+	Tones            []ConfigToneOption      `json:"tones"`
+	Budgets          []ConfigBudgetOption    `json:"budgets"`
+	PriceRanges      []ConfigPriceRange      `json:"priceRanges"`
+	AvailabilityDays []ConfigAvailabilityDay `json:"availabilityDays"`
+	TimeSlots        []ConfigTimeSlot        `json:"timeSlots"`
+	Validation       ConfigValidationReport  `json:"validation"`
+}
+
 type AuditEvent struct {
 	ID          string         `json:"id"`
 	ActorUserID string         `json:"actorUserId,omitempty"`
@@ -286,6 +366,209 @@ func (s *Store) ListConfigVersions(ctx context.Context) ([]ConfigVersion, error)
 	return out, rows.Err()
 }
 
+func (s *Store) GetConfigEditorData(ctx context.Context, configVersionID string) (ConfigEditorData, error) {
+	if s == nil || s.ConfigDB == nil {
+		return ConfigEditorData{}, fmt.Errorf("intake admin config DB is not configured")
+	}
+	version, err := s.resolveConfigVersion(ctx, configVersionID)
+	if err != nil {
+		return ConfigEditorData{}, err
+	}
+	data := ConfigEditorData{Version: version}
+	data.Services, err = s.listConfigServices(ctx, version.ID)
+	if err != nil {
+		return ConfigEditorData{}, err
+	}
+	data.Tones, err = s.listConfigTones(ctx, version.ID)
+	if err != nil {
+		return ConfigEditorData{}, err
+	}
+	data.Budgets, err = s.listConfigBudgets(ctx, version.ID)
+	if err != nil {
+		return ConfigEditorData{}, err
+	}
+	data.PriceRanges, err = s.listConfigPriceRanges(ctx, version.ID)
+	if err != nil {
+		return ConfigEditorData{}, err
+	}
+	data.AvailabilityDays, err = s.listConfigAvailabilityDays(ctx, version.ID)
+	if err != nil {
+		return ConfigEditorData{}, err
+	}
+	data.TimeSlots, err = s.listConfigTimeSlots(ctx, version.ID)
+	if err != nil {
+		return ConfigEditorData{}, err
+	}
+	data.Validation = validateConfigEditorData(data)
+	return data, nil
+}
+
+func (s *Store) resolveConfigVersion(ctx context.Context, configVersionID string) (ConfigVersion, error) {
+	query := `SELECT id, label, status, created_at, COALESCE(activated_at, '') FROM dsl_config_versions WHERE id = ?`
+	args := []any{configVersionID}
+	if strings.TrimSpace(configVersionID) == "" || configVersionID == "draft" {
+		query = `SELECT id, label, status, created_at, COALESCE(activated_at, '') FROM dsl_config_versions WHERE status = 'draft' ORDER BY created_at DESC LIMIT 1`
+		args = nil
+	}
+	var v ConfigVersion
+	err := s.ConfigDB.QueryRowContext(ctx, query, args...).Scan(&v.ID, &v.Label, &v.Status, &v.CreatedAt, &v.ActivatedAt)
+	if errors.Is(err, sql.ErrNoRows) && (strings.TrimSpace(configVersionID) == "" || configVersionID == "draft") {
+		err = s.ConfigDB.QueryRowContext(ctx, `SELECT id, label, status, created_at, COALESCE(activated_at, '') FROM dsl_config_versions WHERE status = 'active' ORDER BY activated_at DESC LIMIT 1`).Scan(&v.ID, &v.Label, &v.Status, &v.CreatedAt, &v.ActivatedAt)
+	}
+	if errors.Is(err, sql.ErrNoRows) {
+		return ConfigVersion{}, ErrNotFound
+	}
+	return v, err
+}
+
+func (s *Store) listConfigServices(ctx context.Context, id string) ([]ConfigServiceOption, error) {
+	rows, err := s.ConfigDB.QueryContext(ctx, `SELECT id, category, value, title, COALESCE(subtitle, ''), COALESCE(badge, ''), sort_order, enabled, metadata_json FROM dsl_service_options WHERE config_version_id = ? ORDER BY category, sort_order, title`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+	var out []ConfigServiceOption
+	for rows.Next() {
+		var item ConfigServiceOption
+		var enabled int
+		var metadataJSON string
+		if err := rows.Scan(&item.ID, &item.Category, &item.Value, &item.Title, &item.Subtitle, &item.Badge, &item.SortOrder, &enabled, &metadataJSON); err != nil {
+			return nil, err
+		}
+		item.Enabled = enabled != 0
+		_ = json.Unmarshal([]byte(metadataJSON), &item.Metadata)
+		out = append(out, item)
+	}
+	return out, rows.Err()
+}
+
+func (s *Store) listConfigTones(ctx context.Context, id string) ([]ConfigToneOption, error) {
+	rows, err := s.ConfigDB.QueryContext(ctx, `SELECT id, value, label, sort_order, enabled FROM dsl_tone_options WHERE config_version_id = ? ORDER BY sort_order, label`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+	var out []ConfigToneOption
+	for rows.Next() {
+		var item ConfigToneOption
+		var enabled int
+		if err := rows.Scan(&item.ID, &item.Value, &item.Label, &item.SortOrder, &enabled); err != nil {
+			return nil, err
+		}
+		item.Enabled = enabled != 0
+		out = append(out, item)
+	}
+	return out, rows.Err()
+}
+
+func (s *Store) listConfigBudgets(ctx context.Context, id string) ([]ConfigBudgetOption, error) {
+	rows, err := s.ConfigDB.QueryContext(ctx, `SELECT id, value, title, COALESCE(subtitle, ''), sort_order, enabled, metadata_json FROM dsl_budget_options WHERE config_version_id = ? ORDER BY sort_order, title`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+	var out []ConfigBudgetOption
+	for rows.Next() {
+		var item ConfigBudgetOption
+		var enabled int
+		var metadataJSON string
+		if err := rows.Scan(&item.ID, &item.Value, &item.Title, &item.Subtitle, &item.SortOrder, &enabled, &metadataJSON); err != nil {
+			return nil, err
+		}
+		item.Enabled = enabled != 0
+		_ = json.Unmarshal([]byte(metadataJSON), &item.Metadata)
+		out = append(out, item)
+	}
+	return out, rows.Err()
+}
+
+func (s *Store) listConfigPriceRanges(ctx context.Context, id string) ([]ConfigPriceRange, error) {
+	rows, err := s.ConfigDB.QueryContext(ctx, `SELECT id, COALESCE(service_value, ''), COALESCE(budget_value, ''), label, min_cents, max_cents FROM dsl_price_ranges WHERE config_version_id = ? ORDER BY COALESCE(service_value, ''), COALESCE(budget_value, ''), label`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+	var out []ConfigPriceRange
+	for rows.Next() {
+		var item ConfigPriceRange
+		var min, max sql.NullInt64
+		if err := rows.Scan(&item.ID, &item.ServiceValue, &item.BudgetValue, &item.Label, &min, &max); err != nil {
+			return nil, err
+		}
+		if min.Valid {
+			v := int(min.Int64)
+			item.MinCents = &v
+		}
+		if max.Valid {
+			v := int(max.Int64)
+			item.MaxCents = &v
+		}
+		out = append(out, item)
+	}
+	return out, rows.Err()
+}
+
+func (s *Store) listConfigAvailabilityDays(ctx context.Context, id string) ([]ConfigAvailabilityDay, error) {
+	rows, err := s.ConfigDB.QueryContext(ctx, `SELECT id, value, day, date, dot, disabled, COALESCE(disabled_reason, ''), sort_order FROM dsl_availability_days WHERE config_version_id = ? ORDER BY sort_order, date`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+	var out []ConfigAvailabilityDay
+	for rows.Next() {
+		var item ConfigAvailabilityDay
+		var dot, disabled int
+		if err := rows.Scan(&item.ID, &item.Value, &item.Day, &item.Date, &dot, &disabled, &item.DisabledReason, &item.SortOrder); err != nil {
+			return nil, err
+		}
+		item.Dot = dot != 0
+		item.Disabled = disabled != 0
+		out = append(out, item)
+	}
+	return out, rows.Err()
+}
+
+func (s *Store) listConfigTimeSlots(ctx context.Context, id string) ([]ConfigTimeSlot, error) {
+	rows, err := s.ConfigDB.QueryContext(ctx, `SELECT id, value, title, sort_order, enabled FROM dsl_time_slots WHERE config_version_id = ? ORDER BY sort_order, title`, id)
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = rows.Close() }()
+	var out []ConfigTimeSlot
+	for rows.Next() {
+		var item ConfigTimeSlot
+		var enabled int
+		if err := rows.Scan(&item.ID, &item.Value, &item.Title, &item.SortOrder, &enabled); err != nil {
+			return nil, err
+		}
+		item.Enabled = enabled != 0
+		out = append(out, item)
+	}
+	return out, rows.Err()
+}
+
+func validateConfigEditorData(data ConfigEditorData) ConfigValidationReport {
+	report := ConfigValidationReport{OK: true}
+	if len(data.Services) == 0 {
+		report.Issues = append(report.Issues, ConfigValidationIssue{Severity: "error", Entity: "services", Message: "Config must contain at least one service option."})
+	}
+	if len(data.Budgets) == 0 {
+		report.Issues = append(report.Issues, ConfigValidationIssue{Severity: "error", Entity: "budgets", Message: "Config must contain at least one budget option."})
+	}
+	if len(data.PriceRanges) == 0 {
+		report.Issues = append(report.Issues, ConfigValidationIssue{Severity: "error", Entity: "pricing", Message: "Config must contain at least one price range."})
+	}
+	if len(data.AvailabilityDays) == 0 {
+		report.Issues = append(report.Issues, ConfigValidationIssue{Severity: "warning", Entity: "availability", Message: "No availability days are configured."})
+	}
+	for _, issue := range report.Issues {
+		if issue.Severity == "error" {
+			report.OK = false
+		}
+	}
+	return report
+}
+
 func (s *Store) CreateDraftFromActive(ctx context.Context, label string, actor Actor) (ConfigVersion, error) {
 	if s == nil || s.ConfigDB == nil {
 		return ConfigVersion{}, fmt.Errorf("intake admin config DB is not configured")
@@ -324,6 +607,7 @@ func (s *Store) CreateDraftFromActive(ctx context.Context, label string, actor A
 	if err := tx.Commit(); err != nil {
 		return ConfigVersion{}, err
 	}
+	_ = s.insertAdminAuditEvent(ctx, actor, "config_version", draftID, "create_draft", map[string]any{"sourceConfigVersionId": activeID}, map[string]any{"label": label}, nil)
 	versions, err := s.ListConfigVersions(ctx)
 	if err != nil {
 		return ConfigVersion{}, err
@@ -367,6 +651,7 @@ func (s *Store) PublishConfigVersion(ctx context.Context, id string, actor Actor
 	if err := tx.Commit(); err != nil {
 		return ConfigVersion{}, err
 	}
+	_ = s.insertAdminAuditEvent(ctx, actor, "config_version", id, "publish", map[string]any{"status": status}, map[string]any{"status": "active"}, nil)
 	versions, err := s.ListConfigVersions(ctx)
 	if err != nil {
 		return ConfigVersion{}, err
@@ -432,6 +717,14 @@ func insertRequestEvent(ctx context.Context, tx *sql.Tx, requestID, actorUserID,
 
 func insertAuditEvent(ctx context.Context, tx *sql.Tx, actor Actor, entityType, entityID, action string, before, after, metadata map[string]any) error {
 	_, err := tx.ExecContext(ctx, `INSERT INTO admin_audit_events(id, actor_user_id, actor_role, entity_type, entity_id, action, before_json, after_json, metadata_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, "audit_"+uuid.NewString(), nullString(actor.UserID), nullString(actor.Role), entityType, entityID, action, nullableJSON(before), nullableJSON(after), mustJSON(nonNilMap(metadata)))
+	return err
+}
+
+func (s *Store) insertAdminAuditEvent(ctx context.Context, actor Actor, entityType, entityID, action string, before, after, metadata map[string]any) error {
+	if s == nil || s.StateDB == nil {
+		return nil
+	}
+	_, err := s.StateDB.ExecContext(ctx, `INSERT INTO admin_audit_events(id, actor_user_id, actor_role, entity_type, entity_id, action, before_json, after_json, metadata_json) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`, "audit_"+uuid.NewString(), nullString(actor.UserID), nullString(actor.Role), entityType, entityID, action, nullableJSON(before), nullableJSON(after), mustJSON(nonNilMap(metadata)))
 	return err
 }
 

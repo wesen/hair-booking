@@ -87,6 +87,60 @@ func TestAdminDSLHTTPStartsRealIntakeAdminFlow(t *testing.T) {
 	}
 }
 
+func TestAdminDSLHTTPIntakeConfigCreatesDraft(t *testing.T) {
+	stateHost, err := dslhost.OpenDB(context.Background(), dslhost.DBOptions{Path: filepath.Join(t.TempDir(), "state.sqlite"), Migrate: true})
+	if err != nil {
+		t.Fatalf("OpenDB: %v", err)
+	}
+	defer func() { _ = stateHost.Close() }()
+	configHost, err := dslhost.OpenConfigDB(context.Background(), dslhost.DBOptions{Path: filepath.Join(t.TempDir(), "config.sqlite"), Migrate: true})
+	if err != nil {
+		t.Fatalf("OpenConfigDB: %v", err)
+	}
+	defer func() { _ = configHost.Close() }()
+	if err := intakeadmin.ProvisionSchema(context.Background(), stateHost.DB); err != nil {
+		t.Fatalf("ProvisionSchema: %v", err)
+	}
+	handler := NewHandler(HandlerOptions{DSLStateDB: stateHost.DB, DSLConfigDB: configHost.DB, DSLSQLiteMigrate: true})
+	startReq := httptest.NewRequest(http.MethodPost, "/api/admin-dsl/flows/fringe.admin.intake.v1/start", nil)
+	startRec := httptest.NewRecorder()
+	handler.ServeHTTP(startRec, startReq)
+	if startRec.Code != http.StatusOK {
+		t.Fatalf("start status %d body %s", startRec.Code, startRec.Body.String())
+	}
+	var state admindslv1.AdminFlowState
+	if err := protojson.Unmarshal(startRec.Body.Bytes(), &state); err != nil {
+		t.Fatalf("decode start: %v", err)
+	}
+	configID := findAdminProtoActionID(state.Page.Nodes, "nav.config")
+	if configID == "" {
+		t.Fatalf("nav.config action not found")
+	}
+	configState := postAdminEvent(t, handler, state.SessionId, state.PageVersion, configID, nil)
+	if configState.Page == nil || configState.Page.Id != "admin-intake-config" {
+		t.Fatalf("unexpected config page: %#v", configState.Page)
+	}
+	createDraftID := findAdminProtoActionID(configState.Page.Nodes, "config.createDraft")
+	if createDraftID == "" {
+		t.Fatalf("config.createDraft action not found")
+	}
+	draftState := postAdminEvent(t, handler, configState.SessionId, configState.PageVersion, createDraftID, nil)
+	if draftState.Page == nil || draftState.Page.Id != "admin-intake-config" {
+		t.Fatalf("unexpected draft page: %#v", draftState.Page)
+	}
+	publishID := findAdminProtoActionID(draftState.Page.Nodes, "config.publish.open")
+	if publishID == "" {
+		t.Fatalf("expected publish action for draft config")
+	}
+	var drafts int
+	if err := configHost.DB.QueryRow(`SELECT count(*) FROM dsl_config_versions WHERE status = 'draft'`).Scan(&drafts); err != nil {
+		t.Fatalf("count drafts: %v", err)
+	}
+	if drafts != 1 {
+		t.Fatalf("expected one draft, got %d", drafts)
+	}
+}
+
 func TestAdminDSLHTTPStartGetDispatch(t *testing.T) {
 	handler := NewHandler(HandlerOptions{})
 
@@ -153,6 +207,26 @@ func TestAdminDSLHTTPStartGetDispatch(t *testing.T) {
 	if getRec.Code != http.StatusOK {
 		t.Fatalf("get status %d body %s", getRec.Code, getRec.Body.String())
 	}
+}
+
+func postAdminEvent(t *testing.T, handler http.Handler, sessionID string, pageVersion uint32, actionID string, value *structpb.Value) admindslv1.AdminFlowState {
+	t.Helper()
+	event := &admindslv1.AdminInteractionEvent{EventId: "evt-test", SessionId: sessionID, PageVersion: pageVersion, ActionId: actionID, Event: "click", Value: value}
+	body, err := protojson.Marshal(event)
+	if err != nil {
+		t.Fatalf("marshal event: %v", err)
+	}
+	req := httptest.NewRequest(http.MethodPost, "/api/admin-dsl/flows/"+sessionID+"/events", bytes.NewReader(body))
+	rec := httptest.NewRecorder()
+	handler.ServeHTTP(rec, req)
+	if rec.Code != http.StatusOK {
+		t.Fatalf("event status %d body %s", rec.Code, rec.Body.String())
+	}
+	var state admindslv1.AdminFlowState
+	if err := protojson.Unmarshal(rec.Body.Bytes(), &state); err != nil {
+		t.Fatalf("decode event: %v", err)
+	}
+	return state
 }
 
 func findAdminProtoActionID(nodes []*admindslv1.AdminNode, target string) string {

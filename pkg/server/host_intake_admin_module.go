@@ -76,6 +76,24 @@ func loadIntakeAdminModule(store *intakeadmin.Store, actor intakeadmin.Actor) ad
 			}
 			return vm.ToValue(gojaJSONValue(version))
 		})
+		_ = exports.Set("getConfigEditor", func(call goja.FunctionCall) goja.Value {
+			configVersionID := ""
+			if len(call.Arguments) > 0 && !goja.IsUndefined(call.Argument(0)) && !goja.IsNull(call.Argument(0)) {
+				configVersionID = call.Argument(0).String()
+			}
+			data, err := store.GetConfigEditorData(context.Background(), configVersionID)
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.getConfigEditor: " + err.Error()))
+			}
+			return vm.ToValue(gojaJSONValue(data))
+		})
+		_ = exports.Set("publishConfigVersion", func(id string) goja.Value {
+			version, err := store.PublishConfigVersion(context.Background(), id, actor)
+			if err != nil {
+				panic(vm.ToValue("host/intake-admin.publishConfigVersion: " + err.Error()))
+			}
+			return vm.ToValue(gojaJSONValue(version))
+		})
 	}
 }
 

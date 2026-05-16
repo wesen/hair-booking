@@ -99,6 +99,13 @@ func TestStoreDashboardStatsAndConfigDraftPublish(t *testing.T) {
 	if copied == 0 {
 		t.Fatalf("expected copied service options")
 	}
+	editor, err := store.GetConfigEditorData(context.Background(), draft.ID)
+	if err != nil {
+		t.Fatalf("GetConfigEditorData: %v", err)
+	}
+	if editor.Version.ID != draft.ID || len(editor.Services) == 0 || len(editor.Tones) == 0 || len(editor.Budgets) == 0 || len(editor.PriceRanges) == 0 || !editor.Validation.OK {
+		t.Fatalf("unexpected editor data: %#v", editor)
+	}
 
 	published, err := store.PublishConfigVersion(context.Background(), draft.ID, Actor{UserID: "admin_1", Role: "admin"})
 	if err != nil {
@@ -106,5 +113,12 @@ func TestStoreDashboardStatsAndConfigDraftPublish(t *testing.T) {
 	}
 	if published.Status != "active" {
 		t.Fatalf("expected active published config, got %#v", published)
+	}
+	var audits int
+	if err := store.StateDB.QueryRow(`SELECT count(*) FROM admin_audit_events WHERE entity_type = 'config_version'`).Scan(&audits); err != nil {
+		t.Fatalf("count config audit events: %v", err)
+	}
+	if audits < 2 {
+		t.Fatalf("expected create draft and publish audit events, got %d", audits)
 	}
 }

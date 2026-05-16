@@ -193,19 +193,207 @@ function requestDetailScreen(ctx) {
   return page.MustBuild();
 }
 
+function versionRows(versions) {
+  return (versions || []).map(function(version) {
+    return {
+      id: version.id,
+      status: version.status,
+      label: version.label,
+      activatedAt: version.activatedAt || "—",
+      createdAt: version.createdAt || "—"
+    };
+  });
+}
+
+function serviceEditorItems(services) {
+  return (services || []).map(function(service) {
+    return {
+      id: service.id,
+      title: service.title,
+      subtitle: service.category + " · " + service.value + " · " + (service.badge || "No badge") + " · sort " + service.sortOrder + (service.enabled ? "" : " · disabled")
+    };
+  });
+}
+
+function toneEditorItems(tones) {
+  return (tones || []).map(function(tone) {
+    return {
+      id: tone.id,
+      title: tone.label,
+      subtitle: tone.value + " · sort " + tone.sortOrder + (tone.enabled ? "" : " · disabled")
+    };
+  });
+}
+
+function budgetEditorItems(budgets) {
+  return (budgets || []).map(function(budget) {
+    return {
+      id: budget.id,
+      title: budget.title,
+      subtitle: budget.value + " · " + (budget.subtitle || "No subtitle") + " · sort " + budget.sortOrder + (budget.enabled ? "" : " · disabled")
+    };
+  });
+}
+
+function priceRows(priceRanges) {
+  return (priceRanges || []).map(function(range) {
+    return {
+      id: range.id,
+      service: range.serviceValue || "default",
+      budget: range.budgetValue || "default",
+      label: range.label,
+      min: range.minCents ? "$" + Math.round(range.minCents / 100) : "—",
+      max: range.maxCents ? "$" + Math.round(range.maxCents / 100) : "—"
+    };
+  });
+}
+
+function timeSlotItems(timeSlots) {
+  return (timeSlots || []).map(function(slot) {
+    return {
+      id: slot.id,
+      title: slot.title,
+      subtitle: slot.value + " · sort " + slot.sortOrder + (slot.enabled ? "" : " · disabled")
+    };
+  });
+}
+
+function validationChanges(report) {
+  const issues = (report && report.issues) || [];
+  if (!issues.length) {
+    return [{ field: "Validation", before: "Pending review", after: "No blocking issues", tone: "success" }];
+  }
+  return issues.map(function(issue) {
+    return {
+      field: issue.entity || issue.severity,
+      before: issue.severity,
+      after: issue.message,
+      tone: issue.severity === "error" ? "danger" : "warn"
+    };
+  });
+}
+
+function configEditorSection(ctx, editor) {
+  const setSection = ctx.bind(admin.secondary("config.section", "Switch section").Placement("toolbar"), function(event) {
+    ctx.state.configSection = event.value && event.value.id || "services";
+    return render(ctx);
+  });
+  const section = ctx.state.configSection || "services";
+  const disabledEdit = admin.secondary("config.edit.placeholder", "Edit").Placement("row").Disabled(true).AccessibilityLabel("Detailed editing is implemented in the next Phase 7 slice");
+  const availabilitySelect = ctx.bind(admin.open("config.availability.selectDay", "Select day").Placement("detail"), function(event) {
+    ctx.state.selectedAvailabilityDay = event.value && event.value.value;
+    return render(ctx);
+  });
+
+  const tabs = admin.tabs("configSections", { tabs: [
+    { id: "services", label: "Services" },
+    { id: "tones", label: "Tones" },
+    { id: "budgets", label: "Budgets" },
+    { id: "pricing", label: "Pricing" },
+    { id: "availability", label: "Availability" },
+    { id: "validation", label: "Validation" }
+  ], value: section }).Actions(setSection);
+
+  if (section === "tones") {
+    return admin.section("Tone options", { description: "Draft tone labels read by the customer intake flow." },
+      tabs,
+      admin.editableList("toneOptions", { items: toneEditorItems(editor.tones), emptyTitle: "No tone options" }).Actions(disabledEdit)
+    );
+  }
+  if (section === "budgets") {
+    return admin.section("Budget options", { description: "Budget choices and explanatory copy." },
+      tabs,
+      admin.editableList("budgetOptions", { items: budgetEditorItems(editor.budgets), emptyTitle: "No budget options" }).Actions(disabledEdit)
+    );
+  }
+  if (section === "pricing") {
+    return admin.section("Price ranges", { description: "Service/budget price range rules used by estimates." },
+      tabs,
+      admin.resourceTable("priceRanges", {
+        columns: [
+          { id: "service", label: "Service" },
+          { id: "budget", label: "Budget" },
+          { id: "label", label: "Label" },
+          { id: "min", label: "Min" },
+          { id: "max", label: "Max" }
+        ],
+        rows: priceRows(editor.priceRanges),
+        emptyTitle: "No price ranges"
+      }).Actions(disabledEdit)
+    );
+  }
+  if (section === "availability") {
+    return admin.section("Availability and time slots", { description: "Published booking days and selectable appointment times." },
+      tabs,
+      admin.monthAvailabilityGrid("availabilityDays", { days: editor.availabilityDays || [], selected: ctx.state.selectedAvailabilityDay || "" }).Actions(availabilitySelect),
+      admin.editableList("timeSlots", { items: timeSlotItems(editor.timeSlots), emptyTitle: "No time slots" }).Actions(disabledEdit)
+    );
+  }
+  if (section === "validation") {
+    return admin.section("Validation report", { description: "Pre-publish validation for the selected config version." },
+      tabs,
+      admin.diffView("configValidation", {
+        title: editor.validation && editor.validation.ok ? "Config is publishable" : "Config needs attention",
+        body: "Validation is computed by the app-owned intake admin store.",
+        changes: validationChanges(editor.validation)
+      })
+    );
+  }
+  return admin.section("Service and category options", { description: "Draft service menu rows grouped by category and ordered for customer intake." },
+    tabs,
+    admin.editableList("serviceOptions", { items: serviceEditorItems(editor.services), emptyTitle: "No service options" }).Actions(disabledEdit)
+  );
+}
+
 function configScreen(ctx) {
-  const back = ctx.bind(admin.secondary("nav.dashboard", "Dashboard").Placement("toolbar"), function() { return go(ctx, "dashboard"); });
+  const back = ctx.bind(admin.secondary("nav.dashboard", "Dashboard").Placement("toolbar"), function() { ctx.state.publishModal = false; return go(ctx, "dashboard"); });
   const createDraft = ctx.bind(admin.primary("config.createDraft", "Create draft").Placement("toolbar"), function() {
-    intakeAdmin.createDraftFromActive("Admin draft");
+    const draft = intakeAdmin.createDraftFromActive("Admin draft");
+    ctx.state.configVersionId = draft.id;
+    ctx.state.configSection = "services";
+    ctx.state.publishModal = false;
     return configScreen(ctx);
   });
+  const selectVersion = ctx.bind(admin.open("config.version.open", "Open").Placement("row"), function(event) {
+    ctx.state.configVersionId = event.value && event.value.id;
+    ctx.state.configSection = "services";
+    ctx.state.publishModal = false;
+    return render(ctx);
+  });
+  const openPublish = ctx.bind(admin.primary("config.publish.open", "Publish draft").Placement("toolbar"), function() {
+    ctx.state.publishModal = true;
+    return render(ctx);
+  });
+  const cancelPublish = ctx.bind(admin.secondary("config.publish.cancel", "Cancel").Placement("footer"), function() {
+    ctx.state.publishModal = false;
+    return render(ctx);
+  });
+  const confirmPublish = ctx.bind(admin.danger("config.publish.confirm", "Publish").Placement("footer"), function() {
+    const editor = intakeAdmin.getConfigEditor(ctx.state.configVersionId || "");
+    const published = intakeAdmin.publishConfigVersion(editor.version.id);
+    ctx.state.configVersionId = published.id;
+    ctx.state.configSection = "validation";
+    ctx.state.publishModal = false;
+    return render(ctx);
+  });
+
   const versions = intakeAdmin.listConfigVersions();
-  return admin.pageResource("admin-intake-config", "Intake Configuration")
+  const editor = intakeAdmin.getConfigEditor(ctx.state.configVersionId || "");
+  ctx.state.configVersionId = editor.version.id;
+  const canPublish = editor.version.status === "draft" && editor.validation && editor.validation.ok;
+  const publishAction = canPublish ? openPublish : admin.primary("config.publish.disabled", "Publish draft").Placement("toolbar").Disabled(true);
+
+  const page = admin.pageResource("admin-intake-config", "Intake Configuration")
     .Shell("resource", { active: "config", eyebrow: "Real Admin · Intake" })
     .Description("Manage versioned config rows that drive the customer intake flow.")
     .Content(
-      admin.toolbar().Actions(back, createDraft),
-      admin.section("Config versions", {},
+      admin.toolbar().Actions(back, createDraft, publishAction),
+      admin.cardGrid({ columns: 3 },
+        admin.metricCard("Selected", editor.version.label, { tone: editor.version.status === "draft" ? "warn" : "success", caption: editor.version.id }),
+        admin.metricCard("Status", editor.version.status, { tone: editor.version.status === "active" ? "success" : "warn", caption: editor.version.activatedAt || "Not activated" }),
+        admin.metricCard("Validation", editor.validation && editor.validation.ok ? "OK" : "Issues", { tone: editor.validation && editor.validation.ok ? "success" : "danger", caption: String(((editor.validation && editor.validation.issues) || []).length) + " issue(s)" })
+      ),
+      admin.section("Config versions", { description: "Open a version to inspect its publishable resources." },
         admin.resourceTable("configVersions", {
           columns: [
             { id: "status", label: "Status" },
@@ -213,12 +401,20 @@ function configScreen(ctx) {
             { id: "id", label: "ID" },
             { id: "activatedAt", label: "Activated" }
           ],
-          rows: versions,
+          rows: versionRows(versions),
           emptyTitle: "No config versions"
-        })
-      )
-    )
-    .MustBuild();
+        }).Actions(selectVersion)
+      ),
+      configEditorSection(ctx, editor)
+    );
+
+  if (ctx.state.publishModal) {
+    page.Modals(admin.surface.modal("publishConfig", { title: "Publish intake config?", open: true },
+      admin.summaryCard("Publish " + editor.version.label, { body: "Publishing this draft will archive the current active config and make the selected rows visible to customer intake sessions." }).Actions(cancelPublish, confirmPublish)
+    ));
+  }
+
+  return page.MustBuild();
 }
 
 function previewScreen(ctx) {

@@ -350,6 +350,10 @@ func CardGrid(props JSONObject, children ...*NodeBuilder) *NodeBuilder {
 	return NodeOf(NodeCardGrid, props, children...)
 }
 
+func Tabs(id string, props JSONObject) *NodeBuilder {
+	return NodeOf(NodeTabs, merge(JSONObject{"id": id}, props)).ID(id)
+}
+
 func EditableList(id string, props JSONObject) *NodeBuilder {
 	return NodeOf(NodeEditableList, merge(JSONObject{"id": id}, props)).ID(id)
 }
