@@ -160,6 +160,28 @@ describe("admin DSL", () => {
     }));
   });
 
+  it("renders image galleries and dispatches selected image values", () => {
+    const dispatch = vi.fn();
+    const page = admin.page("gallery", "Gallery")
+      .content({
+        kind: "imageGallery",
+        props: {
+          id: "photos",
+          images: [{ id: "front", title: "Front", status: "Stored" }],
+          actions: [action.open("photo.open", "Open photo").placement("detail").toJSON()],
+        },
+        meta: { id: "photos" },
+      })
+      .toJSON();
+
+    render(<AdminPageRenderer page={page} context={{ dispatch }} />);
+    fireEvent.click(screen.getByRole("button", { name: "Open Front" }));
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      nodeKind: "imageGallery",
+      value: expect.objectContaining({ id: "front" }),
+    }));
+  });
+
   it("serializes surface builders as plain JSON nodes", () => {
     const page = admin.page("surfaces", "Surfaces")
       .content(surface.inlinePanel("inline-help", { title: "Inline help" }, admin.markdown("Help text")))

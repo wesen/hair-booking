@@ -93,3 +93,16 @@ Step 6: Started Phases 5-6 by adding Admin DSL resourceTable and imageGallery pr
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — resourceTable and imageGallery renderer
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts — Frontend schema node kinds
 
+
+## 2026-05-16
+
+Step 7: Completed the Phase 6 photo modal path by making imageGallery actionable, dispatching selected image values, adding a photoViewer modal with missing-photo state, and adding frontend coverage. Validation: go test ./pkg/admindsl ./pkg/server ./pkg/intakeadmin -count=1; cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (10 files, 45 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows/intake_admin.flow.js — Photo viewer modal and missing-photo state
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/01-diary.md — Diary records photo modal work
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md — Phase 6 photo modal task completed
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — Gallery dispatch regression coverage
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Actionable imageGallery renderer
+

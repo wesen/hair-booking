@@ -421,3 +421,59 @@ The request review flow is now backed by persisted `intake_requests`: admins can
   - node kind: `resourceTable`
   - action: opaque backend `request.open`
   - value: row object, including `id`
+
+## Step 7: Add photo gallery modal behavior
+
+This step completed the request-review photo surface by making `imageGallery` actionable and adding a modal viewer in the intake admin flow. Gallery tiles now dispatch the selected image object, and the request detail screen opens a `photoViewer` modal that shows stored-photo metadata or a clear missing-photo message.
+
+This is still not a full lightbox with image zoom/download/redaction, but it covers the Phase 6 requirement that photo review include an explicit modal surface and missing-photo error state.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 6)
+
+**Assistant interpretation:** Close the remaining Phase 6 photo-modal gap after adding the initial inline image gallery.
+
+**Inferred user intent:** The admin request review screen should cover non-obvious photo error states, not just show a happy-path grid.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Updated `web/src/admin-dsl/render.tsx` so `imageGallery` can dispatch selected image values when an action is attached.
+- Updated `pkg/admindsl/flows/intake_admin.flow.js` to attach `photo.open` to request photos.
+- Added a `photoViewer` modal with stored-photo and missing-photo body text.
+- Added frontend regression coverage for gallery click dispatch.
+- Marked the Phase 6 photo modal/missing-photo task complete.
+- Validated:
+  - `go test ./pkg/admindsl ./pkg/server ./pkg/intakeadmin -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand` — 10 files, 45 tests passed.
+
+### Why
+- Real intake review depends heavily on uploaded photos, and missing blob/object states must be explicit.
+
+### What worked
+- The existing Admin DSL modal/surface model was enough to add this without a new specialized modal primitive.
+
+### What didn't work
+- Full lightbox interactions remain future work: previous/next, open original, redact, and download-all are not implemented yet.
+
+### What I learned
+- `imageGallery` should probably grow first-class action slots such as `open`, `download`, and `redact` if media review becomes central.
+
+### What was tricky to build
+- The renderer had to preserve the card-like visual while swapping from passive `article` to actionable `button` when a backend action exists.
+
+### What warrants a second pair of eyes
+- Review the accessibility label `Open <title>` and keyboard behavior for gallery tiles.
+
+### What should be done in the future
+- Add open-original/download/redact actions and maybe a richer `mediaViewer` primitive.
+
+### Code review instructions
+- Review `web/src/admin-dsl/render.tsx:imageGallery`.
+- Review `pkg/admindsl/flows/intake_admin.flow.js:requestDetailScreen`.
+- Validate with the commands listed above.
+
+### Technical details
+- Missing-photo modal text is derived from empty `url`/`publicUrl` in the persisted photo object.

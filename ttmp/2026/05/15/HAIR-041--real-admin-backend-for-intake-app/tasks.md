@@ -67,7 +67,7 @@ updated: 2026-05-15
 - [x] Implement request queue with filters.
 - [x] Implement request empty/loading/error states.
 - [x] Implement request detail screen.
-- [ ] Implement photo gallery modal and missing-photo error state.
+- [x] Implement photo gallery modal and missing-photo error state.
 - [x] Implement status transitions and internal notes.
 
 ## Phase 7 — Config editing and publishing
