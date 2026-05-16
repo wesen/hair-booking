@@ -1411,3 +1411,80 @@ The result is a much smaller root flow and a clearer place to add future Phase 8
   - `require("./intake_requests.flow.js")`
   - `require("./intake_config.flow.js")`
   - `require("./intake_ops.flow.js")`
+
+## Step 20: Split config helpers and forms into separate flow modules
+
+This step continued the modularization work by splitting the large config editor module into smaller helper and form modules. The config screen now owns the high-level tab/section orchestration and save/delete callbacks, while reusable row mapping, parsing, validation, and drawer construction live in focused required modules.
+
+The practical goal was to keep new Phase 8 and hardening work from happening in files that are already too large to review safely. The config editor remains backend-driven JavaScript, but the structure now matches the screen responsibilities more closely.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 19)
+
+**Assistant interpretation:** Continue using the new relative `require("./...")` support to split helper JavaScript files and keep the flow code maintainable.
+
+**Inferred user intent:** The user wants flow authors to be able to add more admin screens and helpers without creating monolithic JavaScript files.
+
+**Commit (code):** 81a2698 — "HAIR-041 Step 20: Split intake config helper modules".
+
+### What I did
+- Created `pkg/admindsl/flows/intake_config_helpers.flow.js` for:
+  - config version row mapping,
+  - service/tone/budget/price/time row mapping,
+  - `findById`,
+  - integer/bool parsers,
+  - validation diff-row mapping.
+- Created `pkg/admindsl/flows/intake_config_forms.flow.js` for:
+  - service/tone/budget/price/availability/time-slot form values,
+  - field validation helpers,
+  - drawer form builders.
+- Updated `pkg/admindsl/flows/intake_config.flow.js` to require helper/form modules and focus on screen orchestration and mutation callbacks.
+- Embedded and registered the new helper modules in:
+  - `pkg/admindsl/flows.go`,
+  - `pkg/server/handlers_admin_dsl.go`.
+- Reduced `intake_config.flow.js` from roughly 728 lines to roughly 402 lines.
+- Validated:
+  - `go test ./pkg/admindsl ./pkg/server -count=1`
+  - `go test ./... -count=1`
+
+### Why
+- The config editor was still large after the first split. Helpers and forms are separate concepts and should not obscure the screen-level behavior.
+- Relative `require("./...")` support exists specifically to allow this kind of structure.
+
+### What worked
+- The new virtual module resolver loaded nested config helper modules through ordinary relative requires.
+- The root config screen remained behaviorally equivalent after extraction.
+
+### What didn't work
+- The first validation attempt failed with `admin_dsl_flow_start_failed: GoError: Invalid module` because the new helper modules were created but not registered in Go. I fixed this by embedding and registering both `/flows/intake_config_helpers.flow.js` and `/flows/intake_config_forms.flow.js` before re-running validation.
+
+### What I learned
+- With the current embedded-module design, every new helper file needs both a `go:embed` entry and a `WithScriptModule(...)` registration.
+- This is safe and explicit, but a small module registry helper would reduce missed-registration errors.
+
+### What was tricky to build
+- A mechanical extraction initially left service form helpers behind in `intake_config.flow.js`, producing an invalid function name during replacement. I moved service form helpers into the form module and revalidated.
+- The form module needs both Admin DSL builders and helper lookup functions, so it requires `fringe/admin-dsl` and `./intake_config_helpers.flow.js`.
+
+### What warrants a second pair of eyes
+- Review whether `intake_config.flow.js` should be split further by entity type if config editing continues to grow.
+- Review whether embedded flow module registration should be centralized to prevent future `Invalid module` startup errors.
+
+### What should be done in the future
+- Add a helper in Go that registers all embedded Admin flow modules from one table.
+- Consider moving config save/delete callbacks into entity-specific modules if they become more complex.
+
+### Code review instructions
+- Review `pkg/admindsl/flows/intake_config.flow.js` for screen orchestration.
+- Review `pkg/admindsl/flows/intake_config_helpers.flow.js` for mappers/parsers.
+- Review `pkg/admindsl/flows/intake_config_forms.flow.js` for drawer/form construction.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+- New virtual module paths:
+  - `/flows/intake_config_helpers.flow.js`
+  - `/flows/intake_config_forms.flow.js`
+- Config module requires:
+  - `require("./intake_config_helpers.flow.js")`
+  - `require("./intake_config_forms.flow.js")`

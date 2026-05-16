@@ -191,3 +191,8 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 
 - Split request queue/detail code into `pkg/admindsl/flows/intake_requests.flow.js` and audit/health/preview code into `pkg/admindsl/flows/intake_ops.flow.js` (commit `987ff70`).
 - Root `intake_admin.flow.js` now acts as the screen router/dashboard and requires focused helper modules.
+
+## 2026-05-16 — Split config helper and form modules
+
+- Split config editor helpers into `pkg/admindsl/flows/intake_config_helpers.flow.js` and drawer/form builders into `pkg/admindsl/flows/intake_config_forms.flow.js` (commit `81a2698`).
+- Registered the new embedded modules and revalidated the Admin DSL runtime/server packages plus `go test ./... -count=1`.

@@ -26,7 +26,13 @@ RelatedFiles:
         Root flow uses relative require for config helper (commit 8c7e698)
         Root flow router/dashboard after request/ops module split (commit 987ff70)
     - Path: pkg/admindsl/flows/intake_config.flow.js
-      Note: Extracted Phase 7 config editor module (commit dbc6204)
+      Note: |-
+        Extracted Phase 7 config editor module (commit dbc6204)
+        Config screen orchestration after helper/form split (commit 81a2698)
+    - Path: pkg/admindsl/flows/intake_config_forms.flow.js
+      Note: Config drawer and form builders (commit 81a2698)
+    - Path: pkg/admindsl/flows/intake_config_helpers.flow.js
+      Note: Config row mappers and parser helpers (commit 81a2698)
     - Path: pkg/admindsl/flows/intake_ops.flow.js
       Note: Audit
     - Path: pkg/admindsl/flows/intake_requests.flow.js
@@ -57,6 +63,7 @@ LastUpdated: 2026-05-15T19:43:10.470080535-04:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 
