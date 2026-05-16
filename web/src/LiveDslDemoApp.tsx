@@ -73,7 +73,8 @@ function useIsDesktop() {
 }
 
 export function LiveDslDemoApp() {
-  const [initialSessionId] = useState(() => readStoredSessionId());
+  const previewConfigVersionId = new URLSearchParams(window.location.search).get("previewConfigVersionId") || undefined;
+  const [initialSessionId] = useState(() => previewConfigVersionId ? undefined : readStoredSessionId());
   const [flowState, setFlowState] = useState<DslFlowState | null>(null);
   const [lastEvent, setLastEvent] = useState<DslInteractionEvent | null>(null);
   const [recoveryMessage, setRecoveryMessage] = useState<string | null>(null);
@@ -84,7 +85,7 @@ export function LiveDslDemoApp() {
 
   const handleStateChange = useCallback((nextState: DslFlowState) => {
     setFlowState(nextState);
-    writeStoredSessionId(nextState.sessionId);
+    if (!previewConfigVersionId) writeStoredSessionId(nextState.sessionId);
 
     const nextPath = routeForPage(nextState.page.id);
     const currentPath = window.location.pathname;
@@ -135,6 +136,7 @@ export function LiveDslDemoApp() {
             onStateChange={handleStateChange}
             onEventDispatch={setLastEvent}
             onSessionRecovered={handleSessionRecovered}
+            startOptions={previewConfigVersionId ? { configVersionId: previewConfigVersionId } : undefined}
             forceDesktop
           />
         </div>
@@ -291,6 +293,7 @@ export function LiveDslDemoApp() {
             onStateChange={handleStateChange}
             onEventDispatch={setLastEvent}
             onSessionRecovered={handleSessionRecovered}
+            startOptions={previewConfigVersionId ? { configVersionId: previewConfigVersionId } : undefined}
           />
         </div>
 

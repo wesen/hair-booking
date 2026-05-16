@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { DslPageRenderer } from "./render";
-import { DslApiError, getDslFlow, postDslEvent, postDslUpload, startDslFlow, type DslFlowState, type DslInteractionEvent, type DslUploadIntent, type DslUploadedImage } from "./backendClient";
+import { DslApiError, getDslFlow, postDslEvent, postDslUpload, startDslFlow, type DslFlowState, type DslInteractionEvent, type DslStartOptions, type DslUploadIntent, type DslUploadedImage } from "./backendClient";
 import { dslDebug } from "./debug";
 import type { DslBackendEvent } from "./schema";
 import { color, font } from "../fringe-ui/tokens";
@@ -20,6 +20,7 @@ export interface BackendDslPageProps {
   onStateChange?: (state: DslFlowState) => void;
   onEventDispatch?: (event: DslInteractionEvent) => void;
   onSessionRecovered?: (reason: string) => void;
+  startOptions?: DslStartOptions;
   /** When true, render with desktop shell instead of mobile intake shell */
   forceDesktop?: boolean;
 }
@@ -31,6 +32,7 @@ export function BackendDslPage({
   onStateChange,
   onEventDispatch,
   onSessionRecovered,
+  startOptions,
   forceDesktop = false,
 }: BackendDslPageProps) {
   const [state, setState] = useState<DslFlowState | null>(null);
@@ -48,12 +50,12 @@ export function BackendDslPage({
       try {
         let nextState: DslFlowState;
         try {
-          nextState = sessionId ? await client.getDslFlow(sessionId) : await client.startDslFlow(flowId);
+          nextState = sessionId ? await client.getDslFlow(sessionId) : await client.startDslFlow(flowId, startOptions);
         } catch (err) {
           if (sessionId && err instanceof DslApiError && err.code === "dsl_session_not_found") {
             dslDebug("BackendDslPage load:recover-missing-session", { sessionId, reason: err.message });
             onSessionRecovered?.(err.message);
-            nextState = await client.startDslFlow(flowId);
+            nextState = await client.startDslFlow(flowId, startOptions);
           } else {
             throw err;
           }
@@ -77,7 +79,7 @@ export function BackendDslPage({
     return () => {
       cancelled = true;
     };
-  }, [client, flowId, onSessionRecovered, onStateChange, sessionId]);
+  }, [client, flowId, onSessionRecovered, onStateChange, sessionId, startOptions]);
 
   const context = useMemo(() => ({
     backendDispatch: async (event: DslBackendEvent) => {

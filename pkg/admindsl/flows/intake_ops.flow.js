@@ -71,15 +71,28 @@ function healthScreen(ctx, deps) {
 
 function previewScreen(ctx, deps) {
   const back = ctx.bind(admin.secondary("nav.dashboard", "Dashboard").Placement("toolbar"), function() { return deps.go(ctx, "dashboard"); });
-  const result = preview.validateConfig("active");
+  const editor = intakeAdmin.getConfigEditor(ctx.state.configVersionId || "");
+  ctx.state.configVersionId = editor.version.id;
+  const result = preview.validateConfig(editor.version.id);
+  const url = "/dsl-goja-demo/service?previewConfigVersionId=" + encodeURIComponent(editor.version.id);
   return admin.pageResource("admin-intake-preview", "Intake Preview")
     .Shell("resource", { active: "preview", eyebrow: "Real Admin · Intake" })
-    .Description("First host/intake-preview spike. Full embedded customer preview is a later HAIR-041 component task.")
+    .Description("Preview the customer intake flow against the selected draft or active config version.")
     .Content(
       admin.toolbar().Actions(back),
-      admin.section("Validation", {},
-        admin.summaryCard("Preview bridge", { body: result.ok ? "Preview host module is connected for " + result.configVersionId + "." : "Preview validation failed." }),
-        admin.markdown("The next phase should render customer DSL pages for a selected draft config version.", {})
+      admin.cardGrid({ columns: 3 },
+        admin.metricCard("Preview config", editor.version.label, { tone: editor.version.status === "draft" ? "warn" : "success", caption: editor.version.id }),
+        admin.metricCard("Status", editor.version.status, { tone: editor.version.status === "active" ? "success" : "warn", caption: result.ok ? "Valid for preview" : "Validation failed" }),
+        admin.metricCard("Services", result.serviceOptionCount || 0, { tone: result.ok ? "success" : "danger", caption: "Enabled options" })
+      ),
+      admin.section("Customer intake preview", { description: "The iframe starts a customer DSL session with previewConfigVersionId in the start request." },
+        admin.previewFrame("customerIntakePreview", {
+          title: "Customer intake · " + editor.version.label,
+          body: "Rendered by the real customer DSL route using config version " + editor.version.id + ".",
+          url: url,
+          height: 720,
+          placeholder: "Customer preview route is not available."
+        })
       )
     )
     .MustBuild();

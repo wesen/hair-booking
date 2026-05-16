@@ -40,7 +40,8 @@ func (u UserSnapshot) HasRole(role string) bool {
 }
 
 type StartFlowOptions struct {
-	User UserSnapshot
+	User         UserSnapshot
+	InitialState map[string]any
 }
 
 type StartFlowOption func(*StartFlowOptions)
@@ -55,5 +56,11 @@ type ResumeFlowOptions struct {
 func WithUser(user UserSnapshot) StartFlowOption {
 	return func(options *StartFlowOptions) {
 		options.User = user
+	}
+}
+
+func WithInitialState(state map[string]any) StartFlowOption {
+	return func(options *StartFlowOptions) {
+		options.InitialState = state
 	}
 }

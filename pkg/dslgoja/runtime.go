@@ -123,6 +123,9 @@ func (rt *Runtime) StartFlow(ctx context.Context, flowID, source string, options
 	} else {
 		session.state = session.VM.NewObject()
 	}
+	if len(startOptions.InitialState) > 0 {
+		mergeStateObject(session.VM, session.state, startOptions.InitialState)
+	}
 
 	result, err := session.Render(ctx)
 	if err != nil {
@@ -180,6 +183,13 @@ func (rt *Runtime) newFlowSession(flowID, sessionID string, user UserSnapshot) (
 		return nil, fmt.Errorf("install DSL modules: %w", err)
 	}
 	return session, nil
+}
+
+func mergeStateObject(vm *goja.Runtime, state goja.Value, values map[string]any) {
+	obj := state.ToObject(vm)
+	for key, value := range values {
+		_ = obj.Set(key, value)
+	}
 }
 
 func (rt *Runtime) loadFlowSource(session *FlowSession, source string) error {

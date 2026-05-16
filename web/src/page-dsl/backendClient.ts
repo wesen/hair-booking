@@ -21,6 +21,10 @@ export interface DslInteractionEvent extends DslBackendEvent {
   pageVersion: number;
 }
 
+export interface DslStartOptions {
+  configVersionId?: string;
+}
+
 export class DslApiError extends Error {
   readonly code?: string;
   readonly status: number;
@@ -81,8 +85,11 @@ async function readFlowState(response: Response): Promise<DslFlowState> {
   return flowStateFromProto(state);
 }
 
-export async function startDslFlow(flowId = "fringe.intake.v1"): Promise<DslFlowState> {
-  const response = await fetch(`/api/dsl/flows/${encodeURIComponent(flowId)}/start`, {
+export async function startDslFlow(flowId = "fringe.intake.v1", options?: DslStartOptions): Promise<DslFlowState> {
+  const params = new URLSearchParams();
+  if (options?.configVersionId) params.set("configVersionId", options.configVersionId);
+  const suffix = params.toString() ? `?${params.toString()}` : "";
+  const response = await fetch(`/api/dsl/flows/${encodeURIComponent(flowId)}/start${suffix}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
   });

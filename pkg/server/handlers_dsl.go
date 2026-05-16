@@ -142,7 +142,11 @@ func (h *appHandler) handleDSLStartFlow(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	session, result, err := h.dslFlows.runtime.StartFlow(r.Context(), flowID, dslgoja.DemoIntakeFlowSource, dslgoja.WithUser(h.dslUserSnapshot(r)))
+	startOptions := []dslgoja.StartFlowOption{dslgoja.WithUser(h.dslUserSnapshot(r))}
+	if configVersionID := r.URL.Query().Get("configVersionId"); configVersionID != "" {
+		startOptions = append(startOptions, dslgoja.WithInitialState(map[string]any{"configVersionId": configVersionID}))
+	}
+	session, result, err := h.dslFlows.runtime.StartFlow(r.Context(), flowID, dslgoja.DemoIntakeFlowSource, startOptions...)
 	if err != nil {
 		writeDSLProtoError(w, http.StatusInternalServerError, "dsl_flow_start_failed", err.Error())
 		return
