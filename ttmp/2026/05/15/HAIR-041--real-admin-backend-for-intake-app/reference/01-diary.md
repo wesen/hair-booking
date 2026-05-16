@@ -278,3 +278,61 @@ The new `/admin/intake` frontend route starts `fringe.admin.intake.v1`, which re
 - New route: `/admin/intake`.
 - New flow id: `fringe.admin.intake.v1`.
 - Existing route preserved: `/admin/services` -> `fringe.admin.services.v1`.
+
+## Step 5: Final Phase 1-4 validation and reMarkable upload
+
+This step validated the accumulated HAIR-041 Phase 1-4 work and uploaded the planning/design bundle to reMarkable. The implementation now has a documented target, persistent admin-domain storage, customer intake submission persistence, and a first real `/admin/intake` Admin DSL flow backed by host modules.
+
+The remaining Phase 3/4 gaps are intentionally tracked rather than hidden: upload ownership checks, audited mutation wrappers, and admin auth/role guards still need implementation before this should be considered production-safe.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Validate, document, and publish the Phase 1-4 foundation after committing implementation increments.
+
+**Inferred user intent:** The user wants a clean review point with docs, tests, and reMarkable delivery.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Ran full backend validation:
+  - `go test ./... -count=1`
+- Ran frontend validation:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+- Uploaded the HAIR-041 design/tasks bundle to reMarkable:
+  - `/ai/2026/05/15/HAIR-041/HAIR 041 Real Intake Admin Backend Guide.pdf`
+- Marked Phase 1 upload/file-relation tasks complete.
+
+### Why
+- Phase 1-4 changed runtime, server, frontend route, and persistence code, so a full validation pass was warranted.
+- The guide was requested for reMarkable review.
+
+### What worked
+- Full Go test suite passed.
+- Frontend typecheck passed.
+- Vitest passed: 10 files, 43 tests.
+- reMarkable upload succeeded.
+
+### What didn't work
+- N/A in this validation step.
+
+### What I learned
+- The Phase 1-4 slice is now coherent enough to hand to another developer for review: the docs describe the target and the code has the first persistent request/admin-flow bridge.
+
+### What was tricky to build
+- Keeping the ticket tasks honest was important: not all Phase 3/4 items are complete, so the unchecked items remain visible.
+
+### What warrants a second pair of eyes
+- Review the remaining unchecked Phase 3/4 tasks before starting Phase 5+.
+
+### What should be done in the future
+- Start Phase 5 by adding the missing Admin DSL components under real pressure from the request queue/config editor screens.
+
+### Code review instructions
+- Review commits `43bf4a3`, `741a155`, and `03af3fc` after the planning commit.
+- Validate with the commands listed above.
+
+### Technical details
+- reMarkable destination: `/ai/2026/05/15/HAIR-041`.

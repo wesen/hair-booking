@@ -17,8 +17,8 @@ updated: 2026-05-15
 - [x] Create intern-facing implementation guide.
 - [x] Add screen inventory, data inventory, API references, ASCII screenshots, and non-obvious error states.
 - [x] Add Admin DSL/design-component readiness assessment.
-- [ ] Upload design guide to reMarkable.
-- [ ] Relate key implementation files to the ticket.
+- [x] Upload design guide to reMarkable.
+- [x] Relate key implementation files to the ticket.
 
 ## Phase 2 — Persistent admin domain schema
 

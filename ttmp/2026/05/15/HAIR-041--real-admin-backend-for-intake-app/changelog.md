@@ -62,3 +62,14 @@ Step 4: Added Admin DSL host module support, intake admin host modules, intake-p
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/App.tsx — /admin/intake route
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/BackendAdminDslPage.tsx — Flow-id configurable backend Admin DSL page
 
+
+## 2026-05-16
+
+Step 5: Completed Phase 1-4 validation and uploaded HAIR-041 design/tasks bundle to reMarkable at /ai/2026/05/15/HAIR-041/HAIR 041 Real Intake Admin Backend Guide.pdf. Validation: go test ./... -count=1; cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (10 files, 43 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/01-real-admin-backend-implementation-guide.md — Uploaded design guide
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/01-diary.md — Diary records validation and reMarkable upload
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md — Updated Phase 1-4 task status
+
