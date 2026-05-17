@@ -2093,3 +2093,75 @@ These tests are intentionally renderer-level tests rather than visual tests. The
 
 ### Technical details
 - Test count increased from 46 to 50.
+
+## Step 30: Add Go Admin DSL v2 builders and Goja exports
+
+This step moved the v2 workbench vocabulary from frontend-only fixtures into the Go Admin DSL package. The Go schema now knows the v2 node kinds and action placements, the host-side builders can construct v2 workbench nodes, and the Goja admin module exposes the new helpers to embedded flow JavaScript.
+
+This is still not the destructive v2 cutover. Builders can opt into `schemaVersion: 2`, and validation accepts v1 and v2 while flows are migrated. The no-backwards-compatibility cleanup will happen after the live flows have v2 replacements.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 27)
+
+**Assistant interpretation:** Continue implementing the next phase after frontend fixture/tests by adding matching Go-side v2 schema/builders/exports.
+
+**Inferred user intent:** The user wants the v2 DSL to become usable from real backend Goja flows, not just frontend Storybook fixtures.
+
+**Commit (code):** pending — Go Admin DSL v2 builders and tests.
+
+### What I did
+- Updated `pkg/admindsl/types.go`:
+  - added `NodePageHeader`, `NodeDashboardGrid`, `NodeComparisonTable`, and `NodeMonthCalendar`,
+  - added v2 action placements such as `PlacementPageHeader`, `PlacementPanelFooter`, `PlacementRowOverflow`, `PlacementCalendarCell`, and `PlacementSidebarNav`.
+- Updated `pkg/admindsl/validate.go`:
+  - allowed the new node kinds and action placements,
+  - allowed `schemaVersion` 1 or 2 during the migration window.
+- Updated `pkg/admindsl/builder.go`:
+  - added `SchemaVersion(...)` on `PageBuilder`,
+  - added `PageHeader`, `DashboardGrid`, `ComparisonTable`, and `MonthCalendar`,
+  - added `Layout`, `Density`, `FooterActions`, and `ToolbarActions` helpers on `NodeBuilder`.
+- Updated `pkg/admindsl/goja_module.go`:
+  - exported `pageHeader`, `dashboardGrid`, `panel`, `comparisonTable`, and `monthCalendar` to Goja.
+- Added tests:
+  - `TestGoHostBuilderSupportsV2WorkbenchNodes`,
+  - `TestGojaModuleExposesV2WorkbenchBuilders`.
+- Marked the corresponding Phase 13 tasks complete.
+- Validated:
+  - `go test ./pkg/admindsl -count=1`,
+  - `go test ./pkg/admindsl ./pkg/server -count=1`.
+
+### Why
+- Backend flows need host-owned builders for the v2 vocabulary so runtime validity stays in Go instead of drifting into JavaScript helper code.
+- Exposing the same vocabulary to Goja prepares Phase 14 flow migration.
+
+### What worked
+- The existing builder and Goja module architecture made this a small additive slice.
+- Existing validation could be extended to recognize the new node kinds and placements without changing the runtime action model.
+
+### What didn't work
+- The first Goja test run failed because `panel` was not exported from `GojaModule` even though JS fixtures need it:
+  - `TypeError: Object has no member 'panel' at <eval>:9:23(68)`
+- Fix: export `panel: Panel` alongside the new v2 helpers.
+
+### What I learned
+- Some builders existed in Go but were not exposed to Goja. Phase 14 flow migration will need careful checks for every helper used by embedded flow JS.
+
+### What was tricky to build
+- This slice intentionally avoids flipping the default builder schema version to 2. Doing that before flow migration would break existing live flows. The clean cutover should happen after v2 flow replacements exist, not in the helper-introduction commit.
+
+### What warrants a second pair of eyes
+- Review whether accepting both schema versions in `ValidatePage` is acceptable during the migration window, given the no-compatibility goal for the final cutover.
+- Review the new action placement names for consistency before flows begin using them heavily.
+
+### What should be done in the future
+- Add stricter v2-specific validation for required props, table columns, row IDs, field value types, and deprecated v1 node rejection after flow migration.
+- Start Phase 14 by migrating a small flow or fixture to the new Goja v2 builders.
+
+### Code review instructions
+- Start with `pkg/admindsl/types.go`, then `pkg/admindsl/builder.go`, then `pkg/admindsl/goja_module.go`.
+- Review `pkg/admindsl/builder_test.go` and `pkg/admindsl/goja_module_test.go` for intended builder usage.
+- Validate with `go test ./pkg/admindsl ./pkg/server -count=1`.
+
+### Technical details
+- `PageBuilder.SchemaVersion(2)` is the opt-in migration path for now.

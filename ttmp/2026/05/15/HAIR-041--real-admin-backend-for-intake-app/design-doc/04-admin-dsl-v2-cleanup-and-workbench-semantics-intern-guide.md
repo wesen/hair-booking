@@ -13,14 +13,24 @@ DocType: design-doc
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: pkg/admindsl/builder.go
+      Note: Phase 13 Go builders for v2 nodes and layout/density helpers
+    - Path: pkg/admindsl/builder_test.go
+      Note: Phase 13 Go builder coverage for v2 workbench nodes
     - Path: pkg/admindsl/flows/intake_admin.flow.js
       Note: Primary admin flow to migrate from v1 collage patterns to v2 workbench semantics
     - Path: pkg/admindsl/goja_module.go
-      Note: Goja admin builder exports that need v2 vocabulary updates
+      Note: |-
+        Goja admin builder exports that need v2 vocabulary updates
+        Phase 13 Goja exports for v2 Admin DSL helpers
+    - Path: pkg/admindsl/goja_module_test.go
+      Note: Phase 13 Goja module coverage for v2 workbench helpers
     - Path: pkg/admindsl/script_runtime.go
       Note: Action binding/page-version runtime that remains central in v2
     - Path: pkg/admindsl/types.go
-      Note: Current Go Admin DSL v1 node/action vocabulary evaluated for v2 cleanup
+      Note: |-
+        Current Go Admin DSL v1 node/action vocabulary evaluated for v2 cleanup
+        Phase 13 v2 node constants and action placements
     - Path: pkg/admindsl/validate.go
       Note: Validation layer that should become stricter for Admin DSL v2
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/03-admin-workbench-dsl-intern-implementation-guide.md
@@ -43,6 +53,7 @@ LastUpdated: 2026-05-16T18:20:00-04:00
 WhatFor: 'Use when planning or implementing the Admin DSL v2 cleanup: removing vague frontend-style primitives, tightening validation, and replacing component-collage pages with semantic admin workbench constructs.'
 WhenToUse: Read before changing Admin DSL schemaVersion, node vocabulary, renderer semantics, Go builders, Goja module exports, or /admin/intake flow authoring patterns.
 ---
+
 
 
 

@@ -28,6 +28,11 @@ func (b *PageBuilder) Description(description string) *PageBuilder {
 	return b
 }
 
+func (b *PageBuilder) SchemaVersion(schemaVersion int) *PageBuilder {
+	b.page.SchemaVersion = schemaVersion
+	return b
+}
+
 func (b *PageBuilder) Shell(kind ShellKind, props JSONObject) *PageBuilder {
 	b.page.Shell = Shell{Kind: kind, Props: props}
 	return b
@@ -219,6 +224,30 @@ func (b *NodeBuilder) Adaptive(views JSONObject) *NodeBuilder {
 	return b.Props(JSONObject{"adaptive": views})
 }
 
+func (b *NodeBuilder) Layout(layout JSONObject) *NodeBuilder {
+	return b.Props(JSONObject{"layout": layout})
+}
+
+func (b *NodeBuilder) Density(density string) *NodeBuilder {
+	return b.Props(JSONObject{"density": density})
+}
+
+func (b *NodeBuilder) FooterActions(actions ...*ActionBuilder) *NodeBuilder {
+	values := make([]JSONValue, 0, len(actions))
+	for _, action := range actions {
+		values = append(values, action.Build())
+	}
+	return b.Props(JSONObject{"footerActions": values})
+}
+
+func (b *NodeBuilder) ToolbarActions(actions ...*ActionBuilder) *NodeBuilder {
+	values := make([]JSONValue, 0, len(actions))
+	for _, action := range actions {
+		values = append(values, action.Build())
+	}
+	return b.Props(JSONObject{"toolbarActions": values})
+}
+
 func (b *NodeBuilder) Build() Node {
 	return b.node
 }
@@ -334,6 +363,14 @@ func (b *QueryBuilder) Build() QueryRef {
 	return QueryRef{ID: b.ref.ID, Params: cloneObject(b.ref.Params)}
 }
 
+func PageHeader(props JSONObject) *NodeBuilder {
+	return NodeOf(NodePageHeader, props)
+}
+
+func DashboardGrid(props JSONObject, children ...*NodeBuilder) *NodeBuilder {
+	return NodeOf(NodeDashboardGrid, props, children...)
+}
+
 func Section(title string, props JSONObject, children ...*NodeBuilder) *NodeBuilder {
 	return NodeOf(NodeSection, merge(JSONObject{"title": title}, props), children...)
 }
@@ -364,6 +401,14 @@ func MonthAvailabilityGrid(id string, props JSONObject) *NodeBuilder {
 
 func PreviewFrame(id string, props JSONObject) *NodeBuilder {
 	return NodeOf(NodePreviewFrame, merge(JSONObject{"id": id}, props)).ID(id)
+}
+
+func ComparisonTable(id string, props JSONObject) *NodeBuilder {
+	return NodeOf(NodeComparisonTable, merge(JSONObject{"id": id}, props)).ID(id)
+}
+
+func MonthCalendar(id string, props JSONObject) *NodeBuilder {
+	return NodeOf(NodeMonthCalendar, merge(JSONObject{"id": id}, props)).ID(id)
 }
 
 func DiffView(id string, props JSONObject) *NodeBuilder {

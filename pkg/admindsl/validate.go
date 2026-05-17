@@ -10,7 +10,7 @@ var allowedShellKinds = map[ShellKind]struct{}{
 }
 
 var allowedNodeKinds = map[NodeKind]struct{}{
-	NodeSection: {}, NodeToolbar: {}, NodeCardGrid: {}, NodePanel: {}, NodeSplitPane: {}, NodeTabs: {}, NodeEditableList: {}, NodeMonthAvailability: {}, NodePreviewFrame: {}, NodeDiffView: {},
+	NodePageHeader: {}, NodeDashboardGrid: {}, NodeSection: {}, NodeToolbar: {}, NodeCardGrid: {}, NodePanel: {}, NodeSplitPane: {}, NodeTabs: {}, NodeEditableList: {}, NodeMonthAvailability: {}, NodePreviewFrame: {}, NodeComparisonTable: {}, NodeMonthCalendar: {}, NodeDiffView: {},
 	NodeMetricCard: {}, NodeSummaryCard: {}, NodeStatusBadge: {}, NodeActivityFeed: {}, NodeKVList: {}, NodeImageGrid: {}, NodeImageGallery: {}, NodeMarkdownBlock: {}, NodeEmptyState: {}, NodeLoadingState: {}, NodeInlineError: {},
 	NodeResourcePage: {}, NodeResourceList: {}, NodeResourceTable: {}, NodeResourceRow: {}, NodeResourceDetail: {}, NodeFilterBar: {}, NodeSearchBox: {}, NodeActionMenu: {},
 	NodeForm: {}, NodeFieldGroup: {}, NodeTextField: {}, NodeTextareaField: {}, NodeMoneyField: {}, NodeDurationField: {}, NodeDateField: {}, NodeTimeField: {}, NodeSelectField: {}, NodeSwitchField: {}, NodeImageField: {}, NodeSaveBar: {},
@@ -31,12 +31,12 @@ var allowedActionPriorities = map[ActionPriority]struct{}{
 }
 
 var allowedActionPlacements = map[ActionPlacement]struct{}{
-	"": {}, PlacementToolbar: {}, PlacementRow: {}, PlacementFooter: {}, PlacementDetail: {}, PlacementOverflow: {},
+	"": {}, PlacementToolbar: {}, PlacementPageHeader: {}, PlacementPanelToolbar: {}, PlacementPanelFooter: {}, PlacementRow: {}, PlacementRowOverflow: {}, PlacementBulkToolbar: {}, PlacementFormFooter: {}, PlacementCalendarCell: {}, PlacementSidebarNav: {}, PlacementFooter: {}, PlacementDetail: {}, PlacementOverflow: {},
 }
 
 func ValidatePage(page Page) error {
-	if page.SchemaVersion != 1 {
-		return fmt.Errorf("admin dsl page schemaVersion must be 1, got %d", page.SchemaVersion)
+	if page.SchemaVersion != 1 && page.SchemaVersion != 2 {
+		return fmt.Errorf("admin dsl page schemaVersion must be 1 or 2, got %d", page.SchemaVersion)
 	}
 	if page.ID == "" {
 		return fmt.Errorf("admin dsl page id is required")

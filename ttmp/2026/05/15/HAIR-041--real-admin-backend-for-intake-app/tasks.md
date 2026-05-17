@@ -165,15 +165,15 @@ updated: 2026-05-15
 
 ## Phase 13 — Go Admin DSL v2 schema, builders, validation, and Goja exports
 
-- [ ] Update `pkg/admindsl/types.go` with v2 node constants and action placements.
+- [x] Update `pkg/admindsl/types.go` with v2 node constants and action placements.
 - [ ] Set Admin DSL builders to emit `schemaVersion: 2` for migrated pages.
 - [ ] Remove deprecated v1 node constants after flow migration plan is ready.
-- [ ] Add Go builders for `PageHeader`, `DashboardGrid`, `ComparisonTable`, and `MonthCalendar`.
-- [ ] Add panel layout/density helper methods to Go builders.
-- [ ] Expose v2 helpers through `pkg/admindsl/goja_module.go`.
+- [x] Add Go builders for `PageHeader`, `DashboardGrid`, `ComparisonTable`, and `MonthCalendar`.
+- [x] Add panel layout/density helper methods to Go builders.
+- [x] Expose v2 helpers through `pkg/admindsl/goja_module.go`.
 - [ ] Tighten `pkg/admindsl/validate.go` for v2 pages, unknown node kinds, required props, table columns, row IDs, and typed form fields.
-- [ ] Add Go builder and Goja module tests for all new v2 helpers.
-- [ ] Run `go test ./pkg/admindsl -count=1`.
+- [x] Add Go builder and Goja module tests for all new v2 helpers.
+- [x] Run `go test ./pkg/admindsl -count=1`.
 
 ## Phase 14 — Admin flow migration to semantic workbench pages
 

@@ -240,3 +240,9 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 
 - Added frontend tests for v2 workbench shell/sidebar dispatch, page header actions, typed resource-table cells, comparison-table review actions, and month-calendar date selection.
 - Validation passed with `cd web && npx tsc --noEmit` and `cd web && pnpm test -- --runInBand` (50 tests).
+
+## 2026-05-16 — Go Admin DSL v2 builders and exports
+
+- Added Go Admin DSL v2 node constants/action placements, builder helpers, layout/density helpers, and Goja exports for page header, dashboard grid, comparison table, and month calendar.
+- Added Go builder and Goja module tests for v2 workbench nodes.
+- Validation passed with `go test ./pkg/admindsl -count=1` and `go test ./pkg/admindsl ./pkg/server -count=1`.

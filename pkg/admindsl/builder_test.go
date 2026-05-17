@@ -83,6 +83,49 @@ func TestGoHostBuilderRejectsInvalidSchema(t *testing.T) {
 	}
 }
 
+func TestGoHostBuilderSupportsV2WorkbenchNodes(t *testing.T) {
+	page, err := PageAdmin("workbench", "Workbench").
+		SchemaVersion(2).
+		Shell(ShellAdmin, JSONObject{"variant": "workbench", "sidebar": JSONObject{"active": "overview"}}).
+		Content(
+			PageHeader(JSONObject{"title": "Workbench", "breadcrumbs": []JSONValue{"Admin", "Overview"}}).
+				Actions(Primary("service.new", "New service").Placement(PlacementPageHeader)),
+			DashboardGrid(JSONObject{"columns": JSONObject{"desktop": 12}, "gap": "compact"},
+				Metric("Total services", 24, JSONObject{"caption": "3 draft changes"}).Layout(JSONObject{"span": JSONObject{"desktop": 4}, "order": 10}),
+				Panel("Services", JSONObject{"padding": "none"},
+					ResourceTable("services", JSONObject{
+						"columns": []JSONValue{JSONObject{"id": "name", "kind": "text", "label": "Name"}},
+						"rows":    []JSONValue{JSONObject{"id": "svc_1", "name": "Highlights"}},
+					}),
+				).Density("compact").Layout(JSONObject{"span": JSONObject{"desktop": 8}}).
+					FooterActions(Open("service.new", "Add service").Placement(PlacementPanelFooter)),
+				Panel("Calendar", nil,
+					MonthCalendar("calendar", JSONObject{
+						"month":   "2024-06",
+						"actions": JSONObject{"selectDate": Mutation("calendar.select", "Select").Placement(PlacementCalendarCell).Build()},
+					}),
+				).Layout(JSONObject{"span": JSONObject{"desktop": 4}}),
+				Panel("Draft changes", nil,
+					ComparisonTable("changes", JSONObject{"rows": []JSONValue{JSONObject{"id": "price", "field": "Price", "current": "$200", "draft": "$220"}}}),
+				).Layout(JSONObject{"span": JSONObject{"desktop": 12}}),
+			),
+		).
+		Build()
+	if err != nil {
+		t.Fatalf("build v2 workbench page: %v", err)
+	}
+	if page.SchemaVersion != 2 {
+		t.Fatalf("expected schemaVersion 2, got %d", page.SchemaVersion)
+	}
+	if page.Nodes[0].Kind != NodePageHeader || page.Nodes[1].Kind != NodeDashboardGrid {
+		t.Fatalf("unexpected v2 nodes: %#v", page.Nodes)
+	}
+	grid := page.Nodes[1]
+	if grid.Children[1].Kind != NodePanel || grid.Children[1].Children[0].Kind != NodeResourceTable {
+		t.Fatalf("expected panel/resource table, got %#v", grid.Children[1])
+	}
+}
+
 func TestGoHostBuilderSupportsLayoutPolicies(t *testing.T) {
 	page, err := PageAdmin("policy", "Policy").Content(
 		NodeOf(NodeSplitPane, nil).

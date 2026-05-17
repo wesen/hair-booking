@@ -20,6 +20,8 @@ const (
 type NodeKind string
 
 const (
+	NodePageHeader        NodeKind = "pageHeader"
+	NodeDashboardGrid     NodeKind = "dashboardGrid"
 	NodeSection           NodeKind = "section"
 	NodeToolbar           NodeKind = "toolbar"
 	NodeCardGrid          NodeKind = "cardGrid"
@@ -29,6 +31,8 @@ const (
 	NodeEditableList      NodeKind = "editableList"
 	NodeMonthAvailability NodeKind = "monthAvailabilityGrid"
 	NodePreviewFrame      NodeKind = "previewFrame"
+	NodeComparisonTable   NodeKind = "comparisonTable"
+	NodeMonthCalendar     NodeKind = "monthCalendar"
 	NodeDiffView          NodeKind = "diffView"
 	NodeMetricCard        NodeKind = "metricCard"
 	NodeSummaryCard       NodeKind = "summaryCard"
@@ -114,11 +118,19 @@ const (
 type ActionPlacement string
 
 const (
-	PlacementToolbar  ActionPlacement = "toolbar"
-	PlacementRow      ActionPlacement = "row"
-	PlacementFooter   ActionPlacement = "footer"
-	PlacementDetail   ActionPlacement = "detail"
-	PlacementOverflow ActionPlacement = "overflow"
+	PlacementToolbar      ActionPlacement = "toolbar"
+	PlacementPageHeader   ActionPlacement = "pageHeader"
+	PlacementPanelToolbar ActionPlacement = "panelToolbar"
+	PlacementPanelFooter  ActionPlacement = "panelFooter"
+	PlacementRow          ActionPlacement = "row"
+	PlacementRowOverflow  ActionPlacement = "rowOverflow"
+	PlacementBulkToolbar  ActionPlacement = "bulkToolbar"
+	PlacementFormFooter   ActionPlacement = "formFooter"
+	PlacementCalendarCell ActionPlacement = "calendarCell"
+	PlacementSidebarNav   ActionPlacement = "sidebarNav"
+	PlacementFooter       ActionPlacement = "footer"
+	PlacementDetail       ActionPlacement = "detail"
+	PlacementOverflow     ActionPlacement = "overflow"
 )
 
 type Shell struct {
