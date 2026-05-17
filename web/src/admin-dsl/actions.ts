@@ -37,7 +37,7 @@ export function actionKey(actionRef: AdminActionRef, index: number) {
 }
 
 export function actionIsPrimary(actionRef: AdminActionRef) {
-  return actionRef.type === "mutation" || actionRef.type === "open" || actionRef.priority === "primary" || actionRef.intent === "primary";
+  return actionRef.priority === "primary" || actionRef.intent === "primary";
 }
 
 export function actionIsDanger(actionRef: AdminActionRef) {

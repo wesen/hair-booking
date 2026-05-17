@@ -2271,3 +2271,93 @@ The goal was to keep the DSL simple and effective: the mobile renderer now colla
   - `node ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/04-capture-admin-dsl-v2-storybook.mjs`
 - Screenshots are stored under:
   - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/various/storybook-v2/`
+
+## Step 32: Apply aesthetic polish and migrate services flow to v2 workbench primitives
+
+This step used the user-provided clean table/surface screenshots as aesthetic references. The main visual direction was to reduce heavy black pills for secondary row/footer actions, make tables feel lighter on desktop, preserve large touch targets on mobile, and keep the v2 workbench examples visually calm and operational.
+
+It also migrated the small `/admin/services` Goja flow to `schemaVersion: 2` and v2 workbench primitives, which gives Phase 14 its first real live-flow migration slice.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Improve things purely aesthetically /tmp/pi-clipboard-82340feb-e163-4c80-934e-a440cbae0126.png  /tmp/pi-clipboard-77193024-d70c-44ab-86da-8339b3cf5254.png /tmp/pi-clipboard-b510dde0-9c50-45ef-84f8-16a16511df53.png /tmp/pi-clipboard-56b0506f-85b0-4523-8aee-915e248d1829.png"
+
+**Assistant interpretation:** Use the supplied screenshots as aesthetic references and make the Admin DSL v2 widgets cleaner without changing the core architecture.
+
+**Inferred user intent:** The user wants the new workbench widgets to feel visually refined, not merely functional, before broader flow migration continues.
+
+**Commit (code):** pending — aesthetic renderer polish and services-flow v2 migration.
+
+### What I did
+- Copied the four user-provided aesthetic reference images into:
+  - `various/aesthetic-reference/01-surface-catalog-clean-layout.png`
+  - `various/aesthetic-reference/02-clean-services-table.png`
+  - `various/aesthetic-reference/03-clean-draft-changes-table.png`
+  - `various/aesthetic-reference/04-clean-context-rows.png`
+- Updated `web/src/admin-dsl/actions.ts` so `open` and `mutation` actions are not automatically treated as primary; primary styling now comes from `priority: "primary"` or `intent: "primary"`.
+- Updated `web/src/admin-dsl/render.tsx` aesthetics:
+  - secondary row/footer actions render as subtle text links with arrows,
+  - true primary actions keep black pill treatment,
+  - row overflow controls keep 44px touch targets,
+  - badge contrast is stronger,
+  - mobile table/card action labels are less redundant.
+- Migrated `pkg/admindsl/flows/services.flow.js` to v2:
+  - `SchemaVersion(2)`,
+  - workbench shell props,
+  - `pageHeader`,
+  - `dashboardGrid`,
+  - `panel`,
+  - `resourceTable`,
+  - no `section`, `resourceList`, or `resourceRow` usage.
+- Updated `pkg/admindsl/flows_test.go` to assert the updated service title through the v2 resource table row shape.
+- Re-captured Storybook v2 screenshots without Storybook chrome.
+- Marked the services-flow Phase 14 migration task complete and recorded successful Go validation tasks.
+- Validated:
+  - `go test ./pkg/admindsl ./pkg/server -count=1`
+  - `go test ./... -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand` — 50 tests passed.
+
+### Why
+- The reference screenshots showed that the cleaner aesthetic depends less on heavy button chrome and more on quiet tables, subtle action links, and consistent cards.
+- Migrating `/admin/services` first is lower risk than migrating the larger intake flow and proves that real Goja flows can emit v2 workbench pages.
+
+### What worked
+- Changing `actionIsPrimary` immediately reduced excessive black pill styling for ordinary row/open actions.
+- `resourceTable` v2 rows were enough to replace the old `resourceList`/`resourceRow` services flow.
+- The captured desktop workbench screenshot now looks closer to the clean references: subtle row actions, lighter footer actions, and clear panel hierarchy.
+
+### What didn't work
+- `go test ./pkg/admindsl ./pkg/server -count=1` initially failed after migrating `services.flow.js` because `pageHeader.props.actions` and row `actions` contained `*admindsl.ActionBuilder` values, which are not JSON:
+  - `props.actions[0] contains non-json value of type *admindsl.ActionBuilder`
+  - Fix: attach bound actions through builder `.Actions(...)` / `.FooterActions(...)` where Go builders convert `ActionBuilder` to `ActionRef`, and use table-level row actions instead of embedding action builders in row JSON.
+- The existing service flow test assumed the old `section -> resourceList -> resourceRow` tree and panicked with an index error after the v2 migration.
+  - Fix: update the test to inspect `dashboardGrid -> panel -> resourceTable.props.rows[0].name`.
+- A TypeScript compile failed because I initially used `color.clay`, which is not a design token.
+  - Fix: use `color.plum` for subtle link actions.
+
+### What I learned
+- Bound Go action builders must not be placed directly inside raw JSON props from JS. They need to pass through Go builder methods that call `.Build()`.
+- The no-backwards-compatibility direction is viable, but the safe path is to migrate one flow at a time and then remove old helpers/branches once all live flows are off v1 primitives.
+
+### What was tricky to build
+- Aesthetic changes had to preserve mobile usability. Subtle desktop row links should not become tiny mobile tap targets, so the CSS keeps mobile action controls at usable heights.
+- The service flow migration had to keep backend action binding semantics intact while changing the page tree shape.
+
+### What warrants a second pair of eyes
+- Review whether secondary panel-footer actions should always be text links, or whether some contexts should still use bordered secondary buttons.
+- Review whether status badges should become plain colored text on desktop to match the clean table reference even more closely.
+
+### What should be done in the future
+- Continue Phase 14 by migrating `/admin/intake` dashboard next.
+- Once all flows migrate, make `schemaVersion: 2` mandatory and remove v1 node helpers/renderer branches.
+
+### Code review instructions
+- Review `web/src/admin-dsl/actions.ts` first for the action-priority behavior change.
+- Then review `web/src/admin-dsl/render.tsx` for subtle action/link and badge styling.
+- Review `pkg/admindsl/flows/services.flow.js` for the first live v2 flow migration.
+- Check screenshots in `various/storybook-v2/` and aesthetic references in `various/aesthetic-reference/`.
+- Validate with the commands above.
+
+### Technical details
+- `/admin/services` now emits `schemaVersion: 2` through `PageBuilder.SchemaVersion(2)`.

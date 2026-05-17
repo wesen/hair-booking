@@ -253,3 +253,11 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 - Added `scripts/04-capture-admin-dsl-v2-storybook.mjs` and captured Storybook iframe screenshots without Storybook chrome into `various/storybook-v2/`.
 - Improved mobile workbench rendering: topbar replaces sidebar, resource/comparison tables collapse into labeled card rows, touch targets and badge contrast improved, and mobile heading scale tightened.
 - Tightened v2 validation for required props, table columns/row IDs, comparison rows, month calendar month, and typed field values.
+
+## 2026-05-17 — Admin DSL v2 aesthetic polish and services flow migration
+
+- Copied user-provided clean aesthetic references into `various/aesthetic-reference/`.
+- Refined action styling so only explicit primary actions get black pill treatment; row/footer actions render as lighter link-style controls.
+- Improved badge contrast and mobile touch targets.
+- Migrated `pkg/admindsl/flows/services.flow.js` to `schemaVersion: 2` workbench primitives (`pageHeader`, `dashboardGrid`, `panel`, `resourceTable`).
+- Updated service flow tests for the v2 resource table shape and re-captured Storybook v2 screenshots.

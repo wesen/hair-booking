@@ -177,14 +177,14 @@ updated: 2026-05-15
 
 ## Phase 14 — Admin flow migration to semantic workbench pages
 
-- [ ] Migrate `pkg/admindsl/flows/services.flow.js` to v2 shell/header/grid/panel primitives.
+- [x] Migrate `pkg/admindsl/flows/services.flow.js` to v2 shell/header/grid/panel primitives.
 - [ ] Migrate `pkg/admindsl/flows/intake_admin.flow.js` dashboard to workbench shell, page header, dashboard grid, panels, metrics, services table, activity feed, and preview panel.
 - [ ] Migrate `pkg/admindsl/flows/intake_requests.flow.js` from resource list/card patterns to v2 resource table/detail patterns.
 - [ ] Migrate `pkg/admindsl/flows/intake_config.flow.js` from editable lists and diff views to v2 resource tables, typed forms, and comparison tables.
 - [ ] Migrate `pkg/admindsl/flows/intake_ops.flow.js` audit/health/preview screens to v2 page/header/panel conventions.
 - [ ] Remove v1 flow helper usages: `section`, `cardGrid`, `summaryCard`, `resourceList`, `resourceRow`, `editableList`, `monthAvailabilityGrid`, and broad `diffView`.
-- [ ] Run `go test ./pkg/admindsl ./pkg/server -count=1`.
-- [ ] Run `go test ./... -count=1`.
+- [x] Run `go test ./pkg/admindsl ./pkg/server -count=1`.
+- [x] Run `go test ./... -count=1`.
 
 ## Phase 15 — Admin DSL v2 live validation, visual review, and cleanup
 

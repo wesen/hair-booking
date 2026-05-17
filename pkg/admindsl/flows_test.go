@@ -43,7 +43,25 @@ func TestServicesFlowSourceRendersAndDispatches(t *testing.T) {
 	if form.Props["state"] != "success" {
 		t.Fatalf("expected saved form state, got %#v", form.Props)
 	}
-	if saved.Page.Nodes[0].Children[0].Children[0].Props["title"] != "Curly Cut" {
-		t.Fatalf("expected updated service title, got %#v", saved.Page.Nodes[0].Children[0].Children[0].Props)
+	grid := saved.Page.Nodes[1]
+	servicesPanel := grid.Children[3]
+	servicesTable := servicesPanel.Children[0]
+	rows, ok := servicesTable.Props["rows"].([]any)
+	if !ok {
+		if typedRows, ok := servicesTable.Props["rows"].([]JSONValue); ok {
+			rows = []any(typedRows)
+		}
+	}
+	if len(rows) == 0 {
+		t.Fatalf("expected service rows, got %#v", servicesTable.Props)
+	}
+	firstRow, ok := rows[0].(map[string]any)
+	if !ok {
+		if typedRow, ok := rows[0].(JSONObject); ok {
+			firstRow = map[string]any(typedRow)
+		}
+	}
+	if firstRow["name"] != "Curly Cut" {
+		t.Fatalf("expected updated service title, got %#v", firstRow)
 	}
 }

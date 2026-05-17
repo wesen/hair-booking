@@ -19,6 +19,10 @@ RelatedFiles:
       Note: Phase 13 Go builder coverage for v2 workbench nodes
     - Path: pkg/admindsl/flows/intake_admin.flow.js
       Note: Primary admin flow to migrate from v1 collage patterns to v2 workbench semantics
+    - Path: pkg/admindsl/flows/services.flow.js
+      Note: First live admin flow migrated to schemaVersion 2 workbench shell/header/grid/panel/resourceTable primitives
+    - Path: pkg/admindsl/flows_test.go
+      Note: Updated service flow test expectations for v2 resourceTable rows
     - Path: pkg/admindsl/goja_module.go
       Note: |-
         Goja admin builder exports that need v2 vocabulary updates
@@ -39,12 +43,16 @@ RelatedFiles:
       Note: Companion workbench layout guide that this v2 cleanup guide builds on
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/04-capture-admin-dsl-v2-storybook.mjs
       Note: Storybook iframe screenshot capture script for v2 workbench stories
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/various/aesthetic-reference
+      Note: User-provided clean aesthetic references for table/action/surface polish
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/various/storybook-v2
       Note: Captured Storybook iframe screenshots without Storybook chrome for v2 workbench stories
     - Path: web/src/admin-dsl/AdminDslWorkbench.stories.tsx
       Note: |-
         Phase 12 target desktop/mobile Admin DSL v2 Storybook fixture
         Expanded Admin DSL v2 Storybook catalog with operational mobile examples
+    - Path: web/src/admin-dsl/actions.ts
+      Note: Aesthetic action priority fix so open/mutation are not automatically black primary buttons
     - Path: web/src/admin-dsl/builder.ts
       Note: Frontend fixture builders for pageHeader dashboardGrid comparisonTable and monthCalendar
     - Path: web/src/admin-dsl/render.tsx
@@ -62,6 +70,7 @@ LastUpdated: 2026-05-16T18:20:00-04:00
 WhatFor: 'Use when planning or implementing the Admin DSL v2 cleanup: removing vague frontend-style primitives, tightening validation, and replacing component-collage pages with semantic admin workbench constructs.'
 WhenToUse: Read before changing Admin DSL schemaVersion, node vocabulary, renderer semantics, Go builders, Goja module exports, or /admin/intake flow authoring patterns.
 ---
+
 
 
 
