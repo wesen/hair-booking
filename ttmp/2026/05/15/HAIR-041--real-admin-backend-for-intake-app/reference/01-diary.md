@@ -1829,3 +1829,78 @@ The document is intended to be handed to a new engineer before they implement wo
 ### Technical details
 - reMarkable command used:
   - `remarquee upload bundle ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/03-admin-workbench-dsl-intern-implementation-guide.md --name "HAIR 041 Admin Workbench DSL Intern Guide" --remote-dir "/ai/2026/05/16/HAIR-041" --toc-depth 2 --non-interactive`
+
+## Step 26: Write Admin DSL v2 cleanup intern guide and upload to reMarkable
+
+This step produced a separate intern-oriented guide for the Admin DSL v2 cleanup. The new document is intentionally different from the previous workbench layout guide: it focuses on what to tighten, remove, rename, split, and validate now that the project does not need backwards compatibility for the Admin DSL cutover.
+
+The guide frames v2 as a semantic admin-workbench DSL rather than a general visual component DSL. It explains why the current v1 node vocabulary mixes abstraction levels, which primitives should be kept or strengthened, which should be removed or replaced, and how to implement the cutover through TypeScript schema, React renderer, Go schema/builders, Goja exports, validation, flow migration, Storybook, and live smoke tests.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, Create  a detailed analysis / design / implementation guide that is for a new intern, explaining all the parts of the system needed to understand what it is, with prose paragraphs and bullet point sand pseudocode and diagrams and api references and file references. It should be very clear and technical. Store in the ticket and the nupload to remarkable.
+
+It's a separate document, upload to remarkable as well. Keep a diary as you work"
+
+**Assistant interpretation:** Create a separate detailed intern guide for the Admin DSL v2 cleanup/redesign direction, store it in the HAIR-041 ticket, upload it to reMarkable, and record the work in the diary.
+
+**Inferred user intent:** The user wants the concise Admin DSL critique turned into a durable implementation document that a new contributor can follow before making breaking v2 schema and renderer changes.
+
+**Commit (code):** N/A — documentation only.
+
+### What I did
+- Created `design-doc/04-admin-dsl-v2-cleanup-and-workbench-semantics-intern-guide.md`.
+- The guide covers:
+  - current Admin DSL architecture,
+  - core files and responsibilities,
+  - what is wrong with v1,
+  - v2 design goals,
+  - keep/add/remove/rename recommendations,
+  - v2 page shape with `schemaVersion: 2`,
+  - workbench shell, page header, dashboard grid, panel, resource table, comparison table, calendar, forms, actions, surfaces, and validation design,
+  - cutover plan with no backwards-compatibility shims,
+  - API references,
+  - testing matrix,
+  - migration examples,
+  - code review checklist.
+- Related the guide to core Admin DSL schema/runtime/renderer files and the previous workbench intern guide.
+- Validated frontmatter successfully.
+- Uploaded to reMarkable:
+  - `/ai/2026/05/16/HAIR-041/HAIR 041 Admin DSL v2 Cleanup Intern Guide.pdf`
+
+### Why
+- The project now has permission to break compatibility, which changes the right implementation strategy.
+- A separate v2 cleanup guide gives future implementation work a concrete target: semantic workbench DSL, stricter validation, and a clean schema cutover.
+
+### What worked
+- `remarquee upload bundle ... --non-interactive` succeeded directly.
+- Frontmatter validation passed after using the correct docmgr path form.
+
+### What didn't work
+- My first `docmgr doc relate --doc` attempt used the path without the leading `ttmp/`:
+  - `docmgr doc relate --doc 2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/04-admin-dsl-v2-cleanup-and-workbench-semantics-intern-guide.md ...`
+  - Error: `expected exactly 1 doc for --doc "2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/04-admin-dsl-v2-cleanup-and-workbench-semantics-intern-guide.md", got 0`
+- The corrected `docmgr doc relate --doc ttmp/...` command worked.
+
+### What I learned
+- For this docmgr workflow, `doc relate --doc` resolved the `ttmp/...` path successfully, while `validate frontmatter --doc` wanted the ticket-relative path without `ttmp/`. This is worth remembering because the two commands have different path expectations in practice.
+
+### What was tricky to build
+- The hard part was keeping the document concise enough to be actionable while still technical enough for a new intern. The v2 cleanup touches schema, renderer, runtime, builders, flow JS, validation, Storybook, and live smoke tests, so the guide had to separate conceptual design from implementation phases.
+
+### What warrants a second pair of eyes
+- Review the proposed removal list before implementation, especially `resourceList`, `resourceRow`, `splitPane`, `imageGrid`, and `markdownBlock`/`richText`.
+- Review whether `schemaVersion: 2` should be enforced in one cut or phased behind a feature branch.
+
+### What should be done in the future
+- Use the guide to create a concrete v2 implementation ticket or task checklist.
+- Start with a frontend-only Storybook v2 fixture before migrating live backend flows.
+
+### Code review instructions
+- Start with `design-doc/04-admin-dsl-v2-cleanup-and-workbench-semantics-intern-guide.md`.
+- Compare it against `design-doc/03-admin-workbench-dsl-intern-implementation-guide.md`; the new guide is the breaking cleanup/cutover plan, while the previous guide is the workbench feature implementation guide.
+- Check the keep/add/remove recommendations against `web/src/admin-dsl/schema.ts` and `pkg/admindsl/types.go`.
+
+### Technical details
+- reMarkable command used:
+  - `remarquee upload bundle ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/04-admin-dsl-v2-cleanup-and-workbench-semantics-intern-guide.md --name "HAIR 041 Admin DSL v2 Cleanup Intern Guide" --remote-dir "/ai/2026/05/16/HAIR-041" --toc-depth 2 --non-interactive`
