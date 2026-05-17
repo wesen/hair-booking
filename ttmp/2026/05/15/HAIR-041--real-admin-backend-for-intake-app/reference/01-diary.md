@@ -2165,3 +2165,109 @@ This is still not the destructive v2 cutover. Builders can opt into `schemaVersi
 
 ### Technical details
 - `PageBuilder.SchemaVersion(2)` is the opt-in migration path for now.
+
+## Step 31: Expand v2 Storybook coverage, capture mobile screenshots, and tighten validation
+
+This step responded to the request to look at Storybook widgets without Storybook chrome and verify mobile behavior. I expanded the Admin DSL v2 workbench catalog from two target stories into a broader set of operational examples, captured iframe screenshots directly, reviewed mobile screenshots, and made immediate mobile usability fixes.
+
+The goal was to keep the DSL simple and effective: the mobile renderer now collapses the workbench sidebar into a compact top bar, resource/comparison tables collapse into labeled card rows, badges have stronger contrast, checkboxes and overflow controls have larger touch targets, and headings are slightly less dominant on narrow screens.
+
+### Prompt Context
+
+**User prompt (verbatim):** "make plenty of stories in storybook to cover all the new functionality and make a whole set of intreesting examples"
+
+**Assistant interpretation:** Add a richer Storybook catalog for the new Admin DSL v2 functionality, not just the single target screenshot fixture.
+
+**Inferred user intent:** The user wants broad visual coverage of the new primitives so we can review how they behave across realistic admin use cases.
+
+**Commit (code):** pending — v2 Storybook catalog, screenshots, mobile fixes, and validation hardening.
+
+### What I did
+- Expanded `web/src/admin-dsl/AdminDslWorkbench.stories.tsx` with stories for:
+  - target desktop/mobile dashboard,
+  - service operations,
+  - request triage,
+  - draft review queue,
+  - calendar publishing,
+  - typed form workbench,
+  - empty/loading/error states,
+  - audit workbench,
+  - dense mobile operations.
+- Added ticket script:
+  - `scripts/04-capture-admin-dsl-v2-storybook.mjs`
+- Captured Storybook iframe screenshots without Storybook chrome into:
+  - `various/storybook-v2/`
+- Reviewed screenshots directly and with image analysis.
+- Updated `web/src/admin-dsl/render.tsx` mobile behavior:
+  - workbench sidebar collapses into a compact top bar on mobile,
+  - resource/comparison tables collapse to labeled card rows,
+  - drag-handle cells are hidden on mobile,
+  - actions labels are hidden above large mobile action buttons,
+  - row-overflow buttons use 44px touch targets,
+  - checkboxes are larger,
+  - badge colors are higher contrast,
+  - mobile H1 sizing is slightly reduced.
+- Continued Phase 13 validation hardening in `pkg/admindsl/validate.go`:
+  - v2 `pageHeader` requires `title`,
+  - v2 `panel` requires `title` or `ariaLabel`,
+  - v2 `resourceTable` requires columns and row IDs,
+  - v2 `comparisonTable` requires rows with `id`, `field`, `current`, and `draft`,
+  - v2 `monthCalendar` requires `month`,
+  - v2 typed fields require `name`/`label` and enforce boolean/select/money/duration value shapes.
+- Added validation tests for invalid v2 shapes.
+- Marked completed Phase 13 validation and Phase 15 Storybook screenshot tasks.
+- Validated:
+  - `go test ./pkg/admindsl -count=1`
+  - `go test ./pkg/admindsl ./pkg/server -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand` — 50 tests passed.
+
+### Why
+- Storybook iframe screenshots show the actual rendered components without Storybook chrome, which is the right artifact for mobile layout review.
+- More stories exercise the DSL as an admin-workbench language rather than only a single page mockup.
+- Tight v2 validation catches malformed pages before backend flows start depending on the new vocabulary.
+
+### What worked
+- The screenshot script can capture all v2 workbench stories using `/iframe.html?id=...`, so screenshots contain only the rendered app.
+- The table-to-card mobile CSS immediately improved request/service readability and removed the cramped multi-column mobile table issue.
+- Restarting Storybook cleared the stale Vite module error and allowed the captures to proceed.
+
+### What didn't work
+- The first `go test ./pkg/admindsl -count=1` failed after adding validation helpers:
+  - `pkg/admindsl/validate.go:333:7: duplicate case []any in type switch`
+  - Cause: `JSONValue` is an alias for `any`, so `[]JSONValue` and `[]any` are the same type in a type switch.
+  - Fix: removed the duplicate `[]any` case and kept `[]JSONValue`.
+- The first screenshot capture after renderer changes timed out because the running Storybook/Vite process served a stale module state:
+  - `SyntaxError: The requested module '/src/admin-dsl/render.tsx?...' does not provide an export named 'AdminPageRenderer'`
+  - Fix: restarted Storybook on port 6006 and reran the capture script successfully.
+
+### What I learned
+- Mobile admin tables should not remain tables visually. The same `resourceTable` DSL can render as desktop table and mobile labeled cards, which supports the v2 goal of keeping backend semantics stable while the renderer adapts.
+- The workbench sidebar must be page-frame behavior, not a body node. On mobile it should collapse aggressively; otherwise it consumes the first screen before the actual admin work appears.
+
+### What was tricky to build
+- The CSS had to override inline table styles on mobile, so the responsive rules use targeted `!important` overrides for table/card conversion.
+- The v2 validation helpers had to account for Go's `type JSONValue = any` alias, which affects type switches.
+
+### What warrants a second pair of eyes
+- Review whether the mobile top bar should open a real nav drawer now or remain a non-functional placeholder until flow navigation is wired.
+- Review whether row-overflow should open a menu for multiple row actions instead of dispatching the first action.
+- Review whether accepting both schema versions in validation should end immediately after Phase 14 flow migration, since the user explicitly prefers no backwards compatibility.
+
+### What should be done in the future
+- Begin Phase 14 flow migration and then remove v1 renderer/helper branches.
+- Add visual-diff baselines for the captured Storybook v2 screenshots.
+- Add a real mobile nav drawer if sidebar navigation needs to be interactive on mobile.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/AdminDslWorkbench.stories.tsx` to review the expanded story catalog.
+- Inspect `various/storybook-v2/*.png` to compare mobile/desktop output without Storybook chrome.
+- Review `web/src/admin-dsl/render.tsx` for mobile table-card conversion and workbench topbar behavior.
+- Review `pkg/admindsl/validate.go` and `pkg/admindsl/builder_test.go` for v2 validation hardening.
+- Validate with the commands listed above.
+
+### Technical details
+- Storybook capture command:
+  - `node ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/04-capture-admin-dsl-v2-storybook.mjs`
+- Screenshots are stored under:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/various/storybook-v2/`

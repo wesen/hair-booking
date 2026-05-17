@@ -246,3 +246,10 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 - Added Go Admin DSL v2 node constants/action placements, builder helpers, layout/density helpers, and Goja exports for page header, dashboard grid, comparison table, and month calendar.
 - Added Go builder and Goja module tests for v2 workbench nodes.
 - Validation passed with `go test ./pkg/admindsl -count=1` and `go test ./pkg/admindsl ./pkg/server -count=1`.
+
+## 2026-05-16 — Admin DSL v2 Storybook catalog and mobile review
+
+- Expanded `AdminDslWorkbench.stories.tsx` with a broader v2 workbench catalog: service operations, request triage, draft review, calendar publishing, typed forms, empty/error states, audit workbench, and dense mobile operations.
+- Added `scripts/04-capture-admin-dsl-v2-storybook.mjs` and captured Storybook iframe screenshots without Storybook chrome into `various/storybook-v2/`.
+- Improved mobile workbench rendering: topbar replaces sidebar, resource/comparison tables collapse into labeled card rows, touch targets and badge contrast improved, and mobile heading scale tightened.
+- Tightened v2 validation for required props, table columns/row IDs, comparison rows, month calendar month, and typed field values.

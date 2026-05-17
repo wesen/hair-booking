@@ -171,7 +171,7 @@ updated: 2026-05-15
 - [x] Add Go builders for `PageHeader`, `DashboardGrid`, `ComparisonTable`, and `MonthCalendar`.
 - [x] Add panel layout/density helper methods to Go builders.
 - [x] Expose v2 helpers through `pkg/admindsl/goja_module.go`.
-- [ ] Tighten `pkg/admindsl/validate.go` for v2 pages, unknown node kinds, required props, table columns, row IDs, and typed form fields.
+- [x] Tighten `pkg/admindsl/validate.go` for v2 pages, unknown node kinds, required props, table columns, row IDs, and typed form fields.
 - [x] Add Go builder and Goja module tests for all new v2 helpers.
 - [x] Run `go test ./pkg/admindsl -count=1`.
 
@@ -191,7 +191,7 @@ updated: 2026-05-15
 - [ ] Run `cd web && npx tsc --noEmit` after flow/renderer cutover.
 - [ ] Run `cd web && pnpm test -- --runInBand` after flow/renderer cutover.
 - [ ] Run submit-customer-request -> admin-review smoke script after `/admin/intake` migration.
-- [ ] Capture desktop/mobile screenshots for the v2 Storybook workbench fixture.
+- [x] Capture desktop/mobile screenshots for the v2 Storybook workbench fixture.
 - [ ] Capture desktop/mobile screenshots for live `/admin/intake` v2 dashboard.
 - [ ] Add css-visual-diff coverage for target workbench fixture and major `/admin/intake` screens.
 - [ ] Remove obsolete v1 stories or rewrite them as v2 stories.

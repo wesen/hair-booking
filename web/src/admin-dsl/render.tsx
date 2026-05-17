@@ -94,13 +94,20 @@ function renderTableCell(column: AdminJsonObject, row: AdminJsonObject, node: Ad
     const mapped = jsonObject(map, String(value || ""));
     const label = String(mapped?.label || value || "—");
     const tone = String(mapped?.tone || column.tone || "neutral");
-    return <span style={{ display: "inline-flex", borderRadius: radius.md, padding: "5px 9px", border: `1px solid ${color.rule}`, background: tone === "warning" ? "#fbefcf" : tone === "success" ? "#edf4e8" : color.paper, color: toneColor(tone), ...type.meta }}>{label}</span>;
+    const badgeColors = tone === "warning"
+      ? { background: "#fff0c2", color: "#674000", border: "#e0a52a" }
+      : tone === "success"
+        ? { background: "#e6f0df", color: "#345627", border: "#8baa7a" }
+        : tone === "danger"
+          ? { background: "#fff1ed", color: "#b3261e", border: "#e15a4f" }
+          : { background: color.paper, color: color.ink, border: color.rule };
+    return <span style={{ display: "inline-flex", borderRadius: radius.md, padding: "5px 9px", border: `1px solid ${badgeColors.border}`, background: badgeColors.background, color: badgeColors.color, fontWeight: 800, ...type.meta }}>{label}</span>;
   }
   if (kind === "overflowActions" || kind === "actions") {
     const rowActions = Array.isArray(row.actions) ? row.actions.filter(isActionRef) : [];
     if (!rowActions.length) return "";
     if (kind === "overflowActions") {
-      return <button type="button" aria-label="Open row actions" onClick={() => dispatchAdminAction(ctx, node, rowActions[0], row)} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 18, lineHeight: 1 }}>…</button>;
+      return <button type="button" aria-label="Open row actions" onClick={() => dispatchAdminAction(ctx, node, rowActions[0], row)} style={{ minWidth: 44, minHeight: 44, border: `1px solid ${color.rule}`, borderRadius: radius.pill, background: color.paper, cursor: "pointer", fontSize: 20, lineHeight: 1 }}>…</button>;
     }
     return renderActions(node, ctx, rowActions);
   }
@@ -175,11 +182,11 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
                 const rowActions = Array.isArray(row.actions) ? row.actions.filter(isActionRef) : [];
                 return (
                   <tr key={String(row.id || row.field || i)} style={{ borderBottom: i === rows.length - 1 ? "none" : `1px solid ${color.ruleSoft}` }}>
-                    <td style={{ ...type.bodySm, fontWeight: 800, padding: "10px 14px" }}>{String(row.field || row.label || "Field")}</td>
-                    <td style={{ ...type.bodySm, color: color.softInk, padding: "10px 14px" }}>{String(row.current ?? row.before ?? "—")}</td>
-                    <td style={{ ...type.bodySm, fontWeight: 800, padding: "10px 14px" }}>{String(row.draft ?? row.after ?? "—")}</td>
-                    <td style={{ ...type.bodySm, color: color.softInk, padding: "10px 14px" }}>{String(row.scheduled || "—")}</td>
-                    <td style={{ padding: "8px 14px", textAlign: "right" }}>{rowActions.length > 0 && renderActions(node, ctx, rowActions)}</td>
+                    <td data-label="Field" style={{ ...type.bodySm, fontWeight: 800, padding: "10px 14px" }}>{String(row.field || row.label || "Field")}</td>
+                    <td data-label="Current" style={{ ...type.bodySm, color: color.softInk, padding: "10px 14px" }}>{String(row.current ?? row.before ?? "—")}</td>
+                    <td data-label="Draft" style={{ ...type.bodySm, fontWeight: 800, padding: "10px 14px" }}>{String(row.draft ?? row.after ?? "—")}</td>
+                    <td data-label="Scheduled" style={{ ...type.bodySm, color: color.softInk, padding: "10px 14px" }}>{String(row.scheduled || "—")}</td>
+                    <td data-label="Actions" style={{ padding: "8px 14px", textAlign: "right" }}>{rowActions.length > 0 && renderActions(node, ctx, rowActions)}</td>
                   </tr>
                 );
               })}
@@ -350,8 +357,8 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
               <tbody>
                 {rows.map((row, i) => (
                   <tr key={String(row.id || i)} style={{ borderBottom: i === rows.length - 1 ? "none" : `1px solid ${color.ruleSoft}` }}>
-                    {selectable && <td style={{ padding: "12px 14px" }}><input type="checkbox" aria-label={`Select ${String(row.id || i)}`} /></td>}
-                    {columns.map((column) => <td key={String(column.id)} style={{ ...type.bodySm, padding: "12px 14px", verticalAlign: "top" }}>{renderTableCell(column, row, node, ctx)}</td>)}
+                    {selectable && <td style={{ padding: "12px 14px" }}><input type="checkbox" aria-label={`Select ${String(row.id || i)}`} style={{ width: 22, height: 22 }} /></td>}
+                    {columns.map((column) => <td key={String(column.id)} data-label={String(column.label || column.id || "")} data-column-kind={String(column.kind || "text")} style={{ ...type.bodySm, padding: "12px 14px", verticalAlign: "top" }}>{renderTableCell(column, row, node, ctx)}</td>)}
                     {rowAction && <td style={{ padding: "10px 14px", textAlign: "right" }}><button type="button" className="adminDslActionButton" aria-label={rowAction.label || "Open"} onClick={() => dispatchAdminAction(ctx, node, rowAction, row)} style={{ minHeight: 34, border: `1px solid ${color.ink}`, background: color.ink, color: color.paper, borderRadius: radius.pill, padding: "7px 11px", fontFamily: font.mono, fontSize: 10, letterSpacing: 0.5, textTransform: "uppercase", cursor: "pointer" }}>{rowAction.label || "Open"}</button></td>}
                   </tr>
                 ))}
@@ -558,6 +565,10 @@ function WorkbenchShell({ page, context }: { page: AdminPage; context?: AdminRen
   return (
     <main className="adminDslRoot adminDslWorkbenchRoot" style={{ minHeight: "100vh", background: color.creamDeep, color: color.ink, fontFamily: font.sans }} data-admin-dsl-page={page.id} data-admin-dsl-shell={page.shell.kind} data-admin-dsl-schema-version={page.schemaVersion}>
       <style>{responsiveCss}</style>
+      <div className="adminDslWorkbenchTopbar" style={{ display: "none", position: "sticky", top: 0, zIndex: 10, borderBottom: `1px solid ${color.rule}`, background: color.creamDeep, padding: "10px 14px", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}><span style={{ ...type.h2, fontSize: 24, lineHeight: 1 }}>S</span><span style={{ ...type.meta, color: color.softInk }}>{String(sidebar?.active || page.title)}</span></div>
+        <button type="button" aria-label="Open navigation" style={{ border: `1px solid ${color.rule}`, background: color.paper, borderRadius: radius.pill, padding: "7px 12px", ...type.meta }}>Menu</button>
+      </div>
       <aside className="adminDslWorkbenchSidebar" style={{ position: "fixed", inset: "0 auto 0 0", width: 190, borderRight: `1px solid ${color.rule}`, background: "rgba(248, 239, 222, 0.72)", padding: 18, display: "grid", gridTemplateRows: "auto 1fr auto", gap: 18 }}>
         <div style={{ ...type.h2, fontSize: 26, lineHeight: 1 }}>S</div>
         <nav aria-label="Admin navigation" style={{ display: "grid", gap: 8, alignContent: "start" }}>
@@ -585,12 +596,24 @@ const responsiveCss = `
   .adminDslTitle { text-wrap: balance; overflow-wrap: anywhere; }
   .adminDslSideColumn { min-width: 0; }
   @media (max-width: 860px) {
-    .adminDslWorkbenchSidebar { position: static !important; width: auto !important; border-right: none !important; border-bottom: 1px solid ${color.rule} !important; grid-template-rows: auto !important; grid-template-columns: auto 1fr !important; align-items: start !important; }
-    .adminDslWorkbenchSidebar nav { grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)) !important; }
-    .adminDslWorkbenchContent { margin-left: 0 !important; padding: 16px !important; }
-    .adminDslPageHeaderRow { grid-template-columns: 1fr !important; }
-    .adminDslDashboardGrid { grid-template-columns: 1fr !important; }
+    .adminDslWorkbenchTopbar { display: flex !important; }
+    .adminDslWorkbenchSidebar { display: none !important; }
+    .adminDslWorkbenchContent { margin-left: 0 !important; padding: 14px !important; }
+    .adminDslPageHeader { margin-bottom: 16px !important; }
+    .adminDslPageHeaderRow { grid-template-columns: 1fr !important; gap: 12px !important; }
+    .adminDslPageHeader .adminDslTitle { font-size: clamp(28px, 10vw, 38px) !important; }
+    .adminDslDashboardGrid { grid-template-columns: 1fr !important; gap: 14px !important; }
     .adminDslDashboardGridItem { grid-column: span 1 !important; }
+    .adminDslPanelHeader, .adminDslPanelBody, .adminDslPanelFooter { padding: 12px !important; }
+    .adminDslResourceTable { overflow: visible !important; }
+    .adminDslResourceTable table, .adminDslComparisonTable table { min-width: 0 !important; width: 100% !important; }
+    .adminDslResourceTable thead, .adminDslComparisonTable thead { display: none !important; }
+    .adminDslResourceTable tbody, .adminDslResourceTable tr, .adminDslResourceTable td, .adminDslComparisonTable tbody, .adminDslComparisonTable tr, .adminDslComparisonTable td { display: block !important; width: 100% !important; }
+    .adminDslResourceTable tr, .adminDslComparisonTable tr { padding: 10px 12px !important; border-bottom: 1px solid ${color.ruleSoft} !important; }
+    .adminDslResourceTable td, .adminDslComparisonTable td { padding: 5px 0 !important; border: none !important; }
+    .adminDslResourceTable td[data-column-kind="dragHandle"] { display: none !important; }
+    .adminDslResourceTable td[data-label]::before, .adminDslComparisonTable td[data-label]::before { content: attr(data-label); display: block; margin-bottom: 2px; font-family: ${font.mono}; font-size: 10px; letter-spacing: 1.4px; color: ${color.softInk}; }
+    .adminDslResourceTable td[data-label="Actions"]::before, .adminDslComparisonTable td[data-label="Actions"]::before { display: none !important; }
   }
   @media (max-width: 720px) {
     .adminDslRoot { padding: 16px !important; overflow-x: hidden !important; }

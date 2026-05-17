@@ -62,6 +62,48 @@ func TestGoHostBuilderEmitsStableAdminPageJSON(t *testing.T) {
 	}
 }
 
+func TestGoHostBuilderRejectsInvalidV2Shapes(t *testing.T) {
+	cases := []struct {
+		name string
+		page *PageBuilder
+		want string
+	}{
+		{
+			name: "page header title",
+			page: PageAdmin("bad-header", "Bad").SchemaVersion(2).Content(PageHeader(JSONObject{})),
+			want: "pageHeader requires props.title",
+		},
+		{
+			name: "panel title",
+			page: PageAdmin("bad-panel", "Bad").SchemaVersion(2).Content(NodeOf(NodePanel, JSONObject{})),
+			want: "panel requires props.title",
+		},
+		{
+			name: "resource table columns",
+			page: PageAdmin("bad-table", "Bad").SchemaVersion(2).Content(ResourceTable("rows", JSONObject{"rows": []JSONValue{}})),
+			want: "resourceTable requires non-empty props.columns",
+		},
+		{
+			name: "comparison rows",
+			page: PageAdmin("bad-comparison", "Bad").SchemaVersion(2).Content(ComparisonTable("changes", JSONObject{"rows": []JSONValue{JSONObject{"id": "change-1", "field": "Price"}}})),
+			want: "comparisonTable rows[0] requires \"current\"",
+		},
+		{
+			name: "typed field",
+			page: PageAdmin("bad-field", "Bad").SchemaVersion(2).Content(Form("form", nil, FieldGroup("Basics", NodeOf(NodeSwitchField, JSONObject{"name": "enabled", "label": "Enabled", "value": "yes"})))),
+			want: "switchField value must be boolean",
+		},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, err := tc.page.Build()
+			if err == nil || !strings.Contains(err.Error(), tc.want) {
+				t.Fatalf("expected %q error, got %v", tc.want, err)
+			}
+		})
+	}
+}
+
 func TestGoHostBuilderRejectsInvalidSchema(t *testing.T) {
 	_, err := NewPage("broken", "Broken", ShellKind("unknown")).Build()
 	if err == nil || !strings.Contains(err.Error(), "invalid shell kind") {
