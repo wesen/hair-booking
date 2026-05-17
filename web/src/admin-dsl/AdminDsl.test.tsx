@@ -9,31 +9,33 @@ describe("admin DSL", () => {
     const page = admin.page("test-admin", "Test admin")
       .shell("admin", { active: "test" })
       .content(
-        admin.section("Rows", {},
-          resource.list("items", {},
-            resource.row("row-1", { title: "First row" })
-              .actions(action.open("edit", "Edit", { id: "row-1" })),
+        admin.pageHeader({ title: "Test admin" }),
+        admin.dashboardGrid({ columns: { desktop: 12 } },
+          admin.panel("Rows", { padding: "none", layout: { span: { desktop: 12 } } },
+            resource.table("items", [{ id: "title", label: "Title" }], [{ id: "row-1", title: "First row" }])
+              .actions(action.open("edit", "Edit", { id: "row-1" }).placement("row")),
           ),
         ),
       )
       .toJSON();
 
     expect(page).toEqual(expect.objectContaining({
-      schemaVersion: 1,
+      schemaVersion: 2,
       id: "test-admin",
       title: "Test admin",
       shell: { kind: "admin", props: { active: "test" } },
     }));
     expect(JSON.parse(JSON.stringify(page))).toEqual(page);
-    expect(page.nodes[0].kind).toBe("section");
+    expect(page.nodes[0].kind).toBe("pageHeader");
+    expect(page.nodes[1].kind).toBe("dashboardGrid");
   });
 
   it("serializes semantic action metadata from fluent helpers", () => {
     const page = admin.page("actions", "Actions")
       .content(
-        resource.row("row-1", { title: "Row" })
+        resource.table("rows", [{ id: "title", label: "Title" }], [{ id: "row-1", title: "Row" }])
           .actions(
-            action.primary("save", "Save").placement("footer"),
+            action.primary("save", "Save").placement("panelFooter"),
             action.danger("archive", "Archive").placement("row").accessibilityLabel("Archive service"),
             action.ghost("cancel", "Cancel").disabled(),
           ),
@@ -42,7 +44,7 @@ describe("admin DSL", () => {
 
     const actions = page.nodes[0].props?.actions;
     expect(actions).toEqual(expect.arrayContaining([
-      expect.objectContaining({ target: "save", intent: "primary", priority: "primary", placement: "footer" }),
+      expect.objectContaining({ target: "save", intent: "primary", priority: "primary", placement: "panelFooter" }),
       expect.objectContaining({ target: "archive", intent: "danger", requiresConfirmation: true, accessibilityLabel: "Archive service" }),
       expect.objectContaining({ target: "cancel", priority: "tertiary", presentation: "link", disabled: true }),
     ]));
@@ -67,7 +69,7 @@ describe("admin DSL", () => {
   it("serializes resource and form lifecycle helpers", () => {
     const page = resource.page("lifecycle", "Lifecycle")
       .content(
-        resource.list("items", { state: "empty" }).empty(admin.emptyState("No items")),
+        resource.table("items", [{ id: "name", label: "Name" }], [], { emptyTitle: "No items" }).empty(admin.emptyState("No items")),
         admin.form("itemForm", { title: "Item" })
           .state("dirty")
           .dirty()
@@ -79,7 +81,7 @@ describe("admin DSL", () => {
       )
       .toJSON();
 
-    expect(page.nodes[0].props).toEqual(expect.objectContaining({ state: "empty", empty: expect.objectContaining({ kind: "emptyState" }) }));
+    expect(page.nodes[0].props).toEqual(expect.objectContaining({ emptyTitle: "No items", empty: expect.objectContaining({ kind: "emptyState" }) }));
     expect(page.nodes[1].props).toEqual(expect.objectContaining({
       state: "dirty",
       dirty: true,
@@ -93,7 +95,7 @@ describe("admin DSL", () => {
   it("renders resource lifecycle empty and form validation states", () => {
     const page = resource.page("render-lifecycle", "Render lifecycle")
       .content(
-        resource.list("items", { state: "empty", emptyTitle: "No items" }),
+        resource.table("items", [{ id: "name", label: "Name" }], [], { emptyTitle: "No items" }),
         admin.form("itemForm", { title: "Item", dirty: true, errors: { name: "Required" } }, field.text("name", { label: "Name", value: "" }))
           .submit(action.primary("item.save", "Save")),
       )
@@ -225,50 +227,30 @@ describe("admin DSL", () => {
     const dispatch = vi.fn();
     render(<AdminPageRenderer page={servicesAdminPage} context={{ dispatch }} />);
 
-    expect(screen.getByText("Services & pricing")).toBeInTheDocument();
+    expect(screen.getAllByText("Services & pricing").length).toBeGreaterThan(0);
     expect(screen.getByText("Cut")).toBeInTheDocument();
     expect(screen.getByText("Extensions")).toBeInTheDocument();
 
     fireEvent.click(screen.getAllByRole("button", { name: "Edit" })[0]);
 
     expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
-      nodeKind: "resourceRow",
+      nodeKind: "resourceTable",
       action: expect.objectContaining({ type: "open", target: "editService" }),
     }));
 
     fireEvent.click(screen.getAllByRole("button", { name: "Archive" })[0]);
 
     expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
-      nodeKind: "resourceRow",
-      action: expect.objectContaining({ type: "confirm", target: "archiveService" }),
+      nodeKind: "resourceTable",
+      action: expect.objectContaining({ type: "mutation", target: "archiveService", intent: "danger" }),
     }));
   });
 
-  it("renders the calendar mobile agenda grouped by day", () => {
-    const { container } = render(<AdminPageRenderer page={calendarAdminPage} />);
-    const agenda = container.querySelector(".adminDslCalendarAgenda");
-
-    expect(agenda).toBeTruthy();
-    expect(agenda).toHaveTextContent("Mon");
-    expect(agenda).toHaveTextContent("Tue");
-    expect(agenda).toHaveTextContent("Lena Ortiz");
-    expect(agenda).toHaveTextContent("Maya Chen");
-    expect(agenda).toHaveTextContent("Jules Park");
-    expect(agenda).toHaveTextContent("Personal errand");
-  });
-
-  it("dispatches calendar appointment actions after component extraction", () => {
-    const dispatch = vi.fn();
-    const { container } = render(<AdminPageRenderer page={calendarAdminPage} context={{ dispatch }} />);
-    const appointment = container.querySelector('[data-admin-dsl-id="apt-1001"]');
-
-    expect(appointment).toBeTruthy();
-    fireEvent.click(appointment!);
-
-    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
-      nodeKind: "appointmentBlock",
-      action: expect.objectContaining({ type: "open", target: "appointmentDetail" }),
-    }));
+  it("renders the v2 calendar example month and appointment table", () => {
+    render(<AdminPageRenderer page={calendarAdminPage} />);
+    expect(screen.getAllByText("June 2026").length).toBeGreaterThan(0);
+    expect(screen.getByText("Lena Ortiz")).toBeInTheDocument();
+    expect(screen.getByText("Maya Chen")).toBeInTheDocument();
   });
 
   it("renders v2 workbench shell and dispatches sidebar and page header actions", () => {

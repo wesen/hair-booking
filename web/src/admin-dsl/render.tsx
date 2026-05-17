@@ -241,20 +241,6 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     case "toolbar":
       return <div key={key} {...common} style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 22, ...style(props) }}>{renderActions(node, ctx)}</div>;
 
-    case "section":
-      return (
-        <section key={key} {...common} style={{ marginBottom: 28, ...style(props) }}>
-          <div style={{ marginBottom: 14 }}>
-            <h2 className="adminDslSectionTitle" style={{ ...type.h2, margin: 0 }}>{str(props, "title")}</h2>
-            {str(props, "description") && <p style={{ ...type.body, color: color.softInk, margin: "8px 0 0" }}>{str(props, "description")}</p>}
-          </div>
-          <div style={{ display: "grid", gap: 14 }}>{renderChildren(node.children, ctx)}</div>
-        </section>
-      );
-
-    case "cardGrid":
-      return <div key={key} {...common} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(190px, 1fr))", gap: 14, marginBottom: 24, ...style(props) }}>{renderChildren(node.children, ctx)}</div>;
-
     case "splitPane":
       return <div key={key} {...common} className="adminDslSplitPane" style={{ display: "grid", gridTemplateColumns: "minmax(260px, 0.85fr) minmax(320px, 1.15fr)", gap: 16, alignItems: "start", ...style(props) }}>{renderChildren(node.children, ctx)}</div>;
 
@@ -270,30 +256,10 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       return <form key={key} {...common} role="search" onSubmit={(event) => { event.preventDefault(); const value = String(new FormData(event.currentTarget).get("search") || ""); if (searchAction) dispatchAdminAction(ctx, node, searchAction, { query: value }); }} style={{ ...surface, padding: 12, display: "flex", alignItems: "center", gap: 10, color: color.softInk, ...style(props) }}><input name="search" defaultValue={str(props, "value")} placeholder={str(props, "placeholder", "Search")} aria-label={str(props, "label", "Search")} style={{ flex: 1, minHeight: 38, border: "none", outline: "none", background: "transparent", ...type.body }} />{searchAction && <button type="submit" className="adminDslActionButton" style={{ minHeight: 34, border: `1px solid ${color.ink}`, background: color.ink, color: color.paper, borderRadius: radius.pill, padding: "7px 11px", fontFamily: font.mono, fontSize: 10, letterSpacing: 0.5, textTransform: "uppercase", cursor: "pointer" }}>{searchAction.label || "Search"}</button>}</form>;
     }
 
-    case "editableList": {
-      const items = jsonArray<AdminJsonObject>(props, "items");
-      const itemAction = actionList(props)[0];
-      if (!items.length) return renderAdminNode({ kind: "emptyState", props: { title: str(props, "emptyTitle", "No items"), body: str(props, "emptyBody") }, meta: node.meta }, ctx, key);
-      return <div key={key} {...common} className="adminDslEditableList" style={{ display: "grid", gap: 10, ...style(props) }}>{items.map((item, i) => <article key={String(item.id || i)} style={{ ...surface, padding: 14, display: "grid", gridTemplateColumns: "auto 1fr auto", gap: 12, alignItems: "center" }}><span aria-hidden="true" style={{ ...type.meta, color: color.softInk }}>⋮⋮</span><div><div style={{ ...type.h3, margin: 0 }}>{String(item.title || item.label || item.id || "Item")}</div>{item.subtitle && <div style={{ ...type.bodySm, color: color.softInk, marginTop: 4 }}>{String(item.subtitle)}</div>}</div>{itemAction && <button type="button" className="adminDslActionButton" aria-label={itemAction.label || "Edit"} onClick={() => dispatchAdminAction(ctx, node, itemAction, item)} style={{ minHeight: 34, border: `1px solid ${color.ink}`, background: color.ink, color: color.paper, borderRadius: radius.pill, padding: "7px 11px", fontFamily: font.mono, fontSize: 10, letterSpacing: 0.5, textTransform: "uppercase", cursor: "pointer" }}>{itemAction.label || "Edit"}</button>}</article>)}</div>;
-    }
-
-    case "monthAvailabilityGrid": {
-      const days = jsonArray<AdminJsonObject>(props, "days");
-      const selected = str(props, "selected");
-      const dayAction = actionList(props)[0];
-      return <div key={key} {...common} className="adminDslMonthAvailabilityGrid" style={{ ...surface, padding: 14, display: "grid", gridTemplateColumns: "repeat(7, minmax(42px, 1fr))", gap: 8, ...style(props) }}>{days.map((day, i) => { const value = String(day.value || day.date || i); const disabled = Boolean(day.disabled); const active = selected === value; return <button key={value} type="button" disabled={!dayAction} aria-pressed={active} aria-label={`${String(day.label || day.day || value)}${disabled ? " disabled" : " available"}`} onClick={() => dayAction && dispatchAdminAction(ctx, node, dayAction, day)} style={{ minHeight: 58, borderRadius: radius.md, border: `1px solid ${active ? color.ink : disabled ? color.warn : color.rule}`, background: disabled ? "#fbefcf" : active ? color.ink : color.paper, color: active ? color.paper : color.ink, cursor: dayAction ? "pointer" : "default", display: "grid", placeItems: "center", gap: 2 }}><span style={{ ...type.h3, fontSize: 18 }}>{String(day.day || day.label || "")}</span>{day.dot && <span aria-hidden="true" style={{ width: 7, height: 7, borderRadius: radius.pill, background: disabled ? color.warn : color.success }} />}</button>; })}</div>;
-    }
-
     case "previewFrame":
       return <div key={key} {...common} className="adminDslPreviewFrame" style={{ ...surface, padding: 14, display: "grid", gap: 12, ...style(props) }}><div><div style={{ ...type.eyebrow, color: color.softInk }}>{str(props, "kicker", "Preview")}</div><h3 style={{ ...type.h2, margin: "4px 0 0" }}>{str(props, "title", "Customer preview")}</h3>{str(props, "body") && <p style={{ ...type.bodySm, color: color.softInk, margin: "8px 0 0" }}>{str(props, "body")}</p>}</div>{str(props, "url") ? <iframe title={str(props, "title", "Preview")} src={str(props, "url")} style={{ width: "100%", minHeight: Number(props.height || 420), border: `1px solid ${color.rule}`, borderRadius: radius.md, background: color.paper }} /> : <div style={{ minHeight: Number(props.height || 260), border: `1px dashed ${color.rule}`, borderRadius: radius.md, display: "grid", placeItems: "center", color: color.softInk, ...type.bodySm }}>{str(props, "placeholder", "Preview route not connected yet")}</div>}{renderActions(node, ctx)}</div>;
 
-    case "diffView": {
-      const changes = jsonArray<AdminJsonObject>(props, "changes");
-      return <div key={key} {...common} className="adminDslDiffView" style={{ ...surface, overflow: "hidden", ...style(props) }}><div style={{ padding: 14, borderBottom: `1px solid ${color.rule}` }}><h3 style={{ ...type.h3, margin: 0 }}>{str(props, "title", "Changes")}</h3>{str(props, "body") && <p style={{ ...type.bodySm, color: color.softInk, margin: "6px 0 0" }}>{str(props, "body")}</p>}</div>{changes.map((change, i) => <div key={String(change.id || change.field || i)} style={{ display: "grid", gridTemplateColumns: "150px 1fr 1fr", gap: 10, padding: 14, borderBottom: i === changes.length - 1 ? "none" : `1px solid ${color.ruleSoft}` }}><div style={{ ...type.meta, color: toneColor(String(change.tone || "")) }}>{String(change.field || change.label || "Field")}</div><div style={{ ...type.bodySm, color: color.softInk }}>{String(change.before ?? "—")}</div><div style={{ ...type.bodySm, fontWeight: 800 }}>{String(change.after ?? "—")}</div></div>)}</div>;
-    }
-
-    case "panel":
-    case "summaryCard": {
+    case "panel": {
       const density = str(props, "density", "normal");
       const paddingMode = str(props, "padding", "normal");
       const footerActions = actionArray(props, "footerActions");
@@ -377,33 +343,6 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
         </div>
       );
     }
-
-    case "resourceList": {
-      const state = str(props, "state", "idle");
-      if (state === "loading") return renderAdminNode({ kind: "loadingState", props: { title: str(props, "loadingTitle", "Loading resources"), body: str(props, "loadingBody", "Fetching the latest data.") }, meta: node.meta }, ctx, key);
-      if (state === "error") return renderAdminNode({ kind: "inlineError", props: { title: str(props, "errorTitle", "Could not load resources"), body: str(props, "errorBody", "Try refreshing or check the backend response.") }, meta: node.meta }, ctx, key);
-      if (state === "empty") return renderInlineNode(jsonObject(props, "empty"), ctx) || renderAdminNode({ kind: "emptyState", props: { title: str(props, "emptyTitle", "No records yet"), body: str(props, "emptyBody") }, meta: node.meta }, ctx, key);
-      return (
-        <div key={key} {...common} style={{ display: "grid", gap: 10, ...style(props) }}>
-          {node.children?.length ? renderChildren(node.children, ctx) : renderInlineNode(jsonObject(props, "empty"), ctx)}
-        </div>
-      );
-    }
-
-    case "resourceRow":
-      return (
-        <article key={key} {...common} className="adminDslResourceRow" style={{ ...surface, padding: 16, display: "grid", gridTemplateColumns: "1fr auto", gap: 14, alignItems: "center", ...style(props) }}> 
-          <div>
-            <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-              <h3 style={{ ...type.h3, margin: 0 }}>{str(props, "title", str(props, "id"))}</h3>
-              {str(props, "badge") && <span style={{ borderRadius: radius.pill, padding: "4px 8px", background: color.paper, border: `1px solid ${color.rule}`, color: toneColor(str(props, "tone")), fontWeight: 700, ...type.meta }}>{str(props, "badge")}</span>}
-            </div>
-            {str(props, "subtitle") && <p style={{ ...type.bodySm, color: color.softInk, margin: "8px 0 0" }}>{str(props, "subtitle")}</p>}
-            {str(props, "description") && <p style={{ ...type.body, color: color.softInk, margin: "8px 0 0" }}>{str(props, "description")}</p>}
-          </div>
-          {renderActions(node, ctx)}
-        </article>
-      );
 
     case "emptyState":
       return (

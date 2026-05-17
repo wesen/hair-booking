@@ -2620,3 +2620,105 @@ The frontend still has legacy Storybook/test fixtures and renderer branches to c
   - `editableList`
   - `monthAvailabilityGrid`
   - `diffView`
+
+## Step 36: Remove frontend v1 fixtures and renderer branches
+
+This step finished the frontend side of the Admin DSL v2 cutover. The TypeScript schema and builders now model only schema v2 pages, the renderer no longer has branches for deprecated v1 nodes, and obsolete v1 Storybook catalogs were removed instead of kept as compatibility examples.
+
+The remaining frontend examples and scenario fixtures were rewritten around v2 workbench primitives so tests still cover builder serialization, resource tables, forms, scenarios, surfaces, and calendar behavior without relying on `section`, `cardGrid`, `summaryCard`, `resourceList`, `resourceRow`, `editableList`, `monthAvailabilityGrid`, or `diffView`.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 35)
+
+**Assistant interpretation:** Continue the v2-only cleanup after the Go/API cutover, recording details and committing at a natural frontend boundary.
+
+**Inferred user intent:** The user wants the migration completed cleanly rather than leaving a split backend-v2/frontend-v1 implementation.
+
+**Commit (code):** pending — frontend v2-only cleanup.
+
+### What I did
+- Updated `web/src/admin-dsl/schema.ts`:
+  - `AdminPage.schemaVersion` is now `2` only.
+  - removed deprecated node kinds from `AdminNodeKind`.
+- Updated `web/src/admin-dsl/builder.ts`:
+  - default page builder schema is now v2.
+  - removed deprecated TS builder helpers for old visual/list/diff primitives.
+  - removed `resource.list` and `resource.row`; `resource.table` is now the resource-list path.
+- Updated `web/src/admin-dsl/render.tsx`:
+  - removed renderer branches for deprecated v1 nodes.
+  - kept the v2 workbench/table/panel/form/surface renderers.
+- Rewrote `web/src/admin-dsl/examples.ts` to use `pageHeader`, `dashboardGrid`, `panel`, `resourceTable`, and `monthCalendar`.
+- Rewrote `web/src/admin-dsl/scenarioFixtures.ts` to use v2 resource tables and panels.
+- Removed obsolete v1 Storybook/example files:
+  - `AdminDslAdvancedComponents.stories.tsx`
+  - `AdminDslDataComponents.stories.tsx`
+  - `AdminDslAdaptivePolicies.stories.tsx`
+  - `AdminDslBehavior.stories.tsx`
+  - `AdminDslResourceLifecycle.stories.tsx`
+  - `AdminDslSurfaces.stories.tsx`
+  - `AdminDslLayouts.stories.tsx`
+  - `layoutExamples.ts`
+- Updated frontend tests to expect v2 schema and `resourceTable` dispatch events.
+- Removed the `layoutExamples` export from `web/src/admin-dsl/index.ts`.
+- Updated HAIR-041 tasks to mark obsolete v1 stories and renderer branches removed.
+
+### Why
+- Keeping frontend v1 builders/renderer branches after the backend cutover would leave two DSL dialects alive and undermine the “simple/effective/clear” cutover preference.
+- Deleting obsolete Storybook catalogs is cleaner than preserving examples that teach primitives we no longer want users or interns to copy.
+
+### What worked
+- TypeScript validation passed:
+  - `cd web && npx tsc --noEmit`
+- Frontend tests passed:
+  - `cd web && pnpm test -- --runInBand`
+  - 10 files, 49 tests passed
+- Full Go validation still passed:
+  - `go test ./... -count=1`
+- A repository search under `web/src/admin-dsl` no longer finds the deprecated node strings or builder calls.
+
+### What didn't work
+- First frontend test run failed after the rewrite:
+  - expected `placement: "footer"` but v2 uses `panelFooter`
+  - duplicate visible headings caused `getByText("Services & pricing")` and `getByText("June 2026")` ambiguity because both the shell title and page/panel title are rendered
+  - the service example initially had row action data without an action column, so the test could not drive those row actions
+- Fixes:
+  - updated expected placement to `panelFooter`
+  - used `getAllByText(...).length` for duplicate intentional headings
+  - added an explicit `actions` column to the v2 service table example
+  - updated archive expectations because `action.danger` is a danger mutation with confirmation metadata, not a raw `confirm` action type
+
+### What I learned
+- The v2 renderer makes page-level and page-header titles both visible for non-workbench shells, so tests should prefer role/query precision or tolerate intentional duplicates.
+- Row action data in v2 resource tables must be paired with an `actions` or `overflowActions` column unless the table-level action path is used.
+
+### What was tricky to build
+- Removing TS builder helpers exposed hidden dependencies in old stories and examples. The fastest safe path was to delete obsolete v1 story catalogs and rewrite the shared fixtures that tests/MSW still import.
+- Keeping the scenario harness intact required preserving its state machine while changing only the emitted page shape.
+
+### What warrants a second pair of eyes
+- Review whether deleting old Storybook catalogs is acceptable, or whether some deleted scenarios should be recreated as v2-only workbench stories later.
+- Review whether shell/page-title duplication should remain in the renderer for v2 pages or be collapsed for admin workbench pages.
+
+### What should be done in the future
+- Re-capture Storybook v2 screenshots after this cleanup to confirm deleted catalogs did not affect the v2 workbench captures.
+- Update docs/intern guides to remove references to deleted frontend story files.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/schema.ts`, `builder.ts`, and `render.tsx` for the actual v2-only frontend boundary.
+- Then review `examples.ts`, `scenarioFixtures.ts`, and `AdminDsl.test.tsx` to confirm the replacement fixtures still exercise meaningful behavior.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+  - `go test ./... -count=1`
+
+### Technical details
+- Frontend deprecated primitives removed:
+  - `section`
+  - `cardGrid`
+  - `summaryCard`
+  - `resourceList`
+  - `resourceRow`
+  - `editableList`
+  - `monthAvailabilityGrid`
+  - `diffView`

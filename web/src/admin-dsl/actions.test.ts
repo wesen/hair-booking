@@ -34,17 +34,17 @@ describe("admin DSL action utilities", () => {
   it("dispatches normalized events with node identity", () => {
     const dispatch = vi.fn();
     const node: AdminNode = {
-      kind: "resourceRow",
-      props: { id: "row-1" },
-      meta: { id: "service-row" },
+      kind: "resourceTable",
+      props: { id: "rows", columns: [{ id: "name", label: "Name" }], rows: [{ id: "row-1", name: "Cut" }] },
+      meta: { id: "service-table" },
     };
     const action = { type: "confirm" as const, target: "archive", label: "Archive", requiresConfirmation: true };
 
     dispatchAdminAction({ dispatch }, node, action, { checked: true }, { slot: "row" });
 
     expect(dispatch).toHaveBeenCalledWith({
-      nodeId: "service-row",
-      nodeKind: "resourceRow",
+      nodeId: "service-table",
+      nodeKind: "resourceTable",
       action,
       value: { checked: true },
       meta: { slot: "row" },

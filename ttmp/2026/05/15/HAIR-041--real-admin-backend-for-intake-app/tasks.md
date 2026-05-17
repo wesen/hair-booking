@@ -194,7 +194,7 @@ updated: 2026-05-15
 - [x] Capture desktop/mobile screenshots for the v2 Storybook workbench fixture.
 - [x] Capture desktop/mobile screenshots for live `/admin/intake` v2 dashboard.
 - [ ] Add css-visual-diff coverage for target workbench fixture and major `/admin/intake` screens.
-- [ ] Remove obsolete v1 stories or rewrite them as v2 stories.
-- [ ] Remove deprecated renderer branches once all fixtures and flows are migrated.
+- [x] Remove obsolete v1 stories or rewrite them as v2 stories.
+- [x] Remove deprecated renderer branches once all fixtures and flows are migrated.
 - [ ] Update Admin DSL v2 docs/changelog/diary with final cutover results.
 - [ ] Upload final Admin DSL v2 screenshots/docs bundle to reMarkable.

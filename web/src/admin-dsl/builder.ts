@@ -165,7 +165,7 @@ export class AdminPageBuilder {
 
   constructor(id: string, title: string, shell: AdminShellKind = "admin") {
     this.page = {
-      schemaVersion: 1,
+      schemaVersion: 2,
       id,
       title,
       shell: { kind: shell },
@@ -338,21 +338,15 @@ export const admin = {
 
   pageHeader: (props: AdminJsonObject = {}) => node("pageHeader", props),
   dashboardGrid: (props: AdminJsonObject = {}, ...children: NodeInput[]) => node("dashboardGrid", props, ...children),
-  section: (title: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("section", { title, ...props }, ...children),
   toolbar: (...actions: ActionInput[]) => node("toolbar", { actions: actions.map((a) => unwrapAction(a)) as unknown as AdminJsonValue }),
-  cardGrid: (...children: NodeInput[]) => node("cardGrid", {}, ...children),
   panel: (title: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("panel", { title, ...props }, ...children),
   splitPane: (props: AdminJsonObject = {}, ...children: NodeInput[]) => node("splitPane", props, ...children),
   tabs: (tabs: AdminJsonObject[], value: string, props: AdminJsonObject = {}) => node("tabs", { tabs, value, ...props }),
-  editableList: (id: string, items: AdminJsonObject[], props: AdminJsonObject = {}) => node("editableList", { id, items, ...props }).id(id),
-  monthAvailabilityGrid: (id: string, days: AdminJsonObject[], props: AdminJsonObject = {}) => node("monthAvailabilityGrid", { id, days, ...props }).id(id),
   previewFrame: (id: string, props: AdminJsonObject = {}) => node("previewFrame", { id, ...props }).id(id),
   comparisonTable: (id: string, rows: AdminJsonObject[], props: AdminJsonObject = {}) => node("comparisonTable", { id, rows, ...props }).id(id),
   monthCalendar: (id: string, props: AdminJsonObject = {}) => node("monthCalendar", { id, ...props }).id(id),
-  diffView: (id: string, changes: AdminJsonObject[], props: AdminJsonObject = {}) => node("diffView", { id, changes, ...props }).id(id),
 
   metric: (label: string, value: string | number, props: AdminJsonObject = {}) => node("metricCard", { label, value, ...props }),
-  summary: (title: string, props: AdminJsonObject = {}) => node("summaryCard", { title, ...props }),
   badge: (label: string, tone = "neutral") => node("statusBadge", { label, tone }),
   emptyState: (title: string, props: AdminJsonObject = {}) => node("emptyState", { title, ...props }),
   inlineError: (title: string, props: AdminJsonObject = {}) => node("inlineError", { title, ...props }),
@@ -363,7 +357,6 @@ export const admin = {
   imageGallery: (id: string, images: AdminJsonObject[], props: AdminJsonObject = {}) => node("imageGallery", { id, images, ...props }).id(id),
   loadingState: (title: string, props: AdminJsonObject = {}) => node("loadingState", { title, ...props }),
 
-  resourceList: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("resourceList", { id, ...props }, ...children),
   filterBar: (filters: AdminJsonObject[], value?: string, props: AdminJsonObject = {}) => node("filterBar", { filters, value: value || null, ...props }),
   searchBox: (placeholder = "Search", props: AdminJsonObject = {}) => node("searchBox", { placeholder, ...props }),
 
@@ -389,9 +382,7 @@ export const surface = {
 
 export const resource = {
   page: (id: string, title = id) => new AdminPageBuilder(id, title, "resource"),
-  list: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("resourceList", { id, ...props }, ...children),
   table: (id: string, columns: AdminJsonObject[], rows: AdminJsonObject[], props: AdminJsonObject = {}) => node("resourceTable", { id, columns, rows, ...props }).id(id),
-  row: (id: string, props: AdminJsonObject = {}) => node("resourceRow", { id, ...props }).id(id),
   detail: (id: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("resourceDetail", { id, ...props }, ...children),
 };
 

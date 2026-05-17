@@ -10,21 +10,15 @@ export type AdminNodeKind =
   // Layout
   | "pageHeader"
   | "dashboardGrid"
-  | "section"
   | "toolbar"
-  | "cardGrid"
   | "panel"
   | "splitPane"
   | "tabs"
-  | "editableList"
-  | "monthAvailabilityGrid"
   | "previewFrame"
   | "comparisonTable"
   | "monthCalendar"
-  | "diffView"
   // Display
   | "metricCard"
-  | "summaryCard"
   | "statusBadge"
   | "activityFeed"
   | "kvList"
@@ -36,9 +30,7 @@ export type AdminNodeKind =
   | "inlineError"
   // Resource/list
   | "resourcePage"
-  | "resourceList"
   | "resourceTable"
-  | "resourceRow"
   | "resourceDetail"
   | "filterBar"
   | "searchBox"
@@ -85,7 +77,7 @@ export interface AdminNode<P extends AdminJsonObject = AdminJsonObject> {
 }
 
 export interface AdminPage {
-  schemaVersion: 1 | 2;
+  schemaVersion: 2;
   id: string;
   title: string;
   description?: string;

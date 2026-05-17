@@ -304,3 +304,23 @@ Step 35: Cut Go Admin DSL builder/validation/Goja module to schema v2 only
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/goja_module.go — Removed deprecated v1 helper exports from embedded admin scripts
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/validate.go — ValidatePage now requires schemaVersion 2 and rejects deprecated node kinds
 
+
+## 2026-05-17 — Frontend Admin DSL v2-only cleanup
+
+- Made the TypeScript Admin DSL schema and builders v2-only.
+- Removed frontend renderer branches for deprecated v1 primitives.
+- Rewrote shared admin examples and scenario fixtures to v2 workbench/resource-table primitives.
+- Deleted obsolete v1 Storybook catalogs and the legacy layout examples file.
+- Updated frontend tests for v2 dispatch shapes; verified TypeScript, frontend tests, and full Go tests.
+
+## 2026-05-17
+
+Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and rewrote shared fixtures to v2
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/builder.ts — Removed deprecated frontend builders
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/examples.ts — Shared examples rewritten to v2
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Removed deprecated renderer branches
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts — TypeScript schema is now v2-only
+

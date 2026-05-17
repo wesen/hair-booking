@@ -7,7 +7,7 @@ describe("BackendAdminDslPage event conversion", () => {
     vi.spyOn(crypto, "randomUUID").mockReturnValue("evt-1" as `${string}-${string}-${string}-${string}-${string}`);
     const event: AdminRenderEvent = {
       nodeId: "row-1",
-      nodeKind: "resourceRow",
+      nodeKind: "resourceTable",
       action: { id: "admin_act_1", event: "submit", type: "mutation", target: "service.save", label: "Save" },
       value: { ok: true },
       meta: { source: "test" },
@@ -16,7 +16,7 @@ describe("BackendAdminDslPage event conversion", () => {
       eventId: "evt-1",
       pageVersion: 7,
       nodeId: "row-1",
-      nodeKind: "resourceRow",
+      nodeKind: "resourceTable",
       actionId: "admin_act_1",
       event: "submit",
       value: { ok: true },
@@ -27,7 +27,7 @@ describe("BackendAdminDslPage event conversion", () => {
   it("rejects frontend-only actions without opaque backend ids", () => {
     expect(() => adminInteractionEventFromRenderEvent({
       nodeId: "row-1",
-      nodeKind: "resourceRow",
+      nodeKind: "resourceTable",
       action: { type: "open", target: "local" },
     }, 1)).toThrow(/missing opaque id/);
   });
