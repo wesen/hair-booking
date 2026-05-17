@@ -336,3 +336,9 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Added `reference/02-admin-dsl-resource-table-alignment-guide.md`, a textbook-style guide for Request Triage table baseline alignment and `Assign` bulk action styling.
 - Stored the motivating Request Triage screenshot under `various/alignment-reference/`.
 - Related the guide to the relevant Admin DSL Storybook, builder, schema, renderer, and action helper files.
+
+## 2026-05-17 — Admin DSL formal grammar exploration guide
+
+- Added `design-doc/05-admin-dsl-formal-grammar-and-compiler-exploration-guide.md`, a textbook-style exploratory research guide for formal Admin DSL grammar, AST, and compiler/code-generation approaches.
+- Related the guide to the current Admin DSL Go types/builders/validation/runtime, protobuf transport, server handlers, frontend schema/builders/client/renderer, and Storybook workbench files.
+- Uploaded `HAIR 041 Admin DSL Grammar Exploration Guide.pdf` to reMarkable at `/ai/2026/05/17/HAIR-041`.

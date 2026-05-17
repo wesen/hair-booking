@@ -2844,3 +2844,82 @@ which files and functions are involved, and what is the sequence of events? Writ
 ### Technical details
 - Frontmatter validation command:
   - `docmgr validate frontmatter --doc /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/02-admin-dsl-resource-table-alignment-guide.md --suggest-fixes`
+
+## Step 39: Write and upload the Admin DSL grammar exploration guide
+
+This step produced an exploratory research/design document about whether Admin DSL should have a formal grammar and compiler pipeline. The document is not an implementation plan for immediate production work. It is a technical study guide for an intern or postdoc researcher who needs to understand the current Admin DSL architecture, the possible grammar layers, and the compiler/code-generation targets that could be studied safely.
+
+The guide explains the existing Go/Goja/protobuf/frontend renderer system, then separates the research problem into a page authoring grammar and a language-definition grammar. It proposes a canonical AST model, EBNF sketches, generated artifacts, validation hooks, renderer registry scaffolding, implementation phases, risks, alternatives, and acceptance criteria.
+
+### Prompt Context
+
+**User prompt (verbatim):** "can we create a formal grammar for the admin dsl language, and then compile to the builder JS API and also to some of the render.ts parts and AST definitions and such?
+
+Create  a detailed analysis / design / implementation guide that is for a new intern, explaining all the parts of the system needed to understand what it is, with prose paragraphs and bullet point sand pseudocode and diagrams and api references and file references. It should be very clear and technical. Store in the ticket and the nupload to remarkable.
+
+
+This is exploratory work, not something we want to build, but rather explore. Write it in a textbook writing style (No analogies, see skill) as we will be handing it off to a postdoc researcher to do some studying on their owon on how such systems could work."
+
+**Assistant interpretation:** Create a clear, technical, textbook-style exploratory design guide for formalizing Admin DSL with grammars, ASTs, and code-generation targets, then store it in HAIR-041 and upload it to reMarkable.
+
+**Inferred user intent:** The user wants a research-quality handoff document that helps a technically strong reader study grammar/compiler approaches without confusing the exploration with an approved implementation task.
+
+**Commit (code):** pending — documentation and ticket metadata only.
+
+### What I did
+- Created a new design document with `docmgr doc add`:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/05-admin-dsl-formal-grammar-and-compiler-exploration-guide.md`
+- Wrote a detailed guide covering:
+  - current Admin DSL runtime architecture
+  - backend Goja flow sequence
+  - frontend Storybook/rendering sequence
+  - current file/function reference map
+  - page authoring grammar vs language-definition grammar
+  - canonical transport AST and internal compiler AST
+  - EBNF sketches
+  - compiler pipeline phases
+  - code-generation targets for TypeScript schema/builders, Go builders, Goja exports, validation, renderer registry/scaffolding, docs, and tests
+  - risks, alternatives, implementation plan, and research questions
+- Related the guide to key backend/frontend/protobuf files using `docmgr doc relate`.
+- Validated the document frontmatter successfully.
+- Uploaded the guide to reMarkable:
+  - `HAIR 041 Admin DSL Grammar Exploration Guide.pdf`
+  - destination: `/ai/2026/05/17/HAIR-041`
+
+### Why
+- The Admin DSL v2 cutover made the vocabulary stable enough to study as a formal language.
+- A grammar/codegen approach could reduce drift between Go constants, builders, Goja exports, validation, TypeScript schema, frontend builders, renderer cases, and documentation.
+- The research needs to distinguish low-risk generated artifacts from high-risk attempts to generate all rendering behavior.
+
+### What worked
+- `docmgr validate frontmatter` passed.
+- `remarquee upload bundle ... --non-interactive` succeeded with:
+  - `OK: uploaded HAIR 041 Admin DSL Grammar Exploration Guide.pdf -> /ai/2026/05/17/HAIR-041`
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The most plausible first research target is a language-definition spec that generates documentation and drift tests, not a page authoring grammar that replaces current Goja flow JavaScript.
+- The renderer should likely remain hand-written and explicit, with generated registry/exhaustiveness scaffolding rather than generated JSX.
+
+### What was tricky to build
+- The guide had to keep two grammar concepts separate: one grammar for concrete pages and one grammar for the Admin DSL vocabulary itself. Mixing those would make the research plan confusing.
+- The document also had to preserve the trust boundary: a compiler can generate action declarations and builders, but backend callbacks must remain opaque action IDs registered through `ctx.bind`.
+
+### What warrants a second pair of eyes
+- Review whether the recommended research order is correct: inventory, spec, generated docs/drift tests, then generated builders/validators.
+- Review whether the grammar examples are specific enough for a postdoc to begin prototyping without over-constraining the syntax.
+
+### What should be done in the future
+- If the research proceeds, start with a read-only inventory and generated documentation/drift-test prototype under an experiment directory.
+- Do not replace production builder or renderer files until generated artifacts prove useful and reviewable.
+
+### Code review instructions
+- Read the new guide first.
+- Check the related file map in the frontmatter against the actual source files.
+- Confirm the document presents the work as exploratory rather than approved production scope.
+
+### Technical details
+- Upload command:
+  - `remarquee upload bundle ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/05-admin-dsl-formal-grammar-and-compiler-exploration-guide.md --name "HAIR 041 Admin DSL Grammar Exploration Guide" --remote-dir "/ai/2026/05/17/HAIR-041" --toc-depth 2 --non-interactive 2>&1`
