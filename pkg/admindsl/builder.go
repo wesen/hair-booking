@@ -20,7 +20,7 @@ func PageCalendar(id, title string) *PageBuilder  { return NewPage(id, title, Sh
 func PageSettings(id, title string) *PageBuilder  { return NewPage(id, title, ShellSettings) }
 
 func NewPage(id, title string, shell ShellKind) *PageBuilder {
-	return &PageBuilder{page: Page{SchemaVersion: 1, ID: id, Title: title, Shell: Shell{Kind: shell}, Nodes: []Node{}}}
+	return &PageBuilder{page: Page{SchemaVersion: 2, ID: id, Title: title, Shell: Shell{Kind: shell}, Nodes: []Node{}}}
 }
 
 func (b *PageBuilder) Description(description string) *PageBuilder {
@@ -371,10 +371,6 @@ func DashboardGrid(props JSONObject, children ...*NodeBuilder) *NodeBuilder {
 	return NodeOf(NodeDashboardGrid, props, children...)
 }
 
-func Section(title string, props JSONObject, children ...*NodeBuilder) *NodeBuilder {
-	return NodeOf(NodeSection, merge(JSONObject{"title": title}, props), children...)
-}
-
 func Toolbar(actions ...*ActionBuilder) *NodeBuilder {
 	return NodeOf(NodeToolbar, JSONObject{}).Actions(actions...)
 }
@@ -383,20 +379,8 @@ func Panel(title string, props JSONObject, children ...*NodeBuilder) *NodeBuilde
 	return NodeOf(NodePanel, merge(JSONObject{"title": title}, props), children...)
 }
 
-func CardGrid(props JSONObject, children ...*NodeBuilder) *NodeBuilder {
-	return NodeOf(NodeCardGrid, props, children...)
-}
-
 func Tabs(id string, props JSONObject) *NodeBuilder {
 	return NodeOf(NodeTabs, merge(JSONObject{"id": id}, props)).ID(id)
-}
-
-func EditableList(id string, props JSONObject) *NodeBuilder {
-	return NodeOf(NodeEditableList, merge(JSONObject{"id": id}, props)).ID(id)
-}
-
-func MonthAvailabilityGrid(id string, props JSONObject) *NodeBuilder {
-	return NodeOf(NodeMonthAvailability, merge(JSONObject{"id": id}, props)).ID(id)
 }
 
 func PreviewFrame(id string, props JSONObject) *NodeBuilder {
@@ -411,16 +395,8 @@ func MonthCalendar(id string, props JSONObject) *NodeBuilder {
 	return NodeOf(NodeMonthCalendar, merge(JSONObject{"id": id}, props)).ID(id)
 }
 
-func DiffView(id string, props JSONObject) *NodeBuilder {
-	return NodeOf(NodeDiffView, merge(JSONObject{"id": id}, props)).ID(id)
-}
-
 func Metric(label string, value JSONValue, props JSONObject) *NodeBuilder {
 	return NodeOf(NodeMetricCard, merge(JSONObject{"label": label, "value": value}, props))
-}
-
-func SummaryCard(title string, props JSONObject, children ...*NodeBuilder) *NodeBuilder {
-	return NodeOf(NodeSummaryCard, merge(JSONObject{"title": title}, props), children...)
 }
 
 func EmptyState(title string, props JSONObject) *NodeBuilder {
@@ -435,10 +411,6 @@ func Markdown(markdown string, props JSONObject) *NodeBuilder {
 	return NodeOf(NodeMarkdownBlock, merge(JSONObject{"markdown": markdown}, props))
 }
 
-func ResourceList(id string, props JSONObject, children ...*NodeBuilder) *NodeBuilder {
-	return NodeOf(NodeResourceList, merge(JSONObject{"id": id}, props), children...)
-}
-
 func ResourceTable(id string, props JSONObject) *NodeBuilder {
 	return NodeOf(NodeResourceTable, merge(JSONObject{"id": id}, props)).ID(id)
 }
@@ -449,10 +421,6 @@ func FilterBar(id string, props JSONObject) *NodeBuilder {
 
 func SearchBox(id string, props JSONObject) *NodeBuilder {
 	return NodeOf(NodeSearchBox, merge(JSONObject{"id": id}, props)).ID(id)
-}
-
-func ResourceRow(id string, props JSONObject) *NodeBuilder {
-	return NodeOf(NodeResourceRow, merge(JSONObject{"id": id}, props)).ID(id)
 }
 
 func ResourceDetail(id string, props JSONObject, children ...*NodeBuilder) *NodeBuilder {

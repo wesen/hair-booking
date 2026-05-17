@@ -19,17 +19,22 @@ function render(ctx) {
     state.mode = "editing";
     return render(ctx);
   });
-  const save = ctx.bind(admin.primary("service.save", "Save").Placement("footer"), function(event) {
+  const save = ctx.bind(admin.primary("service.save", "Save").Placement("formFooter"), function(event) {
     state.mode = "saved";
     return render(ctx);
   }, "submit");
 
-  const page = admin.pageResource("services", "Services")
-    .Shell("resource", { eyebrow: "Test Admin" })
+  const page = admin.pageAdmin("services", "Services")
+    .SchemaVersion(2)
+    .Shell("admin", { eyebrow: "Test Admin" })
     .Content(
-      admin.section("Rows", {},
-        admin.resourceList("services", {},
-          admin.resourceRow("cut", { title: "Cut" }).Actions(open)
+      admin.pageHeader({ title: "Services", description: "Test Admin" }),
+      admin.dashboardGrid({ columns: { desktop: 12 } },
+        admin.panel("Rows", { padding: "none", layout: { span: { desktop: 12 } } },
+          admin.resourceTable("services", {
+            columns: [{ id: "title", label: "Service" }],
+            rows: [{ id: "cut", title: "Cut" }]
+          }).Actions(open)
         )
       )
     );
@@ -48,7 +53,7 @@ func TestScriptRuntimeRenderDispatchAndStale(t *testing.T) {
 	if err != nil {
 		t.Fatalf("start flow: %v", err)
 	}
-	if initial.Page.ID != "services" || len(initial.Page.Nodes) != 1 {
+	if initial.Page.ID != "services" || len(initial.Page.Nodes) != 2 {
 		t.Fatalf("unexpected initial page: %#v", initial.Page)
 	}
 	openID := firstActionID(t, initial.Page, "service.open")
@@ -70,7 +75,7 @@ func TestScriptRuntimeRenderDispatchAndStale(t *testing.T) {
 
 func TestScriptRuntimeRejectsInvalidRenderedPage(t *testing.T) {
 	rt := NewScriptRuntime()
-	_, _, err := rt.StartFlow(context.Background(), "bad.admin", `function render(ctx) { return { schemaVersion: 1, id: "bad", title: "Bad", shell: { kind: "resource" }, nodes: [{ kind: "notReal" }] }; }`)
+	_, _, err := rt.StartFlow(context.Background(), "bad.admin", `function render(ctx) { return { schemaVersion: 2, id: "bad", title: "Bad", shell: { kind: "resource" }, nodes: [{ kind: "notReal" }] }; }`)
 	if err == nil || !strings.Contains(err.Error(), "invalid node kind") {
 		t.Fatalf("expected invalid node kind error, got %v", err)
 	}
@@ -80,8 +85,14 @@ func TestScriptRuntimeLoadsScriptModules(t *testing.T) {
 	rt := NewScriptRuntime(WithScriptModule("/flows/admin-helper.js", `
 const admin = require("fringe/admin-dsl");
 function helperPage() {
-  return admin.pageResource("helper-page", "Helper Page")
-    .Content(admin.section("From helper", {}))
+  return admin.pageAdmin("helper-page", "Helper Page")
+    .SchemaVersion(2)
+    .Content(
+      admin.pageHeader({ title: "Helper Page" }),
+      admin.dashboardGrid({ columns: { desktop: 12 } },
+        admin.panel("From helper", { layout: { span: { desktop: 12 } } })
+      )
+    )
     .MustBuild();
 }
 module.exports = { helperPage };
@@ -93,7 +104,7 @@ function render(ctx) { return helper.helperPage(); }
 	if err != nil {
 		t.Fatalf("start flow with helper module: %v", err)
 	}
-	if result.Page.ID != "helper-page" || len(result.Page.Nodes) != 1 {
+	if result.Page.ID != "helper-page" || len(result.Page.Nodes) != 2 {
 		t.Fatalf("unexpected helper page: %#v", result.Page)
 	}
 }

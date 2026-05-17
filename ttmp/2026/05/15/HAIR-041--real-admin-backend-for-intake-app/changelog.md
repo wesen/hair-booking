@@ -286,3 +286,21 @@ Step 34: Migrated live /admin/intake flow family to Admin DSL v2 workbench primi
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows/intake_config.flow.js — v2 config editor migration
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows/intake_requests.flow.js — v2 request flow migration
 
+
+## 2026-05-17 — Go Admin DSL v2-only cutover
+
+- Made Go Admin DSL pages default to `schemaVersion: 2` and made validation reject non-v2 pages.
+- Removed deprecated v1-style node constants/builders and Goja exports from `pkg/admindsl`.
+- Rewrote backend builder, Goja, and script-runtime tests to use v2 workbench primitives.
+- Verified with `go test ./... -count=1`.
+
+## 2026-05-17
+
+Step 35: Cut Go Admin DSL builder/validation/Goja module to schema v2 only
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder.go — Default page schemaVersion is now 2 and deprecated builders were removed
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/goja_module.go — Removed deprecated v1 helper exports from embedded admin scripts
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/validate.go — ValidatePage now requires schemaVersion 2 and rejects deprecated node kinds
+

@@ -2542,3 +2542,81 @@ The migration keeps the app-specific mutation semantics in the flow and host mod
   - `admin.diffView`
   - `admin.resourceList`
   - `admin.resourceRow`
+
+## Step 35: Cut Go Admin DSL to schema v2 only
+
+This step made the backend/Admin DSL builder layer v2-only after the real service and intake admin flows had migrated. The default Go page builder now emits `schemaVersion: 2`, `ValidatePage` rejects any other schema version, and deprecated v1 node constants/builders/Goja exports were removed from `pkg/admindsl`.
+
+The frontend still has legacy Storybook/test fixtures and renderer branches to clean up next, but the authoritative backend/Goja construction path is now strict: scripts can no longer call `admin.section`, `admin.cardGrid`, `admin.summaryCard`, `admin.resourceList`, `admin.resourceRow`, `admin.editableList`, `admin.monthAvailabilityGrid`, or `admin.diffView` through the Goja module.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead, and keep a detailed diary and commit at appropriate intervals"
+
+**Assistant interpretation:** Continue Phase 15 cleanup autonomously, keep detailed diary entries, and commit coherent slices rather than waiting for a large risky batch.
+
+**Inferred user intent:** The user wants a safe, reviewable cutover from migration mode to v2-only behavior while preserving a clear audit trail.
+
+**Commit (code):** pending — Go/Admin DSL v2-only cutover.
+
+### What I did
+- Updated `pkg/admindsl/builder.go`:
+  - `NewPage` now defaults to `SchemaVersion: 2`.
+  - removed deprecated builders: `Section`, `CardGrid`, `EditableList`, `MonthAvailabilityGrid`, `DiffView`, `SummaryCard`, `ResourceList`, `ResourceRow`.
+- Updated `pkg/admindsl/types.go`:
+  - removed deprecated node constants for v1-style visual/list/diff primitives.
+- Updated `pkg/admindsl/goja_module.go`:
+  - removed deprecated Goja exports so embedded admin scripts cannot construct those nodes anymore.
+- Updated `pkg/admindsl/validate.go`:
+  - `ValidatePage` now requires `schemaVersion == 2`.
+  - `ValidateNode` validates in schema v2 mode by default.
+  - removed deprecated node kinds from the allowed-node set.
+- Updated Go tests:
+  - rewrote builder and Goja tests to use `pageHeader`, `dashboardGrid`, `panel`, and `resourceTable`.
+  - rewrote script-runtime fixture modules to emit v2 workbench nodes.
+- Updated HAIR-041 tasks to mark the builder schema-version cutover and deprecated Go node constant removal complete.
+
+### Why
+- Keeping the Go/Goja construction API permissive after live-flow migration would make it too easy to reintroduce deprecated primitives.
+- The Go package is the authoritative DSL boundary for backend-generated pages, so making it strict first gives the frontend cleanup a firmer target.
+
+### What worked
+- The backend package and server tests passed after rewriting tests away from deprecated primitives.
+- Full Go validation passed:
+  - `go test ./... -count=1`
+
+### What didn't work
+- No runtime blocker in this slice.
+- The main risk was test churn: old tests intentionally exercised v1 primitives, so they had to be rewritten rather than shimmed.
+
+### What I learned
+- Most backend tests were testing “stable JSON plus callbacks” rather than v1 nodes specifically, so the same coverage maps cleanly to v2 primitives.
+- Removing Goja exports is a sharper and safer cutover than keeping deprecated wrappers that panic later.
+
+### What was tricky to build
+- The change had to happen after the real flow migration; otherwise embedded flow scripts would fail at require-time or render-time.
+- `ValidateNode` defaulting to schema v2 matters for direct node validation paths that do not come through a full page.
+
+### What warrants a second pair of eyes
+- Review whether `toolbar` should remain as an allowed legacy-ish node during the v2-only window. It is still used as a utility node in tests/stories and is not one of the targeted deprecated primitives.
+- Review whether deprecated TypeScript fixtures should be deleted outright or rewritten into v2 examples in the next slice.
+
+### What should be done in the future
+- Remove/rewrite frontend legacy renderer branches, TS builders, and Storybook stories.
+- Update any docs that still teach the removed Goja helpers.
+
+### Code review instructions
+- Start with `pkg/admindsl/types.go`, `pkg/admindsl/builder.go`, `pkg/admindsl/goja_module.go`, and `pkg/admindsl/validate.go`.
+- Then review rewritten tests in `pkg/admindsl/builder_test.go`, `pkg/admindsl/goja_module_test.go`, and `pkg/admindsl/script_runtime_test.go`.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+- Removed Go/Goja construction APIs:
+  - `section`
+  - `cardGrid`
+  - `summaryCard`
+  - `resourceList`
+  - `resourceRow`
+  - `editableList`
+  - `monthAvailabilityGrid`
+  - `diffView`

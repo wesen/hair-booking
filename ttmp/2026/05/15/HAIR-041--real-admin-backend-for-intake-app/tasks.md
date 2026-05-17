@@ -137,7 +137,7 @@ updated: 2026-05-15
 ## Phase 11 — Admin DSL v2 vocabulary and cutover planning
 
 - [ ] Freeze Admin DSL v2 node vocabulary: keep/add/remove/rename list.
-- [ ] Decide final `schemaVersion: 2` cutover boundary and confirm no v1 compatibility shims.
+- [x] Decide final `schemaVersion: 2` cutover boundary and confirm no v1 compatibility shims.
 - [ ] Decide whether `pageHeader`, `dashboardGrid`, `comparisonTable`, and `monthCalendar` are new node kinds rather than prop extensions.
 - [ ] Decide whether `resourceList`/`resourceRow` are removed in favor of responsive `resourceTable`.
 - [ ] Decide whether `diffView` splits into `comparisonTable` and optional `diffBlock`.
@@ -166,8 +166,8 @@ updated: 2026-05-15
 ## Phase 13 — Go Admin DSL v2 schema, builders, validation, and Goja exports
 
 - [x] Update `pkg/admindsl/types.go` with v2 node constants and action placements.
-- [ ] Set Admin DSL builders to emit `schemaVersion: 2` for migrated pages.
-- [ ] Remove deprecated v1 node constants after flow migration plan is ready.
+- [x] Set Admin DSL builders to emit `schemaVersion: 2` for migrated pages.
+- [x] Remove deprecated v1 node constants after flow migration plan is ready.
 - [x] Add Go builders for `PageHeader`, `DashboardGrid`, `ComparisonTable`, and `MonthCalendar`.
 - [x] Add panel layout/density helper methods to Go builders.
 - [x] Expose v2 helpers through `pkg/admindsl/goja_module.go`.

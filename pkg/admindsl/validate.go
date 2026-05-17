@@ -10,9 +10,9 @@ var allowedShellKinds = map[ShellKind]struct{}{
 }
 
 var allowedNodeKinds = map[NodeKind]struct{}{
-	NodePageHeader: {}, NodeDashboardGrid: {}, NodeSection: {}, NodeToolbar: {}, NodeCardGrid: {}, NodePanel: {}, NodeSplitPane: {}, NodeTabs: {}, NodeEditableList: {}, NodeMonthAvailability: {}, NodePreviewFrame: {}, NodeComparisonTable: {}, NodeMonthCalendar: {}, NodeDiffView: {},
-	NodeMetricCard: {}, NodeSummaryCard: {}, NodeStatusBadge: {}, NodeActivityFeed: {}, NodeKVList: {}, NodeImageGrid: {}, NodeImageGallery: {}, NodeMarkdownBlock: {}, NodeEmptyState: {}, NodeLoadingState: {}, NodeInlineError: {},
-	NodeResourcePage: {}, NodeResourceList: {}, NodeResourceTable: {}, NodeResourceRow: {}, NodeResourceDetail: {}, NodeFilterBar: {}, NodeSearchBox: {}, NodeActionMenu: {},
+	NodePageHeader: {}, NodeDashboardGrid: {}, NodeToolbar: {}, NodePanel: {}, NodeSplitPane: {}, NodeTabs: {}, NodePreviewFrame: {}, NodeComparisonTable: {}, NodeMonthCalendar: {},
+	NodeMetricCard: {}, NodeStatusBadge: {}, NodeActivityFeed: {}, NodeKVList: {}, NodeImageGrid: {}, NodeImageGallery: {}, NodeMarkdownBlock: {}, NodeEmptyState: {}, NodeLoadingState: {}, NodeInlineError: {},
+	NodeResourcePage: {}, NodeResourceTable: {}, NodeResourceDetail: {}, NodeFilterBar: {}, NodeSearchBox: {}, NodeActionMenu: {},
 	NodeForm: {}, NodeFieldGroup: {}, NodeTextField: {}, NodeTextareaField: {}, NodeMoneyField: {}, NodeDurationField: {}, NodeDateField: {}, NodeTimeField: {}, NodeSelectField: {}, NodeSwitchField: {}, NodeImageField: {}, NodeSaveBar: {},
 	NodeCalendarWeek: {}, NodeAppointmentBlock: {}, NodeAvailabilityBlock: {}, NodeTimeOffBlock: {},
 	NodeModal: {}, NodeDrawer: {}, NodeSheet: {}, NodeDetailPanel: {}, NodeInlinePanel: {}, NodeConfirmDialog: {},
@@ -35,8 +35,8 @@ var allowedActionPlacements = map[ActionPlacement]struct{}{
 }
 
 func ValidatePage(page Page) error {
-	if page.SchemaVersion != 1 && page.SchemaVersion != 2 {
-		return fmt.Errorf("admin dsl page schemaVersion must be 1 or 2, got %d", page.SchemaVersion)
+	if page.SchemaVersion != 2 {
+		return fmt.Errorf("admin dsl page schemaVersion must be 2, got %d", page.SchemaVersion)
 	}
 	if page.ID == "" {
 		return fmt.Errorf("admin dsl page id is required")
@@ -107,7 +107,7 @@ func isSurfaceKind(kind NodeKind) bool {
 }
 
 func ValidateNode(node Node) error {
-	return ValidateNodeForSchema(1, node)
+	return ValidateNodeForSchema(2, node)
 }
 
 func ValidateNodeForSchema(schemaVersion int, node Node) error {

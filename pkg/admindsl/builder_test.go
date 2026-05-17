@@ -7,24 +7,27 @@ import (
 )
 
 func TestGoHostBuilderEmitsStableAdminPageJSON(t *testing.T) {
-	page, err := PageResource("services", "Services & pricing").
-		Shell(ShellResource, JSONObject{"active": "services"}).
+	page, err := PageAdmin("services", "Services & pricing").
+		Shell(ShellAdmin, JSONObject{"active": "services"}).
 		Content(
-			Section("Service menu", nil,
-				ResourceList("services", JSONObject{"density": "comfortable"},
-					ResourceRow("cut", JSONObject{"title": "Cut", "subtitle": "60 min · $80+"}).
-						Actions(Open("service.edit", "Edit").Payload(JSONObject{"id": "cut"}).Placement(PlacementRow)),
+			PageHeader(JSONObject{"title": "Services & pricing", "description": "Visible services become choices in the client intake flow."}).
+				Actions(Open("service.new", "Add service").Intent(IntentPrimary).Priority(PriorityPrimary).Placement(PlacementPageHeader)),
+			DashboardGrid(JSONObject{"columns": JSONObject{"desktop": 12}},
+				Panel("Service menu", JSONObject{"padding": "none", "layout": JSONObject{"span": JSONObject{"desktop": 12}}},
+					ResourceTable("services", JSONObject{
+						"columns": []JSONValue{JSONObject{"id": "title", "label": "Service"}, JSONObject{"id": "subtitle", "label": "Details"}},
+						"rows":    []JSONValue{JSONObject{"id": "cut", "title": "Cut", "subtitle": "60 min · $80+"}},
+					}).Actions(Open("service.edit", "Edit").Payload(JSONObject{"id": "cut"}).Placement(PlacementRow)),
 				),
 			),
 		).
-		Toolbar(Open("service.new", "Add service").Intent(IntentPrimary).Priority(PriorityPrimary).Placement(PlacementToolbar)).
 		Drawers(
 			Drawer("serviceEditor", JSONObject{"title": "Edit service", "open": true},
 				Form("serviceForm", JSONObject{"dirty": true},
 					FieldGroup("Basics", TextField("name", JSONObject{"label": "Name", "value": "Cut"})),
 				).Actions(
-					Primary("service.save", "Save").Placement(PlacementFooter),
-					Secondary("service.cancel", "Cancel").Placement(PlacementFooter),
+					Primary("service.save", "Save").Placement(PlacementFormFooter),
+					Secondary("service.cancel", "Cancel").Placement(PlacementFormFooter),
 				),
 			),
 		).
@@ -39,9 +42,11 @@ func TestGoHostBuilderEmitsStableAdminPageJSON(t *testing.T) {
 	}
 	got := string(data)
 	for _, want := range []string{
-		`"schemaVersion": 1`,
-		`"kind": "resource"`,
-		`"kind": "toolbar"`,
+		`"schemaVersion": 2`,
+		`"kind": "admin"`,
+		`"kind": "pageHeader"`,
+		`"kind": "dashboardGrid"`,
+		`"kind": "resourceTable"`,
 		`"target": "service.edit"`,
 		`"placement": "row"`,
 		`"kind": "drawer"`,
@@ -111,14 +116,15 @@ func TestGoHostBuilderRejectsInvalidSchema(t *testing.T) {
 	}
 
 	_, err = PageAdmin("bad-action", "Bad action").Content(
-		ResourceRow("row-1", nil).Actions(Action(ActionType("explode"), "thing", "Explode")),
+		PageHeader(JSONObject{"title": "Bad action"}),
+		ResourceTable("rows", JSONObject{"columns": []JSONValue{JSONObject{"id": "name", "label": "Name"}}, "rows": []JSONValue{JSONObject{"id": "row-1", "name": "Row"}}}).Actions(Action(ActionType("explode"), "thing", "Explode")),
 	).Build()
 	if err == nil || !strings.Contains(err.Error(), "invalid action type") {
 		t.Fatalf("expected invalid action type error, got %v", err)
 	}
 
 	_, err = PageAdmin("bad-json", "Bad JSON").Content(
-		Section("Bad", JSONObject{"callback": func() {}}),
+		Panel("Bad", JSONObject{"callback": func() {}}),
 	).Build()
 	if err == nil || !strings.Contains(err.Error(), "non-json value") {
 		t.Fatalf("expected non-json value error, got %v", err)
@@ -184,7 +190,8 @@ func TestGoHostBuilderSupportsLayoutPolicies(t *testing.T) {
 
 func TestGoHostBuilderSupportsResourceAndFormLifecycle(t *testing.T) {
 	page, err := PageResource("lifecycle", "Lifecycle").Content(
-		ResourceList("services", JSONObject{"state": "empty", "emptyTitle": "No services"}),
+		PageHeader(JSONObject{"title": "Lifecycle"}),
+		ResourceTable("services", JSONObject{"columns": []JSONValue{JSONObject{"id": "name", "label": "Name"}}, "rows": []JSONValue{}, "emptyTitle": "No services"}),
 		Form("serviceForm", JSONObject{"title": "Service"}, TextField("name", JSONObject{"label": "Name", "value": "Cut"})).
 			State("dirty").Dirty(true).Values(JSONObject{"name": "Cut"}).Errors(JSONObject{"price": "Required"}).
 			Submit(Primary("service.save", "Save")).Cancel(Secondary("service.cancel", "Cancel")),
@@ -192,12 +199,12 @@ func TestGoHostBuilderSupportsResourceAndFormLifecycle(t *testing.T) {
 	if err != nil {
 		t.Fatalf("build page: %v", err)
 	}
-	if page.Nodes[0].Props["state"] != "empty" {
-		t.Fatalf("expected empty resource state, got %#v", page.Nodes[0].Props)
+	if page.Nodes[1].Props["emptyTitle"] != "No services" {
+		t.Fatalf("expected empty resource title, got %#v", page.Nodes[1].Props)
 	}
-	actions, ok := page.Nodes[1].Props["actions"].(map[string]any)
+	actions, ok := page.Nodes[2].Props["actions"].(map[string]any)
 	if !ok {
-		t.Fatalf("expected keyed form actions, got %T", page.Nodes[1].Props["actions"])
+		t.Fatalf("expected keyed form actions, got %T", page.Nodes[2].Props["actions"])
 	}
 	if actions["submit"].(map[string]any)["target"] != "service.save" {
 		t.Fatalf("unexpected submit action: %#v", actions["submit"])
