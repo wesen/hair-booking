@@ -8,6 +8,8 @@ export type AdminShellKind = "admin" | "dashboard" | "resource" | "calendar" | "
 
 export type AdminNodeKind =
   // Layout
+  | "pageHeader"
+  | "dashboardGrid"
   | "section"
   | "toolbar"
   | "cardGrid"
@@ -17,6 +19,8 @@ export type AdminNodeKind =
   | "editableList"
   | "monthAvailabilityGrid"
   | "previewFrame"
+  | "comparisonTable"
+  | "monthCalendar"
   | "diffView"
   // Display
   | "metricCard"
@@ -81,7 +85,7 @@ export interface AdminNode<P extends AdminJsonObject = AdminJsonObject> {
 }
 
 export interface AdminPage {
-  schemaVersion: 1;
+  schemaVersion: 1 | 2;
   id: string;
   title: string;
   description?: string;
@@ -109,7 +113,7 @@ export type AdminActionRef = AdminJsonObject & {
   intent?: "neutral" | "primary" | "danger";
   priority?: "primary" | "secondary" | "tertiary";
   presentation?: "button" | "icon" | "menuItem" | "overflow" | "link";
-  placement?: "toolbar" | "row" | "footer" | "detail" | "overflow";
+  placement?: "toolbar" | "pageHeader" | "panelToolbar" | "panelFooter" | "row" | "rowOverflow" | "bulkToolbar" | "formFooter" | "calendarCell" | "sidebarNav" | "footer" | "detail" | "overflow";
   requiresConfirmation?: boolean;
   disabled?: boolean;
   loading?: boolean;

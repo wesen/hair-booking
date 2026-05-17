@@ -1957,3 +1957,80 @@ The plan intentionally assumes no backwards-compatibility shims. The tasks are w
 
 ### Technical details
 - Phase 12 starts with TypeScript/schema/renderer/Storybook only to reduce risk.
+
+## Step 28: Implement Phase 12 frontend Admin DSL v2 workbench fixture
+
+This step started implementation with the safest slice: frontend schema, renderer, and Storybook support for the v2 workbench vocabulary. It does not yet migrate live backend Goja flows or remove v1 nodes, but it creates the target rendering surface that the backend can migrate toward.
+
+The new fixture gives us a concrete visual and semantic target: a `schemaVersion: 2` admin page with workbench shell/sidebar, page header, dashboard grid, panels, KPI cards, v2-style resource table cells, comparison table, month calendar, activity feed, and preview panel.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 27)
+
+**Assistant interpretation:** After adding phased tasks, begin implementing the phases one at a time, starting with the frontend v2 workbench fixture.
+
+**Inferred user intent:** The user wants visible incremental progress toward the Admin DSL v2 cutover, with commits and diary entries at natural boundaries.
+
+**Commit (code):** pending — frontend v2 Storybook fixture and renderer support.
+
+### What I did
+- Updated `web/src/admin-dsl/schema.ts`:
+  - added `pageHeader`, `dashboardGrid`, `comparisonTable`, and `monthCalendar` node kinds,
+  - allowed `schemaVersion: 1 | 2` for the transition fixture,
+  - added v2 action placements such as `pageHeader`, `panelFooter`, `rowOverflow`, `calendarCell`, and `sidebarNav`.
+- Updated `web/src/admin-dsl/builder.ts`:
+  - added `schemaVersion(...)` on `AdminPageBuilder`,
+  - added frontend fixture builders for `pageHeader`, `dashboardGrid`, `comparisonTable`, and `monthCalendar`.
+- Updated `web/src/admin-dsl/render.tsx`:
+  - added workbench shell/sidebar rendering for `shell.props.variant = "workbench"`,
+  - added `pageHeader`, `dashboardGrid`, `comparisonTable`, and `monthCalendar` render cases,
+  - strengthened `panel` with header/body/footer action structure, density, padding, and layout-friendly chrome,
+  - added v2-style resource table cell rendering for text, badge, drag handle, boolean, actions, and overflow actions.
+- Added `web/src/admin-dsl/AdminDslWorkbench.stories.tsx`:
+  - `TargetDesktop`,
+  - `TargetMobile`.
+- Updated Phase 12 task statuses for completed frontend fixture work.
+- Related modified files to the v2 guide.
+- Validated:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand` — 10 files, 46 tests passed.
+
+### Why
+- Starting in Storybook lets us validate the Admin DSL v2 semantic shape without first breaking live backend flows.
+- The target layout needs concrete renderer semantics before Go builders and Goja flows can migrate safely.
+
+### What worked
+- The existing renderer structure made it straightforward to add explicit node-kind cases.
+- Existing generic JSON props were flexible enough to prototype layout spans, density, sidebar items, table columns, calendar markers, and footer actions.
+- TypeScript and frontend tests passed after the first implementation pass.
+
+### What didn't work
+- I did not add the dedicated renderer tests yet; the Phase 12 test task remains open. Current validation relies on existing tests plus TypeScript compilation.
+- This is not a full cutover: v1 nodes still exist so current stories and live backend pages continue to compile while later phases migrate them.
+
+### What I learned
+- `panel` is the right place to centralize admin chrome. Once panels have header/body/footer/density semantics, the child widgets become simpler and more table/calendar/feed-like.
+- `resourceTable` can absorb many list/card cases if column rendering becomes semantic rather than raw string lookup.
+
+### What was tricky to build
+- Workbench shell rendering needed to live at page-frame level, not as an ordinary node, because the sidebar changes the entire page layout.
+- Action placement and presentation are still loosely enforced in the frontend; v2 validation in Go should later make malformed combinations fail earlier.
+
+### What warrants a second pair of eyes
+- Review whether allowing `schemaVersion: 1 | 2` in TypeScript is acceptable during implementation, or whether the clean cutover should happen sooner in a branch.
+- Review visual fidelity of `Admin DSL/Workbench v2/TargetDesktop` against the target screenshot before migrating backend flows.
+
+### What should be done in the future
+- Add renderer tests for page header, sidebar nav dispatch, comparison table review actions, and calendar cell actions.
+- Start Phase 13 Go schema/builders only after the frontend fixture shape is approved.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/AdminDslWorkbench.stories.tsx` to understand the target fixture.
+- Then review `web/src/admin-dsl/render.tsx` for the new explicit render cases and workbench shell.
+- Check `web/src/admin-dsl/schema.ts` and `web/src/admin-dsl/builder.ts` for the frontend schema/builder changes.
+- Validate with `cd web && npx tsc --noEmit` and `cd web && pnpm test -- --runInBand`.
+
+### Technical details
+- New Storybook section: `Admin DSL/Workbench v2`.
+- New stories: `TargetDesktop`, `TargetMobile`.

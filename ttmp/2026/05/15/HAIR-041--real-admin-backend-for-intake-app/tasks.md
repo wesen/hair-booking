@@ -149,19 +149,19 @@ updated: 2026-05-15
 
 ## Phase 12 — Frontend Admin DSL v2 renderer and Storybook fixture
 
-- [ ] Update `web/src/admin-dsl/schema.ts` with v2 node kinds and action placements.
-- [ ] Add `schemaVersion: 2` support for new Storybook fixtures.
-- [ ] Implement workbench shell/sidebar rendering for `shell.kind = "admin"` and `shell.props.variant = "workbench"`.
-- [ ] Implement `pageHeader` renderer with breadcrumbs, title, description, and page-level actions.
-- [ ] Implement `dashboardGrid` renderer with responsive spans/order and compact gap policy.
-- [ ] Strengthen `panel` renderer with header/body/footer actions, density, padding, chrome, and layout props.
-- [ ] Implement v2-style `resourceTable` column kinds: `text`, `badge`, `date`, `money`, `relativeTime`, `boolean`, `actions`, `overflowActions`, `dragHandle`.
-- [ ] Implement `comparisonTable` renderer for field/current/draft/scheduled/action rows.
-- [ ] Implement `monthCalendar` renderer with month navigation, selected day, markers, and legend.
-- [ ] Add `AdminDslWorkbench.stories.tsx` with target desktop and mobile stories matching the copied reference layout.
+- [x] Update `web/src/admin-dsl/schema.ts` with v2 node kinds and action placements.
+- [x] Add `schemaVersion: 2` support for new Storybook fixtures.
+- [x] Implement workbench shell/sidebar rendering for `shell.kind = "admin"` and `shell.props.variant = "workbench"`.
+- [x] Implement `pageHeader` renderer with breadcrumbs, title, description, and page-level actions.
+- [x] Implement `dashboardGrid` renderer with responsive spans/order and compact gap policy.
+- [x] Strengthen `panel` renderer with header/body/footer actions, density, padding, chrome, and layout props.
+- [x] Implement v2-style `resourceTable` column kinds: `text`, `badge`, `date`, `money`, `relativeTime`, `boolean`, `actions`, `overflowActions`, `dragHandle`.
+- [x] Implement `comparisonTable` renderer for field/current/draft/scheduled/action rows.
+- [x] Implement `monthCalendar` renderer with month navigation, selected day, markers, and legend.
+- [x] Add `AdminDslWorkbench.stories.tsx` with target desktop and mobile stories matching the copied reference layout.
 - [ ] Add frontend renderer tests for `pageHeader`, sidebar nav dispatch, table row action dispatch, `comparisonTable` review action, and calendar date action.
-- [ ] Run `cd web && npx tsc --noEmit`.
-- [ ] Run `cd web && pnpm test -- --runInBand`.
+- [x] Run `cd web && npx tsc --noEmit`.
+- [x] Run `cd web && pnpm test -- --runInBand`.
 
 ## Phase 13 — Go Admin DSL v2 schema, builders, validation, and Goja exports
 

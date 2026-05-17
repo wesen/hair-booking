@@ -229,3 +229,9 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 ## 2026-05-16 — Admin DSL v2 phased task plan
 
 - Added detailed HAIR-041 Phase 11–15 tasks for Admin DSL v2 vocabulary planning, frontend renderer/Storybook work, Go schema/builders/validation, flow migration, and live validation/cleanup.
+
+## 2026-05-16 — Admin DSL v2 frontend workbench fixture
+
+- Added frontend Admin DSL v2 fixture support: `pageHeader`, `dashboardGrid`, `comparisonTable`, `monthCalendar`, workbench shell/sidebar, strengthened panels, and v2 table cell rendering.
+- Added `web/src/admin-dsl/AdminDslWorkbench.stories.tsx` with target desktop and mobile workbench stories.
+- Validation passed with `cd web && npx tsc --noEmit` and `cd web && pnpm test -- --runInBand`.

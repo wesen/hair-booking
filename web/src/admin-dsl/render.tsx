@@ -58,11 +58,171 @@ const surface: CSSProperties = {
   boxShadow: shadow.sm,
 };
 
+function layoutObject(props: AdminJsonObject | undefined) {
+  return jsonObject(props, "layout");
+}
+
+function layoutSpan(node: AdminNode, breakpoint: "desktop" | "tablet" | "mobile", fallback = 12) {
+  const layout = layoutObject(node.props);
+  const span = jsonObject(layout, "span");
+  return Number(span?.[breakpoint] || span?.desktop || fallback) || fallback;
+}
+
+function layoutOrder(node: AdminNode, fallback = 0) {
+  const layout = layoutObject(node.props);
+  return Number(layout?.order ?? fallback) || fallback;
+}
+
+function actionArray(props: AdminJsonObject | undefined, keyName: string) {
+  return jsonArray<AdminActionRef>(props, keyName).filter(isActionRef);
+}
+
+function densityPadding(density: string, normal = 18) {
+  if (density === "compact") return Math.max(12, normal - 4);
+  if (density === "spacious") return normal + 8;
+  return normal;
+}
+
+function renderTableCell(column: AdminJsonObject, row: AdminJsonObject, node: AdminNode, ctx?: AdminRenderContext) {
+  const id = String(column.id || column.accessor || "");
+  const accessor = String(column.accessor || id);
+  const value = row[accessor];
+  const kind = String(column.kind || "text");
+  if (kind === "dragHandle") return <span aria-hidden="true" style={{ ...type.meta, color: color.softInk }}>⋮⋮</span>;
+  if (kind === "badge") {
+    const map = jsonObject(column, "map");
+    const mapped = jsonObject(map, String(value || ""));
+    const label = String(mapped?.label || value || "—");
+    const tone = String(mapped?.tone || column.tone || "neutral");
+    return <span style={{ display: "inline-flex", borderRadius: radius.md, padding: "5px 9px", border: `1px solid ${color.rule}`, background: tone === "warning" ? "#fbefcf" : tone === "success" ? "#edf4e8" : color.paper, color: toneColor(tone), ...type.meta }}>{label}</span>;
+  }
+  if (kind === "overflowActions" || kind === "actions") {
+    const rowActions = Array.isArray(row.actions) ? row.actions.filter(isActionRef) : [];
+    if (!rowActions.length) return "";
+    if (kind === "overflowActions") {
+      return <button type="button" aria-label="Open row actions" onClick={() => dispatchAdminAction(ctx, node, rowActions[0], row)} style={{ border: "none", background: "transparent", cursor: "pointer", fontSize: 18, lineHeight: 1 }}>…</button>;
+    }
+    return renderActions(node, ctx, rowActions);
+  }
+  if (kind === "boolean") return value ? "Yes" : "No";
+  return <span style={{ fontWeight: column.primary ? 800 : 400, color: column.tone === "muted" ? color.softInk : color.ink }}>{String(value ?? "")}</span>;
+}
+
+function buildMonthCells(month: string) {
+  const [yearPart, monthPart] = month.split("-").map((part) => Number(part));
+  const year = yearPart || new Date().getFullYear();
+  const monthIndex = (monthPart || new Date().getMonth() + 1) - 1;
+  const first = new Date(year, monthIndex, 1);
+  const start = new Date(first);
+  start.setDate(first.getDate() - first.getDay());
+  return Array.from({ length: 42 }, (_, index) => {
+    const date = new Date(start);
+    date.setDate(start.getDate() + index);
+    const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    return { date: iso, day: date.getDate(), inMonth: date.getMonth() === monthIndex };
+  });
+}
+
 export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?: Key): ReactNode {
   const props = node.props || {};
   const common = dataAttrs(node);
 
   switch (node.kind) {
+    case "pageHeader": {
+      const breadcrumbs = jsonArray<string>(props, "breadcrumbs");
+      return (
+        <header key={key} {...common} className="adminDslPageHeader" style={{ marginBottom: 24, display: "grid", gap: 10, ...style(props) }}>
+          {breadcrumbs.length > 0 && <div style={{ ...type.eyebrow, color: color.softInk }}>{breadcrumbs.join(" / ")}</div>}
+          <div className="adminDslPageHeaderRow" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: 18, alignItems: "start" }}>
+            <div>
+              <h1 className="adminDslTitle" style={{ ...type.display2, fontSize: 56, margin: 0 }}>{str(props, "title", "Admin")}</h1>
+              {str(props, "description") && <p style={{ ...type.bodyLg, color: color.softInk, maxWidth: 760, margin: "10px 0 0" }}>{str(props, "description")}</p>}
+            </div>
+            {renderActions(node, ctx)}
+          </div>
+        </header>
+      );
+    }
+
+    case "dashboardGrid": {
+      const columns = jsonObject(props, "columns");
+      const desktopColumns = Number(columns?.desktop || props.columns || 12) || 12;
+      const gap = str(props, "gap", "normal") === "compact" ? 16 : str(props, "gap") === "spacious" ? 28 : 20;
+      return (
+        <div key={key} {...common} className="adminDslDashboardGrid" style={{ display: "grid", gridTemplateColumns: `repeat(${desktopColumns}, minmax(0, 1fr))`, gap, alignItems: "start", ...style(props) }}>
+          {(node.children || []).map((child, i) => (
+            <div key={nodeKey(child, i)} className="adminDslDashboardGridItem" style={{ minWidth: 0, gridColumn: `span ${Math.min(desktopColumns, layoutSpan(child, "desktop", desktopColumns))}`, order: layoutOrder(child, i) }}>
+              {renderAdminNode(child, ctx)}
+            </div>
+          ))}
+        </div>
+      );
+    }
+
+    case "comparisonTable": {
+      const rows = jsonArray<AdminJsonObject>(props, "rows");
+      if (!rows.length) return renderAdminNode({ kind: "emptyState", props: { title: str(props, "emptyTitle", "No changes"), body: str(props, "emptyBody", "There are no draft changes to review.") }, meta: node.meta }, ctx, key);
+      return (
+        <div key={key} {...common} className="adminDslComparisonTable" style={{ overflowX: "auto", ...style(props) }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 760 }}>
+            <thead>
+              <tr>
+                {["Field", "Current", "Draft", "Scheduled", "Actions"].map((label) => <th key={label} style={{ ...type.meta, color: color.softInk, textAlign: label === "Actions" ? "right" : "left", padding: "10px 14px", borderBottom: `1px solid ${color.rule}` }}>{label}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row, i) => {
+                const rowActions = Array.isArray(row.actions) ? row.actions.filter(isActionRef) : [];
+                return (
+                  <tr key={String(row.id || row.field || i)} style={{ borderBottom: i === rows.length - 1 ? "none" : `1px solid ${color.ruleSoft}` }}>
+                    <td style={{ ...type.bodySm, fontWeight: 800, padding: "10px 14px" }}>{String(row.field || row.label || "Field")}</td>
+                    <td style={{ ...type.bodySm, color: color.softInk, padding: "10px 14px" }}>{String(row.current ?? row.before ?? "—")}</td>
+                    <td style={{ ...type.bodySm, fontWeight: 800, padding: "10px 14px" }}>{String(row.draft ?? row.after ?? "—")}</td>
+                    <td style={{ ...type.bodySm, color: color.softInk, padding: "10px 14px" }}>{String(row.scheduled || "—")}</td>
+                    <td style={{ padding: "8px 14px", textAlign: "right" }}>{rowActions.length > 0 && renderActions(node, ctx, rowActions)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      );
+    }
+
+    case "monthCalendar": {
+      const month = str(props, "month", "2024-06");
+      const selectedDate = str(props, "selectedDate");
+      const markers = jsonArray<AdminJsonObject>(props, "markers");
+      const legend = jsonArray<AdminJsonObject>(props, "legend");
+      const actions = jsonObject(props, "actions");
+      const selectAction = isActionRef(actions?.selectDate) ? actions.selectDate : actionList(props).find((actionRef) => actionRef.placement === "calendarCell") || actionList(props)[0];
+      const markerByDate = new Map<string, AdminJsonObject[]>();
+      markers.forEach((marker) => {
+        const date = String(marker.date || "");
+        if (!date) return;
+        markerByDate.set(date, [...(markerByDate.get(date) || []), marker]);
+      });
+      return (
+        <div key={key} {...common} className="adminDslMonthCalendar" style={{ display: "grid", gap: 12, ...style(props) }}>
+          <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 10 }}>
+            <button type="button" aria-label="Previous month" disabled={!isActionRef(actions?.previousMonth)} onClick={() => isActionRef(actions?.previousMonth) && dispatchAdminAction(ctx, node, actions.previousMonth)} style={{ width: 30, height: 30, borderRadius: radius.md, border: `1px solid ${color.rule}`, background: color.paper, cursor: isActionRef(actions?.previousMonth) ? "pointer" : "default" }}>‹</button>
+            <div style={{ ...type.body, fontWeight: 800, textAlign: "center" }}>{str(props, "label", new Date(`${month}-01T00:00:00`).toLocaleString("en", { month: "long", year: "numeric" }))}</div>
+            <button type="button" aria-label="Next month" disabled={!isActionRef(actions?.nextMonth)} onClick={() => isActionRef(actions?.nextMonth) && dispatchAdminAction(ctx, node, actions.nextMonth)} style={{ width: 30, height: 30, borderRadius: radius.md, border: `1px solid ${color.rule}`, background: color.paper, cursor: isActionRef(actions?.nextMonth) ? "pointer" : "default" }}>›</button>
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
+            {["S", "M", "T", "W", "T", "F", "S"].map((day, i) => <div key={`${day}-${i}`} style={{ ...type.meta, textAlign: "center", color: color.ink }}>{day}</div>)}
+            {buildMonthCells(month).map((cell) => {
+              const active = selectedDate === cell.date;
+              const cellMarkers = markerByDate.get(cell.date) || [];
+              const scheduled = cellMarkers.some((marker) => String(marker.kind) === "scheduled");
+              return <button key={cell.date} type="button" disabled={!selectAction} aria-pressed={active} onClick={() => selectAction && dispatchAdminAction(ctx, node, selectAction, { date: cell.date })} style={{ minHeight: 38, borderRadius: radius.md, border: `1px solid ${active ? color.ink : scheduled ? color.warn : "transparent"}`, background: active ? color.ink : scheduled ? "#fbefcf" : "transparent", color: active ? color.paper : cell.inMonth ? color.ink : color.soft, display: "grid", placeItems: "center", gap: 2, cursor: selectAction ? "pointer" : "default" }}><span style={{ ...type.bodySm, fontWeight: 800 }}>{cell.day}</span>{cellMarkers.some((marker) => String(marker.kind) === "published") && <span aria-hidden="true" style={{ width: 5, height: 5, borderRadius: radius.pill, background: color.success }} />}</button>;
+            })}
+          </div>
+          {legend.length > 0 && <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>{legend.map((item) => <span key={String(item.kind || item.label)} style={{ display: "inline-flex", alignItems: "center", gap: 6, ...type.bodySm, color: color.softInk }}><span aria-hidden="true" style={{ width: 7, height: 7, borderRadius: radius.pill, background: String(item.tone) === "warning" ? color.warn : color.success }} />{String(item.label || item.kind)}</span>)}</div>}
+        </div>
+      );
+    }
+
     case "toolbar":
       return <div key={key} {...common} style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 22, ...style(props) }}>{renderActions(node, ctx)}</div>;
 
@@ -118,15 +278,28 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     }
 
     case "panel":
-    case "summaryCard":
+    case "summaryCard": {
+      const density = str(props, "density", "normal");
+      const paddingMode = str(props, "padding", "normal");
+      const footerActions = actionArray(props, "footerActions");
+      const toolbarActions = actionArray(props, "toolbarActions");
+      const panelPadding = paddingMode === "none" ? 0 : densityPadding(density, 18);
       return (
-        <article key={key} {...common} style={{ ...surface, padding: 18, ...style(props) }}>
-          <h3 style={{ ...type.h3, margin: 0 }}>{str(props, "title")}</h3>
-          {str(props, "body") && <p style={{ ...type.body, color: color.softInk, margin: "10px 0 14px" }}>{str(props, "body")}</p>}
-          {renderChildren(node.children, ctx)}
-          {renderActions(node, ctx)}
+        <article key={key} {...common} className="adminDslPanel" data-admin-dsl-density={density} style={{ ...surface, overflow: "hidden", ...style(props) }}>
+          {(str(props, "title") || str(props, "subtitle") || toolbarActions.length > 0) && <div className="adminDslPanelHeader" style={{ display: "grid", gridTemplateColumns: toolbarActions.length ? "minmax(0, 1fr) auto" : "1fr", gap: 12, alignItems: "start", padding: densityPadding(density, 16), borderBottom: `1px solid ${color.ruleSoft}` }}>
+            <div>
+              {str(props, "eyebrow") && <div style={{ ...type.eyebrow, color: color.softInk, marginBottom: 4 }}>{str(props, "eyebrow")}</div>}
+              {str(props, "title") && <h3 style={{ ...type.h3, margin: 0 }}>{str(props, "title")}</h3>}
+              {str(props, "subtitle") && <p style={{ ...type.bodySm, color: color.softInk, margin: "6px 0 0" }}>{str(props, "subtitle")}</p>}
+            </div>
+            {toolbarActions.length > 0 && renderActions(node, ctx, toolbarActions)}
+          </div>}
+          {str(props, "body") && <p style={{ ...type.body, color: color.softInk, margin: 0, padding: panelPadding }}>{str(props, "body")}</p>}
+          {node.children?.length ? <div className="adminDslPanelBody" style={{ padding: panelPadding, display: "grid", gap: density === "compact" ? 10 : 14 }}>{renderChildren(node.children, ctx)}</div> : null}
+          {(footerActions.length > 0 || actionList(props).length > 0) && <div className="adminDslPanelFooter" style={{ borderTop: `1px solid ${color.ruleSoft}`, padding: densityPadding(density, 14) }}>{renderActions(node, ctx, footerActions.length ? footerActions : actionList(props))}</div>}
         </article>
       );
+    }
 
     case "metricCard":
       return (
@@ -178,7 +351,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
                 {rows.map((row, i) => (
                   <tr key={String(row.id || i)} style={{ borderBottom: i === rows.length - 1 ? "none" : `1px solid ${color.ruleSoft}` }}>
                     {selectable && <td style={{ padding: "12px 14px" }}><input type="checkbox" aria-label={`Select ${String(row.id || i)}`} /></td>}
-                    {columns.map((column) => <td key={String(column.id)} style={{ ...type.bodySm, padding: "12px 14px", verticalAlign: "top" }}>{String(row[String(column.id)] ?? "")}</td>)}
+                    {columns.map((column) => <td key={String(column.id)} style={{ ...type.bodySm, padding: "12px 14px", verticalAlign: "top" }}>{renderTableCell(column, row, node, ctx)}</td>)}
                     {rowAction && <td style={{ padding: "10px 14px", textAlign: "right" }}><button type="button" className="adminDslActionButton" aria-label={rowAction.label || "Open"} onClick={() => dispatchAdminAction(ctx, node, rowAction, row)} style={{ minHeight: 34, border: `1px solid ${color.ink}`, background: color.ink, color: color.paper, borderRadius: radius.pill, padding: "7px 11px", fontFamily: font.mono, fontSize: 10, letterSpacing: 0.5, textTransform: "uppercase", cursor: "pointer" }}>{rowAction.label || "Open"}</button></td>}
                   </tr>
                 ))}
@@ -375,6 +548,35 @@ function FieldPreview({ node }: { node: AdminNode }) {
   );
 }
 
+function WorkbenchShell({ page, context }: { page: AdminPage; context?: AdminRenderContext }) {
+  const shellProps = page.shell.props || {};
+  const sidebar = jsonObject(shellProps, "sidebar");
+  const items = jsonArray<AdminJsonObject>(sidebar, "items");
+  const active = String(sidebar?.active || "");
+  const user = jsonObject(sidebar, "user");
+  const navNode: AdminNode = { kind: "toolbar", props: { id: "workbench-sidebar" }, meta: { id: "workbench-sidebar" } };
+  return (
+    <main className="adminDslRoot adminDslWorkbenchRoot" style={{ minHeight: "100vh", background: color.creamDeep, color: color.ink, fontFamily: font.sans }} data-admin-dsl-page={page.id} data-admin-dsl-shell={page.shell.kind} data-admin-dsl-schema-version={page.schemaVersion}>
+      <style>{responsiveCss}</style>
+      <aside className="adminDslWorkbenchSidebar" style={{ position: "fixed", inset: "0 auto 0 0", width: 190, borderRight: `1px solid ${color.rule}`, background: "rgba(248, 239, 222, 0.72)", padding: 18, display: "grid", gridTemplateRows: "auto 1fr auto", gap: 18 }}>
+        <div style={{ ...type.h2, fontSize: 26, lineHeight: 1 }}>S</div>
+        <nav aria-label="Admin navigation" style={{ display: "grid", gap: 8, alignContent: "start" }}>
+          {items.map((item) => {
+            const id = String(item.id || item.label || "");
+            const itemAction = isActionRef(item.action) ? item.action : undefined;
+            const selected = id === active;
+            return <button key={id} type="button" aria-current={selected ? "page" : undefined} disabled={!itemAction} onClick={() => itemAction && dispatchAdminAction(context, navNode, itemAction, item)} style={{ minHeight: 38, border: "none", borderRadius: radius.md, background: selected ? "rgba(18, 17, 16, 0.07)" : "transparent", color: color.ink, display: "grid", gridTemplateColumns: "22px 1fr", alignItems: "center", gap: 10, padding: "8px 10px", textAlign: "left", cursor: itemAction ? "pointer" : "default", ...type.bodySm, fontWeight: selected ? 800 : 500 }}><span aria-hidden="true" style={{ color: color.softInk }}>{String(item.icon || "•").slice(0, 2)}</span><span>{String(item.label || id)}</span></button>;
+          })}
+        </nav>
+        {user && <div style={{ borderTop: `1px solid ${color.rule}`, paddingTop: 12, display: "grid", gridTemplateColumns: "32px 1fr", gap: 10, alignItems: "center" }}><div style={{ width: 32, height: 32, borderRadius: radius.pill, background: color.ink, color: color.paper, display: "grid", placeItems: "center", ...type.meta }}>{String(user.initials || "AD")}</div><div><div style={{ ...type.bodySm, fontWeight: 800 }}>{String(user.name || "Admin User")}</div><div style={{ ...type.meta, color: color.softInk }}>{String(user.role || "Administrator")}</div></div></div>}
+      </aside>
+      <section className="adminDslWorkbenchContent" style={{ marginLeft: 190, padding: 28 }}>
+        <div style={{ maxWidth: 1080, margin: "0 auto", display: "grid", gap: 4 }}>{page.nodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</div>
+      </section>
+    </main>
+  );
+}
+
 const responsiveCss = `
   .adminDslRoot { box-sizing: border-box; }
   .adminDslRoot *, .adminDslRoot *::before, .adminDslRoot *::after { box-sizing: border-box; }
@@ -382,6 +584,14 @@ const responsiveCss = `
   .adminDslGrid { grid-template-columns: var(--admin-dsl-grid-columns, 1fr); }
   .adminDslTitle { text-wrap: balance; overflow-wrap: anywhere; }
   .adminDslSideColumn { min-width: 0; }
+  @media (max-width: 860px) {
+    .adminDslWorkbenchSidebar { position: static !important; width: auto !important; border-right: none !important; border-bottom: 1px solid ${color.rule} !important; grid-template-rows: auto !important; grid-template-columns: auto 1fr !important; align-items: start !important; }
+    .adminDslWorkbenchSidebar nav { grid-template-columns: repeat(auto-fit, minmax(132px, 1fr)) !important; }
+    .adminDslWorkbenchContent { margin-left: 0 !important; padding: 16px !important; }
+    .adminDslPageHeaderRow { grid-template-columns: 1fr !important; }
+    .adminDslDashboardGrid { grid-template-columns: 1fr !important; }
+    .adminDslDashboardGridItem { grid-column: span 1 !important; }
+  }
   @media (max-width: 720px) {
     .adminDslRoot { padding: 16px !important; overflow-x: hidden !important; }
     .adminDslGrid { grid-template-columns: 1fr !important; gap: 16px !important; }
@@ -409,9 +619,12 @@ const responsiveCss = `
 export function AdminPageRenderer({ page, context }: { page: AdminPage; context?: AdminRenderContext }) {
   const shell = page.shell.kind;
   const sideNodes = [...(page.drawers || []), ...(page.modals || [])];
+  if (shell === "admin" && str(page.shell.props, "variant") === "workbench") {
+    return <WorkbenchShell page={page} context={context} />;
+  }
 
   return (
-    <main className="adminDslRoot" style={{ minHeight: "100vh", background: shell === "calendar" ? color.cream : color.creamDeep, color: color.ink, fontFamily: font.sans, padding: 24 }} data-admin-dsl-page={page.id} data-admin-dsl-shell={shell}>
+    <main className="adminDslRoot" style={{ minHeight: "100vh", background: shell === "calendar" ? color.cream : color.creamDeep, color: color.ink, fontFamily: font.sans, padding: 24 }} data-admin-dsl-page={page.id} data-admin-dsl-shell={shell} data-admin-dsl-schema-version={page.schemaVersion}>
       <style>{responsiveCss}</style>
       <div className="adminDslGrid" style={{ maxWidth: 1180, margin: "0 auto", display: "grid", ["--admin-dsl-grid-columns" as string]: sideNodes.length ? "minmax(0, 1fr) 340px" : "1fr", gap: 20 }}>
         <div style={{ minWidth: 0 }}>

@@ -183,6 +183,11 @@ export class AdminPageBuilder {
     return this;
   }
 
+  schemaVersion(schemaVersion: AdminPage["schemaVersion"]) {
+    this.page.schemaVersion = schemaVersion;
+    return this;
+  }
+
   shell(kind: AdminShellKind, props: AdminJsonObject = {}) {
     this.page.shell = { kind, props };
     return this;
@@ -331,6 +336,8 @@ export const admin = {
   calendarPage: (id = "calendar", title = "Calendar") => new AdminPageBuilder(id, title, "calendar"),
   settings: (id: string, title: string) => new AdminPageBuilder(id, title, "settings"),
 
+  pageHeader: (props: AdminJsonObject = {}) => node("pageHeader", props),
+  dashboardGrid: (props: AdminJsonObject = {}, ...children: NodeInput[]) => node("dashboardGrid", props, ...children),
   section: (title: string, props: AdminJsonObject = {}, ...children: NodeInput[]) => node("section", { title, ...props }, ...children),
   toolbar: (...actions: ActionInput[]) => node("toolbar", { actions: actions.map((a) => unwrapAction(a)) as unknown as AdminJsonValue }),
   cardGrid: (...children: NodeInput[]) => node("cardGrid", {}, ...children),
@@ -340,6 +347,8 @@ export const admin = {
   editableList: (id: string, items: AdminJsonObject[], props: AdminJsonObject = {}) => node("editableList", { id, items, ...props }).id(id),
   monthAvailabilityGrid: (id: string, days: AdminJsonObject[], props: AdminJsonObject = {}) => node("monthAvailabilityGrid", { id, days, ...props }).id(id),
   previewFrame: (id: string, props: AdminJsonObject = {}) => node("previewFrame", { id, ...props }).id(id),
+  comparisonTable: (id: string, rows: AdminJsonObject[], props: AdminJsonObject = {}) => node("comparisonTable", { id, rows, ...props }).id(id),
+  monthCalendar: (id: string, props: AdminJsonObject = {}) => node("monthCalendar", { id, ...props }).id(id),
   diffView: (id: string, changes: AdminJsonObject[], props: AdminJsonObject = {}) => node("diffView", { id, changes, ...props }).id(id),
 
   metric: (label: string, value: string | number, props: AdminJsonObject = {}) => node("metricCard", { label, value, ...props }),

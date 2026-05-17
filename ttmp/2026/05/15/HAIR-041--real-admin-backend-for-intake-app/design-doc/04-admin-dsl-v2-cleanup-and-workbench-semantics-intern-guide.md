@@ -25,16 +25,25 @@ RelatedFiles:
       Note: Validation layer that should become stricter for Admin DSL v2
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/03-admin-workbench-dsl-intern-implementation-guide.md
       Note: Companion workbench layout guide that this v2 cleanup guide builds on
+    - Path: web/src/admin-dsl/AdminDslWorkbench.stories.tsx
+      Note: Phase 12 target desktop/mobile Admin DSL v2 Storybook fixture
+    - Path: web/src/admin-dsl/builder.ts
+      Note: Frontend fixture builders for pageHeader dashboardGrid comparisonTable and monthCalendar
     - Path: web/src/admin-dsl/render.tsx
-      Note: React interpreter that must remove v1 cases and add v2 workbench rendering
+      Note: |-
+        React interpreter that must remove v1 cases and add v2 workbench rendering
+        Workbench shell pageHeader dashboardGrid panel comparisonTable monthCalendar and v2 table rendering
     - Path: web/src/admin-dsl/schema.ts
-      Note: TypeScript Admin DSL schema requiring v2 node cleanup
+      Note: |-
+        TypeScript Admin DSL schema requiring v2 node cleanup
+        Phase 12 v2 node/action/schemaVersion frontend schema support
 ExternalSources: []
 Summary: A detailed intern-oriented design and implementation guide for cutting over Admin DSL to a stricter v2 semantic workbench DSL without backwards-compatibility constraints.
 LastUpdated: 2026-05-16T18:20:00-04:00
 WhatFor: 'Use when planning or implementing the Admin DSL v2 cleanup: removing vague frontend-style primitives, tightening validation, and replacing component-collage pages with semantic admin workbench constructs.'
 WhenToUse: Read before changing Admin DSL schemaVersion, node vocabulary, renderer semantics, Go builders, Goja module exports, or /admin/intake flow authoring patterns.
 ---
+
 
 
 # Admin DSL v2 Cleanup and Workbench Semantics Intern Guide
