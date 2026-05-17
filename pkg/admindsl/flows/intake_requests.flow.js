@@ -49,20 +49,27 @@ function requestsScreen(ctx, deps) {
   const setFilter = ctx.bind(admin.secondary("filter.status", "Filter").Placement("toolbar"), function(event) { ctx.state.statusFilter = event.value && event.value.id || ""; return deps.render(ctx); });
   const search = ctx.bind(admin.secondary("filter.search", "Search").Placement("toolbar"), function(event) { ctx.state.searchQuery = event.value && event.value.query || ""; return deps.render(ctx); });
   const requests = intakeAdmin.listRequests({ status: ctx.state.statusFilter || "", limit: 50 });
-  return admin.pageResource("admin-intake-requests", "Intake Requests")
-    .Shell("resource", { active: "requests", eyebrow: "Real Admin · Intake" })
+  return admin.pageAdmin("admin-intake-requests", "Intake Requests")
+    .SchemaVersion(2)
+    .Shell("admin", { active: "requests", eyebrow: "Real Admin · Intake" })
     .Description("Review persisted customer intake submissions.")
     .Content(
-      admin.toolbar().Actions(back),
-      admin.filterBar("requestStatusFilters", { filters: [
-        { id: "new", label: "New" },
-        { id: "reviewing", label: "Reviewing" },
-        { id: "needs_info", label: "Needs info" },
-        { id: "booked", label: "Booked" },
-        { id: "", label: "All" }
-      ], value: ctx.state.statusFilter || "" }).Actions(setFilter),
-      admin.searchBox("requestSearch", { placeholder: "Search customer or service", value: ctx.state.searchQuery || "" }).Actions(search),
-      admin.section("Request queue", { description: "Dense queue rendered with the HAIR-041 resourceTable primitive." }, requestTable(ctx, requests, "No requests match this filter", deps))
+      admin.pageHeader({ breadcrumbs: ["Real Admin", "Intake"], title: "Intake Requests", description: "Review persisted customer intake submissions." }).Actions(back),
+      admin.dashboardGrid({ columns: { desktop: 12, tablet: 8, mobile: 1 }, gap: "compact", density: "compact" },
+        admin.panel("Queue controls", { density: "compact", layout: { span: { desktop: 12, tablet: 8, mobile: 1 }, order: 10 } },
+          admin.filterBar("requestStatusFilters", { filters: [
+            { id: "new", label: "New" },
+            { id: "reviewing", label: "Reviewing" },
+            { id: "needs_info", label: "Needs info" },
+            { id: "booked", label: "Booked" },
+            { id: "", label: "All" }
+          ], value: ctx.state.statusFilter || "" }).Actions(setFilter),
+          admin.searchBox("requestSearch", { placeholder: "Search customer or service", value: ctx.state.searchQuery || "" }).Actions(search)
+        ),
+        admin.panel("Request queue", { description: "Dense queue rendered with the HAIR-041 resourceTable primitive.", density: "compact", padding: "none", layout: { span: { desktop: 12, tablet: 8, mobile: 1 }, order: 20 } },
+          requestTable(ctx, requests, "No requests match this filter", deps)
+        )
+      )
     )
     .MustBuild();
 }
@@ -108,20 +115,25 @@ function requestDetailScreen(ctx, deps) {
     return deps.render(ctx);
   });
 
-  const page = admin.pageResource("admin-intake-request-detail", "Request " + request.id)
-    .Shell("resource", { active: "requests", eyebrow: "Real Admin · Intake" })
+  const page = admin.pageAdmin("admin-intake-request-detail", "Request " + request.id)
+    .SchemaVersion(2)
+    .Shell("admin", { active: "requests", eyebrow: "Real Admin · Intake" })
     .Description(requestTitle(request) + " · " + request.status)
     .Content(
-      admin.toolbar().Actions(back, markReviewing, needsInfo, archive),
-      admin.cardGrid({ columns: 2 },
-        admin.summaryCard("Summary", { body: "Service: " + request.serviceValue + "\nEstimate: " + (request.estimateLabel || "Pending") + "\nBooking: " + bookingLabel(request) + "\nBudget: " + (request.budgetValue || "Not set") }),
-        admin.summaryCard("Internal notes", { body: request.internalNotes || "No internal notes yet." })
-      ),
-      admin.section("Photos", { description: "Uploaded front/side/back customer references. Missing blobs render as explicit error tiles." },
-        admin.imageGallery("requestPhotos", { images: photosForGallery(request), emptyText: "No photos were uploaded for this request." }).Actions(openPhoto)
-      ),
-      admin.section("Raw request snapshot", {},
-        admin.markdown(JSON.stringify(request.request || {}, null, 2), {})
+      admin.pageHeader({ breadcrumbs: ["Real Admin", "Requests"], title: "Request " + request.id, description: requestTitle(request) + " · " + request.status }).Actions(back, markReviewing, needsInfo, archive),
+      admin.dashboardGrid({ columns: { desktop: 12, tablet: 8, mobile: 1 }, gap: "compact", density: "compact" },
+        admin.panel("Summary", { density: "compact", layout: { span: { desktop: 6, tablet: 4, mobile: 1 }, order: 10 } },
+          admin.markdown("Service: " + request.serviceValue + "\nEstimate: " + (request.estimateLabel || "Pending") + "\nBooking: " + bookingLabel(request) + "\nBudget: " + (request.budgetValue || "Not set"), {})
+        ),
+        admin.panel("Internal notes", { density: "compact", layout: { span: { desktop: 6, tablet: 4, mobile: 1 }, order: 11 } },
+          admin.markdown(request.internalNotes || "No internal notes yet.", {})
+        ),
+        admin.panel("Photos", { description: "Uploaded front/side/back customer references. Missing blobs render as explicit error tiles.", density: "compact", layout: { span: { desktop: 12, tablet: 8, mobile: 1 }, order: 20 } },
+          admin.imageGallery("requestPhotos", { images: photosForGallery(request), emptyText: "No photos were uploaded for this request." }).Actions(openPhoto)
+        ),
+        admin.panel("Raw request snapshot", { density: "compact", layout: { span: { desktop: 12, tablet: 8, mobile: 1 }, order: 30 } },
+          admin.markdown(JSON.stringify(request.request || {}, null, 2), {})
+        )
       )
     );
 
@@ -129,7 +141,7 @@ function requestDetailScreen(ctx, deps) {
     const photo = ctx.state.photoModal;
     const body = photo.url ? "File: " + (photo.subtitle || photo.id || "photo") + "\nStatus: " + (photo.status || "Stored") : "Could not load the stored blob for " + (photo.id || photo.slot || "this photo") + ". The request is still available, but this photo may have been removed.";
     page.Modals(admin.surface.modal("photoViewer", { title: photo.url ? "Photo · " + (photo.title || photo.slot || "Uploaded") : "Photo unavailable", open: true },
-      admin.summaryCard(photo.url ? "Photo metadata" : "Missing photo", { body: body }).Actions(closePhoto)
+      admin.panel(photo.url ? "Photo metadata" : "Missing photo", { ariaLabel: photo.url ? "Photo metadata" : "Missing photo" }, admin.markdown(body, {})).FooterActions(closePhoto)
     ));
   }
 

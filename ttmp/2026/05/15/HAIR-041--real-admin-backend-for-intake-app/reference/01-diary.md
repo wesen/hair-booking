@@ -2431,3 +2431,114 @@ improve the current (first image) service list (see second image)"
 ### Technical details
 - Storybook capture command reused:
   - `node ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/04-capture-admin-dsl-v2-storybook.mjs`
+
+## Step 34: Migrate live intake admin flows to Admin DSL v2
+
+This step completed the main Phase 14 cutover for the real `/admin/intake` flow family. The dashboard, request queue/detail screens, config editor, audit log, health diagnostics, preview screen, and config drawers now emit schema v2 workbench pages using `pageHeader`, `dashboardGrid`, `panel`, `resourceTable`, `comparisonTable`, and `monthCalendar` instead of the older visual/container primitives.
+
+The migration keeps the app-specific mutation semantics in the flow and host modules, but moves the emitted UI shape onto the semantic workbench vocabulary. This leaves the remaining cleanup focused on removing deprecated v1 primitives from generic builders/renderer/tests/stories once all non-flow fixtures are updated or intentionally retained as legacy examples.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead, keep a diary as you work"
+
+**Assistant interpretation:** Continue the HAIR-041 Admin DSL v2 migration work and update the diary/changelog/tasks while making progress.
+
+**Inferred user intent:** The user wants autonomous forward progress on Phase 14, with enough written context to review or resume the work later.
+
+**Commit (code):** pending — intake flow v2 migration.
+
+### What I did
+- Migrated `pkg/admindsl/flows/intake_admin.flow.js`:
+  - switched dashboard page to `pageAdmin(...).SchemaVersion(2)`
+  - added `pageHeader`
+  - replaced dashboard `cardGrid`/`section` with `dashboardGrid`, metric cards with layout spans, and panels
+- Migrated `pkg/admindsl/flows/intake_requests.flow.js`:
+  - switched request queue/detail pages to schema v2
+  - replaced toolbar/section/card-grid summary surfaces with `pageHeader`, `dashboardGrid`, and `panel`
+  - kept request rows as semantic `resourceTable`
+  - replaced photo modal `summaryCard` with a v2 panel plus markdown body
+- Migrated `pkg/admindsl/flows/intake_config.flow.js`:
+  - switched config page to schema v2
+  - replaced `cardGrid` with `dashboardGrid`
+  - replaced version/config sections with `panel`
+  - replaced `editableList` editors with `resourceTable` rows
+  - replaced `monthAvailabilityGrid` with `monthCalendar`
+  - replaced validation `diffView` with `comparisonTable`
+  - added small JS helpers for simple table rows, validation rows, and calendar markers/month selection
+- Migrated `pkg/admindsl/flows/intake_ops.flow.js`:
+  - switched audit, health, and preview pages to schema v2
+  - replaced sections/card grids/diff view with page headers, dashboard grids, panels, metrics, resource tables, and comparison tables
+- Migrated `pkg/admindsl/flows/intake_config_forms.flow.js` missing-entity drawer fallbacks:
+  - replaced `summaryCard` with `panel` + `markdown` + `FooterActions`
+- Updated `pkg/server/handlers_admin_dsl_test.go`:
+  - action lookup now recursively scans all node prop values, not only `props.actions`, so tests find v2 `footerActions`, `toolbarActions`, and similar placement props.
+- Updated HAIR-041 tasks:
+  - marked Phase 14 intake dashboard/request/config/ops migrations complete
+  - marked live `/admin/intake` screenshot capture complete
+- Re-ran live smoke:
+  - `node ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/03-smoke-admin-intake-phase8.mjs`
+  - refreshed `phase8-admin-dashboard.png` and `phase8-admin-requests.png`
+
+### Why
+- The Admin DSL v2 direction is to use semantic workbench primitives and remove vague visual primitives from real flows.
+- Moving all live intake flow modules to v2 unblocks the later strict cutover: requiring schema v2 and deleting deprecated v1 nodes/builders/renderer branches.
+
+### What worked
+- `go test ./pkg/admindsl ./pkg/server -count=1` passed after updating the server test helper for v2 action placements.
+- Full validation passed:
+  - `go test ./... -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand` — 50 tests passed
+- The live customer-submit-to-admin smoke passed after the migration.
+
+### What didn't work
+- Initial server test failure:
+  - `TestAdminDSLHTTPIntakeConfigCreatesDraft`: `nav.config action not found`
+- Cause:
+  - the test helper only searched `props.actions`; v2 pages put valid actions in `footerActions`/`toolbarActions`/page-header action props too.
+- Fix:
+  - changed `findAdminProtoActionID` to scan all prop values recursively via the existing `findActionIDInValue` helper.
+
+### What I learned
+- v2 action placement is not just visual metadata; tests and tooling must treat all action-bearing props as action surfaces, not only `actions`.
+- The real config editor maps cleanly to v2: `editableList` becomes `resourceTable`, validation `diffView` becomes `comparisonTable`, and availability becomes `monthCalendar` with markers.
+
+### What was tricky to build
+- `configEditorSection` had the most cross-cutting migration because it multiplexes tabs, add/edit actions, list rows, calendar rows, and validation state. The safe approach was to keep host mutation callbacks unchanged and only translate emitted nodes.
+- Calendar migration needed a small adapter from app-owned availability rows into generic `monthCalendar` props (`month`, `markers`, `legend`, selected date).
+
+### What warrants a second pair of eyes
+- Review whether the config editor resource-table columns are the right permanent IA for services/tones/budgets/time slots, or whether some columns should become typed/boolean displays.
+- Review the `monthCalendar` marker mapping for disabled vs available days before relying on it for publish review.
+- Review whether drawer form actions should move from generic `.Actions(...)` to explicit `.FooterActions(...)`/form submit semantics in the next cleanup slice.
+
+### What should be done in the future
+- Remove deprecated v1 Admin DSL builders/Goja exports/renderer branches after updating non-live stories/tests.
+- Make `ValidatePage` require `schemaVersion == 2` when the last migration-window fixtures are gone.
+- Add visual diff baselines for the live v2 `/admin/intake` screenshots.
+
+### Code review instructions
+- Start with the flow files:
+  - `pkg/admindsl/flows/intake_admin.flow.js`
+  - `pkg/admindsl/flows/intake_requests.flow.js`
+  - `pkg/admindsl/flows/intake_config.flow.js`
+  - `pkg/admindsl/flows/intake_ops.flow.js`
+  - `pkg/admindsl/flows/intake_config_forms.flow.js`
+- Then inspect `pkg/server/handlers_admin_dsl_test.go` to confirm the test helper is intentionally placement-agnostic.
+- Validate with:
+  - `go test ./... -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+  - `node ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/03-smoke-admin-intake-phase8.mjs`
+
+### Technical details
+- Deprecated flow primitives removed from live `pkg/admindsl/flows/*.flow.js` calls:
+  - `admin.section`
+  - `admin.cardGrid`
+  - `admin.summaryCard`
+  - `admin.editableList`
+  - `admin.monthAvailabilityGrid`
+  - `admin.diffView`
+  - `admin.resourceList`
+  - `admin.resourceRow`

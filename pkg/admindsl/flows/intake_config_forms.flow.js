@@ -23,7 +23,7 @@ function toneOptionDrawer(ctx, editor, saveAction, cancelAction, deleteAction) {
   const tone = ctx.state.selectedToneId === "__new__" ? { id: "__new__", value: "", label: "New tone", sortOrder: (editor.tones || []).length * 10 + 10, enabled: true } : findById(editor.tones, ctx.state.selectedToneId);
   if (!tone) {
     return admin.surface.drawer("toneOptionEditor", { title: "Tone unavailable", open: true },
-      admin.summaryCard("Missing tone", { body: "The selected tone option no longer exists in this config version." }).Actions(cancelAction)
+      admin.panel("Missing tone", { ariaLabel: "Missing tone" }, admin.markdown("The selected tone option no longer exists in this config version.", {})).FooterActions(cancelAction)
     );
   }
   const values = toneFormValues(ctx, tone);
@@ -65,7 +65,7 @@ function serviceOptionDrawer(ctx, editor, saveAction, cancelAction, deleteAction
   const service = ctx.state.selectedServiceId === "__new__" ? { id: "__new__", category: "color", value: "", title: "New service", subtitle: "", badge: "", sortOrder: (editor.services || []).length * 10 + 10, enabled: true } : findById(editor.services, ctx.state.selectedServiceId);
   if (!service) {
     return admin.surface.drawer("serviceOptionEditor", { title: "Service unavailable", open: true },
-      admin.summaryCard("Missing service", { body: "The selected service option no longer exists in this config version." }).Actions(cancelAction)
+      admin.panel("Missing service", { ariaLabel: "Missing service" }, admin.markdown("The selected service option no longer exists in this config version.", {})).FooterActions(cancelAction)
     );
   }
   const values = serviceFormValues(ctx, service);
@@ -107,7 +107,7 @@ function budgetOptionDrawer(ctx, editor, saveAction, cancelAction, deleteAction)
   const budget = ctx.state.selectedBudgetId === "__new__" ? { id: "__new__", value: "", title: "New budget", subtitle: "", sortOrder: (editor.budgets || []).length * 10 + 10, enabled: true } : findById(editor.budgets, ctx.state.selectedBudgetId);
   if (!budget) {
     return admin.surface.drawer("budgetOptionEditor", { title: "Budget unavailable", open: true },
-      admin.summaryCard("Missing budget", { body: "The selected budget option no longer exists in this config version." }).Actions(cancelAction)
+      admin.panel("Missing budget", { ariaLabel: "Missing budget" }, admin.markdown("The selected budget option no longer exists in this config version.", {})).FooterActions(cancelAction)
     );
   }
   const values = budgetFormValues(ctx, budget);
@@ -151,7 +151,7 @@ function priceRangeDrawer(ctx, editor, saveAction, cancelAction, deleteAction) {
   const price = ctx.state.selectedPriceId === "__new__" ? { id: "__new__", serviceValue: "", budgetValue: "", label: "New price range", minCents: null, maxCents: null } : findById(editor.priceRanges, ctx.state.selectedPriceId);
   if (!price) {
     return admin.surface.drawer("priceRangeEditor", { title: "Price range unavailable", open: true },
-      admin.summaryCard("Missing price range", { body: "The selected price range no longer exists in this config version." }).Actions(cancelAction)
+      admin.panel("Missing price range", { ariaLabel: "Missing price range" }, admin.markdown("The selected price range no longer exists in this config version.", {})).FooterActions(cancelAction)
     );
   }
   const values = priceFormValues(ctx, price);
@@ -194,7 +194,7 @@ function availabilityDayDrawer(ctx, editor, saveAction, cancelAction, deleteActi
   const day = ctx.state.selectedAvailabilityId === "__new__" ? { id: "__new__", value: "", day: "", date: "", dot: true, disabled: false, disabledReason: "", sortOrder: (editor.availabilityDays || []).length * 10 + 10 } : findById(editor.availabilityDays, ctx.state.selectedAvailabilityId);
   if (!day) {
     return admin.surface.drawer("availabilityDayEditor", { title: "Availability day unavailable", open: true },
-      admin.summaryCard("Missing availability day", { body: "The selected availability day no longer exists in this config version." }).Actions(cancelAction)
+      admin.panel("Missing availability day", { ariaLabel: "Missing availability day" }, admin.markdown("The selected availability day no longer exists in this config version.", {})).FooterActions(cancelAction)
     );
   }
   const values = availabilityFormValues(ctx, day);
@@ -235,7 +235,7 @@ function timeSlotDrawer(ctx, editor, saveAction, cancelAction, deleteAction) {
   const slot = ctx.state.selectedTimeSlotId === "__new__" ? { id: "__new__", value: "", title: "New time", sortOrder: (editor.timeSlots || []).length * 10 + 10, enabled: true } : findById(editor.timeSlots, ctx.state.selectedTimeSlotId);
   if (!slot) {
     return admin.surface.drawer("timeSlotEditor", { title: "Time slot unavailable", open: true },
-      admin.summaryCard("Missing time slot", { body: "The selected time slot no longer exists in this config version." }).Actions(cancelAction)
+      admin.panel("Missing time slot", { ariaLabel: "Missing time slot" }, admin.markdown("The selected time slot no longer exists in this config version.", {})).FooterActions(cancelAction)
     );
   }
   const values = timeSlotFormValues(ctx, slot);

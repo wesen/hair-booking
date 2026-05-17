@@ -27,20 +27,27 @@ RelatedFiles:
         Audit and health screens for Phase 8 (commit 8876ddf)
         Root flow uses relative require for config helper (commit 8c7e698)
         Root flow router/dashboard after request/ops module split (commit 987ff70)
+        Migrated intake dashboard to Admin DSL v2 workbench primitives
     - Path: pkg/admindsl/flows/intake_config.flow.js
       Note: |-
         Extracted Phase 7 config editor module (commit dbc6204)
         Config screen orchestration after helper/form split (commit 81a2698)
+        Migrated config editor from editableList/monthAvailabilityGrid/diffView to v2 resourceTable/monthCalendar/comparisonTable
     - Path: pkg/admindsl/flows/intake_config_forms.flow.js
-      Note: Config drawer and form builders (commit 81a2698)
+      Note: |-
+        Config drawer and form builders (commit 81a2698)
+        Replaced missing-entity summary cards with v2 panels inside drawers
     - Path: pkg/admindsl/flows/intake_config_helpers.flow.js
       Note: Config row mappers and parser helpers (commit 81a2698)
     - Path: pkg/admindsl/flows/intake_ops.flow.js
       Note: |-
         Audit
         Admin previewFrame bridge to customer DSL route (commit e43d337)
+        Migrated audit/health/preview screens to v2 workbench panels
     - Path: pkg/admindsl/flows/intake_requests.flow.js
-      Note: Request queue/detail/photo review helper module (commit 987ff70)
+      Note: |-
+        Request queue/detail/photo review helper module (commit 987ff70)
+        Migrated request queue/detail surfaces from sections/card grids to v2 pageHeader/dashboardGrid/panel/resourceTable
     - Path: pkg/admindsl/script_runtime.go
       Note: |-
         Embedded script module support for Admin DSL require() (commit dbc6204)
@@ -56,6 +63,8 @@ RelatedFiles:
         Audit listing and health diagnostics queries (commit 8876ddf)
     - Path: pkg/server/handlers_admin_dsl.go
       Note: StartFlowNamed source filenames and registered config helper module path (commit 8c7e698)
+    - Path: pkg/server/handlers_admin_dsl_test.go
+      Note: Updated action lookup helper to find v2 footer/page/panel action placements
     - Path: pkg/server/host_intake_admin_module.go
       Note: |-
         Goja host exports for config editor data and publish (commit b6eab66)
@@ -77,6 +86,7 @@ LastUpdated: 2026-05-15T19:43:10.470080535-04:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 

@@ -268,3 +268,21 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 - Refined v2 table rendering so status cells read as inline colored text and row overflow actions are plain ellipsis controls.
 - Adjusted action button shapes away from full pills toward rounded rectangles, with softer form primary buttons and subtle row/footer actions.
 - Re-captured Storybook v2 screenshots after the aesthetic pass.
+
+## 2026-05-17 — Live intake admin flow migration to Admin DSL v2
+
+- Migrated live `/admin/intake` dashboard, requests, config, audit, health, preview, and drawer fallback surfaces to schema v2 workbench primitives.
+- Replaced real-flow uses of `section`, `cardGrid`, `summaryCard`, `editableList`, `monthAvailabilityGrid`, and `diffView` with `pageHeader`, `dashboardGrid`, `panel`, `resourceTable`, `comparisonTable`, and `monthCalendar`.
+- Updated admin DSL HTTP test action lookup to find v2 action placements such as `footerActions` and `toolbarActions`.
+- Re-ran full Go/frontend validation and the Phase 8 customer-submit-to-admin smoke; refreshed live admin screenshots.
+
+## 2026-05-17
+
+Step 34: Migrated live /admin/intake flow family to Admin DSL v2 workbench primitives and refreshed live smoke screenshots
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows/intake_admin.flow.js — v2 dashboard migration
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows/intake_config.flow.js — v2 config editor migration
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flows/intake_requests.flow.js — v2 request flow migration
+

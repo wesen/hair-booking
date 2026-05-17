@@ -178,10 +178,10 @@ updated: 2026-05-15
 ## Phase 14 — Admin flow migration to semantic workbench pages
 
 - [x] Migrate `pkg/admindsl/flows/services.flow.js` to v2 shell/header/grid/panel primitives.
-- [ ] Migrate `pkg/admindsl/flows/intake_admin.flow.js` dashboard to workbench shell, page header, dashboard grid, panels, metrics, services table, activity feed, and preview panel.
-- [ ] Migrate `pkg/admindsl/flows/intake_requests.flow.js` from resource list/card patterns to v2 resource table/detail patterns.
-- [ ] Migrate `pkg/admindsl/flows/intake_config.flow.js` from editable lists and diff views to v2 resource tables, typed forms, and comparison tables.
-- [ ] Migrate `pkg/admindsl/flows/intake_ops.flow.js` audit/health/preview screens to v2 page/header/panel conventions.
+- [x] Migrate `pkg/admindsl/flows/intake_admin.flow.js` dashboard to workbench shell, page header, dashboard grid, panels, metrics, services table, activity feed, and preview panel.
+- [x] Migrate `pkg/admindsl/flows/intake_requests.flow.js` from resource list/card patterns to v2 resource table/detail patterns.
+- [x] Migrate `pkg/admindsl/flows/intake_config.flow.js` from editable lists and diff views to v2 resource tables, typed forms, and comparison tables.
+- [x] Migrate `pkg/admindsl/flows/intake_ops.flow.js` audit/health/preview screens to v2 page/header/panel conventions.
 - [ ] Remove v1 flow helper usages: `section`, `cardGrid`, `summaryCard`, `resourceList`, `resourceRow`, `editableList`, `monthAvailabilityGrid`, and broad `diffView`.
 - [x] Run `go test ./pkg/admindsl ./pkg/server -count=1`.
 - [x] Run `go test ./... -count=1`.
@@ -192,7 +192,7 @@ updated: 2026-05-15
 - [ ] Run `cd web && pnpm test -- --runInBand` after flow/renderer cutover.
 - [ ] Run submit-customer-request -> admin-review smoke script after `/admin/intake` migration.
 - [x] Capture desktop/mobile screenshots for the v2 Storybook workbench fixture.
-- [ ] Capture desktop/mobile screenshots for live `/admin/intake` v2 dashboard.
+- [x] Capture desktop/mobile screenshots for live `/admin/intake` v2 dashboard.
 - [ ] Add css-visual-diff coverage for target workbench fixture and major `/admin/intake` screens.
 - [ ] Remove obsolete v1 stories or rewrite them as v2 stories.
 - [ ] Remove deprecated renderer branches once all fixtures and flows are migrated.

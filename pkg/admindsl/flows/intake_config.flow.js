@@ -14,6 +14,37 @@ const parseIntOrZero = helpers.parseIntOrZero;
 const parseOptionalInt = helpers.parseOptionalInt;
 const parseBool = helpers.parseBool;
 
+function simpleRows(items) {
+  return (items || []).map(function(item) {
+    return { id: item.id, title: item.title || item.label || item.value || item.id, details: item.subtitle || item.subtitleValue || "—" };
+  });
+}
+
+function validationRows(report) {
+  const changes = validationChanges(report);
+  return (changes || []).map(function(change, index) {
+    return {
+      id: change.id || ("validation-" + index),
+      field: change.field || "Validation",
+      current: change.before || "Current",
+      draft: change.after || "Draft",
+      scheduled: change.tone || "—"
+    };
+  });
+}
+
+function availabilityMarkers(days) {
+  return (days || []).map(function(day) {
+    return { date: day.date || day.value, kind: day.disabled ? "disabled" : "available" };
+  });
+}
+
+function availabilityMonth(days) {
+  const first = (days || []).filter(function(day) { return day.date || day.value; })[0];
+  const value = first && (first.date || first.value) || "2026-06-01";
+  return String(value).slice(0, 7);
+}
+
 function configEditorSection(ctx, editor, deps) {
   const setSection = ctx.bind(admin.secondary("config.section", "Switch section").Placement("toolbar"), function(event) {
     ctx.state.configSection = event.value && event.value.id || "services";
@@ -90,23 +121,20 @@ function configEditorSection(ctx, editor, deps) {
   ], value: section }).Actions(setSection);
 
   if (section === "tones") {
-    return admin.section("Tone options", { description: "Draft tone labels read by the customer intake flow." },
+    return admin.panel("Tone options", { description: "Draft tone labels read by the customer intake flow.", density: "compact", padding: "none", layout: { span: { desktop: 12, tablet: 8, mobile: 1 }, order: 30 } },
       tabs,
-      admin.toolbar().Actions(editor.version.status === "draft" ? addTone : admin.primary("config.tone.add.disabled", "Add tone").Disabled(true)),
-      admin.editableList("toneOptions", { items: toneEditorItems(editor.tones), emptyTitle: "No tone options" }).Actions(editor.version.status === "draft" ? openTone : disabledEdit)
-    );
+      admin.resourceTable("toneOptions", { columns: [{ id: "title", label: "Tone" }, { id: "details", label: "Details" }], rows: simpleRows(toneEditorItems(editor.tones)), emptyTitle: "No tone options" }).Actions(editor.version.status === "draft" ? openTone : disabledEdit)
+    ).ToolbarActions(editor.version.status === "draft" ? addTone : admin.primary("config.tone.add.disabled", "Add tone").Disabled(true));
   }
   if (section === "budgets") {
-    return admin.section("Budget options", { description: "Budget choices and explanatory copy." },
+    return admin.panel("Budget options", { description: "Budget choices and explanatory copy.", density: "compact", padding: "none", layout: { span: { desktop: 12, tablet: 8, mobile: 1 }, order: 30 } },
       tabs,
-      admin.toolbar().Actions(editor.version.status === "draft" ? addBudget : admin.primary("config.budget.add.disabled", "Add budget").Disabled(true)),
-      admin.editableList("budgetOptions", { items: budgetEditorItems(editor.budgets), emptyTitle: "No budget options" }).Actions(editor.version.status === "draft" ? openBudget : disabledEdit)
-    );
+      admin.resourceTable("budgetOptions", { columns: [{ id: "title", label: "Budget" }, { id: "details", label: "Details" }], rows: simpleRows(budgetEditorItems(editor.budgets)), emptyTitle: "No budget options" }).Actions(editor.version.status === "draft" ? openBudget : disabledEdit)
+    ).ToolbarActions(editor.version.status === "draft" ? addBudget : admin.primary("config.budget.add.disabled", "Add budget").Disabled(true));
   }
   if (section === "pricing") {
-    return admin.section("Price ranges", { description: "Service/budget price range rules used by estimates." },
+    return admin.panel("Price ranges", { description: "Service/budget price range rules used by estimates.", density: "compact", padding: "none", layout: { span: { desktop: 12, tablet: 8, mobile: 1 }, order: 30 } },
       tabs,
-      admin.toolbar().Actions(editor.version.status === "draft" ? addPrice : admin.primary("config.price.add.disabled", "Add price").Disabled(true)),
       admin.resourceTable("priceRanges", {
         columns: [
           { id: "service", label: "Service" },
@@ -118,31 +146,28 @@ function configEditorSection(ctx, editor, deps) {
         rows: priceRows(editor.priceRanges),
         emptyTitle: "No price ranges"
       }).Actions(editor.version.status === "draft" ? openPrice : disabledEdit)
-    );
+    ).ToolbarActions(editor.version.status === "draft" ? addPrice : admin.primary("config.price.add.disabled", "Add price").Disabled(true));
   }
   if (section === "availability") {
-    return admin.section("Availability and time slots", { description: "Published booking days and selectable appointment times." },
+    return admin.panel("Availability and time slots", { description: "Published booking days and selectable appointment times.", density: "compact", layout: { span: { desktop: 12, tablet: 8, mobile: 1 }, order: 30 } },
       tabs,
-      admin.toolbar().Actions(editor.version.status === "draft" ? addAvailability : admin.primary("config.availability.add.disabled", "Add day").Disabled(true), editor.version.status === "draft" ? addTimeSlot : admin.primary("config.timeSlot.add.disabled", "Add time").Disabled(true)),
-      admin.monthAvailabilityGrid("availabilityDays", { days: editor.availabilityDays || [], selected: ctx.state.selectedAvailabilityDay || "" }).Actions(availabilitySelect),
-      admin.editableList("timeSlots", { items: timeSlotItems(editor.timeSlots), emptyTitle: "No time slots" }).Actions(editor.version.status === "draft" ? openTimeSlot : disabledEdit)
-    );
+      admin.monthCalendar("availabilityDays", { month: availabilityMonth(editor.availabilityDays), selectedDate: ctx.state.selectedAvailabilityDay || "", markers: availabilityMarkers(editor.availabilityDays), legend: [{ kind: "available", label: "Available", tone: "success" }, { kind: "disabled", label: "Disabled", tone: "danger" }] }).Actions(availabilitySelect),
+      admin.resourceTable("timeSlots", { columns: [{ id: "title", label: "Time" }, { id: "details", label: "Details" }], rows: simpleRows(timeSlotItems(editor.timeSlots)), emptyTitle: "No time slots" }).Actions(editor.version.status === "draft" ? openTimeSlot : disabledEdit)
+    ).ToolbarActions(editor.version.status === "draft" ? addAvailability : admin.primary("config.availability.add.disabled", "Add day").Disabled(true), editor.version.status === "draft" ? addTimeSlot : admin.primary("config.timeSlot.add.disabled", "Add time").Disabled(true));
   }
   if (section === "validation") {
-    return admin.section("Validation report", { description: "Pre-publish validation for the selected config version." },
+    return admin.panel("Validation report", { description: "Pre-publish validation for the selected config version.", density: "compact", padding: "none", layout: { span: { desktop: 12, tablet: 8, mobile: 1 }, order: 30 } },
       tabs,
-      admin.diffView("configValidation", {
-        title: editor.validation && editor.validation.ok ? "Config is publishable" : "Config needs attention",
-        body: "Validation is computed by the app-owned intake admin store.",
-        changes: validationChanges(editor.validation)
+      admin.comparisonTable("configValidation", {
+        rows: validationRows(editor.validation),
+        emptyTitle: "No validation issues"
       })
     );
   }
-  return admin.section("Service and category options", { description: "Draft service menu rows grouped by category and ordered for customer intake." },
+  return admin.panel("Service and category options", { description: "Draft service menu rows grouped by category and ordered for customer intake.", density: "compact", padding: "none", layout: { span: { desktop: 12, tablet: 8, mobile: 1 }, order: 30 } },
     tabs,
-    admin.toolbar().Actions(editor.version.status === "draft" ? addService : admin.primary("config.service.add.disabled", "Add service").Disabled(true)),
-    admin.editableList("serviceOptions", { items: serviceEditorItems(editor.services), emptyTitle: "No service options" }).Actions(editor.version.status === "draft" ? openService : disabledEdit)
-  );
+    admin.resourceTable("serviceOptions", { columns: [{ id: "category", label: "Category" }, { id: "title", label: "Service" }, { id: "value", label: "Value" }, { id: "sortOrder", label: "Sort" }, { id: "enabled", label: "Enabled", type: "badge" }], rows: serviceEditorItems(editor.services), emptyTitle: "No service options" }).Actions(editor.version.status === "draft" ? openService : disabledEdit)
+  ).ToolbarActions(editor.version.status === "draft" ? addService : admin.primary("config.service.add.disabled", "Add service").Disabled(true));
 }
 
 function configScreen(ctx, deps) {
@@ -326,34 +351,37 @@ function configScreen(ctx, deps) {
   const canPublish = editor.version.status === "draft" && editor.validation && editor.validation.ok;
   const publishAction = canPublish ? openPublish : admin.primary("config.publish.disabled", "Publish draft").Placement("toolbar").Disabled(true);
 
-  const page = admin.pageResource("admin-intake-config", "Intake Configuration")
-    .Shell("resource", { active: "config", eyebrow: "Real Admin · Intake" })
+  const page = admin.pageAdmin("admin-intake-config", "Intake Configuration")
+    .SchemaVersion(2)
+    .Shell("admin", { active: "config", eyebrow: "Real Admin · Intake" })
     .Description("Manage versioned config rows that drive the customer intake flow.")
     .Content(
-      admin.toolbar().Actions(back, createDraft, publishAction),
-      admin.cardGrid({ columns: 3 },
-        admin.metricCard("Selected", editor.version.label, { tone: editor.version.status === "draft" ? "warn" : "success", caption: editor.version.id }),
-        admin.metricCard("Status", editor.version.status, { tone: editor.version.status === "active" ? "success" : "warn", caption: editor.version.activatedAt || "Not activated" }),
-        admin.metricCard("Validation", editor.validation && editor.validation.ok ? "OK" : "Issues", { tone: editor.validation && editor.validation.ok ? "success" : "danger", caption: String(((editor.validation && editor.validation.issues) || []).length) + " issue(s)" })
-      ),
-      admin.section("Config versions", { description: "Open a version to inspect its publishable resources." },
-        admin.resourceTable("configVersions", {
-          columns: [
-            { id: "status", label: "Status" },
-            { id: "label", label: "Label" },
-            { id: "id", label: "ID" },
-            { id: "activatedAt", label: "Activated" }
-          ],
-          rows: versionRows(versions),
-          emptyTitle: "No config versions"
-        }).Actions(selectVersion)
-      ),
-      configEditorSection(ctx, editor, deps)
+      admin.pageHeader({ breadcrumbs: ["Real Admin", "Intake"], title: "Intake Configuration", description: "Manage versioned config rows that drive the customer intake flow." }).Actions(back, createDraft, publishAction),
+      admin.dashboardGrid({ columns: { desktop: 12, tablet: 8, mobile: 1 }, gap: "compact", density: "compact" },
+        admin.metricCard("Selected", editor.version.label, { tone: editor.version.status === "draft" ? "warn" : "success", caption: editor.version.id, layout: { span: { desktop: 4, tablet: 4, mobile: 1 }, order: 10 } }),
+        admin.metricCard("Status", editor.version.status, { tone: editor.version.status === "active" ? "success" : "warn", caption: editor.version.activatedAt || "Not activated", layout: { span: { desktop: 4, tablet: 4, mobile: 1 }, order: 11 } }),
+        admin.metricCard("Validation", editor.validation && editor.validation.ok ? "OK" : "Issues", { tone: editor.validation && editor.validation.ok ? "success" : "danger", caption: String(((editor.validation && editor.validation.issues) || []).length) + " issue(s)", layout: { span: { desktop: 4, tablet: 4, mobile: 1 }, order: 12 } }),
+        admin.panel("Config versions", { description: "Open a version to inspect its publishable resources.", density: "compact", padding: "none", layout: { span: { desktop: 12, tablet: 8, mobile: 1 }, order: 20 } },
+          admin.resourceTable("configVersions", {
+            columns: [
+              { id: "status", label: "Status" },
+              { id: "label", label: "Label" },
+              { id: "id", label: "ID" },
+              { id: "activatedAt", label: "Activated" }
+            ],
+            rows: versionRows(versions),
+            emptyTitle: "No config versions"
+          }).Actions(selectVersion)
+        ),
+        configEditorSection(ctx, editor, deps)
+      )
     );
 
   if (ctx.state.publishModal) {
     page.Modals(admin.surface.modal("publishConfig", { title: "Publish intake config?", open: true },
-      admin.summaryCard("Publish " + editor.version.label, { body: "Publishing this draft will archive the current active config and make the selected rows visible to customer intake sessions." }).Actions(cancelPublish, confirmPublish)
+      admin.panel("Publish " + editor.version.label, { ariaLabel: "Publish config confirmation" },
+        admin.markdown("Publishing this draft will archive the current active config and make the selected rows visible to customer intake sessions.", {})
+      ).FooterActions(cancelPublish, confirmPublish)
     ));
   }
   if (ctx.state.configDrawer === "service") {

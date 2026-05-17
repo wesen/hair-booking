@@ -267,8 +267,8 @@ func postAdminEvent(t *testing.T, handler http.Handler, sessionID string, pageVe
 func findAdminProtoActionID(nodes []*admindslv1.AdminNode, target string) string {
 	for _, node := range nodes {
 		if node.Props != nil {
-			if actionsValue, ok := node.Props.AsMap()["actions"]; ok {
-				if id := findActionIDInValue(actionsValue, target); id != "" {
+			for _, propValue := range node.Props.AsMap() {
+				if id := findActionIDInValue(propValue, target); id != "" {
 					return id
 				}
 			}
