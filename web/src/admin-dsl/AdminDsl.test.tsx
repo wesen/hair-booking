@@ -270,4 +270,108 @@ describe("admin DSL", () => {
       action: expect.objectContaining({ type: "open", target: "appointmentDetail" }),
     }));
   });
+
+  it("renders v2 workbench shell and dispatches sidebar and page header actions", () => {
+    const dispatch = vi.fn();
+    const page = admin.page("workbench-test", "Workbench")
+      .schemaVersion(2)
+      .shell("admin", {
+        variant: "workbench",
+        sidebar: {
+          active: "overview",
+          items: [
+            { id: "overview", label: "Overview", icon: "O", action: action.mutation("nav.overview", "Overview").placement("sidebarNav").toJSON() },
+            { id: "services", label: "Services", icon: "S", action: action.mutation("nav.services", "Services").placement("sidebarNav").toJSON() },
+          ],
+          user: { name: "Admin User", role: "Administrator", initials: "AD" },
+        },
+      })
+      .content(admin.pageHeader({ title: "Workbench", description: "Dense admin page", actions: [action.primary("service.new", "New Service").placement("pageHeader").toJSON()] }))
+      .toJSON();
+
+    render(<AdminPageRenderer page={page} context={{ dispatch }} />);
+    expect(screen.getByText("Admin User")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Services" }));
+    fireEvent.click(screen.getByRole("button", { name: "New Service" }));
+
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      nodeId: "workbench-sidebar",
+      action: expect.objectContaining({ target: "nav.services", placement: "sidebarNav" }),
+    }));
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      nodeKind: "pageHeader",
+      action: expect.objectContaining({ target: "service.new", placement: "pageHeader" }),
+    }));
+  });
+
+  it("renders v2 resource table typed cells and dispatches overflow row actions", () => {
+    const dispatch = vi.fn();
+    const page = admin.page("typed-table", "Typed table")
+      .schemaVersion(2)
+      .content(resource.table("services", [
+        { id: "handle", kind: "dragHandle", label: "" },
+        { id: "name", kind: "text", label: "Service", primary: true },
+        { id: "status", kind: "badge", label: "Status", map: { published: { label: "Published", tone: "success" } } },
+        { id: "actions", kind: "overflowActions", label: "Actions" },
+      ], [
+        { id: "svc_1", name: "Highlights", status: "published", actions: [action.open("service.menu", "Open", { id: "svc_1" }).placement("rowOverflow").toJSON()] },
+      ]))
+      .toJSON();
+
+    render(<AdminPageRenderer page={page} context={{ dispatch }} />);
+    expect(screen.getByText("Highlights")).toBeInTheDocument();
+    expect(screen.getByText("Published")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Open row actions" }));
+
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      nodeKind: "resourceTable",
+      action: expect.objectContaining({ target: "service.menu", placement: "rowOverflow" }),
+      value: expect.objectContaining({ id: "svc_1" }),
+    }));
+  });
+
+  it("renders v2 comparison tables and dispatches review actions", () => {
+    const dispatch = vi.fn();
+    const page = admin.page("comparison", "Comparison")
+      .schemaVersion(2)
+      .content(admin.comparisonTable("drafts", [
+        { id: "price", field: "Highlights – Price", current: "$200", draft: "$220", scheduled: "Jun 23", actions: [action.open("draft.review", "Review", { id: "price" }).placement("row").toJSON()] },
+      ]))
+      .toJSON();
+
+    render(<AdminPageRenderer page={page} context={{ dispatch }} />);
+    expect(screen.getByText("Highlights – Price")).toBeInTheDocument();
+    expect(screen.getByText("$220")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Review" }));
+
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      nodeKind: "comparisonTable",
+      action: expect.objectContaining({ target: "draft.review" }),
+    }));
+  });
+
+  it("renders v2 month calendars and dispatches selected dates", () => {
+    const dispatch = vi.fn();
+    const page = admin.page("month", "Month")
+      .schemaVersion(2)
+      .content(admin.monthCalendar("calendar", {
+        month: "2024-06",
+        selectedDate: "2024-06-19",
+        markers: [{ date: "2024-06-23", kind: "scheduled" }],
+        legend: [{ kind: "scheduled", label: "Scheduled", tone: "warning" }],
+        actions: { selectDate: action.mutation("calendar.selectDate", "Select date").placement("calendarCell").toJSON() },
+      }))
+      .toJSON();
+
+    render(<AdminPageRenderer page={page} context={{ dispatch }} />);
+    expect(screen.getByText("June 2024")).toBeInTheDocument();
+    expect(screen.getByText("Scheduled")).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "23" }));
+
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      nodeKind: "monthCalendar",
+      action: expect.objectContaining({ target: "calendar.selectDate", placement: "calendarCell" }),
+      value: { date: "2024-06-23" },
+    }));
+  });
 });

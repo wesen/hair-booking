@@ -159,7 +159,7 @@ updated: 2026-05-15
 - [x] Implement `comparisonTable` renderer for field/current/draft/scheduled/action rows.
 - [x] Implement `monthCalendar` renderer with month navigation, selected day, markers, and legend.
 - [x] Add `AdminDslWorkbench.stories.tsx` with target desktop and mobile stories matching the copied reference layout.
-- [ ] Add frontend renderer tests for `pageHeader`, sidebar nav dispatch, table row action dispatch, `comparisonTable` review action, and calendar date action.
+- [x] Add frontend renderer tests for `pageHeader`, sidebar nav dispatch, table row action dispatch, `comparisonTable` review action, and calendar date action.
 - [x] Run `cd web && npx tsc --noEmit`.
 - [x] Run `cd web && pnpm test -- --runInBand`.
 

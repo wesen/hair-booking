@@ -2034,3 +2034,62 @@ The new fixture gives us a concrete visual and semantic target: a `schemaVersion
 ### Technical details
 - New Storybook section: `Admin DSL/Workbench v2`.
 - New stories: `TargetDesktop`, `TargetMobile`.
+
+## Step 29: Add frontend renderer tests for Admin DSL v2 primitives
+
+This step closed the remaining frontend test task for Phase 12. The new tests exercise the v2 workbench shell, page header action dispatch, typed resource-table cell rendering, row-overflow actions, comparison-table review actions, and month-calendar date selection.
+
+These tests are intentionally renderer-level tests rather than visual tests. Their job is to prove that the new v2 nodes are not just Storybook decoration: they render useful DOM and dispatch the correct semantic action metadata through the existing Admin DSL action channel.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 27)
+
+**Assistant interpretation:** Continue implementing the newly added phases one task at a time, committing after the next coherent test slice.
+
+**Inferred user intent:** The user wants the v2 implementation to advance with validation coverage instead of only adding visual fixtures.
+
+**Commit (code):** pending — frontend renderer tests for v2 primitives.
+
+### What I did
+- Added tests in `web/src/admin-dsl/AdminDsl.test.tsx` for:
+  - v2 workbench shell rendering and sidebar nav dispatch,
+  - `pageHeader` action dispatch,
+  - v2 `resourceTable` typed cell rendering and row-overflow dispatch,
+  - `comparisonTable` review action dispatch,
+  - `monthCalendar` marker/legend rendering and date-selection dispatch.
+- Marked the Phase 12 renderer-test task complete.
+- Validated:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand` — 10 files, 50 tests passed.
+
+### Why
+- New DSL primitives should have behavior tests before backend flows start depending on them.
+- The tests guard the core v2 contract: JSON nodes render explicitly and dispatch opaque backend action descriptors.
+
+### What worked
+- The existing testing setup made it easy to assert dispatch events from the renderer.
+- The new builder helpers kept v2 test fixtures concise.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The v2 nodes are already testable through the same action path as v1 nodes, which means the runtime/event model does not need to change for this frontend slice.
+
+### What was tricky to build
+- The calendar date buttons are generated from derived month cells, so the test asserts the accessible button name for day `23` rather than depending on internal cell structure.
+
+### What warrants a second pair of eyes
+- Review whether the row-overflow action should dispatch only the first row action or open a real menu when multiple actions are present. The current first-pass renderer dispatches the first action.
+
+### What should be done in the future
+- Add visual screenshot review for `Admin DSL/Workbench v2/TargetDesktop` and `TargetMobile`.
+- Start Phase 13 Go schema/builders after visual approval of the frontend fixture.
+
+### Code review instructions
+- Review the new tests at the end of `web/src/admin-dsl/AdminDsl.test.tsx`.
+- Re-run `cd web && pnpm test -- --runInBand`.
+
+### Technical details
+- Test count increased from 46 to 50.

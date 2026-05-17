@@ -235,3 +235,8 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 - Added frontend Admin DSL v2 fixture support: `pageHeader`, `dashboardGrid`, `comparisonTable`, `monthCalendar`, workbench shell/sidebar, strengthened panels, and v2 table cell rendering.
 - Added `web/src/admin-dsl/AdminDslWorkbench.stories.tsx` with target desktop and mobile workbench stories.
 - Validation passed with `cd web && npx tsc --noEmit` and `cd web && pnpm test -- --runInBand`.
+
+## 2026-05-16 — Admin DSL v2 renderer tests
+
+- Added frontend tests for v2 workbench shell/sidebar dispatch, page header actions, typed resource-table cells, comparison-table review actions, and month-calendar date selection.
+- Validation passed with `cd web && npx tsc --noEmit` and `cd web && pnpm test -- --runInBand` (50 tests).
