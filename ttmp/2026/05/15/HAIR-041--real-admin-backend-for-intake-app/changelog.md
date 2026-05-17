@@ -225,3 +225,7 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 - Added `design-doc/04-admin-dsl-v2-cleanup-and-workbench-semantics-intern-guide.md`, a separate intern-oriented guide for the breaking Admin DSL v2 cleanup and semantic workbench cutover.
 - Related the guide to core Admin DSL schema/runtime/renderer/flow files and the previous workbench implementation guide.
 - Uploaded the guide to reMarkable: `/ai/2026/05/16/HAIR-041/HAIR 041 Admin DSL v2 Cleanup Intern Guide.pdf`.
+
+## 2026-05-16 — Admin DSL v2 phased task plan
+
+- Added detailed HAIR-041 Phase 11–15 tasks for Admin DSL v2 vocabulary planning, frontend renderer/Storybook work, Go schema/builders/validation, flow migration, and live validation/cleanup.

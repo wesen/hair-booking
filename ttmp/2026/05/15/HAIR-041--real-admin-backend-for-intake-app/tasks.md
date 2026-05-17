@@ -133,3 +133,68 @@ updated: 2026-05-15
 - [ ] Decide whether Admin DSL sessions must be persisted rather than in-memory.
 - [ ] Add stricter before/after audit payloads for all config mutation methods.
 - [ ] Add accessibility review for resource tables, editable lists, drawer forms, and modal/confirm surfaces.
+
+## Phase 11 — Admin DSL v2 vocabulary and cutover planning
+
+- [ ] Freeze Admin DSL v2 node vocabulary: keep/add/remove/rename list.
+- [ ] Decide final `schemaVersion: 2` cutover boundary and confirm no v1 compatibility shims.
+- [ ] Decide whether `pageHeader`, `dashboardGrid`, `comparisonTable`, and `monthCalendar` are new node kinds rather than prop extensions.
+- [ ] Decide whether `resourceList`/`resourceRow` are removed in favor of responsive `resourceTable`.
+- [ ] Decide whether `diffView` splits into `comparisonTable` and optional `diffBlock`.
+- [ ] Decide whether `monthAvailabilityGrid` is replaced by generic `monthCalendar`.
+- [ ] Decide whether `section`, `cardGrid`, `summaryCard`, `editableList`, and `imageGrid` are removed or renamed.
+- [ ] Define v2 action placement vocabulary: `pageHeader`, `panelToolbar`, `panelFooter`, `row`, `rowOverflow`, `bulkToolbar`, `formFooter`, `calendarCell`, `sidebarNav`.
+- [ ] Define v2 density/layout policy shape for panels and dashboard grid children.
+- [ ] Add a short migration checklist mapping each v1 node used by current flows to its v2 replacement.
+
+## Phase 12 — Frontend Admin DSL v2 renderer and Storybook fixture
+
+- [ ] Update `web/src/admin-dsl/schema.ts` with v2 node kinds and action placements.
+- [ ] Add `schemaVersion: 2` support for new Storybook fixtures.
+- [ ] Implement workbench shell/sidebar rendering for `shell.kind = "admin"` and `shell.props.variant = "workbench"`.
+- [ ] Implement `pageHeader` renderer with breadcrumbs, title, description, and page-level actions.
+- [ ] Implement `dashboardGrid` renderer with responsive spans/order and compact gap policy.
+- [ ] Strengthen `panel` renderer with header/body/footer actions, density, padding, chrome, and layout props.
+- [ ] Implement v2-style `resourceTable` column kinds: `text`, `badge`, `date`, `money`, `relativeTime`, `boolean`, `actions`, `overflowActions`, `dragHandle`.
+- [ ] Implement `comparisonTable` renderer for field/current/draft/scheduled/action rows.
+- [ ] Implement `monthCalendar` renderer with month navigation, selected day, markers, and legend.
+- [ ] Add `AdminDslWorkbench.stories.tsx` with target desktop and mobile stories matching the copied reference layout.
+- [ ] Add frontend renderer tests for `pageHeader`, sidebar nav dispatch, table row action dispatch, `comparisonTable` review action, and calendar date action.
+- [ ] Run `cd web && npx tsc --noEmit`.
+- [ ] Run `cd web && pnpm test -- --runInBand`.
+
+## Phase 13 — Go Admin DSL v2 schema, builders, validation, and Goja exports
+
+- [ ] Update `pkg/admindsl/types.go` with v2 node constants and action placements.
+- [ ] Set Admin DSL builders to emit `schemaVersion: 2` for migrated pages.
+- [ ] Remove deprecated v1 node constants after flow migration plan is ready.
+- [ ] Add Go builders for `PageHeader`, `DashboardGrid`, `ComparisonTable`, and `MonthCalendar`.
+- [ ] Add panel layout/density helper methods to Go builders.
+- [ ] Expose v2 helpers through `pkg/admindsl/goja_module.go`.
+- [ ] Tighten `pkg/admindsl/validate.go` for v2 pages, unknown node kinds, required props, table columns, row IDs, and typed form fields.
+- [ ] Add Go builder and Goja module tests for all new v2 helpers.
+- [ ] Run `go test ./pkg/admindsl -count=1`.
+
+## Phase 14 — Admin flow migration to semantic workbench pages
+
+- [ ] Migrate `pkg/admindsl/flows/services.flow.js` to v2 shell/header/grid/panel primitives.
+- [ ] Migrate `pkg/admindsl/flows/intake_admin.flow.js` dashboard to workbench shell, page header, dashboard grid, panels, metrics, services table, activity feed, and preview panel.
+- [ ] Migrate `pkg/admindsl/flows/intake_requests.flow.js` from resource list/card patterns to v2 resource table/detail patterns.
+- [ ] Migrate `pkg/admindsl/flows/intake_config.flow.js` from editable lists and diff views to v2 resource tables, typed forms, and comparison tables.
+- [ ] Migrate `pkg/admindsl/flows/intake_ops.flow.js` audit/health/preview screens to v2 page/header/panel conventions.
+- [ ] Remove v1 flow helper usages: `section`, `cardGrid`, `summaryCard`, `resourceList`, `resourceRow`, `editableList`, `monthAvailabilityGrid`, and broad `diffView`.
+- [ ] Run `go test ./pkg/admindsl ./pkg/server -count=1`.
+- [ ] Run `go test ./... -count=1`.
+
+## Phase 15 — Admin DSL v2 live validation, visual review, and cleanup
+
+- [ ] Run `cd web && npx tsc --noEmit` after flow/renderer cutover.
+- [ ] Run `cd web && pnpm test -- --runInBand` after flow/renderer cutover.
+- [ ] Run submit-customer-request -> admin-review smoke script after `/admin/intake` migration.
+- [ ] Capture desktop/mobile screenshots for the v2 Storybook workbench fixture.
+- [ ] Capture desktop/mobile screenshots for live `/admin/intake` v2 dashboard.
+- [ ] Add css-visual-diff coverage for target workbench fixture and major `/admin/intake` screens.
+- [ ] Remove obsolete v1 stories or rewrite them as v2 stories.
+- [ ] Remove deprecated renderer branches once all fixtures and flows are migrated.
+- [ ] Update Admin DSL v2 docs/changelog/diary with final cutover results.
+- [ ] Upload final Admin DSL v2 screenshots/docs bundle to reMarkable.

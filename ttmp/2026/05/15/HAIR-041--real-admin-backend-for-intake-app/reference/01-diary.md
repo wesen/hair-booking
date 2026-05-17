@@ -1904,3 +1904,56 @@ It's a separate document, upload to remarkable as well. Keep a diary as you work
 ### Technical details
 - reMarkable command used:
   - `remarquee upload bundle ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/04-admin-dsl-v2-cleanup-and-workbench-semantics-intern-guide.md --name "HAIR 041 Admin DSL v2 Cleanup Intern Guide" --remote-dir "/ai/2026/05/16/HAIR-041" --toc-depth 2 --non-interactive`
+
+## Step 27: Add Admin DSL v2 implementation phases to the ticket
+
+This step converted the Admin DSL v2 cleanup guide into an executable ticket task plan. The new phases separate decision-making, frontend renderer/Storybook work, Go schema/builders/validation, flow migration, and final live validation so the v2 cutover can happen in reviewable slices.
+
+The plan intentionally assumes no backwards-compatibility shims. The tasks are written around a clean semantic workbench cutover: freeze the v2 vocabulary, build the frontend fixture, update Go builders and validation, migrate flows, then remove obsolete v1 branches once the migrated pages pass smoke and visual review.
+
+### Prompt Context
+
+**User prompt (verbatim):** "alright, add phases with deailed tasks to the ticket, then implement one by one, keep a diary as you work, commit at appropriate intervals."
+
+**Assistant interpretation:** Add detailed phased Admin DSL v2 tasks to HAIR-041, then begin implementing them incrementally with diary updates and commits.
+
+**Inferred user intent:** The user wants the v2 cleanup guide turned into actionable ticket work and implemented step-by-step instead of remaining only as design prose.
+
+**Commit (code):** pending — task/doc update only.
+
+### What I did
+- Added Phase 11 through Phase 15 to `tasks.md`:
+  - Phase 11: vocabulary and cutover planning.
+  - Phase 12: frontend v2 renderer and Storybook fixture.
+  - Phase 13: Go schema/builders/validation/Goja exports.
+  - Phase 14: Admin flow migration.
+  - Phase 15: live validation, visual review, and cleanup.
+
+### Why
+- The v2 work spans multiple layers and should not be implemented as one giant change.
+- Detailed task phases make it possible to commit at natural boundaries and keep status honest.
+
+### What worked
+- The existing `tasks.md` already had phase structure, so adding v2 phases was straightforward.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The most important sequencing decision is to start with a frontend Storybook fixture before changing live backend flow outputs.
+
+### What was tricky to build
+- The task list needed to be detailed enough for implementation but not over-prescribe every schema decision before Phase 11 is complete.
+
+### What warrants a second pair of eyes
+- Review the Phase 11 decisions before starting destructive removals of v1 node kinds.
+
+### What should be done in the future
+- Start Phase 12 with frontend-only v2 Storybook fixtures and renderer support.
+
+### Code review instructions
+- Review the newly added Phase 11–15 tasks in `tasks.md`.
+- Confirm the task order matches the desired cutover strategy.
+
+### Technical details
+- Phase 12 starts with TypeScript/schema/renderer/Storybook only to reduce risk.
