@@ -2778,3 +2778,69 @@ The Storybook v2 iframe capture completed for all retained workbench stories. Th
 
 ### Technical details
 - No source code changed in this step; only screenshot artifacts changed.
+
+## Step 38: Document resource-table baseline alignment and bulk action styling
+
+This step answered a focused frontend implementation question about the Request Triage Storybook example. The user wanted to know where the status/customer/service/action baseline alignment is controlled, where the `Assign` secondary action styling lives, and what sequence turns the Storybook data into rendered table UI.
+
+I wrote a ticket reference in a textbook style, grounded in the current Admin DSL v2 files and functions. The guide explains the JSON story definition, the builder boundary, the renderer path, the table-cell renderer, and the bulk action bar, then gives minimal code-change recipes for baseline alignment and secondary bulk action styling.
+
+### Prompt Context
+
+**User prompt (verbatim):** "/tmp/pi-clipboard-11817d11-5687-447a-9052-ffe2ef725711.png In this request triage example, how would I go about aligning the text in the status / customer / service  and the actions so that the baseline matches? Also where I can modifiyy the look of the \"Assign\" secondary action.
+
+which files and functions are involved, and what is the sequence of events? Write a textbook writing style guide (no analogies0 and store it in the ticket"
+
+**Assistant interpretation:** Produce an educational implementation guide that explains exactly how the Request Triage table is assembled and rendered, with practical instructions for baseline alignment and `Assign` button styling.
+
+**Inferred user intent:** The user wants a reusable reference for making precise visual changes in the Admin DSL v2 table renderer without guessing which layer owns the behavior.
+
+**Commit (code):** pending — ticket documentation only.
+
+### What I did
+- Copied the screenshot into the ticket:
+  - `various/alignment-reference/01-request-triage-baseline-question.png`
+- Added a new reference document:
+  - `reference/02-admin-dsl-resource-table-alignment-guide.md`
+- Related the guide to the relevant frontend files using `docmgr doc relate`.
+- Validated the new guide frontmatter with `docmgr validate frontmatter`.
+
+### Why
+- The alignment question crosses several layers: Storybook data, builder JSON, renderer table layout, cell rendering, and action button styling.
+- A guide is more useful than a one-line answer because future table polish will likely need the same path.
+
+### What worked
+- The guide identifies the exact implementation points:
+  - `requestColumns`, `requestRows`, and `requestTriagePage()` in `AdminDslWorkbench.stories.tsx`
+  - `resource.table(...)` and `action.secondary(...)` in `builder.ts`
+  - `renderAdminNode(...)`, `renderTableCell(...)`, and `renderActions(...)` in `render.tsx`
+  - `actionIsPrimary(...)` and `actionIsDanger(...)` in `actions.ts`
+- Frontmatter validation passed.
+
+### What didn't work
+- The first `docmgr validate frontmatter` invocation used a path that duplicated `ttmp/` and failed with:
+  - `open .../ttmp/ttmp/... no such file or directory`
+- Fix:
+  - reran validation with the absolute document path.
+
+### What I learned
+- The current `Assign` button is styled by a custom bulk action button map inside the `resourceTable` renderer, not by `renderActions(...)`.
+- The baseline issue is primarily controlled by the `resourceTable` body `<td>` styles and then secondarily by `renderTableCell(...)` and `renderActions(...)` line boxes.
+
+### What was tricky to build
+- The documentation had to distinguish table-level bulk actions from row-level actions. Both are Admin DSL actions, but they are rendered by different code paths and dispatch different payloads.
+
+### What warrants a second pair of eyes
+- Review whether the guide's recommended `verticalAlign: "middle"` should become the default renderer change.
+- Review whether bulk actions should keep custom payload-aware rendering or be refactored through a generalized `renderActions` value-factory path.
+
+### What should be done in the future
+- If the visual adjustment is accepted, implement it in `render.tsx`, recapture the Request Triage screenshot, and update this guide with the final committed code.
+
+### Code review instructions
+- Read `reference/02-admin-dsl-resource-table-alignment-guide.md` first.
+- Compare its file/function map against `web/src/admin-dsl/render.tsx` and `web/src/admin-dsl/AdminDslWorkbench.stories.tsx`.
+
+### Technical details
+- Frontmatter validation command:
+  - `docmgr validate frontmatter --doc /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/02-admin-dsl-resource-table-alignment-guide.md --suggest-fixes`

@@ -330,3 +330,9 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Re-ran Admin DSL Workbench v2 Storybook iframe screenshot capture successfully.
 - Re-ran the Phase 8 customer-submit-to-admin smoke successfully.
 - Refreshed live admin dashboard and request screenshots under `various/playwright/`.
+
+## 2026-05-17 — Resource-table alignment guide
+
+- Added `reference/02-admin-dsl-resource-table-alignment-guide.md`, a textbook-style guide for Request Triage table baseline alignment and `Assign` bulk action styling.
+- Stored the motivating Request Triage screenshot under `various/alignment-reference/`.
+- Related the guide to the relevant Admin DSL Storybook, builder, schema, renderer, and action helper files.
