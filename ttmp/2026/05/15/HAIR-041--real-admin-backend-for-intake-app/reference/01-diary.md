@@ -2722,3 +2722,59 @@ The remaining frontend examples and scenario fixtures were rewritten around v2 w
   - `editableList`
   - `monthAvailabilityGrid`
   - `diffView`
+
+## Step 37: Refresh post-cutover visual and live smoke artifacts
+
+This step re-ran the visual/smoke artifact capture after the frontend v2-only cleanup. The goal was to verify that removing the obsolete Storybook catalogs and renderer branches did not break the retained v2 workbench Storybook stories or the live customer-submit-to-admin path.
+
+The Storybook v2 iframe capture completed for all retained workbench stories. The live Phase 8 smoke also passed and refreshed the admin dashboard/request screenshots under the ticket assets.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 35)
+
+**Assistant interpretation:** Continue after the frontend cleanup by validating and refreshing review artifacts before stopping.
+
+**Inferred user intent:** The user wants the v2 cutover to remain visually reviewable and smoke-tested, not just type/test clean.
+
+**Commit (code):** pending — post-cutover screenshot refresh.
+
+### What I did
+- Re-ran Storybook v2 screenshot capture:
+  - `node ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/04-capture-admin-dsl-v2-storybook.mjs`
+- Re-ran live admin/customer smoke:
+  - `node ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/03-smoke-admin-intake-phase8.mjs`
+- Refreshed live Playwright screenshots:
+  - `various/playwright/phase8-admin-dashboard.png`
+  - `various/playwright/phase8-admin-requests.png`
+
+### Why
+- The v2-only frontend cleanup deleted Storybook files and renderer branches, so retained v2 stories and live routes needed a fresh artifact check.
+
+### What worked
+- Storybook capture completed for all retained Admin DSL Workbench v2 stories.
+- Phase 8 smoke passed:
+  - `Submitted customer flow; final page=intake-confirm`
+  - `OK: customer submit -> admin review smoke passed`
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The retained Storybook v2 capture script is independent of deleted legacy story catalogs and continued to run successfully.
+
+### What was tricky to build
+- N/A for this validation slice; it was intentionally an artifact refresh after code cleanup.
+
+### What warrants a second pair of eyes
+- Compare refreshed live screenshots against the target dense admin references to decide whether another aesthetic pass is warranted after the v2-only cleanup.
+
+### What should be done in the future
+- Optionally upload the final v2 screenshots/docs bundle to reMarkable if requested.
+
+### Code review instructions
+- Review the refreshed screenshots in `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/various/playwright/`.
+- Re-run the two node scripts above if artifact freshness is in doubt.
+
+### Technical details
+- No source code changed in this step; only screenshot artifacts changed.

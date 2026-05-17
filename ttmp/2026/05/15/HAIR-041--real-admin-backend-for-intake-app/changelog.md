@@ -324,3 +324,9 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Removed deprecated renderer branches
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts — TypeScript schema is now v2-only
 
+
+## 2026-05-17 — Post-cutover visual and smoke refresh
+
+- Re-ran Admin DSL Workbench v2 Storybook iframe screenshot capture successfully.
+- Re-ran the Phase 8 customer-submit-to-admin smoke successfully.
+- Refreshed live admin dashboard and request screenshots under `various/playwright/`.
