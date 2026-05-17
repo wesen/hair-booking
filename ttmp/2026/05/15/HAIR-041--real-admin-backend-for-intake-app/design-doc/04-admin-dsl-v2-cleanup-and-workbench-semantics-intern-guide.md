@@ -45,6 +45,12 @@ RelatedFiles:
       Note: Storybook iframe screenshot capture script for v2 workbench stories
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/various/aesthetic-reference
       Note: User-provided clean aesthetic references for table/action/surface polish
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/various/aesthetic-reference/05-current-service-list-before-button-shape.png
+      Note: Current service list screenshot showing overly pill-like badges/actions
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/various/aesthetic-reference/06-target-service-list-cleaner.png
+      Note: Target cleaner service list table reference with plain status text and subtle actions
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/various/aesthetic-reference/07-target-button-shapes-sheet.png
+      Note: Target button-shape reference with rectangular save button and cancel link
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/various/storybook-v2
       Note: Captured Storybook iframe screenshots without Storybook chrome for v2 workbench stories
     - Path: web/src/admin-dsl/AdminDslWorkbench.stories.tsx
@@ -70,6 +76,7 @@ LastUpdated: 2026-05-16T18:20:00-04:00
 WhatFor: 'Use when planning or implementing the Admin DSL v2 cleanup: removing vague frontend-style primitives, tightening validation, and replacing component-collage pages with semantic admin workbench constructs.'
 WhenToUse: Read before changing Admin DSL schemaVersion, node vocabulary, renderer semantics, Go builders, Goja module exports, or /admin/intake flow authoring patterns.
 ---
+
 
 
 

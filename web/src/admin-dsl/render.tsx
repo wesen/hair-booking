@@ -13,7 +13,9 @@ function renderActions(node: AdminNode, ctx: AdminRenderContext | undefined, act
       {actions.map((actionRef, i) => {
         const primary = actionIsPrimary(actionRef);
         const danger = actionIsDanger(actionRef);
-        const subtle = !primary && !danger && (actionRef.presentation === "link" || actionRef.placement === "row" || actionRef.placement === "panelFooter" || actionRef.placement === "rowOverflow");
+        const formPrimary = primary && actionRef.placement === "formFooter";
+        const strongPrimary = primary && !formPrimary;
+        const subtle = !primary && !danger && (actionRef.presentation === "link" || actionRef.placement === "row" || actionRef.placement === "panelFooter" || actionRef.placement === "rowOverflow" || actionRef.placement === "formFooter");
         return (
         <button
           key={actionKey(actionRef, i)}
@@ -31,21 +33,21 @@ function renderActions(node: AdminNode, ctx: AdminRenderContext | undefined, act
             dispatchAdminAction(ctx, node, actionRef, value);
           }}
           style={{ minHeight: subtle ? 32 : 38,
-            border: subtle ? "1px solid transparent" : `1px solid ${danger ? color.danger : primary ? color.ink : color.rule}`,
-            background: actionRef.disabled ? color.ruleSoft : subtle ? "transparent" : primary ? color.ink : color.paper,
-            color: actionRef.disabled ? color.soft : primary ? color.paper : danger ? color.danger : subtle ? color.plum : color.ink,
-            borderRadius: radius.pill,
-            padding: subtle ? "6px 8px" : "8px 12px",
-            fontFamily: font.mono,
-            fontSize: 11,
-            letterSpacing: subtle ? 0.4 : 0.6,
-            textTransform: "uppercase",
+            border: subtle ? "1px solid transparent" : `1px solid ${danger ? color.danger : strongPrimary ? color.ink : color.rule}`,
+            background: actionRef.disabled ? color.ruleSoft : subtle ? "transparent" : strongPrimary ? color.ink : formPrimary ? color.cream : color.paper,
+            color: actionRef.disabled ? color.soft : strongPrimary ? color.paper : danger ? color.danger : subtle ? color.plum : color.ink,
+            borderRadius: radius.md,
+            padding: subtle ? "6px 8px" : formPrimary ? "9px 16px" : "8px 12px",
+            fontFamily: subtle ? font.sans : font.mono,
+            fontSize: subtle ? 13 : 11,
+            letterSpacing: subtle ? 0 : 0.6,
+            textTransform: subtle ? "none" : "uppercase",
             cursor: actionRef.disabled || actionRef.loading ? "not-allowed" : "pointer",
             opacity: actionRef.loading ? 0.72 : 1,
-            boxShadow: primary ? shadow.sm : "none",
+            boxShadow: strongPrimary ? shadow.sm : "none",
           }}
         >
-          {actionRef.loading ? "Working…" : actionRef.label || actionRef.target}{subtle && <span aria-hidden="true"> →</span>}
+          {actionRef.loading ? "Working…" : actionRef.label || actionRef.target}{subtle && actionRef.placement !== "panelFooter" && <span aria-hidden="true"> →</span>}
         </button>
         );
       })}
@@ -107,13 +109,13 @@ function renderTableCell(column: AdminJsonObject, row: AdminJsonObject, node: Ad
         : tone === "danger"
           ? { background: "#fff1ed", color: "#b3261e", border: "#e15a4f" }
           : { background: color.paper, color: color.ink, border: color.rule };
-    return <span style={{ display: "inline-flex", borderRadius: radius.md, padding: "5px 9px", border: `1px solid ${badgeColors.border}`, background: badgeColors.background, color: badgeColors.color, fontWeight: 800, ...type.meta }}>{label}</span>;
+    return <span className="adminDslStatusText" style={{ display: "inline-flex", alignItems: "center", minHeight: 24, color: badgeColors.color, fontWeight: 700, ...type.bodySm }}>{label}</span>;
   }
   if (kind === "overflowActions" || kind === "actions") {
     const rowActions = Array.isArray(row.actions) ? row.actions.filter(isActionRef) : [];
     if (!rowActions.length) return "";
     if (kind === "overflowActions") {
-      return <button type="button" aria-label="Open row actions" onClick={() => dispatchAdminAction(ctx, node, rowActions[0], row)} style={{ minWidth: 44, minHeight: 44, border: `1px solid ${color.rule}`, borderRadius: radius.pill, background: color.paper, cursor: "pointer", fontSize: 20, lineHeight: 1 }}>…</button>;
+      return <button type="button" className="adminDslOverflowAction" aria-label="Open row actions" onClick={() => dispatchAdminAction(ctx, node, rowActions[0], row)} style={{ minWidth: 32, minHeight: 32, border: "1px solid transparent", borderRadius: radius.md, background: "transparent", cursor: "pointer", fontSize: 18, lineHeight: 1, color: color.ink }}>…</button>;
     }
     return renderActions(node, ctx, rowActions);
   }
@@ -573,7 +575,7 @@ function WorkbenchShell({ page, context }: { page: AdminPage; context?: AdminRen
       <style>{responsiveCss}</style>
       <div className="adminDslWorkbenchTopbar" style={{ display: "none", position: "sticky", top: 0, zIndex: 10, borderBottom: `1px solid ${color.rule}`, background: color.creamDeep, padding: "10px 14px", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}><span style={{ ...type.h2, fontSize: 24, lineHeight: 1 }}>S</span><span style={{ ...type.meta, color: color.softInk }}>{String(sidebar?.active || page.title)}</span></div>
-        <button type="button" aria-label="Open navigation" style={{ border: `1px solid ${color.rule}`, background: color.paper, borderRadius: radius.pill, padding: "7px 12px", ...type.meta }}>Menu</button>
+        <button type="button" aria-label="Open navigation" style={{ border: `1px solid ${color.rule}`, background: color.paper, borderRadius: radius.md, padding: "7px 12px", ...type.meta }}>Menu</button>
       </div>
       <aside className="adminDslWorkbenchSidebar" style={{ position: "fixed", inset: "0 auto 0 0", width: 190, borderRight: `1px solid ${color.rule}`, background: "rgba(248, 239, 222, 0.72)", padding: 18, display: "grid", gridTemplateRows: "auto 1fr auto", gap: 18 }}>
         <div style={{ ...type.h2, fontSize: 26, lineHeight: 1 }}>S</div>
@@ -627,7 +629,8 @@ const responsiveCss = `
     .adminDslTitle { font-size: clamp(28px, 9vw, 34px) !important; line-height: 0.98 !important; letter-spacing: -0.15px !important; }
     .adminDslSectionTitle { font-size: clamp(20px, 7vw, 24px) !important; line-height: 1.05 !important; }
     .adminDslActionButton { min-height: 44px !important; flex: 1 1 132px !important; justify-content: center !important; }
-    .adminDslActionButton[data-admin-dsl-action-placement="row"], .adminDslActionButton[data-admin-dsl-action-placement="panelFooter"] { min-height: 40px !important; }
+    .adminDslActionButton[data-admin-dsl-action-placement="row"], .adminDslActionButton[data-admin-dsl-action-placement="panelFooter"], .adminDslActionButton[data-admin-dsl-action-placement="formFooter"] { min-height: 40px !important; }
+    .adminDslActionButton[data-admin-dsl-action-placement="panelFooter"] { flex: 0 0 auto !important; justify-content: flex-start !important; }
     .adminDslSplitPane { grid-template-columns: 1fr !important; }
     .adminDslFilterPill { min-height: 44px !important; padding-inline: 14px !important; }
     .adminDslSaveBar { display: grid !important; grid-template-columns: 1fr !important; align-items: stretch !important; }

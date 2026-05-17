@@ -261,3 +261,10 @@ Step 9: Completed Phase 5 component-gap pass with actionable tabs/filter/search,
 - Improved badge contrast and mobile touch targets.
 - Migrated `pkg/admindsl/flows/services.flow.js` to `schemaVersion: 2` workbench primitives (`pageHeader`, `dashboardGrid`, `panel`, `resourceTable`).
 - Updated service flow tests for the v2 resource table shape and re-captured Storybook v2 screenshots.
+
+## 2026-05-17 — Service-list and button aesthetic refinement
+
+- Added current/target service-list and button-shape references to `various/aesthetic-reference/`.
+- Refined v2 table rendering so status cells read as inline colored text and row overflow actions are plain ellipsis controls.
+- Adjusted action button shapes away from full pills toward rounded rectangles, with softer form primary buttons and subtle row/footer actions.
+- Re-captured Storybook v2 screenshots after the aesthetic pass.

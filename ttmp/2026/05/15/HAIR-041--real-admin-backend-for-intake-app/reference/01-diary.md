@@ -2361,3 +2361,73 @@ It also migrated the small `/admin/services` Goja flow to `schemaVersion: 2` and
 
 ### Technical details
 - `/admin/services` now emits `schemaVersion: 2` through `PageBuilder.SchemaVersion(2)`.
+
+## Step 33: Refine service-list and button aesthetics from references
+
+This step applied a focused visual refinement pass to the Admin DSL v2 service table and button treatment. The user provided a current service-list screenshot, a cleaner target service-list screenshot, and a sheet button-shape reference. The main change was to reduce pill-heavy chrome: statuses now read as calmer inline text, row overflow actions are plain ellipsis controls, secondary footer/row actions behave like text links, and form primary actions use a softer rectangular button shape instead of the large black pill style.
+
+The result keeps strong black buttons only for explicit high-priority page actions, while routine row/table/footer controls match the cleaner admin table references more closely.
+
+### Prompt Context
+
+**User prompt (verbatim):** "/tmp/pi-clipboard-771a7810-7545-4d91-8122-c9f7aa02e0f8.png /tmp/pi-clipboard-cd4a1dff-ea9c-4c61-9818-a749abc1aee7.png
+
+improve the current (first image) service list (see second image)"
+
+**Assistant interpretation:** Compare the current service list against the cleaner target and reduce visual heaviness in the table/status/action treatment.
+
+**Inferred user intent:** The user wants the Admin DSL v2 tables to look like clean admin tables rather than a collection of pill badges and pill action buttons.
+
+**Commit (code):** pending — focused aesthetic refinement.
+
+### What I did
+- Copied new aesthetic references into `various/aesthetic-reference/`:
+  - `05-current-service-list-before-button-shape.png`
+  - `06-target-service-list-cleaner.png`
+  - `07-target-button-shapes-sheet.png`
+- Updated `web/src/admin-dsl/render.tsx`:
+  - `badge` table cells now render as inline status text instead of filled pill chips.
+  - overflow row actions render as plain ellipsis controls rather than circular icon buttons.
+  - general button radius changed toward rectangular rounded controls (`radius.md`) instead of full pills.
+  - `formFooter` primary actions use a softer cream rectangular button, matching the sheet reference better.
+  - secondary row/panel/form actions render as subtle text controls.
+  - mobile CSS preserves minimum tap targets while avoiding oversized pill styling for panel-footer actions.
+- Re-captured Storybook v2 screenshots without Storybook chrome.
+- Validated:
+  - `go test ./pkg/admindsl ./pkg/server -count=1`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand` — 50 tests passed.
+
+### Why
+- The clean references use table text, subtle row actions, and rectangular sheet buttons. The previous v2 pass was functional but still had too much pill chrome.
+- These changes make dense admin tables feel lighter and more operational.
+
+### What worked
+- The desktop target screenshot now shows service statuses as plain colored text and row actions as compact ellipses, much closer to the reference.
+- The action-priority change from the previous step made it straightforward to style only true primary actions strongly.
+
+### What didn't work
+- The first recapture attempt hit stale Storybook/Vite module state again and timed out waiting for `[data-admin-dsl-page]`.
+- Fix: restarted Storybook on port 6006 and reran the capture script successfully.
+
+### What I learned
+- A small distinction between `primary`, `formPrimary`, and `subtle` actions gives much better visual control than treating all `open`/`mutation` actions as primary.
+- Admin table status often reads better as text than as a badge; badges should be reserved for cases where the label needs high prominence.
+
+### What was tricky to build
+- The button shape change needed to avoid breaking mobile usability. The visual controls became calmer, but mobile CSS still enforces adequate action heights.
+
+### What warrants a second pair of eyes
+- Review whether status text should remain plain globally or be configurable per column (`display: text | badge`).
+- Review whether form primary buttons should use cream fill everywhere or only in sheets/drawers.
+
+### What should be done in the future
+- If this visual direction is accepted, encode it as the default v2 table/action style and keep badges as an explicit column option.
+
+### Code review instructions
+- Compare `various/aesthetic-reference/05-current-service-list-before-button-shape.png` and `06-target-service-list-cleaner.png` with `various/storybook-v2/admin-dsl-workbench-v2--target-desktop-desktop.png`.
+- Review `web/src/admin-dsl/render.tsx`, especially `renderActions` and `renderTableCell`.
+
+### Technical details
+- Storybook capture command reused:
+  - `node ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/04-capture-admin-dsl-v2-storybook.mjs`
