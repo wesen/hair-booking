@@ -3001,3 +3001,78 @@ Create  a detailed analysis / design / research report that is for a new intern,
 ### Technical details
 - Upload command:
   - `remarquee upload bundle ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/06-admin-dsl-compiler-architecture-research-report.md --name "HAIR 041 Admin DSL Compiler Architecture Research Report" --remote-dir "/ai/2026/05/17/HAIR-041" --toc-depth 2 --non-interactive 2>&1`
+
+## Step 41: Reframe the research around a UI DSL meta-spec compiler
+
+This step corrected the direction of the compiler research. The previous document framed the work as compiling Admin DSL programs. The user's clarified goal is one level higher: define a meta-language for specifying UI DSL vocabularies themselves, including shell types, node types, prop schemas, child rules, action types, action slots, action contexts, renderer contracts, and target generators.
+
+The new guide treats Admin DSL as the first case study rather than the center of the architecture. It explains how the same meta-spec compiler could define an information-dense Admin Workbench UI DSL and also a simpler customer-facing UI DSL, while generating Go, TypeScript, protobuf, docs, tests, builders, validators, Goja exports, and renderer scaffolding from one source of truth.
+
+### Prompt Context
+
+**User prompt (verbatim):** "perfect, now write a new full document. 
+
+Create  a detailed analysis / design / implementation guide that is for a new intern, explaining all the parts of the system needed to understand what it is, with prose paragraphs and bullet point sand pseudocode and diagrams and api references and file references. It should be very clear and technical. Store in the ticket and the nupload to remarkable."
+
+**Assistant interpretation:** Write a new, full intern-facing design and implementation guide that reflects the corrected meta-level UI DSL specification compiler framing, store it in the HAIR-041 ticket, and upload it to reMarkable.
+
+**Inferred user intent:** The user wants a durable handoff document that explains the reusable language-workbench layer above Admin DSL, especially how node/action/shell/context specifications generate backend/frontend/transport/rendering artifacts.
+
+**Commit (code):** pending — documentation only.
+
+### What I did
+- Created a new `design-doc` via `docmgr`:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/07-ui-dsl-meta-spec-compiler-implementation-guide.md`
+- Wrote a full implementation guide covering:
+  - the corrected goal: a meta-spec compiler for UI DSLs
+  - the distinction between meta-spec language, generated UI DSL, and target implementation languages
+  - shell types, node types, prop schemas, child rules, action types, action slots, action contexts, and renderer contracts
+  - Admin Workbench and Customer Flow examples
+  - backend-owned action execution hidden behind frontend-renderable action metadata
+  - compiler architecture and pseudocode
+  - Go, TypeScript, protobuf, renderer, docs, and test targets
+  - intern implementation plan and first assignment
+  - API/file references to the current Admin DSL implementation
+- Related the guide to relevant current backend, frontend, protobuf, runtime, builder, validation, renderer, action, and Storybook files.
+- Validated frontmatter successfully.
+- Uploaded the guide to reMarkable:
+  - `HAIR 041 UI DSL Meta Spec Compiler Guide.pdf`
+  - destination: `/ai/2026/05/17/HAIR-041`
+
+### Why
+- The user clarified that the desired system is not only an Admin DSL compiler. It is a reusable meta-spec/compiler for creating UI DSLs where nodes, shells, actions, slots, contexts, renderers, and backend action behavior are specified once and generated across targets.
+
+### What worked
+- `docmgr doc add` created the new design document with ticket metadata.
+- `docmgr doc relate` added focused related-file links.
+- `docmgr validate frontmatter` passed.
+- reMarkable upload succeeded with:
+  - `OK: uploaded HAIR 041 UI DSL Meta Spec Compiler Guide.pdf -> /ai/2026/05/17/HAIR-041`
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The correct architecture is a language-workbench layer for UI DSLs. Admin DSL is an instance generated or aligned by that layer, not the layer itself.
+- The key semantic primitive is the node action slot: action legality is defined by a node slot that allows specific action types under a specific context.
+
+### What was tricky to build
+- The document needed to be concrete without prematurely designing a full textual grammar. I resolved this by recommending a structured YAML/JSON first prototype, then a later textual syntax once the semantic model is proven.
+- It also needed to explain backend actions without exposing backend callbacks to the frontend. The guide describes semantic actions lowering to frontend metadata plus backend-owned opaque action IDs.
+
+### What warrants a second pair of eyes
+- Review whether the proposed first intern assignment is small enough.
+- Review whether the target strategy should start with TypeScript docs/contracts or Go validators/builders.
+- Review whether protobuf should stay as a stable envelope target or move toward fully typed node messages for this family of DSLs.
+
+### What should be done in the future
+- If this research proceeds, create an experiment directory and implement the structured `AdminWorkbench` meta-spec subset with docs and TypeScript generation first.
+
+### Code review instructions
+- Start with `design-doc/07-ui-dsl-meta-spec-compiler-implementation-guide.md`.
+- Compare it to `design-doc/06-admin-dsl-compiler-architecture-research-report.md`; the new guide supersedes the earlier framing for the meta-level direction.
+- Confirm the guide keeps production Admin DSL untouched and proposes an experiment-first path.
+
+### Technical details
+- Upload command:
+  - `remarquee upload bundle ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/07-ui-dsl-meta-spec-compiler-implementation-guide.md --name "HAIR 041 UI DSL Meta Spec Compiler Guide" --remote-dir "/ai/2026/05/17/HAIR-041" --toc-depth 2 --non-interactive 2>&1`

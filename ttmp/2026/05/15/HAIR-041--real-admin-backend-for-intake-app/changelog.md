@@ -348,3 +348,10 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Added `design-doc/06-admin-dsl-compiler-architecture-research-report.md`, a textbook-style research report that reframes Admin DSL grammar work as a real compiler architecture with typed ASTs, contextual action types, Core Admin IR, and target backends.
 - Related the report to the current Admin DSL Go runtime, builder, validation, Goja, protobuf, frontend schema, builder, renderer, action, backend bridge, and Storybook files.
 - Uploaded `HAIR 041 Admin DSL Compiler Architecture Research Report.pdf` to reMarkable at `/ai/2026/05/17/HAIR-041`.
+
+## 2026-05-17 — UI DSL meta-spec compiler implementation guide
+
+- Added `design-doc/07-ui-dsl-meta-spec-compiler-implementation-guide.md`, a corrected intern-facing design/implementation guide for a meta-level compiler that defines UI DSL vocabularies rather than only compiling Admin DSL pages.
+- The guide covers shell types, node types, prop schemas, child rules, action types, action slots, action contexts, renderer contracts, backend-owned action execution, and Go/TypeScript/protobuf/docs/test generation targets.
+- Related the guide to current Admin DSL backend, frontend, protobuf, renderer, action bridge, and Storybook files.
+- Uploaded `HAIR 041 UI DSL Meta Spec Compiler Guide.pdf` to reMarkable at `/ai/2026/05/17/HAIR-041`.
