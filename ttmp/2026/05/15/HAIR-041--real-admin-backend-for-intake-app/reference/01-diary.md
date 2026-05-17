@@ -2923,3 +2923,81 @@ This is exploratory work, not something we want to build, but rather explore. Wr
 ### Technical details
 - Upload command:
   - `remarquee upload bundle ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/05-admin-dsl-formal-grammar-and-compiler-exploration-guide.md --name "HAIR 041 Admin DSL Grammar Exploration Guide" --remote-dir "/ai/2026/05/17/HAIR-041" --toc-depth 2 --non-interactive 2>&1`
+
+## Step 40: Write and upload the real compiler architecture research report
+
+This step produced a second, more compiler-focused research report for Admin DSL. The prior grammar guide explored formal grammar and generation targets. This report reframes the topic around a real compiler architecture: concrete syntax, surface AST, typed AST, contextual action types, Core Admin IR, target lowering, React component props, JSON transport as one backend target, and a research prototype plan.
+
+The report explicitly incorporates the user's correction that the intermediate representation does not need to be target-aware JSON. Instead, it proposes a target-independent Core Admin IR and treats current JSON as one lowering target. It also emphasizes stronger typing of nodes and contextual actions so that table bulk actions, row actions, panel footer actions, page header actions, calendar cell actions, and form submit actions can all lower into generic runtime actions while remaining distinct in the source and typed AST.
+
+### Prompt Context
+
+**User prompt (verbatim):** "forget about 5., you can chose any intermediate representation you like.
+
+we want to apply a real compiler architecture to what we are trying to do.
+
+Create a new research report document in the ticket. And upload to remarkable.
+
+Create  a detailed analysis / design / research report that is for a new intern, explaining all the parts of the system needed to understand what it is, with prose paragraphs and bullet point sand pseudocode and diagrams and api references and file references. It should be very clear and technical. Store in the ticket and the nupload to remarkable."
+
+**Assistant interpretation:** Create a new research report, separate from the previous grammar guide, that explains how to apply real compiler architecture to Admin DSL and then upload it to reMarkable.
+
+**Inferred user intent:** The user wants a clearer research handoff centered on compiler phases, type checking, IR design, contextual action typing, and target lowering rather than only grammar/code generation.
+
+**Commit (code):** pending — documentation only.
+
+### What I did
+- Created a new design document with `docmgr doc add`:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/06-admin-dsl-compiler-architecture-research-report.md`
+- Wrote a textbook-style research report covering:
+  - current backend/frontend Admin DSL implementation
+  - current builder and renderer paths
+  - Admin DSL as a compiled language
+  - compiler layers: CST, surface AST, typed AST, Core Admin IR, target IRs
+  - strong node typing
+  - contextual action typing
+  - target lowerings to JSON, React component props, TS builder source, Go builder source, docs, and tests
+  - replacement strategy for the large renderer switch using ReactPlan/widget props
+  - pseudocode for parse/type-check/lower/emit phases
+  - implementation plan and research questions
+- Related the report to relevant backend, frontend, protobuf, runtime, builder, validation, renderer, and Storybook files.
+- Validated frontmatter successfully.
+- Uploaded the report to reMarkable:
+  - `HAIR 041 Admin DSL Compiler Architecture Research Report.pdf`
+  - destination: `/ai/2026/05/17/HAIR-041`
+
+### Why
+- The user clarified that the important direction is compiler architecture, not necessarily JSON as the central intermediate representation.
+- The report needed to explain how stronger node/action typing and target-independent IR can simplify validation and rendering while preserving the existing backend security model.
+
+### What worked
+- `docmgr validate frontmatter` passed.
+- reMarkable upload succeeded with:
+  - `OK: uploaded HAIR 041 Admin DSL Compiler Architecture Research Report.pdf -> /ai/2026/05/17/HAIR-041`
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The more precise architecture is: source grammar to typed AST, typed AST to Core Admin IR, Core Admin IR to target backends. JSON is one target, not the center of the compiler.
+- Contextual action typing is the key mechanism for restricting action validity areas while preserving generic runtime `ActionRef` dispatch.
+
+### What was tricky to build
+- The report needed to be exploratory but still concrete enough for an intern to begin a prototype. I framed the first experiment as a small subset compiler for `pageHeader`, `dashboardGrid`, `panel`, and `resourceTable`, including contextual actions and a JSON lowering target.
+
+### What warrants a second pair of eyes
+- Review whether the proposed Core Admin IR is small enough and not too React-shaped.
+- Review whether the first experiment should start in TypeScript or Go.
+- Review whether contextual action typing should preserve extra context in JSON metadata or erase it after lowering to runtime placement strings.
+
+### What should be done in the future
+- If research proceeds, create a read-only experiment directory and start with a typed AST/Core IR subset plus JSON lowering and generated documentation.
+
+### Code review instructions
+- Read `design-doc/06-admin-dsl-compiler-architecture-research-report.md`.
+- Compare its architecture against the previous `design-doc/05-admin-dsl-formal-grammar-and-compiler-exploration-guide.md`; the new document should be treated as the more current framing.
+- Confirm it remains exploratory and does not imply immediate production replacement.
+
+### Technical details
+- Upload command:
+  - `remarquee upload bundle ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/06-admin-dsl-compiler-architecture-research-report.md --name "HAIR 041 Admin DSL Compiler Architecture Research Report" --remote-dir "/ai/2026/05/17/HAIR-041" --toc-depth 2 --non-interactive 2>&1`

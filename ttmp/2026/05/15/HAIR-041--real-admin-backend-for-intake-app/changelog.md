@@ -342,3 +342,9 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Added `design-doc/05-admin-dsl-formal-grammar-and-compiler-exploration-guide.md`, a textbook-style exploratory research guide for formal Admin DSL grammar, AST, and compiler/code-generation approaches.
 - Related the guide to the current Admin DSL Go types/builders/validation/runtime, protobuf transport, server handlers, frontend schema/builders/client/renderer, and Storybook workbench files.
 - Uploaded `HAIR 041 Admin DSL Grammar Exploration Guide.pdf` to reMarkable at `/ai/2026/05/17/HAIR-041`.
+
+## 2026-05-17 — Admin DSL compiler architecture research report
+
+- Added `design-doc/06-admin-dsl-compiler-architecture-research-report.md`, a textbook-style research report that reframes Admin DSL grammar work as a real compiler architecture with typed ASTs, contextual action types, Core Admin IR, and target backends.
+- Related the report to the current Admin DSL Go runtime, builder, validation, Goja, protobuf, frontend schema, builder, renderer, action, backend bridge, and Storybook files.
+- Uploaded `HAIR 041 Admin DSL Compiler Architecture Research Report.pdf` to reMarkable at `/ai/2026/05/17/HAIR-041`.
