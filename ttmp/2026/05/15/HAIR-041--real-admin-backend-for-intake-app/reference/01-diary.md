@@ -4315,3 +4315,124 @@ The playbook now recommends targeted `--force` regeneration for scaffold-only wi
 
 ### Technical details
 - This step changes documentation only.
+
+## Step 63: Refresh ActionButton and ActionGroup scaffolds from schema-v2 YAML
+
+This step follows the updated regeneration guidance before hand-writing action widget implementations. `04-action-widgets.yaml` was already schema v2, but the existing generated files for `ActionButton` and `ActionGroup` were stale relative to the generator's metadata-sidecar support.
+
+I ran a targeted dry run and then regenerated only `ActionButton` and `ActionGroup`, avoiding any broad regeneration over hand-promoted shell widgets.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 62)
+
+**Assistant interpretation:** Regenerate action widget scaffolds from schema-v2 YAML before implementing them.
+
+**Inferred user intent:** Start the action-widget extraction from current generated output and commit that generated refresh separately.
+
+**Commit (code):** e4a9d9e — "HAIR-041 Step 63: Refresh action widget scaffolds"
+
+### What I did
+- Ran targeted generator dry run for `ActionButton` and `ActionGroup`.
+- Ran targeted `--force` regeneration for:
+  - `web/src/admin-dsl/widgets/atoms/ActionButton/`
+  - `web/src/admin-dsl/widgets/molecules/ActionGroup/`
+  - shared widget types refreshed by the generator.
+- Generated metadata sidecars:
+  - `ActionButton.metadata.ts`
+  - `ActionGroup.metadata.ts`
+- Validated with `cd web && npx tsc --noEmit`.
+
+### Why
+- Stale scaffold files lacked the new metadata-sidecar structure. Refreshing first separated generated changes from hand implementation.
+
+### What worked
+- TypeScript validation passed after regeneration.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Targeted regeneration is the right default when a category contains untouched scaffolds but other categories already contain hand-promoted widgets.
+
+### What was tricky to build
+- The generator also refreshed shared widget types. This was included in the generated-refresh commit because the action widgets import from shared types.
+
+### What warrants a second pair of eyes
+- Review generated shared types if future widget regeneration changes them frequently; a manifest or lockfile may make this easier to audit.
+
+### What should be done in the future
+- Add a stale-generated-file detector so this regeneration decision is automatic.
+
+### Code review instructions
+- Review commit e4a9d9e as generated output only before reviewing implementation commit e45be0a.
+
+### Technical details
+- The dry run initially showed metadata files would be new outputs.
+
+## Step 64: Implement ActionButton and ActionGroup widgets
+
+This step promotes the core action widgets from scaffolds into real components and changes `render.tsx` so `renderActions(...)` becomes an adapter around `ActionGroup`. This is the first non-shell widget extraction and it is an important dependency for later `Panel`, `PageHeader`, `ResourceTable`, form, and surface work.
+
+`ActionButton` now owns the actual button element styling and behavior that previously lived in `renderActions`. `ActionGroup` owns slot-level spacing, wrapping, alignment, and composition of repeated action buttons. `render.tsx` still owns Admin DSL JSON parsing and lowers callbacks to `dispatchAdminAction`.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 62)
+
+**Assistant interpretation:** After regenerating current scaffolds, implement the action widgets and update the renderer according to the playbook.
+
+**Inferred user intent:** Make action rendering reusable before extracting other widgets that depend on actions.
+
+**Commit (code):** e45be0a — "HAIR-041 Step 64: Implement action widgets"
+
+### What I did
+- Replaced `ActionButton.tsx` scaffold diagnostics with a real button implementation:
+  - primary, danger, subtle, overflow, disabled, loading, and touch-target styling;
+  - accessibility labels and `aria-busy`;
+  - data attributes for intent, priority, placement, and confirmation;
+  - form value collection when the button is inside a form.
+- Replaced `ActionGroup.tsx` scaffold diagnostics with a real group implementation that composes `ActionButton`.
+- Updated `render.tsx` so `renderActions(...)` maps `AdminActionRef` values to `ActionViewModel` and delegates display to `ActionGroup`.
+- Preserved backend dispatch boundary: widgets emit `onAction`; `render.tsx` calls `dispatchAdminAction`.
+- Hardened Storybook stories for both widgets with distinct fixtures and callback probes.
+- Validated with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+  - `cd web && npx storybook build --quiet`
+- Related action widget files to the playbook with `docmgr doc relate`.
+
+### Why
+- Most remaining widgets need action rendering. Extracting action primitives first reduces repeated styling and prepares `Panel`, `PageHeader`, `ResourceTable`, forms, and surfaces to delegate actions consistently.
+
+### What worked
+- TypeScript validation passed.
+- Vitest passed: 10 files, 49 tests.
+- Storybook static build passed.
+
+### What didn't work
+- First Storybook TypeScript pass failed because `String.prototype.replaceAll` is not available under the current TS lib target. I replaced it with `replace(/\s+/g, "-")`.
+- First callback-probe story types used `ActionButtonProps<Record<string, unknown>>` / `ActionGroupProps<Record<string, unknown>>`, but Storybook args were inferred with `unknown` context. I relaxed the probes to use the default prop generic.
+
+### What I learned
+- Action extraction has to preserve form submit behavior. The old renderer used `event.currentTarget.form` inside the button click handler; the new `ActionButton` now collects form values when present and passes them through the callback context.
+
+### What was tricky to build
+- `ActionGroup` should apply slot-level defaults without overriding action-level semantics. I avoided forcing `formFooter` to subtle styling so primary form footer actions can still receive their softer primary treatment.
+- The widget types use generic context, but Storybook arg inference defaults to `unknown`, so stories should avoid over-constraining probe generics.
+
+### What warrants a second pair of eyes
+- Review visual parity for form footer primary actions, row actions, and bulk toolbar actions against recent screenshots.
+- Review whether `ActionButton` should expose a separate `formValues` callback context type rather than using the generic context payload when inside a form.
+
+### What should be done in the future
+- Use `ActionGroup` in `Panel`, `PageHeader`, and `ResourceTable` extractions.
+- Consider extracting action variant inference into a small testable helper if action styling grows more complex.
+
+### Code review instructions
+- Review generated refresh commit e4a9d9e first, then implementation commit e45be0a.
+- Start with `ActionButton.tsx`, then `ActionGroup.tsx`, then `renderActions(...)` in `render.tsx`.
+- Verify stories show primary, danger, subtle, overflow, mobile touch, wrapping, and callback contexts.
+
+### Technical details
+- Storybook build still emits the usual large-chunk warning; it does not fail the build.

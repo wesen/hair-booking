@@ -449,3 +449,11 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 
 - Updated the widget implementation playbook to distinguish schema-v2 YAML migration from stale generated scaffold files.
 - Added guidance for targeted regeneration of scaffold-only widgets before hand implementation, using ActionButton and ActionGroup as examples.
+
+## 2026-05-18 — Regenerate and implement action widgets
+
+- Target-regenerated `ActionButton` and `ActionGroup` from schema-v2 `04-action-widgets.yaml`, including metadata sidecars.
+- Promoted `ActionButton` and `ActionGroup` from scaffold diagnostics to real action-rendering widgets.
+- Updated `render.tsx` so `renderActions(...)` delegates visual rendering to `ActionGroup` while keeping backend dispatch in the renderer adapter.
+- Hardened ActionButton and ActionGroup stories with distinct action states, mobile/wrapping scenarios, and callback probes.
+- Validated with `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet`.

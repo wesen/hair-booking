@@ -26,6 +26,15 @@ RelatedFiles:
         Current renderer adapter and source of existing inline widget implementations
         Renderer adapter and source of existing inline widget implementations
         DefaultAdminShell renderer adapter after Step 60
+        ActionGroup renderer adapter after Step 64
+    - Path: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.stories.tsx
+      Note: Hardened ActionButton Storybook variants
+    - Path: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.tsx
+      Note: Action button implementation promoted from scaffold
+    - Path: web/src/admin-dsl/widgets/molecules/ActionGroup/ActionGroup.stories.tsx
+      Note: Hardened ActionGroup Storybook variants
+    - Path: web/src/admin-dsl/widgets/molecules/ActionGroup/ActionGroup.tsx
+      Note: Action group implementation composing ActionButton
     - Path: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.metadata.ts
       Note: Default shell metadata sidecar preserving IR intent
     - Path: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.stories.tsx
@@ -44,6 +53,7 @@ LastUpdated: 2026-05-18T23:20:00-04:00
 WhatFor: Use when promoting generated Admin DSL widget scaffolds into real React components while preserving adapter boundaries and metadata context.
 WhenToUse: Use before implementing ActionButton, ActionGroup, Panel, PageHeader, DashboardGrid, ResourceTable, AdminForm, MonthCalendar, or any other Admin DSL widget from YAML.
 ---
+
 
 
 
