@@ -4,6 +4,7 @@ import { color, font, radius, shadow, type } from "../fringe-ui/tokens";
 import { AdminCalendarWeek } from "./calendar";
 import { WorkbenchShell as WorkbenchShellWidget } from "./widgets/organisms/WorkbenchShell";
 import { DefaultAdminShell } from "./widgets/organisms/DefaultAdminShell";
+import { ActionGroup } from "./widgets/molecules/ActionGroup";
 import type { ActionViewModel, SidebarNavItem } from "./widgets/shared";
 
 import { actionIsDanger, actionIsPrimary, actionKey, actionList, dispatchAdminAction, isActionRef } from "./actions";
@@ -11,50 +12,17 @@ import { bool, dataAttrs, jsonArray, jsonObject, nodeKey, str, style, toneColor 
 
 function renderActions(node: AdminNode, ctx: AdminRenderContext | undefined, actions: AdminActionRef[] = actionList(node.props)) {
   if (!actions.length) return null;
+  const slot = (actions.find((actionRef) => actionRef.placement)?.placement || "toolbar") as Parameters<typeof ActionGroup>[0]["slot"];
   return (
-    <div className="adminDslActions" style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
-      {actions.map((actionRef, i) => {
-        const primary = actionIsPrimary(actionRef);
-        const danger = actionIsDanger(actionRef);
-        const formPrimary = primary && actionRef.placement === "formFooter";
-        const strongPrimary = primary && !formPrimary;
-        const subtle = !primary && !danger && (actionRef.presentation === "link" || actionRef.placement === "row" || actionRef.placement === "panelFooter" || actionRef.placement === "rowOverflow" || actionRef.placement === "formFooter");
-        return (
-        <button
-          key={actionKey(actionRef, i)}
-          className="adminDslActionButton"
-          type="button"
-          disabled={actionRef.disabled || actionRef.loading}
-          aria-label={actionRef.accessibilityLabel || actionRef.label || actionRef.target}
-          aria-busy={actionRef.loading || undefined}
-          data-admin-dsl-action-intent={actionRef.intent}
-          data-admin-dsl-action-priority={actionRef.priority}
-          data-admin-dsl-action-placement={actionRef.placement}
-          data-admin-dsl-action-confirm={actionRef.requiresConfirmation || undefined}
-          onClick={(event) => {
-            const value = node.kind === "form" && event.currentTarget.form ? Object.fromEntries(new FormData(event.currentTarget.form).entries()) : undefined;
-            dispatchAdminAction(ctx, node, actionRef, value);
-          }}
-          style={{ minHeight: subtle ? 32 : 38,
-            border: subtle ? "1px solid transparent" : `1px solid ${danger ? color.danger : strongPrimary ? color.ink : color.rule}`,
-            background: actionRef.disabled ? color.ruleSoft : subtle ? "transparent" : strongPrimary ? color.ink : formPrimary ? color.cream : color.paper,
-            color: actionRef.disabled ? color.soft : strongPrimary ? color.paper : danger ? color.danger : subtle ? color.plum : color.ink,
-            borderRadius: radius.md,
-            padding: subtle ? "6px 8px" : formPrimary ? "9px 16px" : "8px 12px",
-            fontFamily: subtle ? font.sans : font.mono,
-            fontSize: subtle ? 13 : 11,
-            letterSpacing: subtle ? 0 : 0.6,
-            textTransform: subtle ? "none" : "uppercase",
-            cursor: actionRef.disabled || actionRef.loading ? "not-allowed" : "pointer",
-            opacity: actionRef.loading ? 0.72 : 1,
-            boxShadow: strongPrimary ? shadow.sm : "none",
-          }}
-        >
-          {actionRef.loading ? "Working…" : actionRef.label || actionRef.target}{subtle && actionRef.placement !== "panelFooter" && <span aria-hidden="true"> →</span>}
-        </button>
-        );
-      })}
-    </div>
+    <ActionGroup
+      actions={actions.map(actionViewModel)}
+      slot={slot}
+      context={undefined}
+      onAction={(action, value) => {
+        const actionRef = action as AdminActionRef;
+        dispatchAdminAction(ctx, node, actionRef, value);
+      }}
+    />
   );
 }
 

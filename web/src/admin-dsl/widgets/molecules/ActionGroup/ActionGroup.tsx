@@ -5,65 +5,80 @@
  * Generated at: 2026-05-18T22:42:09+00:00
  * Source YAML: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/04-action-widgets.yaml
  * Source YAML last commit: e555038 2026-05-18T17:11:02-04:00 HAIR-041 Step 48: Fill widget IR YAML intent
- * Target file previous commit: baf8866 2026-05-18T17:21:36-04:00 HAIR-041 Step 50: Regenerate widget scaffolds from schema v2
+ * Target file previous commit: e4a9d9e 2026-05-18 HAIR-041 Step 63: Refresh action widget scaffolds
  * Widget ID: admin.action.action-group
  *
- * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
- * JSON decoding in adapters; generated widgets should receive typed props only.
+ * This file started as generated schema-v2 scaffold output. The implementation
+ * below composes ActionButton and replaces the renderActions wrapper in
+ * web/src/admin-dsl/render.tsx with a typed action-slot component.
  */
-import type * as React from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties } from "react";
+import { ActionButton } from "../../atoms/ActionButton";
 import { actionGroupWidgetMetadata } from "./ActionGroup.metadata";
 import type { ActionGroupProps } from "./ActionGroup.types";
 
-/**
- * Scaffold for `ActionGroup`.
- *
- * Purpose: Render a list of actions with consistent spacing, wrapping, and slot-specific visual treatment.
- *
- * Adapter boundary: Adapters should choose slot names such as pageHeader or bulkToolbar; the widget chooses spacing and presentation defaults for that slot.
- */
-export function ActionGroup(props: ActionGroupProps) {
-  const scaffoldProps = props as ActionGroupProps & {
-    id?: string;
-    className?: string;
-    style?: React.CSSProperties;
-    dataAttributes?: Record<string, string | number | boolean>;
-    children?: ReactNode;
-    main?: ReactNode;
-    title?: string;
-    label?: string;
-    name?: string;
-    value?: unknown;
-  };
-  const heading = scaffoldProps.title || scaffoldProps.label || scaffoldProps.name || "ActionGroup";
-  const dataAttributes = Object.fromEntries(
-    Object.entries(scaffoldProps.dataAttributes ?? {}).map(([key, value]) => [`data-${key}`, String(value)]),
+function justifyForAlign(align: ActionGroupProps["align"]): CSSProperties["justifyContent"] {
+  if (align === "end") return "flex-end";
+  if (align === "between") return "space-between";
+  return "flex-start";
+}
+
+function sizeForSlot(slot: ActionGroupProps["slot"]): "sm" | "md" | "touch" {
+  if (slot === "row" || slot === "rowOverflow" || slot === "panelFooter" || slot === "formFooter") return "sm";
+  if (slot === "sidebarNav" || slot === "bulkToolbar") return "touch";
+  return "md";
+}
+
+function variantForSlot(slot: ActionGroupProps["slot"]): "solid" | "soft" | "subtle" | "danger" | "overflow" | undefined {
+  if (slot === "rowOverflow" || slot === "overflow") return "overflow";
+  if (slot === "row" || slot === "panelFooter" || slot === "detail") return "subtle";
+  return undefined;
+}
+
+export function ActionGroup<C = unknown>({
+  id,
+  className,
+  style,
+  dataAttributes,
+  actions,
+  context,
+  slot,
+  align = "start",
+  onAction,
+}: ActionGroupProps<C>) {
+  if (!actions.length) return null;
+  const dataAttrs = Object.fromEntries(
+    Object.entries(dataAttributes ?? {}).map(([key, value]) => [`data-${key}`, String(value)]),
   ) as Record<string, string>;
+  const variant = variantForSlot(slot);
+  const size = sizeForSlot(slot);
 
   return (
-    <section
-      id={scaffoldProps.id}
-      className={scaffoldProps.className}
-      data-admin-dsl-widget="ActionGroup"
+    <div
+      id={id}
+      className={["adminDslActions", className].filter(Boolean).join(" ") || undefined}
       data-admin-dsl-widget-id={actionGroupWidgetMetadata.widgetId}
-      data-admin-dsl-widget-level="molecule"
-      style={scaffoldProps.style}
-      {...dataAttributes}
+      data-admin-dsl-action-slot={slot}
+      style={{
+        display: "flex",
+        gap: slot === "row" || slot === "rowOverflow" ? 6 : 8,
+        flexWrap: "wrap",
+        alignItems: "center",
+        justifyContent: justifyForAlign(align),
+        ...style,
+      }}
+      {...dataAttrs}
     >
-      <div style={{ border: "1px solid #dfd2bd", borderRadius: 12, padding: 12, background: "#fffaf0" }}>
-        <strong>{heading}</strong>
-        <p style={{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}>{actionGroupWidgetMetadata.purpose}</p>
-        {actionGroupWidgetMetadata.adapterBoundary ? (
-          <p style={{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}>Adapter: {actionGroupWidgetMetadata.adapterBoundary}</p>
-        ) : null}
-        <details style={{ marginTop: 10, fontSize: 12, color: "#6f6254" }}>
-          <summary>Widget IR metadata</summary>
-          <pre style={{ whiteSpace: "pre-wrap", margin: "8px 0 0" }}>{JSON.stringify(actionGroupWidgetMetadata, null, 2)}</pre>
-        </details>
-      </div>
-      {scaffoldProps.children ? <div style={{ marginTop: 12 }}>{scaffoldProps.children}</div> : null}
-      {scaffoldProps.main ? <div style={{ marginTop: 12 }}>{scaffoldProps.main}</div> : null}
-    </section>
+      {actions.map((action, index) => (
+        <ActionButton
+          key={action.id || `${action.type}:${action.target}:${index}`}
+          action={action}
+          context={context as C}
+          variant={variant}
+          size={size}
+          onAction={onAction}
+        />
+      ))}
+    </div>
   );
 }

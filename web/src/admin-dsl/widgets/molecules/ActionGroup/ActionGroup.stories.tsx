@@ -5,20 +5,46 @@
  * Generated at: 2026-05-18T22:42:09+00:00
  * Source YAML: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/04-action-widgets.yaml
  * Source YAML last commit: e555038 2026-05-18T17:11:02-04:00 HAIR-041 Step 48: Fill widget IR YAML intent
- * Target file previous commit: baf8866 2026-05-18T17:21:36-04:00 HAIR-041 Step 50: Regenerate widget scaffolds from schema v2
+ * Target file previous commit: e4a9d9e 2026-05-18 HAIR-041 Step 63: Refresh action widget scaffolds
  * Widget ID: admin.action.action-group
- *
- * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
- * JSON decoding in adapters; generated widgets should receive typed props only.
  */
+import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { ActionGroup } from "./ActionGroup";
 import type { ActionGroupProps } from "./ActionGroup.types";
+import type { ActionViewModel } from "../../shared";
+
+const action = (label: string, extra: Partial<ActionViewModel> = {}): ActionViewModel => ({
+  type: "mutation",
+  target: `story.${label.toLowerCase().replace(/\s+/g, "-")}`,
+  label,
+  ...extra,
+});
+
+const standardActions = [
+  action("Preview"),
+  action("Publish", { priority: "primary", intent: "primary" }),
+  action("Archive", { intent: "danger", requiresConfirmation: true }),
+];
+
+function DispatchProbe(args: ActionGroupProps) {
+  const [last, setLast] = useState("No action clicked yet.");
+  return (
+    <div style={{ display: "grid", gap: 12 }}>
+      <ActionGroup
+        {...args}
+        context={{ tableId: "requests", rowId: "req_1" }}
+        onAction={(nextAction, context) => setLast(`${nextAction.label} -> ${nextAction.target}; context=${JSON.stringify(context)}`)}
+      />
+      <output style={{ border: "1px solid #dfd2bd", borderRadius: 10, padding: 10, background: "#fffaf0" }}>{last}</output>
+    </div>
+  );
+}
 
 const defaultArgs = {
   slot: "toolbar",
-  actions: [{ type: "mutation", target: "scaffold.action", label: "Run action" }],
-} as unknown as ActionGroupProps;
+  actions: standardActions,
+} satisfies ActionGroupProps;
 
 const meta = {
   title: "Admin DSL Widgets/Molecules/ActionGroup",
@@ -27,7 +53,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: "Render a list of actions with consistent spacing, wrapping, and slot-specific visual treatment.",
+        component: "Slot-aware action group that composes ActionButton and emits typed action callbacks without dispatching backend actions directly.",
       },
     },
   },
@@ -37,149 +63,43 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const PageHeaderActions: Story = {
-  name: "PageHeaderActions",
-  parameters: { docs: { description: { story: "Tests the PageHeaderActions scenario for ActionGroup with representative fixtures and assertions." } } },
-  args: {
-    ...defaultArgs,
-  },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <ActionGroup {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "scenario": "pageHeaderActions"
-}, asserts: [
-  "ActionGroup renders the PageHeaderActions scenario without layout breakage.",
-  "The relevant semantic state is visible to users and test selectors."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  args: { slot: "pageHeader", align: "end", actions: standardActions },
 };
+
 export const PanelFooterActions: Story = {
-  name: "PanelFooterActions",
-  parameters: { docs: { description: { story: "Tests the PanelFooterActions scenario for ActionGroup with representative fixtures and assertions." } } },
-  args: {
-    ...defaultArgs,
-  },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <ActionGroup {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "scenario": "panelFooterActions"
-}, asserts: [
-  "ActionGroup renders the PanelFooterActions scenario without layout breakage.",
-  "The relevant semantic state is visible to users and test selectors."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  args: { slot: "panelFooter", actions: [action("Cancel", { placement: "panelFooter" }), action("Save", { priority: "primary", placement: "panelFooter" })] },
 };
+
 export const RowActions: Story = {
-  name: "RowActions",
-  parameters: { docs: { description: { story: "Tests row-scoped actions in ActionGroup." } } },
-  args: {
-    ...defaultArgs,
-  },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <ActionGroup {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "scenario": "rowActions"
-}, asserts: [
-  "ActionGroup renders the RowActions scenario without layout breakage.",
-  "The relevant semantic state is visible to users and test selectors."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  args: { slot: "row", actions: [action("Open", { placement: "row", presentation: "link" }), action("Assign", { placement: "row" })] },
 };
+
 export const BulkToolbarActions: Story = {
-  name: "BulkToolbarActions",
-  parameters: { docs: { description: { story: "Tests the BulkToolbarActions scenario for ActionGroup with representative fixtures and assertions." } } },
-  args: {
-    ...defaultArgs,
-  },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <ActionGroup {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "scenario": "bulkToolbarActions"
-}, asserts: [
-  "ActionGroup renders the BulkToolbarActions scenario without layout breakage.",
-  "The relevant semantic state is visible to users and test selectors."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  args: { slot: "bulkToolbar", actions: [action("Assign", { placement: "bulkToolbar" }), action("Archive", { placement: "bulkToolbar", intent: "danger" })] },
 };
+
 export const FormFooterActions: Story = {
-  name: "FormFooterActions",
-  parameters: { docs: { description: { story: "Tests the FormFooterActions scenario for ActionGroup with representative fixtures and assertions." } } },
-  args: {
-    ...defaultArgs,
-  },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <ActionGroup {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "scenario": "formFooterActions"
-}, asserts: [
-  "ActionGroup renders the FormFooterActions scenario without layout breakage.",
-  "The relevant semantic state is visible to users and test selectors."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  args: { slot: "formFooter", actions: [action("Discard", { placement: "formFooter" }), action("Save changes", { placement: "formFooter", priority: "primary" })] },
 };
+
 export const OverflowActions: Story = {
-  name: "OverflowActions",
-  parameters: { docs: { description: { story: "Tests compact overflow action presentation in ActionGroup." } } },
-  args: {
-    ...defaultArgs,
-  },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <ActionGroup {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "scenario": "overflowActions"
-}, asserts: [
-  "ActionGroup renders the OverflowActions scenario without layout breakage.",
-  "The relevant semantic state is visible to users and test selectors."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  args: { slot: "rowOverflow", actions: [action("More", { placement: "rowOverflow", presentation: "overflow" })] },
 };
+
 export const WrappingMobile: Story = {
-  name: "WrappingMobile",
-  parameters: { docs: { description: { story: "Tests narrow-width wrapping behavior for ActionGroup." } } },
+  parameters: { viewport: { defaultViewport: "iphone12" } },
   args: {
-    ...defaultArgs,
+    slot: "toolbar",
+    actions: [
+      action("Preview"),
+      action("Create draft", { priority: "primary" }),
+      action("Publish now", { priority: "primary" }),
+      action("Archive", { intent: "danger" }),
+    ],
   },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <ActionGroup {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "scenario": "wrappingMobile"
-}, asserts: [
-  "ActionGroup renders the WrappingMobile scenario without layout breakage.",
-  "The relevant semantic state is visible to users and test selectors."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+};
+
+export const DispatchContext: Story = {
+  render: (args) => <DispatchProbe {...args} />,
+  args: { slot: "row", actions: [action("Open", { placement: "row" }), action("Assign", { placement: "row" })] },
 };

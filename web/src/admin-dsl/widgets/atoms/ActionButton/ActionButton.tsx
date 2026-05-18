@@ -5,65 +5,114 @@
  * Generated at: 2026-05-18T22:42:09+00:00
  * Source YAML: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/04-action-widgets.yaml
  * Source YAML last commit: e555038 2026-05-18T17:11:02-04:00 HAIR-041 Step 48: Fill widget IR YAML intent
- * Target file previous commit: baf8866 2026-05-18T17:21:36-04:00 HAIR-041 Step 50: Regenerate widget scaffolds from schema v2
+ * Target file previous commit: e4a9d9e 2026-05-18 HAIR-041 Step 63: Refresh action widget scaffolds
  * Widget ID: admin.action.action-button
  *
- * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
- * JSON decoding in adapters; generated widgets should receive typed props only.
+ * This file started as generated schema-v2 scaffold output. The visual button
+ * implementation below was extracted from renderActions in web/src/admin-dsl/render.tsx
+ * so action styling can be shared by renderer adapters and standalone widgets.
  */
-import type * as React from "react";
-import type { ReactNode } from "react";
+import type { CSSProperties } from "react";
 import { actionButtonWidgetMetadata } from "./ActionButton.metadata";
 import type { ActionButtonProps } from "./ActionButton.types";
+import { color, font, radius, shadow } from "../../../../fringe-ui/tokens";
 
-/**
- * Scaffold for `ActionButton`.
- *
- * Purpose: Render one action with consistent disabled, loading, primary, danger, subtle, and placement-aware styling.
- *
- * Adapter boundary: The widget receives an ActionViewModel and context. It should not know AdminNode or dispatchAdminAction directly.
- */
-export function ActionButton(props: ActionButtonProps) {
-  const scaffoldProps = props as ActionButtonProps & {
-    id?: string;
-    className?: string;
-    style?: React.CSSProperties;
-    dataAttributes?: Record<string, string | number | boolean>;
-    children?: ReactNode;
-    main?: ReactNode;
-    title?: string;
-    label?: string;
-    name?: string;
-    value?: unknown;
+function actionString(action: { [key: string]: unknown }, key: string): string | undefined {
+  const value = action[key];
+  return typeof value === "string" ? value : undefined;
+}
+
+function actionBool(action: { [key: string]: unknown }, key: string): boolean {
+  return action[key] === true;
+}
+
+function inferVariant(action: { [key: string]: unknown }, explicit: ActionButtonProps["variant"]): NonNullable<ActionButtonProps["variant"]> {
+  if (explicit) return explicit;
+  if (actionString(action, "intent") === "danger") return "danger";
+  if (actionString(action, "priority") === "primary" || actionString(action, "intent") === "primary") return "solid";
+  const placement = actionString(action, "placement");
+  const presentation = actionString(action, "presentation");
+  if (presentation === "overflow" || placement === "rowOverflow") return "overflow";
+  if (presentation === "link" || placement === "row" || placement === "panelFooter" || placement === "formFooter") return "subtle";
+  return "soft";
+}
+
+function buttonStyle(variant: NonNullable<ActionButtonProps["variant"]>, size: ActionButtonProps["size"], disabled: boolean, loading: boolean, placement?: string): CSSProperties {
+  const touch = size === "touch";
+  const compact = size === "sm";
+  const subtle = variant === "subtle" || variant === "overflow";
+  const formPrimary = variant === "solid" && placement === "formFooter";
+  const solid = variant === "solid" && !formPrimary;
+  const danger = variant === "danger";
+
+  return {
+    minHeight: touch ? 44 : subtle ? 32 : compact ? 34 : 38,
+    minWidth: variant === "overflow" ? 32 : undefined,
+    border: subtle ? "1px solid transparent" : `1px solid ${danger ? color.danger : solid ? color.ink : color.rule}`,
+    background: disabled ? color.ruleSoft : subtle ? "transparent" : solid ? color.ink : formPrimary ? color.cream : color.paper,
+    color: disabled ? color.soft : solid ? color.paper : danger ? color.danger : subtle ? color.plum : color.ink,
+    borderRadius: radius.md,
+    padding: variant === "overflow" ? "6px 8px" : subtle ? "6px 8px" : compact ? "7px 10px" : "8px 12px",
+    fontFamily: subtle ? font.sans : font.mono,
+    fontSize: subtle ? 13 : 11,
+    letterSpacing: subtle ? 0 : 0.6,
+    textTransform: subtle ? "none" : "uppercase",
+    cursor: disabled || loading ? "not-allowed" : "pointer",
+    opacity: loading ? 0.72 : 1,
+    boxShadow: solid ? shadow.sm : "none",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+    lineHeight: 1.15,
+    fontWeight: subtle ? 500 : 700,
   };
-  const heading = scaffoldProps.title || scaffoldProps.label || scaffoldProps.name || "ActionButton";
-  const dataAttributes = Object.fromEntries(
-    Object.entries(scaffoldProps.dataAttributes ?? {}).map(([key, value]) => [`data-${key}`, String(value)]),
+}
+
+export function ActionButton<C = unknown>({
+  id,
+  className,
+  style,
+  dataAttributes,
+  action,
+  context,
+  variant: explicitVariant,
+  size = "md",
+  onAction,
+}: ActionButtonProps<C>) {
+  const actionRecord = action as { [key: string]: unknown };
+  const disabled = Boolean(action.disabled) || actionBool(actionRecord, "disabled");
+  const loading = Boolean(action.loading) || actionBool(actionRecord, "loading");
+  const placement = actionString(actionRecord, "placement");
+  const variant = inferVariant(actionRecord, explicitVariant);
+  const label = loading ? "Working…" : action.label || action.target;
+  const dataAttrs = Object.fromEntries(
+    Object.entries(dataAttributes ?? {}).map(([key, value]) => [`data-${key}`, String(value)]),
   ) as Record<string, string>;
 
   return (
-    <section
-      id={scaffoldProps.id}
-      className={scaffoldProps.className}
-      data-admin-dsl-widget="ActionButton"
+    <button
+      id={id}
+      type="button"
+      className={["adminDslActionButton", className].filter(Boolean).join(" ") || undefined}
+      disabled={disabled || loading}
+      aria-label={action.accessibilityLabel || action.label || action.target}
+      aria-busy={loading || undefined}
       data-admin-dsl-widget-id={actionButtonWidgetMetadata.widgetId}
-      data-admin-dsl-widget-level="atom"
-      style={scaffoldProps.style}
-      {...dataAttributes}
+      data-admin-dsl-action-intent={actionString(actionRecord, "intent")}
+      data-admin-dsl-action-priority={actionString(actionRecord, "priority")}
+      data-admin-dsl-action-placement={placement}
+      data-admin-dsl-action-confirm={actionBool(actionRecord, "requiresConfirmation") || undefined}
+      onClick={(event) => {
+        if (disabled || loading) return;
+        const formValues = event.currentTarget.form ? Object.fromEntries(new FormData(event.currentTarget.form).entries()) : undefined;
+        onAction?.(action, (formValues ?? context) as C);
+      }}
+      style={{ ...buttonStyle(variant, size, disabled, loading, placement), ...style }}
+      {...dataAttrs}
     >
-      <div style={{ border: "1px solid #dfd2bd", borderRadius: 12, padding: 12, background: "#fffaf0" }}>
-        <strong>{heading}</strong>
-        <p style={{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}>{actionButtonWidgetMetadata.purpose}</p>
-        {actionButtonWidgetMetadata.adapterBoundary ? (
-          <p style={{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}>Adapter: {actionButtonWidgetMetadata.adapterBoundary}</p>
-        ) : null}
-        <details style={{ marginTop: 10, fontSize: 12, color: "#6f6254" }}>
-          <summary>Widget IR metadata</summary>
-          <pre style={{ whiteSpace: "pre-wrap", margin: "8px 0 0" }}>{JSON.stringify(actionButtonWidgetMetadata, null, 2)}</pre>
-        </details>
-      </div>
-      {scaffoldProps.children ? <div style={{ marginTop: 12 }}>{scaffoldProps.children}</div> : null}
-      {scaffoldProps.main ? <div style={{ marginTop: 12 }}>{scaffoldProps.main}</div> : null}
-    </section>
+      {variant === "overflow" ? <span aria-hidden="true">…</span> : label}
+      {variant === "subtle" && placement !== "panelFooter" ? <span aria-hidden="true">→</span> : null}
+    </button>
   );
 }

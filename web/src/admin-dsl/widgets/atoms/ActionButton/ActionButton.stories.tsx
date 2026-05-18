@@ -5,19 +5,39 @@
  * Generated at: 2026-05-18T22:42:09+00:00
  * Source YAML: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/04-action-widgets.yaml
  * Source YAML last commit: e555038 2026-05-18T17:11:02-04:00 HAIR-041 Step 48: Fill widget IR YAML intent
- * Target file previous commit: baf8866 2026-05-18T17:21:36-04:00 HAIR-041 Step 50: Regenerate widget scaffolds from schema v2
+ * Target file previous commit: e4a9d9e 2026-05-18 HAIR-041 Step 63: Refresh action widget scaffolds
  * Widget ID: admin.action.action-button
- *
- * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
- * JSON decoding in adapters; generated widgets should receive typed props only.
  */
+import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { ActionButton } from "./ActionButton";
 import type { ActionButtonProps } from "./ActionButton.types";
+import type { ActionViewModel } from "../../shared";
+
+const action = (label: string, extra: Partial<ActionViewModel> = {}): ActionViewModel => ({
+  type: "mutation",
+  target: `story.${label.toLowerCase().replace(/\s+/g, "-")}`,
+  label,
+  ...extra,
+});
+
+function CallbackProbe(args: ActionButtonProps) {
+  const [last, setLast] = useState("No action clicked yet.");
+  return (
+    <div style={{ display: "grid", gap: 12, justifyItems: "start" }}>
+      <ActionButton
+        {...args}
+        context={{ source: "storybook", rowId: "req_1" }}
+        onAction={(nextAction, context) => setLast(`${nextAction.label} -> ${nextAction.target}; context=${JSON.stringify(context)}`)}
+      />
+      <output style={{ border: "1px solid #dfd2bd", borderRadius: 10, padding: 10, background: "#fffaf0" }}>{last}</output>
+    </div>
+  );
+}
 
 const defaultArgs = {
-  action: { type: "mutation", target: "scaffold.action", label: "Run action", intent: "primary" },
-} as unknown as ActionButtonProps;
+  action: action("Run action"),
+} satisfies ActionButtonProps;
 
 const meta = {
   title: "Admin DSL Widgets/Atoms/ActionButton",
@@ -26,7 +46,7 @@ const meta = {
   parameters: {
     docs: {
       description: {
-        component: "Render one action with consistent disabled, loading, primary, danger, subtle, and placement-aware styling.",
+        component: "Single action control with Admin DSL intent, priority, placement, disabled/loading, danger, subtle, and overflow treatments.",
       },
     },
   },
@@ -36,149 +56,39 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Primary: Story = {
-  name: "Primary",
-  parameters: { docs: { description: { story: "Tests primary action treatment for ActionButton." } } },
-  args: {
-    ...defaultArgs,
-  },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <ActionButton {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "scenario": "primary"
-}, asserts: [
-  "ActionButton renders the Primary scenario without layout breakage.",
-  "The relevant semantic state is visible to users and test selectors."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  args: { action: action("Publish", { priority: "primary", intent: "primary" }) },
 };
+
 export const Secondary: Story = {
-  name: "Secondary",
-  parameters: { docs: { description: { story: "Tests secondary/neutral action treatment for ActionButton." } } },
-  args: {
-    ...defaultArgs,
-  },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <ActionButton {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "scenario": "secondary"
-}, asserts: [
-  "ActionButton renders the Secondary scenario without layout breakage.",
-  "The relevant semantic state is visible to users and test selectors."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  args: { action: action("Preview", { priority: "secondary" }) },
 };
+
 export const Danger: Story = {
-  name: "Danger",
-  parameters: { docs: { description: { story: "Tests danger/destructive action treatment for ActionButton." } } },
-  args: {
-    ...defaultArgs,
-  },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <ActionButton {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "scenario": "danger"
-}, asserts: [
-  "ActionButton renders the Danger scenario without layout breakage.",
-  "The relevant semantic state is visible to users and test selectors."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  args: { action: action("Archive", { intent: "danger", requiresConfirmation: true }) },
 };
+
 export const SubtleLink: Story = {
-  name: "SubtleLink",
-  parameters: { docs: { description: { story: "Tests subtle link-style presentation for low-emphasis row or footer actions in ActionButton." } } },
-  args: {
-    ...defaultArgs,
-  },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <ActionButton {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "scenario": "subtleLink"
-}, asserts: [
-  "ActionButton renders the SubtleLink scenario without layout breakage.",
-  "The relevant semantic state is visible to users and test selectors."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  args: { action: action("Open detail", { placement: "row", presentation: "link" }) },
 };
+
 export const Loading: Story = {
-  name: "Loading",
-  parameters: { docs: { description: { story: "Tests loading state and aria-busy/disabled behavior for ActionButton." } } },
-  args: {
-    ...defaultArgs,
-  },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <ActionButton {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "scenario": "loading"
-}, asserts: [
-  "ActionButton renders the Loading scenario without layout breakage.",
-  "The relevant semantic state is visible to users and test selectors."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  args: { action: action("Saving", { loading: true, priority: "primary" }) },
 };
+
 export const Disabled: Story = {
-  name: "Disabled",
-  parameters: { docs: { description: { story: "Tests disabled state styling and interaction suppression for ActionButton." } } },
-  args: {
-    ...defaultArgs,
-  },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <ActionButton {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "scenario": "disabled"
-}, asserts: [
-  "ActionButton renders the Disabled scenario without layout breakage.",
-  "The relevant semantic state is visible to users and test selectors."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  args: { action: action("Unavailable", { disabled: true }) },
 };
+
+export const Overflow: Story = {
+  args: { action: action("More", { placement: "rowOverflow", presentation: "overflow" }), variant: "overflow" },
+};
+
 export const TouchTargetMobile: Story = {
-  name: "TouchTargetMobile",
-  parameters: { docs: { description: { story: "Tests mobile touch-target sizing for ActionButton." } } },
-  args: {
-    ...defaultArgs,
-  },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <ActionButton {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "scenario": "touchTargetMobile"
-}, asserts: [
-  "ActionButton renders the TouchTargetMobile scenario without layout breakage.",
-  "The relevant semantic state is visible to users and test selectors."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  parameters: { viewport: { defaultViewport: "iphone12" } },
+  args: { action: action("Assign", { placement: "bulkToolbar" }), size: "touch" },
+};
+
+export const DispatchContext: Story = {
+  render: (args) => <CallbackProbe {...args} />,
+  args: { action: action("Review", { placement: "row" }), variant: "subtle" },
 };
