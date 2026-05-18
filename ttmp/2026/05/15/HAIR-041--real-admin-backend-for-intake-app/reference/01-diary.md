@@ -4726,3 +4726,65 @@ The generated files now also include top-of-file manual edit changelog entries. 
 
 ### Technical details
 - Storybook build still emits the known large-chunk warning; it does not fail the build.
+
+## Step 72: Split widget scaffold and design-language generator ownership
+
+This step fixes the generator overlap that surfaced during the PageHeader refresh. The widget scaffold generator used to rewrite minimal `widgets/shared/types.ts` and `widgets/shared/index.ts`, while the newer design-language generator also owns richer shared helpers consumed by promoted widgets.
+
+The scaffold generator now skips shared files by default. It can still write the old minimal shared fallback with an explicit `--write-shared` flag, but normal targeted widget regeneration no longer clobbers design-language outputs.
+
+### Prompt Context
+
+**User prompt (verbatim):** "can we make 05-scaffold-admin-dsl-widgets.py and 06-generate-admin-dsl-design-language.py play nicer together?"
+
+**Assistant interpretation:** Remove or reduce the shared-file ownership conflict between the widget scaffold generator and the design-language generator.
+
+**Inferred user intent:** Make future widget regeneration safer so it does not require remembering a compensating design-language regeneration step every time.
+
+**Commit (code):** 5d509d8 — "HAIR-041 Step 72: Split widget and design generator ownership"
+
+### What I did
+- Updated `scripts/05-scaffold-admin-dsl-widgets.py` so shared files are skipped by default.
+- Added `--write-shared` for the legacy bootstrap path that intentionally writes minimal `widgets/shared/types.ts` and `widgets/shared/index.ts`.
+- Updated the generator docstring to state that `06-generate-admin-dsl-design-language.py` owns `web/src/admin-dsl/widgets/shared/*` in the current workflow.
+- Updated the widget playbook so targeted regeneration now checks that shared files were skipped unless `--write-shared` was intentional.
+- Updated HAIR-041 tasks to mark the generator ownership boundary as decided/enforced.
+- Validated with:
+  - `python3 -m py_compile ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py --dry-run --force --name DashboardGrid ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/05-layout-widgets.yaml`
+  - `cd web && npx tsc --noEmit`
+
+### Why
+- Future widget promotion should not accidentally break already promoted widgets by overwriting generated design-language helpers. The default path should be safe for targeted widget work.
+
+### What worked
+- The dry run now prints:
+  - `SKIP  web/src/admin-dsl/widgets/shared/types.ts (use --write-shared to write legacy fallback)`
+  - `SKIP  web/src/admin-dsl/widgets/shared/index.ts (use --write-shared to write legacy fallback)`
+- The dry run still plans to write the requested widget files.
+- TypeScript validation passed without needing to rerun the design-language generator.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The conflict was not conceptual; it was a default behavior problem. Keeping the fallback but requiring an explicit flag preserves old bootstrap ability without making it the normal path.
+
+### What was tricky to build
+- The generator still needs to print shared-file status so humans can verify whether shared files were skipped or intentionally written. I kept the status lines and added a suffix explaining `--write-shared`.
+
+### What warrants a second pair of eyes
+- Review whether the legacy `SHARED_TYPES` constant should eventually be removed entirely or moved into a separate bootstrap script.
+- Review whether CI should fail if `05-scaffold-admin-dsl-widgets.py --force` changes files under `widgets/shared/` without `--write-shared`.
+
+### What should be done in the future
+- Add a freshness/manifest check that records which generator owns each generated output.
+- Consider a wrapper command that runs widget and design generators in the intended order for bulk regeneration.
+
+### Code review instructions
+- Start in `scripts/05-scaffold-admin-dsl-widgets.py` at `ensure_shared(...)` and CLI argument parsing.
+- Review the playbook `Step 2.75` update.
+- Validate with the DashboardGrid dry run and `cd web && npx tsc --noEmit`.
+
+### Technical details
+- Normal targeted widget generation no longer needs to rerun `06-generate-admin-dsl-design-language.py` unless the design-language YAML changed or `--write-shared` was intentionally used.

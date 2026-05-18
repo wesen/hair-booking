@@ -482,3 +482,14 @@ Step 69-70: Corrected PageHeader workflow by reverting accidental hand edits, fo
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.metadata.ts — Generated metadata sidecar
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.tsx — Promoted PageHeader implementation
 
+
+## 2026-05-18
+
+Step 72: Split generator ownership so widget scaffolding skips shared design-language files by default and only writes legacy shared fallback with --write-shared (commit 5d509d8).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/03-widget-ir-to-finished-widget-playbook.md — Playbook now documents shared generator ownership
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py — Widget generator now skips shared files unless --write-shared is explicit
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md — Task list records ownership boundary decision
+
