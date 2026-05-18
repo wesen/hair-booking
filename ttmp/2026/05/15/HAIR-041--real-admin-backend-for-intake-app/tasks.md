@@ -198,3 +198,49 @@ updated: 2026-05-15
 - [x] Remove deprecated renderer branches once all fixtures and flows are migrated.
 - [ ] Update Admin DSL v2 docs/changelog/diary with final cutover results.
 - [ ] Upload final Admin DSL v2 screenshots/docs bundle to reMarkable.
+
+## Phase 16 — Widget IR and design-language workflow reset
+
+- [x] Create Widget Definition IR YAML schema v2 and migrate widget/support YAML artifacts.
+- [x] Add schema-v2 widget scaffold generator with metadata sidecars and provenance headers.
+- [x] Add Widget IR to Finished Widget playbook.
+- [x] Add Admin DSL design-language IR YAML for shared token/action/layout/typography/data-attribute helpers.
+- [x] Add design-language generator and generated shared helper outputs.
+- [x] Refactor promoted shell/action widgets to consume generated design-language helpers.
+- [ ] Add a design-system lint script that flags raw token imports, hardcoded colors, duplicated action styling helpers, and manual Admin DSL data attributes.
+- [ ] Decide ownership boundary between widget scaffold generator and design-language generator for shared `types.ts`.
+- [ ] Add generated-output freshness checks or manifest for widget/design-language generators.
+- [x] Update the widget playbook to require generated-version validation before hand implementation.
+- [x] Update the widget playbook to require top-of-file manual-edit changelogs for generated files that are promoted by hand.
+
+## Phase 17 — Promote foundational widget families from IR
+
+- [x] Promote `WorkbenchShell` from `03-shell-widgets.yaml` with metadata, renderer adapter, and hardened Storybook stories.
+- [x] Promote `DefaultAdminShell` from `03-shell-widgets.yaml` with metadata, renderer adapter, and hardened Storybook stories.
+- [x] Promote `ActionButton` from `04-action-widgets.yaml` with generated design helper usage and hardened Storybook stories.
+- [x] Promote `ActionGroup` from `04-action-widgets.yaml` with generated design helper usage and hardened Storybook stories.
+- [x] Promote `PageHeader` from `05-layout-widgets.yaml` with metadata, renderer adapter, and hardened Storybook stories.
+- [ ] Promote `DashboardGrid` from `05-layout-widgets.yaml` with metadata, renderer adapter, and hardened Storybook stories.
+- [ ] Promote `Panel` from `05-layout-widgets.yaml` with metadata, renderer adapter, and hardened Storybook stories.
+- [ ] Promote `Toolbar`, `SplitPane`, `Tabs`, `FilterBar`, and `SearchBox` from `05-layout-widgets.yaml` or explicitly defer them with rationale.
+- [ ] Promote `ResourceTable` and related resource widgets from `06-resource-widgets.yaml`.
+- [ ] Promote data-display widgets from `07-data-display-widgets.yaml` after layout/resource boundaries stabilize.
+
+## Phase 18 — Renderer adapter shrink-down
+
+- [x] Move workbench/default shell rendering out of `render.tsx` into typed widgets.
+- [x] Move action button/group rendering out of `render.tsx` into typed widgets.
+- [x] Move `pageHeader` rendering out of the main renderer switch into `PageHeader` plus adapter mapping.
+- [ ] Move `dashboardGrid` rendering out of the main renderer switch into `DashboardGrid` plus adapter mapping.
+- [ ] Move `panel` rendering out of the main renderer switch into `Panel` plus adapter mapping.
+- [ ] Keep raw Admin DSL JSON parsing, action dispatch, and child rendering in adapter code only.
+- [ ] Remove duplicated inline action/layout styling from `render.tsx` as each widget is promoted.
+
+## Phase 19 — Widget validation, screenshots, and documentation cadence
+
+- [ ] For every promoted widget, add or harden desktop/mobile Storybook scenarios with visibly distinct fixtures and callback probes.
+- [ ] For every promoted widget, run `cd web && npx tsc --noEmit`.
+- [ ] For every promoted widget family, run `cd web && pnpm test -- --runInBand` and `cd web && npx storybook build --quiet`.
+- [ ] Capture Storybook iframe screenshots for promoted widget families when visual behavior changes materially.
+- [ ] Update the diary, changelog, related files, and tasks after each reviewable widget family boundary.
+- [ ] Upload or locally render final widget extraction docs once reMarkable sync works again.

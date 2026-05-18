@@ -19,8 +19,11 @@ RelatedFiles:
       Note: |-
         Schema-v2 scaffold generator used to create widget files from YAML
         Schema-v2 scaffold generator
+        Generator that must be run before widget promotion
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py
-      Note: Generator for Admin DSL design-language helper outputs (commit 9a1f847)
+      Note: |-
+        Generator for Admin DSL design-language helper outputs (commit 9a1f847)
+        Design-language generator rerun after widget scaffold refresh overwrote shared files
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/03-shell-widgets.yaml
       Note: Rich schema-v2 Widget Definition IR reference file
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/15-design-language.yaml
@@ -31,6 +34,7 @@ RelatedFiles:
         Renderer adapter and source of existing inline widget implementations
         DefaultAdminShell renderer adapter after Step 60
         ActionGroup renderer adapter after Step 64
+        Renderer pageHeader branch now adapts raw Admin DSL JSON to PageHeader props (commit bf3305e)
     - Path: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.stories.tsx
       Note: Hardened ActionButton Storybook variants
     - Path: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.tsx
@@ -51,6 +55,12 @@ RelatedFiles:
       Note: |-
         Default shell implementation promoted from scaffold
         Default shell now uses generated page-root and grid helpers (commit 4bf24e9)
+    - Path: web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.metadata.ts
+      Note: Generated metadata sidecar from schema-v2 widget IR (commit e86bd14)
+    - Path: web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.stories.tsx
+      Note: Hardened PageHeader desktop/mobile/action Storybook coverage (commit bf3305e)
+    - Path: web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.tsx
+      Note: PageHeader promoted after generated scaffold refresh with manual edit changelog (commit bf3305e)
     - Path: web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.metadata.ts
       Note: |-
         First metadata sidecar preserving Widget IR intent beside hand-written implementation
@@ -67,6 +77,7 @@ LastUpdated: 2026-05-18T23:20:00-04:00
 WhatFor: Use when promoting generated Admin DSL widget scaffolds into real React components while preserving adapter boundaries and metadata context.
 WhenToUse: Use before implementing ActionButton, ActionGroup, Panel, PageHeader, DashboardGrid, ResourceTable, AdminForm, MonthCalendar, or any other Admin DSL widget from YAML.
 ---
+
 
 
 
@@ -155,6 +166,81 @@ For existing Admin DSL widgets, the first finished HTML and CSS should usually c
 
 The YAML tells you what the target component should be. The renderer tells you what already works in the live application. The first implementation pass should extract working behavior, not redesign everything at once.
 
+## Step 2.5: Use the Shared Design Language Before Adding Local Styles
+
+Before writing widget styles, read the design-language source and generated shared helpers:
+
+```text
+ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/15-design-language.yaml
+web/src/admin-dsl/widgets/shared/designTokens.ts
+web/src/admin-dsl/widgets/shared/actionStyles.ts
+web/src/admin-dsl/widgets/shared/layoutStyles.ts
+web/src/admin-dsl/widgets/shared/typography.ts
+web/src/admin-dsl/widgets/shared/dataAttributes.ts
+```
+
+Promoted widgets should use the generated shared helpers whenever they are expressing a shared Admin DSL convention:
+
+- use `adminPageRootStyle(...)`, `adminShellGridStyle(...)`, `adminSurfaceStyle`, and `adminActionRowStyle(...)` for page/shell/grid/surface/action-row layout;
+- use `actionPlacementDefaults`, `inferActionVariant(...)`, `inferActionSize(...)`, and `actionButtonStyle(...)` for Admin DSL action controls;
+- use `sidebarNavButtonStyle(...)` and `shellMenuButtonStyle(...)` for shell-specific button-like controls that are not generic Admin DSL actions;
+- use `widgetDataAttributes(...)`, `actionDataAttributes(...)`, and `dataAttrsFromRecord(...)` instead of manually rebuilding repeated `data-admin-dsl-*` attributes;
+- use generated semantic types such as `AdminActionVariant`, `AdminActionSize`, and `AdminActionPlacement` instead of re-declaring local unions.
+
+Do not import raw `fringe-ui/tokens` into a promoted widget just to recreate a shared style rule that already exists in `shared/`. Raw token imports are still acceptable when a widget has genuinely local visual structure, but the reason should be obvious in the implementation or diary. If multiple widgets need the same raw-token pattern, move it into `15-design-language.yaml`, regenerate shared helpers, and then consume the generated helper.
+
+The intended dependency direction is:
+
+```mermaid
+flowchart LR
+    FringeTokens[fringe-ui/tokens] --> DesignIR[15-design-language.yaml]
+    DesignIR --> Generator[06-generate-admin-dsl-design-language.py]
+    Generator --> SharedHelpers[widgets/shared/*]
+    SharedHelpers --> PromotedWidgets[Promoted widgets]
+    PromotedWidgets --> RendererAdapter[render.tsx adapter]
+```
+
+This keeps the renderer adapter focused on raw Admin DSL JSON, child rendering, and backend action dispatch. It also makes visual consistency reviewable in one source artifact rather than scattered across `ActionButton`, `ActionGroup`, shells, panels, tables, and forms.
+
+## Step 2.75: Validate That the Generated Version Is Current
+
+Before hand-editing a widget, prove that the checked-in scaffold is current for the target YAML and generator. This is mandatory even when files already exist.
+
+Run a targeted dry run:
+
+```bash
+python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py \
+  --dry-run \
+  --name PageHeader \
+  ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/05-layout-widgets.yaml
+```
+
+Interpret the result:
+
+- `SKIP` for every expected file means files exist, but it does **not** prove they were generated by the latest generator.
+- Missing metadata sidecars, old provenance headers, old source YAML commits, or placeholder structure from an older generator mean the scaffold is stale.
+- If the scaffold is stale and has not been hand-promoted, run targeted `--force` regeneration and commit that generated refresh before manual implementation.
+- If the scaffold is already hand-promoted, do not force-regenerate over it. Instead, decide whether to preserve the implementation, manually patch generator-era metadata, or intentionally rebuild from generated output.
+
+When regeneration touches shared design files, rerun the design-language generator before validation:
+
+```bash
+python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py
+cd web && npx tsc --noEmit
+```
+
+The clean review sequence is:
+
+1. revert accidental manual edits for the target widget if they happened before regeneration;
+2. run targeted `--force` scaffold generation;
+3. rerun design-language generation if shared helper files were overwritten;
+4. run TypeScript validation;
+5. commit generated refresh only;
+6. reapply manual implementation;
+7. add manual-edit changelog entries at the top of edited generated files;
+8. run validation again;
+9. commit implementation separately.
+
 ## Step 3: Generate or Refresh the Scaffold
 
 Use the schema-v2 generator:
@@ -236,6 +322,23 @@ This is not only documentation. It is design memory that stays with the code aft
 ## Step 5: Promote the Scaffold to a Real Component
 
 Replace the scaffold diagnostic JSX in `<Widget>.tsx` with real implementation code. The initial implementation should come from current renderer code unless the widget is entirely new.
+
+When editing a generated file by hand, add a short **Manual edits after generation** changelog near the top of the file, below the generated provenance header. The changelog should say what changed and why. Keep it concise and append-only for meaningful manual implementation changes.
+
+Example:
+
+```ts
+/**
+ * GENERATED SCAFFOLD — REVIEW BEFORE PROMOTING TO FINAL IMPLEMENTATION.
+ * ... generated provenance ...
+ *
+ * Manual edits after generation:
+ * - 2026-05-18 / HAIR-041 Step 70: Replaced scaffold placeholder with real PageHeader implementation extracted from render.tsx.
+ * - 2026-05-18 / HAIR-041 Step 70: Added ActionGroup delegation so page actions use shared design-language helpers.
+ */
+```
+
+If a file remains purely generated, say `Manual edits after generation: N/A` or omit the section according to the generator's convention. If the file is later promoted, add the section in the same implementation commit.
 
 For `WorkbenchShell`, the old renderer code looked conceptually like this:
 

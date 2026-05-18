@@ -470,3 +470,15 @@ Step 66-67: Added Admin DSL design-language IR/generator and refactored promoted
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/ActionGroup/ActionGroup.tsx — Action group design helper consumer
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/shared/actionStyles.ts — Generated action style helpers
 
+
+## 2026-05-18
+
+Step 69-70: Corrected PageHeader workflow by reverting accidental hand edits, force-regenerating schema-v2 scaffold, committing generated refresh, then reapplying PageHeader implementation with manual-edit changelog and renderer adapter (commits e86bd14, bf3305e).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/03-widget-ir-to-finished-widget-playbook.md — Updated generated-version validation and manual-edit changelog workflow
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — PageHeader renderer adapter
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.metadata.ts — Generated metadata sidecar
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.tsx — Promoted PageHeader implementation
+

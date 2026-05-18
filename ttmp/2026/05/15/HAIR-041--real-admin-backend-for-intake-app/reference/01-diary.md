@@ -4581,3 +4581,148 @@ This keeps the two button-like surfaces aligned: Admin action buttons use genera
 
 ### Technical details
 - Storybook build still emits the known large-chunk warning; it does not fail the build.
+
+## Step 69: Refresh PageHeader scaffold from the schema-v2 generator
+
+This step corrects the implementation order for the first layout widget promotion. I had started hand-promoting `PageHeader` from an existing stale scaffold, but the playbook says the generated version must be validated and refreshed before manual edits.
+
+I reverted the accidental PageHeader implementation edits, ran targeted force generation for `PageHeader`, reran the design-language generator because the widget scaffold generator rewrote shared files, validated TypeScript, and committed the generated refresh separately.
+
+### Prompt Context
+
+**User prompt (verbatim):** "did you run the v2 code generator?"
+
+**Assistant interpretation:** Verify whether the schema-v2 widget generator was run before implementing PageHeader.
+
+**Inferred user intent:** Catch process drift and preserve the generated-refresh-before-hand-implementation boundary.
+
+**User prompt (verbatim):** "update the playbook to have a step that asks to validate that we have the proper generated version. revert, force generation, commit, then reapply your changes. Also add as instructions to the playbook that there should be a changelog of manual edits at the top of the file, to show that the file was edited post generation and why."
+
+**Assistant interpretation:** Fix the process, document it in the playbook, regenerate PageHeader cleanly, and then reapply the implementation.
+
+**Inferred user intent:** Make the widget promotion workflow auditable and prevent stale generated files from being hand-promoted silently.
+
+**Commit (code):** e86bd14 — "HAIR-041 Step 69: Refresh PageHeader scaffold"
+
+### What I did
+- Reverted accidental hand edits to:
+  - `web/src/admin-dsl/render.tsx`
+  - `web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.tsx`
+  - `web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.stories.tsx`
+  - `web/src/admin-dsl/widgets/organisms/PageHeader/index.ts`
+- Removed the hand-created `PageHeader.metadata.ts`.
+- Ran targeted force generation:
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py --force --name PageHeader ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/05-layout-widgets.yaml`
+- Reran design-language generation after the scaffold generator rewrote shared files:
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py`
+- Validated with `cd web && npx tsc --noEmit`.
+- Committed generated output separately.
+
+### Why
+- Generated refresh must be reviewable independently from hand implementation. This is especially important now that generated files include metadata sidecars and provenance headers.
+
+### What worked
+- Targeted force generation created `PageHeader.metadata.ts` from YAML.
+- Rerunning the design-language generator restored shared helper exports after the scaffold generator refreshed shared files.
+- TypeScript validation passed after generation.
+
+### What didn't work
+- The first validation after force generation failed because `05-scaffold-admin-dsl-widgets.py` rewrote `web/src/admin-dsl/widgets/shared/types.ts` and `index.ts`, which temporarily removed design-language exports consumed by promoted widgets.
+- Exact errors included missing exports such as:
+  - `Module '"../../shared"' has no exported member 'actionButtonStyle'.`
+  - `Module '"../../shared/types"' has no exported member 'AdminActionSize'.`
+- The fix was to rerun `06-generate-admin-dsl-design-language.py` before TypeScript validation.
+
+### What I learned
+- The widget scaffold generator and design-language generator currently overlap on shared files. Any targeted widget force generation can invalidate promoted widgets until the design-language generator runs again.
+
+### What was tricky to build
+- The generated-refresh commit needed to include both PageHeader scaffold output and regenerated shared design-language files so the repository stayed type-checkable. This exposed the need to clarify generator ownership for `shared/types.ts` and `shared/index.ts`.
+
+### What warrants a second pair of eyes
+- Review whether `05-scaffold-admin-dsl-widgets.py` should stop writing shared `types.ts`/`index.ts` when the design-language generator owns them.
+- Review whether generated headers should include an explicit generator version or source hash to make stale generated files easier to detect.
+
+### What should be done in the future
+- Add a generated freshness checker or manifest.
+- Decide a single owner for shared files or create a deterministic combined generation pipeline.
+
+### Code review instructions
+- Review commit e86bd14 as generated output only before reviewing the PageHeader implementation commit.
+- Validate by running the widget generator, then the design-language generator, then `cd web && npx tsc --noEmit`.
+
+### Technical details
+- This step intentionally contains no hand implementation logic beyond generated output.
+
+## Step 70: Promote PageHeader after clean scaffold refresh
+
+This step reapplies the `PageHeader` implementation after the clean generated-refresh boundary. The component now owns the page-header HTML, typography, responsive wrapping, page-scoped action group, and Storybook fixtures, while `render.tsx` only maps raw Admin DSL node props into typed widget props.
+
+The generated files now also include top-of-file manual edit changelog entries. Those entries make it clear which generated files were edited after generation and why.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 69)
+
+**Assistant interpretation:** After refreshing generated PageHeader files, reapply the manual promotion and document the generated-file edit history.
+
+**Inferred user intent:** Keep the code review split clean: generated scaffold first, manual implementation second.
+
+**Commit (code):** bf3305e — "HAIR-041 Step 70: Promote PageHeader widget"
+
+### What I did
+- Replaced generated `PageHeader.tsx` diagnostic JSX with a real typed component.
+- Used shared design-language helpers:
+  - `adminTextStyle(...)`
+  - `adminTokens`
+  - `dataAttrsFromRecord(...)`
+  - `widgetDataAttributes(...)`
+- Delegated page actions to `ActionGroup` with `slot="pageHeader"`.
+- Added local responsive CSS for long/mobile page titles.
+- Replaced placeholder PageHeader stories with hardened fixtures:
+  - `Default`
+  - `WithBreadcrumbs`
+  - `WithPrimaryAction`
+  - `LongTitleMobile`
+  - `NoDescription`
+  - `ActionDispatch`
+- Updated `render.tsx` so `case "pageHeader"` renders `PageHeader` and lowers `onPrimaryAction` back to `dispatchAdminAction`.
+- Added manual edit changelog comments to generated PageHeader files that were hand-edited.
+- Validated with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+  - `cd web && npx storybook build --quiet`
+
+### Why
+- `PageHeader` is the next foundational layout widget after shell and action widgets. Extracting it reduces renderer-owned visual code and proves that layout widgets can use the shared design-language helpers.
+
+### What worked
+- TypeScript validation passed.
+- Vitest passed: 10 files, 49 tests.
+- Storybook build passed with the known large-chunk warning.
+- The renderer branch became a small adapter instead of owning page-header HTML and inline styling.
+
+### What didn't work
+- N/A after the generated-refresh correction in Step 69.
+
+### What I learned
+- The manual edit changelog is most useful when it records intent, not every line-level change. It should explain the promotion boundary: placeholder removed, renderer behavior extracted, callback delegation preserved.
+
+### What was tricky to build
+- `PageHeader` receives `PageActionHandler`, while `ActionGroup` uses generic callback context. Passing `{ pageId }` through `ActionGroup` keeps the typed widget boundary while preserving renderer dispatch semantics.
+
+### What warrants a second pair of eyes
+- Review whether `PageHeader` should preserve `data-admin-dsl-kind` and other raw renderer data attributes, or whether widget metadata attributes are enough after extraction.
+- Review mobile header/action wrapping visually in Storybook iframe screenshots.
+
+### What should be done in the future
+- Promote `DashboardGrid` and `Panel` next using the corrected generated-version validation process.
+- Add lint/freshness tooling so this process is enforced automatically.
+
+### Code review instructions
+- Review generated refresh commit e86bd14 first.
+- Then review `PageHeader.tsx`, `PageHeader.stories.tsx`, and the `pageHeader` branch in `render.tsx` in commit bf3305e.
+- Validate with `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet`.
+
+### Technical details
+- Storybook build still emits the known large-chunk warning; it does not fail the build.
