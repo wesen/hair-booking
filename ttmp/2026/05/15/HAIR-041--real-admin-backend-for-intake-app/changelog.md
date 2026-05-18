@@ -388,3 +388,11 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Migrated `sources/admin-dsl-widget-ir/03-shell-widgets.yaml` to `schema_version: 2` with sectioned widget definitions: `source_mapping`, `intent`, `contract`, `examples`, `stories`, `outputs`, and `implementation_todos`.
 - Added `design-doc/09-widget-definition-ir-yaml-format-spec.md`, a detailed specification for the widget definition IR YAML format.
 - Validated the updated shell YAML with PyYAML and validated the spec frontmatter with docmgr.
+
+## 2026-05-18 — Migrate all widget IR YAML files to schema v2
+
+- Migrated action, layout, resource, data-display, media, calendar, form, and surface widget YAML files to `schema_version: 2` and `artifact_type: admin_dsl_widget_definition_ir`.
+- Updated index/pass-model/shared-types/renderer-plan/storybook-matrix/unsupported-constructs YAML files to schema v2 support artifact types.
+- Updated `00-index.yaml` with artifact type and schema version metadata for each file.
+- Updated `design-doc/09-widget-definition-ir-yaml-format-spec.md` to document support artifact files alongside widget definition files.
+- Validated all YAML files in `sources/admin-dsl-widget-ir/` with PyYAML.

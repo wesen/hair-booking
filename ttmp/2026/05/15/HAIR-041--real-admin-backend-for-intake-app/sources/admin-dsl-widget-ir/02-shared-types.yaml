@@ -1,97 +1,29 @@
-schema_version: 1
-artifact_type: admin_dsl_react_widget_ir
+schema_version: 2
+artifact_type: admin_dsl_widget_support_ir
 source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
 category: shared_widget_types
 summary: Common action and widget prop contracts used by widget YAML artifacts.
-base_action_types: |-
-  export interface ActionViewModel {
-    id?: string;
-    type: "open" | "close" | "navigate" | "mutation" | "confirm" | "refresh" | "upload";
-    target: string;
-    label: string;
-    intent?: "neutral" | "primary" | "danger";
-    priority?: "primary" | "secondary" | "tertiary";
-    presentation?: "button" | "icon" | "menuItem" | "overflow" | "link";
-    disabled?: boolean;
-    loading?: boolean;
-    accessibilityLabel?: string;
-  }
-action_slot_callback_signatures: |-
-  export type PageActionHandler = (action: ActionViewModel, context: {
-    pageId?: string;
-  }) => void;
-
-  export type PanelActionHandler = (action: ActionViewModel, context: {
-    panelId?: string;
-  }) => void;
-
-  export type TableRowActionHandler<Row> = (action: ActionViewModel, context: {
-    tableId: string;
-    row: Row;
-    rowId?: string;
-  }) => void;
-
-  export type TableBulkActionHandler<Row> = (action: ActionViewModel, context: {
-    tableId: string;
-    scope: "visible" | "selected" | "allMatching";
-    rows: Row[];
-    selectedRowIds: string[];
-  }) => void;
-
-  export type FormActionHandler<Values> = (action: ActionViewModel, context: {
-    formId: string;
-    values: Values;
-  }) => void;
-
-  export type CalendarCellActionHandler = (action: ActionViewModel, context: {
-    calendarId: string;
-    date: string;
-  }) => void;
-common_visual_props: |-
-  export interface CommonWidgetProps {
-    id?: string;
-    className?: string;
-    style?: React.CSSProperties;
-    density?: "compact" | "normal" | "spacious";
-    tone?: "neutral" | "success" | "warning" | "danger" | "info";
-    dataAttributes?: Record<string, string | number | boolean>;
-  }
-target_file_layout: |-
-  web/src/admin-dsl/widgets/
-    atoms/
-      ActionButton/
-        ActionButton.tsx
-        ActionButton.stories.tsx
-        ActionButton.types.ts
-        index.ts
-      StatusText/
-        StatusText.tsx
-        StatusText.stories.tsx
-        StatusText.types.ts
-        index.ts
-    molecules/
-      ActionGroup/
-        ActionGroup.tsx
-        ActionGroup.stories.tsx
-        ActionGroup.types.ts
-        index.ts
-    organisms/
-      ResourceTable/
-        ResourceTable.tsx
-        ResourceTable.stories.tsx
-        ResourceTable.types.ts
-        ResourceTable.test.tsx
-        ResourceTable.fixtures.ts
-        index.ts
-renderer_adapter_layout: |-
-  web/src/admin-dsl/rendering/
-    AdminDslRenderer.tsx
-    adapterTypes.ts
-    registry.ts
-    adapters/
-      pageHeaderAdapter.ts
-      panelAdapter.ts
-      resourceTableAdapter.ts
-      comparisonTableAdapter.ts
-      monthCalendarAdapter.ts
-      formAdapter.ts
+base_action_types: "export interface ActionViewModel {\n  id?: string;\n  type: \"open\" | \"close\" | \"navigate\" | \"mutation\"\
+  \ | \"confirm\" | \"refresh\" | \"upload\";\n  target: string;\n  label: string;\n  intent?: \"neutral\" | \"primary\" |\
+  \ \"danger\";\n  priority?: \"primary\" | \"secondary\" | \"tertiary\";\n  presentation?: \"button\" | \"icon\" | \"menuItem\"\
+  \ | \"overflow\" | \"link\";\n  disabled?: boolean;\n  loading?: boolean;\n  accessibilityLabel?: string;\n}"
+action_slot_callback_signatures: "export type PageActionHandler = (action: ActionViewModel, context: {\n  pageId?: string;\n\
+  }) => void;\n\nexport type PanelActionHandler = (action: ActionViewModel, context: {\n  panelId?: string;\n}) => void;\n\
+  \nexport type TableRowActionHandler<Row> = (action: ActionViewModel, context: {\n  tableId: string;\n  row: Row;\n  rowId?:\
+  \ string;\n}) => void;\n\nexport type TableBulkActionHandler<Row> = (action: ActionViewModel, context: {\n  tableId: string;\n\
+  \  scope: \"visible\" | \"selected\" | \"allMatching\";\n  rows: Row[];\n  selectedRowIds: string[];\n}) => void;\n\nexport\
+  \ type FormActionHandler<Values> = (action: ActionViewModel, context: {\n  formId: string;\n  values: Values;\n}) => void;\n\
+  \nexport type CalendarCellActionHandler = (action: ActionViewModel, context: {\n  calendarId: string;\n  date: string;\n\
+  }) => void;"
+common_visual_props: "export interface CommonWidgetProps {\n  id?: string;\n  className?: string;\n  style?: React.CSSProperties;\n\
+  \  density?: \"compact\" | \"normal\" | \"spacious\";\n  tone?: \"neutral\" | \"success\" | \"warning\" | \"danger\" | \"\
+  info\";\n  dataAttributes?: Record<string, string | number | boolean>;\n}"
+target_file_layout: "web/src/admin-dsl/widgets/\n  atoms/\n    ActionButton/\n      ActionButton.tsx\n      ActionButton.stories.tsx\n\
+  \      ActionButton.types.ts\n      index.ts\n    StatusText/\n      StatusText.tsx\n      StatusText.stories.tsx\n    \
+  \  StatusText.types.ts\n      index.ts\n  molecules/\n    ActionGroup/\n      ActionGroup.tsx\n      ActionGroup.stories.tsx\n\
+  \      ActionGroup.types.ts\n      index.ts\n  organisms/\n    ResourceTable/\n      ResourceTable.tsx\n      ResourceTable.stories.tsx\n\
+  \      ResourceTable.types.ts\n      ResourceTable.test.tsx\n      ResourceTable.fixtures.ts\n      index.ts"
+renderer_adapter_layout: "web/src/admin-dsl/rendering/\n  AdminDslRenderer.tsx\n  adapterTypes.ts\n  registry.ts\n  adapters/\n\
+  \    pageHeaderAdapter.ts\n    panelAdapter.ts\n    resourceTableAdapter.ts\n    comparisonTableAdapter.ts\n    monthCalendarAdapter.ts\n\
+  \    formAdapter.ts"
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md

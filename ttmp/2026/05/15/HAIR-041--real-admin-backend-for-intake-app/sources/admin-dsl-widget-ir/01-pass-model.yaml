@@ -1,33 +1,15 @@
-schema_version: 1
-artifact_type: admin_dsl_react_widget_ir
+schema_version: 2
+artifact_type: admin_dsl_widget_support_ir
 source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
 category: artifact_pass_model
 summary: Pass definitions are artifact-driven rather than a single fixed consecutive pipeline.
-pipeline_diagram: |-
-  Current artifacts
-    - web/src/admin-dsl/render.tsx
-    - web/src/admin-dsl/calendar.tsx
-    - web/src/admin-dsl/schema.ts
-    - web/src/admin-dsl/builder.ts
-    - web/src/admin-dsl/actions.ts
-    - web/src/admin-dsl/AdminDslWorkbench.stories.tsx
-          |
-          v
-  React Widget IR Catalog
-    - widget names
-    - atom/molecule/organism classification
-    - props
-    - action slots / callback signatures
-    - supported Admin DSL constructs
-    - file path layout
-    - Storybook scenario matrix
-          |
-          +--> file scaffold pass
-          +--> Storybook skeleton pass
-          +--> renderer adapter pass
-          +--> prop contract generation pass
-          +--> implementation prompt pass
-          +--> Playwright scenario sketch pass
+pipeline_diagram: "Current artifacts\n  - web/src/admin-dsl/render.tsx\n  - web/src/admin-dsl/calendar.tsx\n  - web/src/admin-dsl/schema.ts\n\
+  \  - web/src/admin-dsl/builder.ts\n  - web/src/admin-dsl/actions.ts\n  - web/src/admin-dsl/AdminDslWorkbench.stories.tsx\n\
+  \        |\n        v\nReact Widget IR Catalog\n  - widget names\n  - atom/molecule/organism classification\n  - props\n\
+  \  - action slots / callback signatures\n  - supported Admin DSL constructs\n  - file path layout\n  - Storybook scenario\
+  \ matrix\n        |\n        +--> file scaffold pass\n        +--> Storybook skeleton pass\n        +--> renderer adapter\
+  \ pass\n        +--> prop contract generation pass\n        +--> implementation prompt pass\n        +--> Playwright scenario\
+  \ sketch pass"
 passes:
 - name: Current renderer inventory pass
   requires:
@@ -80,3 +62,4 @@ passes:
   - Playwright sketches
   - edge-case lists
   notes: Output may be semi-formal and reviewed by humans before code generation.
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md

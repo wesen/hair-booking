@@ -1,5 +1,5 @@
-schema_version: 1
-artifact_type: admin_dsl_react_widget_ir
+schema_version: 2
+artifact_type: admin_dsl_widget_support_ir
 source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
 category: storybook_scenario_matrix
 summary: Integration and widget-level Storybook scenario requirements.
@@ -33,25 +33,9 @@ widget_level_story_requirements:
 - Mobile when layout changes at mobile breakpoints.
 - LongContent when text wrapping or overflow is important.
 - DispatchContext when the widget has contextual action callbacks.
-example_resource_table_stories: |-
-  export const DefaultRows: Story = {
-    args: { columns: requestColumns, rows: requestRows },
-  };
-
-  export const SelectableWithBulkToolbar: Story = {
-    args: {
-      columns: requestColumns,
-      rows: requestRows,
-      selectable: true,
-      bulkActions: [assignAction],
-    },
-  };
-
-  export const DispatchContext: Story = {
-    args: {
-      columns: requestColumns,
-      rows: requestRows,
-      rowActions: [reviewAction],
-      onRowAction: (action, context) => console.log(action, context),
-    },
-  };
+example_resource_table_stories: "export const DefaultRows: Story = {\n  args: { columns: requestColumns, rows: requestRows\
+  \ },\n};\n\nexport const SelectableWithBulkToolbar: Story = {\n  args: {\n    columns: requestColumns,\n    rows: requestRows,\n\
+  \    selectable: true,\n    bulkActions: [assignAction],\n  },\n};\n\nexport const DispatchContext: Story = {\n  args: {\n\
+  \    columns: requestColumns,\n    rows: requestRows,\n    rowActions: [reviewAction],\n    onRowAction: (action, context)\
+  \ => console.log(action, context),\n  },\n};"
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md

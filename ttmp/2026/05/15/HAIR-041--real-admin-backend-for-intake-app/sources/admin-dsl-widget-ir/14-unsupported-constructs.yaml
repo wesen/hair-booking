@@ -1,5 +1,5 @@
-schema_version: 1
-artifact_type: admin_dsl_react_widget_ir
+schema_version: 2
+artifact_type: admin_dsl_widget_support_ir
 source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
 category: unsupported_or_ambiguous_constructs
 summary: Constructs that exist in schema.ts or builder.ts but are not first-class rendered widgets today.
@@ -21,3 +21,4 @@ constructs:
   recommendation: Keep as CalendarEventBlock kind="availability".
 policy: The first implementation pass should either remove unsupported constructs from the new vocabulary or create explicit
   widget targets for them. Do not keep silent fallback behavior for production widgets.
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md

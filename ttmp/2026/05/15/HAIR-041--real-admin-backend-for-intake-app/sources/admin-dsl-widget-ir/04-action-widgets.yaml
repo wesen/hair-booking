@@ -1,142 +1,339 @@
-schema_version: 1
-artifact_type: admin_dsl_react_widget_ir
-source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_version: 2
+artifact_type: admin_dsl_widget_definition_ir
 category: action_widgets
 summary: Action widgets extracted from renderActions, table overflow handling, and special-case action buttons.
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md
 widgets:
-- name: ActionButton
-  current_source: renderActions button branch in web/src/admin-dsl/render.tsx plus row/bulk/search special buttons
+- id: admin.action.action-button
+  name: ActionButton
+  status: scaffolded
   classification:
     level: atom
-  purpose: Render one action with consistent disabled, loading, primary, danger, subtle, and placement-aware styling.
-  props: |-
-    export interface ActionButtonProps<C = unknown> extends CommonWidgetProps {
-      action: ActionViewModel;
-      context?: C;
-      variant?: "solid" | "soft" | "subtle" | "danger" | "overflow";
-      size?: "sm" | "md" | "touch";
-      onAction?: (action: ActionViewModel, context: C) => void;
-    }
-  action_slots:
-  - name: self
-    notes: The widget executes the action it receives through onAction.
-    callback_prop: onAction
-    intent: The caller chooses the semantic slot and passes an onAction callback; ActionButton only renders and invokes.
-    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
-      or backend action transport.
-  storybook_stories:
-  - Primary
-  - Secondary
-  - Danger
-  - SubtleLink
-  - Loading
-  - Disabled
-  - TouchTargetMobile
-  file_layout: |-
-    web/src/admin-dsl/widgets/atoms/ActionButton/
-      ActionButton.tsx
-      ActionButton.types.ts
-      ActionButton.stories.tsx
-      index.ts
-  human_notes:
-    intent: Unifies visual treatment for action metadata so primary, danger, subtle, loading, disabled, and touch-target rules
-      do not get reimplemented in every table/panel/form branch.
+    description: ActionButton is classified as a atom in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - renderActions button branch in web/src/admin-dsl/render.tsx plus row/bulk/search special buttons
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current source referenced by the v1 widget IR.
+  intent:
+    purpose: Render one action with consistent disabled, loading, primary, danger, subtle, and placement-aware styling.
+    design_rationale: Unifies visual treatment for action metadata so primary, danger, subtle, loading, disabled, and touch-target
+      rules do not get reimplemented in every table/panel/form branch.
     adapter_boundary: The widget receives an ActionViewModel and context. It should not know AdminNode or dispatchAdminAction
       directly.
-    slot_intent:
-      self: The caller chooses the semantic slot and passes an onAction callback; ActionButton only renders and invokes.
-    storybook_intent: Stories should pin visual variants and prevent regressions in button shape, subtle row links, danger
-      styling, and loading/disabled states.
-  xxx:
-  - Replace placeholder with actual button element styles from design tokens.
-  - Map variant/slot semantics without reintroducing placement-specific conditionals everywhere.
-- name: ActionGroup
-  current_source: renderActions wrapper in web/src/admin-dsl/render.tsx
+    implementation_notes:
+    - 'TODO: add implementation notes for ActionButton.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for ActionButton.'
+  contract:
+    props:
+      ActionButtonProps:
+        doc: 'ActionButtonProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          action:
+            type: ActionViewModel
+            required: true
+            doc: 'action for ActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+          context:
+            type: C
+            required: false
+            doc: 'context for ActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+          variant:
+            type: '"solid" | "soft" | "subtle" | "danger" | "overflow"'
+            required: false
+            doc: 'variant for ActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+          size:
+            type: '"sm" | "md" | "touch"'
+            required: false
+            doc: 'size for ActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+          onAction:
+            type: '(action: ActionViewModel, context: C) => void'
+            required: false
+            doc: 'onAction for ActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+        extends: <C = unknown>  CommonWidgetProps
+    action_slots:
+      self:
+        doc: The caller chooses the semantic slot and passes an onAction callback; ActionButton only renders and invokes.
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: SelfContext
+        context: {}
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples: {}
+  stories:
+    Primary:
+      doc: 'TODO: describe what Primary tests for ActionButton.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Primary.'
+    Secondary:
+      doc: 'TODO: describe what Secondary tests for ActionButton.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Secondary.'
+    Danger:
+      doc: 'TODO: describe what Danger tests for ActionButton.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Danger.'
+    SubtleLink:
+      doc: 'TODO: describe what SubtleLink tests for ActionButton.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for SubtleLink.'
+    Loading:
+      doc: 'TODO: describe what Loading tests for ActionButton.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Loading.'
+    Disabled:
+      doc: 'TODO: describe what Disabled tests for ActionButton.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Disabled.'
+    TouchTargetMobile:
+      doc: 'TODO: describe what TouchTargetMobile tests for ActionButton.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for TouchTargetMobile.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.tsx
+    types:
+      path: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/atoms/ActionButton/index.ts
+  implementation_todos:
+  - id: replace-placeholder-with-actual-button-element-styles-from-desig
+    severity: required
+    doc: Replace placeholder with actual button element styles from design tokens.
+  - id: map-variant-slot-semantics-without-reintroducing-placement-speci
+    severity: recommended
+    doc: Map variant/slot semantics without reintroducing placement-specific conditionals everywhere.
+- id: admin.action.action-group
+  name: ActionGroup
+  status: scaffolded
   classification:
     level: molecule
-  purpose: Render a list of actions with consistent spacing, wrapping, and slot-specific visual treatment.
-  props: |-
-    export interface ActionGroupProps<C = unknown> extends CommonWidgetProps {
-      actions: ActionViewModel[];
-      context?: C;
-      slot: "pageHeader" | "toolbar" | "panelToolbar" | "panelFooter" | "row" | "rowOverflow" | "bulkToolbar" | "formFooter" | "calendarCell" | "sidebarNav" | "footer" | "detail" | "overflow";
-      align?: "start" | "end" | "between";
-      onAction?: (action: ActionViewModel, context: C) => void;
-    }
-  action_slots:
-  - name: actions
-    notes: Slot-specific list of actions rendered as ActionButton children.
-    callback_prop: onAction
-    intent: A group represents one semantic slot, not an arbitrary pile of buttons. The slot name should influence density,
-      wrapping, and hierarchy.
-    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
-      or backend action transport.
-  storybook_stories:
-  - PageHeaderActions
-  - PanelFooterActions
-  - RowActions
-  - BulkToolbarActions
-  - FormFooterActions
-  - OverflowActions
-  - WrappingMobile
-  file_layout: |-
-    web/src/admin-dsl/widgets/molecules/ActionGroup/
-      ActionGroup.tsx
-      ActionGroup.types.ts
-      ActionGroup.stories.tsx
-      index.ts
-  human_notes:
-    intent: Provides the flex/wrap/alignment behavior for a slot of actions. It is the main bridge between semantic action
-      slots and repeated ActionButton atoms.
+    description: ActionGroup is classified as a molecule in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - renderActions wrapper in web/src/admin-dsl/render.tsx
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current source referenced by the v1 widget IR.
+  intent:
+    purpose: Render a list of actions with consistent spacing, wrapping, and slot-specific visual treatment.
+    design_rationale: Provides the flex/wrap/alignment behavior for a slot of actions. It is the main bridge between semantic
+      action slots and repeated ActionButton atoms.
     adapter_boundary: Adapters should choose slot names such as pageHeader or bulkToolbar; the widget chooses spacing and
       presentation defaults for that slot.
-    slot_intent:
-      actions: A group represents one semantic slot, not an arbitrary pile of buttons. The slot name should influence density,
-        wrapping, and hierarchy.
-    storybook_intent: Stories should prove page-header, row, panel-footer, form-footer, overflow, and bulk-toolbar groups
-      at desktop and mobile widths.
-  xxx:
-  - Replace placeholder with ActionButton composition.
-  - Define exact wrapping rules for mobile and dense row contexts.
-- name: OverflowActionButton
-  current_source: renderTableCell branch for kind === "overflowActions"
+    implementation_notes:
+    - 'TODO: add implementation notes for ActionGroup.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for ActionGroup.'
+  contract:
+    props:
+      ActionGroupProps:
+        doc: 'ActionGroupProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          actions:
+            type: ActionViewModel[]
+            required: true
+            doc: 'actions for ActionGroupProps. TODO: replace this generated docstring with precise human intent.'
+          context:
+            type: C
+            required: false
+            doc: 'context for ActionGroupProps. TODO: replace this generated docstring with precise human intent.'
+          slot:
+            type: '"pageHeader" | "toolbar" | "panelToolbar" | "panelFooter" | "row" | "rowOverflow" | "bulkToolbar" | "formFooter"
+              | "calendarCell" | "sidebarNav" | "footer" | "detail" | "overflow"'
+            required: true
+            doc: 'slot for ActionGroupProps. TODO: replace this generated docstring with precise human intent.'
+          align:
+            type: '"start" | "end" | "between"'
+            required: false
+            doc: 'align for ActionGroupProps. TODO: replace this generated docstring with precise human intent.'
+          onAction:
+            type: '(action: ActionViewModel, context: C) => void'
+            required: false
+            doc: 'onAction for ActionGroupProps. TODO: replace this generated docstring with precise human intent.'
+        extends: <C = unknown>  CommonWidgetProps
+    action_slots:
+      actions:
+        doc: A group represents one semantic slot, not an arbitrary pile of buttons. The slot name should influence density,
+          wrapping, and hierarchy.
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: ActionsContext
+        context: {}
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples: {}
+  stories:
+    PageHeaderActions:
+      doc: 'TODO: describe what PageHeaderActions tests for ActionGroup.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for PageHeaderActions.'
+    PanelFooterActions:
+      doc: 'TODO: describe what PanelFooterActions tests for ActionGroup.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for PanelFooterActions.'
+    RowActions:
+      doc: 'TODO: describe what RowActions tests for ActionGroup.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for RowActions.'
+    BulkToolbarActions:
+      doc: 'TODO: describe what BulkToolbarActions tests for ActionGroup.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for BulkToolbarActions.'
+    FormFooterActions:
+      doc: 'TODO: describe what FormFooterActions tests for ActionGroup.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for FormFooterActions.'
+    OverflowActions:
+      doc: 'TODO: describe what OverflowActions tests for ActionGroup.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for OverflowActions.'
+    WrappingMobile:
+      doc: 'TODO: describe what WrappingMobile tests for ActionGroup.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WrappingMobile.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/ActionGroup/ActionGroup.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/ActionGroup/ActionGroup.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/ActionGroup/ActionGroup.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/ActionGroup/index.ts
+  implementation_todos:
+  - id: replace-placeholder-with-action-button-composition
+    severity: required
+    doc: Replace placeholder with ActionButton composition.
+  - id: define-exact-wrapping-rules-for-mobile-and-dense-row-contexts
+    severity: recommended
+    doc: Define exact wrapping rules for mobile and dense row contexts.
+- id: admin.action.overflow-action-button
+  name: OverflowActionButton
+  status: scaffolded
   classification:
     level: atom
-  purpose: Render the ellipsis affordance for row overflow menus. First implementation can dispatch the first action, matching
-    current behavior. Later implementation can open a real menu.
-  props: |-
-    export interface OverflowActionButtonProps<C = unknown> {
-      label?: string;
-      actions: ActionViewModel[];
-      context: C;
-      onAction?: (action: ActionViewModel, context: C) => void;
-    }
-  action_slots:
-  - name: overflowActions
-    notes: Uses the provided context and selected action.
-    callback_prop: onAction
-    intent: Overflow actions are row-scoped actions with compact presentation. Initial scaffold can invoke the first action,
-      but final implementation should open a menu.
-    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
-      or backend action transport.
-  storybook_stories:
-  - SingleOverflowAction
-  - NoActionsDisabled
-  - FutureMenuPreview
-  file_layout: |-
-    web/src/admin-dsl/widgets/atoms/OverflowActionButton/
-      OverflowActionButton.tsx
-      OverflowActionButton.types.ts
-      OverflowActionButton.stories.tsx
-      index.ts
-  human_notes:
-    intent: Represents row overflow affordance as a named atom so the current ellipsis behavior can later grow into a real
-      menu without changing ResourceTable cell contracts.
+    description: OverflowActionButton is classified as a atom in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - renderTableCell branch for kind === "overflowActions"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: Render the ellipsis affordance for row overflow menus. First implementation can dispatch the first action, matching
+      current behavior. Later implementation can open a real menu.
+    design_rationale: Represents row overflow affordance as a named atom so the current ellipsis behavior can later grow into
+      a real menu without changing ResourceTable cell contracts.
     adapter_boundary: The table cell passes row context and available actions. The widget should not fetch row actions from
       raw row JSON.
-    slot_intent:
-      overflowActions: Overflow actions are row-scoped actions with compact presentation. Initial scaffold can invoke the
-        first action, but final implementation should open a menu.
-    storybook_intent: Stories should distinguish single-action shortcut behavior from future multi-action menu behavior.
-  xxx:
-  - Implement menu behavior before supporting multiple overflow actions.
+    implementation_notes:
+    - 'TODO: add implementation notes for OverflowActionButton.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for OverflowActionButton.'
+  contract:
+    props:
+      OverflowActionButtonProps:
+        doc: 'OverflowActionButtonProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          label:
+            type: string
+            required: false
+            doc: 'label for OverflowActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+          actions:
+            type: ActionViewModel[]
+            required: true
+            doc: 'actions for OverflowActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+          context:
+            type: C
+            required: true
+            doc: 'context for OverflowActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+          onAction:
+            type: '(action: ActionViewModel, context: C) => void'
+            required: false
+            doc: 'onAction for OverflowActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+    action_slots:
+      overflowActions:
+        doc: Overflow actions are row-scoped actions with compact presentation. Initial scaffold can invoke the first action,
+          but final implementation should open a menu.
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: OverflowactionsContext
+        context: {}
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples: {}
+  stories:
+    SingleOverflowAction:
+      doc: 'TODO: describe what SingleOverflowAction tests for OverflowActionButton.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for SingleOverflowAction.'
+    NoActionsDisabled:
+      doc: 'TODO: describe what NoActionsDisabled tests for OverflowActionButton.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for NoActionsDisabled.'
+    FutureMenuPreview:
+      doc: 'TODO: describe what FutureMenuPreview tests for OverflowActionButton.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for FutureMenuPreview.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/atoms/OverflowActionButton/OverflowActionButton.tsx
+    types:
+      path: web/src/admin-dsl/widgets/atoms/OverflowActionButton/OverflowActionButton.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/atoms/OverflowActionButton/OverflowActionButton.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/atoms/OverflowActionButton/index.ts
+  implementation_todos:
+  - id: implement-menu-behavior-before-supporting-multiple-overflow-acti
+    severity: required
+    doc: Implement menu behavior before supporting multiple overflow actions.

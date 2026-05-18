@@ -1,341 +1,876 @@
-schema_version: 1
-artifact_type: admin_dsl_react_widget_ir
-source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_version: 2
+artifact_type: admin_dsl_widget_definition_ir
 category: layout_widgets
 summary: Layout widgets extracted from pageHeader, dashboardGrid, panel, toolbar, splitPane, tabs, filterBar, and searchBox
   branches.
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md
 widgets:
-- name: PageHeader
-  current_source: case "pageHeader" in renderAdminNode
+- id: admin.layout.page-header
+  name: PageHeader
+  status: scaffolded
   classification:
     level: organism
-  props: |-
-    export interface PageHeaderProps extends CommonWidgetProps {
-      breadcrumbs?: string[];
-      title: string;
-      description?: string;
-      primaryActions?: ActionViewModel[];
-      onPrimaryAction?: PageActionHandler;
-    }
-  action_slots:
-  - name: primaryActions
-    context: page
-    callback_prop: onPrimaryAction
-    intent: Page actions should be few and high-level. They should not receive row/form context.
-    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
-      or backend action transport.
-  usage_example: |-
-    <PageHeader
-      breadcrumbs={["Admin DSL", "Workbench v2"]}
-      title="Request Triage"
-      description="Review customer intake requests."
-      primaryActions={[newServiceAction]}
-      onPrimaryAction={handlePageAction}
-    />
-  storybook_stories:
-  - Default
-  - WithBreadcrumbs
-  - WithPrimaryAction
-  - LongTitleMobile
-  - NoDescription
-  file_layout: |-
-    web/src/admin-dsl/widgets/organisms/PageHeader/
-      PageHeader.tsx
-      PageHeader.types.ts
-      PageHeader.stories.tsx
-      PageHeader.test.tsx
-      index.ts
-  human_notes:
-    intent: Owns page-level title hierarchy, breadcrumbs, description, and primary page actions. It should make the top-of-page
+    description: PageHeader is classified as a organism in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "pageHeader" in renderAdminNode
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: Owns page-level title hierarchy, breadcrumbs, description, and primary page actions. It should make the top-of-page
       layout reusable across workbench screens.
+    design_rationale: Owns page-level title hierarchy, breadcrumbs, description, and primary page actions. It should make
+      the top-of-page layout reusable across workbench screens.
     adapter_boundary: Adapter maps pageHeader props/actions into typed props; widget receives strings and ActionViewModel
       values only.
-    slot_intent:
-      primaryActions: Page actions should be few and high-level. They should not receive row/form context.
-    storybook_intent: Stories should cover long responsive titles, breadcrumbs, descriptions, and primary action alignment.
-  xxx:
-  - Replace generated scaffold placeholder with final implementation.
-  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
-- name: DashboardGrid
-  current_source: case "dashboardGrid" and layoutSpan/layoutOrder helpers
+    implementation_notes:
+    - 'TODO: add implementation notes for PageHeader.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for PageHeader.'
+  contract:
+    props:
+      PageHeaderProps:
+        doc: 'PageHeaderProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          breadcrumbs:
+            type: string[]
+            required: false
+            doc: 'breadcrumbs for PageHeaderProps. TODO: replace this generated docstring with precise human intent.'
+          title:
+            type: string
+            required: true
+            doc: 'title for PageHeaderProps. TODO: replace this generated docstring with precise human intent.'
+          description:
+            type: string
+            required: false
+            doc: 'description for PageHeaderProps. TODO: replace this generated docstring with precise human intent.'
+          primaryActions:
+            type: ActionViewModel[]
+            required: false
+            doc: 'primaryActions for PageHeaderProps. TODO: replace this generated docstring with precise human intent.'
+          onPrimaryAction:
+            type: PageActionHandler
+            required: false
+            doc: 'onPrimaryAction for PageHeaderProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots:
+      primaryActions:
+        doc: Page actions should be few and high-level. They should not receive row/form context.
+        callback: onPrimaryAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: PrimaryactionsContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: page'
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples:
+    DefaultUsage:
+      doc: 'TODO: explain what this PageHeader usage example demonstrates.'
+      demonstrates:
+      - 'TODO: list concepts demonstrated by this example.'
+      code: |-
+        <PageHeader
+          breadcrumbs={["Admin DSL", "Workbench v2"]}
+          title="Request Triage"
+          description="Review customer intake requests."
+          primaryActions={[newServiceAction]}
+          onPrimaryAction={handlePageAction}
+        />
+  stories:
+    Default:
+      doc: 'TODO: describe what Default tests for PageHeader.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Default.'
+    WithBreadcrumbs:
+      doc: 'TODO: describe what WithBreadcrumbs tests for PageHeader.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WithBreadcrumbs.'
+    WithPrimaryAction:
+      doc: 'TODO: describe what WithPrimaryAction tests for PageHeader.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WithPrimaryAction.'
+    LongTitleMobile:
+      doc: 'TODO: describe what LongTitleMobile tests for PageHeader.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for LongTitleMobile.'
+    NoDescription:
+      doc: 'TODO: describe what NoDescription tests for PageHeader.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for NoDescription.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/PageHeader/index.ts
+    tests:
+      path: web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.test.tsx
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+  - id: keep-raw-admin-dsl-json-parsing-in-adapters-not-in-this-widget
+    severity: recommended
+    doc: Keep raw Admin DSL JSON parsing in adapters, not in this widget.
+- id: admin.layout.dashboard-grid
+  name: DashboardGrid
+  status: scaffolded
   classification:
     level: organism
-  props: |-
-    export interface DashboardGridProps extends CommonWidgetProps {
-      columns?: { desktop?: number; tablet?: number; mobile?: number };
-      gap?: "compact" | "normal" | "spacious";
-      children: React.ReactNode;
-    }
-
-    export interface DashboardGridItemProps {
-      span?: { desktop?: number; tablet?: number; mobile?: number };
-      order?: number;
-      children: React.ReactNode;
-    }
-  action_slots: []
-  storybook_stories:
-  - TwelveColumnDesktop
-  - CompactGap
-  - MixedSpanCards
-  - MobileSingleColumn
-  - Ordering
-  file_layout: |-
-    web/src/admin-dsl/widgets/organisms/DashboardGrid/
-      DashboardGrid.tsx
-      DashboardGrid.types.ts
-      DashboardGrid.stories.tsx
-      index.ts
-  human_notes:
-    intent: Owns responsive dashboard grid layout and item span/order behavior instead of scattering grid styles across Admin
+    description: DashboardGrid is classified as a organism in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "dashboardGrid" and layoutSpan/layoutOrder helpers
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: Owns responsive dashboard grid layout and item span/order behavior instead of scattering grid styles across Admin
       DSL render branches.
+    design_rationale: Owns responsive dashboard grid layout and item span/order behavior instead of scattering grid styles
+      across Admin DSL render branches.
     adapter_boundary: Adapter converts node child layout metadata into DashboardGridItem props; the widget should not inspect
       AdminNode.meta.
-    storybook_intent: Stories should prove 12-column layout, compact/spacious gaps, mixed spans, mobile single-column layout,
-      and ordering.
-  xxx:
-  - Replace generated scaffold placeholder with final implementation.
-  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
-- name: Panel
-  current_source: case "panel" in renderAdminNode
+    implementation_notes:
+    - 'TODO: add implementation notes for DashboardGrid.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for DashboardGrid.'
+  contract:
+    props:
+      DashboardGridProps:
+        doc: 'DashboardGridProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          columns:
+            type: '{ desktop?: number; tablet?: number; mobile?: number }'
+            required: false
+            doc: 'columns for DashboardGridProps. TODO: replace this generated docstring with precise human intent.'
+          gap:
+            type: '"compact" | "normal" | "spacious"'
+            required: false
+            doc: 'gap for DashboardGridProps. TODO: replace this generated docstring with precise human intent.'
+          children:
+            type: React.ReactNode
+            required: true
+            doc: 'children for DashboardGridProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+      DashboardGridItemProps:
+        doc: 'DashboardGridItemProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          span:
+            type: '{ desktop?: number; tablet?: number; mobile?: number }'
+            required: false
+            doc: 'span for DashboardGridItemProps. TODO: replace this generated docstring with precise human intent.'
+          order:
+            type: number
+            required: false
+            doc: 'order for DashboardGridItemProps. TODO: replace this generated docstring with precise human intent.'
+          children:
+            type: React.ReactNode
+            required: true
+            doc: 'children for DashboardGridItemProps. TODO: replace this generated docstring with precise human intent.'
+    action_slots: {}
+  examples: {}
+  stories:
+    TwelveColumnDesktop:
+      doc: 'TODO: describe what TwelveColumnDesktop tests for DashboardGrid.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for TwelveColumnDesktop.'
+    CompactGap:
+      doc: 'TODO: describe what CompactGap tests for DashboardGrid.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for CompactGap.'
+    MixedSpanCards:
+      doc: 'TODO: describe what MixedSpanCards tests for DashboardGrid.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for MixedSpanCards.'
+    MobileSingleColumn:
+      doc: 'TODO: describe what MobileSingleColumn tests for DashboardGrid.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for MobileSingleColumn.'
+    Ordering:
+      doc: 'TODO: describe what Ordering tests for DashboardGrid.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Ordering.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/DashboardGrid/DashboardGrid.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/DashboardGrid/DashboardGrid.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/DashboardGrid/DashboardGrid.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/DashboardGrid/index.ts
+    tests:
+      path: web/src/admin-dsl/widgets/organisms/DashboardGrid/DashboardGrid.test.tsx
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+  - id: keep-raw-admin-dsl-json-parsing-in-adapters-not-in-this-widget
+    severity: recommended
+    doc: Keep raw Admin DSL JSON parsing in adapters, not in this widget.
+- id: admin.layout.panel
+  name: Panel
+  status: scaffolded
   classification:
     level: organism
-  props: |-
-    export interface PanelProps extends CommonWidgetProps {
-      title?: string;
-      subtitle?: string;
-      eyebrow?: string;
-      body?: string;
-      padding?: "none" | "normal";
-      toolbarActions?: ActionViewModel[];
-      footerActions?: ActionViewModel[];
-      children?: React.ReactNode;
-      onToolbarAction?: PanelActionHandler;
-      onFooterAction?: PanelActionHandler;
-    }
-  action_slots:
-  - name: toolbarActions
-    context: panel
-    callback_prop: onToolbarAction
-    intent: Toolbar actions are local to the panel header and usually secondary.
-    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
-      or backend action transport.
-  - name: footerActions
-    context: panel
-    callback_prop: onFooterAction
-    intent: Footer actions are local to the panel result/flow and should preserve panel context.
-    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
-      or backend action transport.
-  usage_example: |-
-    <Panel
-      title="Today’s queue"
-      density="compact"
-      padding="none"
-      footerActions={[assignAction]}
-      onFooterAction={handlePanelFooterAction}
-    >
-      <ResourceTable {...tableProps} />
-    </Panel>
-  storybook_stories:
-  - Default
-  - CompactNoPadding
-  - WithToolbarAction
-  - WithFooterActions
-  - BodyOnly
-  - NestedResourceTable
-  - MobilePanelPadding
-  file_layout: |-
-    web/src/admin-dsl/widgets/organisms/Panel/
-      Panel.tsx
-      Panel.types.ts
-      Panel.stories.tsx
-      Panel.test.tsx
-      index.ts
-  human_notes:
-    intent: Central admin surface primitive for dense workbench content. It owns header/body/footer chrome, padding, density,
+    description: Panel is classified as a organism in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "panel" in renderAdminNode
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: Central admin surface primitive for dense workbench content. It owns header/body/footer chrome, padding, density,
       and action placement.
+    design_rationale: Central admin surface primitive for dense workbench content. It owns header/body/footer chrome, padding,
+      density, and action placement.
     adapter_boundary: Adapter maps toolbarActions/footerActions and renders children separately; widget receives typed React
       children and action arrays.
-    slot_intent:
-      toolbarActions: Toolbar actions are local to the panel header and usually secondary.
-      footerActions: Footer actions are local to the panel result/flow and should preserve panel context.
-    storybook_intent: Stories should cover no-padding table panels, toolbar actions, footer actions, body-only panels, and
-      mobile padding.
-  xxx:
-  - Replace generated scaffold placeholder with final implementation.
-  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
-- name: Toolbar
-  current_source: case "toolbar"
+    implementation_notes:
+    - 'TODO: add implementation notes for Panel.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for Panel.'
+  contract:
+    props:
+      PanelProps:
+        doc: 'PanelProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          title:
+            type: string
+            required: false
+            doc: 'title for PanelProps. TODO: replace this generated docstring with precise human intent.'
+          subtitle:
+            type: string
+            required: false
+            doc: 'subtitle for PanelProps. TODO: replace this generated docstring with precise human intent.'
+          eyebrow:
+            type: string
+            required: false
+            doc: 'eyebrow for PanelProps. TODO: replace this generated docstring with precise human intent.'
+          body:
+            type: string
+            required: false
+            doc: 'body for PanelProps. TODO: replace this generated docstring with precise human intent.'
+          padding:
+            type: '"none" | "normal"'
+            required: false
+            doc: 'padding for PanelProps. TODO: replace this generated docstring with precise human intent.'
+          toolbarActions:
+            type: ActionViewModel[]
+            required: false
+            doc: 'toolbarActions for PanelProps. TODO: replace this generated docstring with precise human intent.'
+          footerActions:
+            type: ActionViewModel[]
+            required: false
+            doc: 'footerActions for PanelProps. TODO: replace this generated docstring with precise human intent.'
+          children:
+            type: React.ReactNode
+            required: false
+            doc: 'children for PanelProps. TODO: replace this generated docstring with precise human intent.'
+          onToolbarAction:
+            type: PanelActionHandler
+            required: false
+            doc: 'onToolbarAction for PanelProps. TODO: replace this generated docstring with precise human intent.'
+          onFooterAction:
+            type: PanelActionHandler
+            required: false
+            doc: 'onFooterAction for PanelProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots:
+      toolbarActions:
+        doc: Toolbar actions are local to the panel header and usually secondary.
+        callback: onToolbarAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: ToolbaractionsContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: panel'
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+      footerActions:
+        doc: Footer actions are local to the panel result/flow and should preserve panel context.
+        callback: onFooterAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: FooteractionsContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: panel'
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples:
+    DefaultUsage:
+      doc: 'TODO: explain what this Panel usage example demonstrates.'
+      demonstrates:
+      - 'TODO: list concepts demonstrated by this example.'
+      code: |-
+        <Panel
+          title="Today’s queue"
+          density="compact"
+          padding="none"
+          footerActions={[assignAction]}
+          onFooterAction={handlePanelFooterAction}
+        >
+          <ResourceTable {...tableProps} />
+        </Panel>
+  stories:
+    Default:
+      doc: 'TODO: describe what Default tests for Panel.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Default.'
+    CompactNoPadding:
+      doc: 'TODO: describe what CompactNoPadding tests for Panel.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for CompactNoPadding.'
+    WithToolbarAction:
+      doc: 'TODO: describe what WithToolbarAction tests for Panel.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WithToolbarAction.'
+    WithFooterActions:
+      doc: 'TODO: describe what WithFooterActions tests for Panel.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WithFooterActions.'
+    BodyOnly:
+      doc: 'TODO: describe what BodyOnly tests for Panel.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for BodyOnly.'
+    NestedResourceTable:
+      doc: 'TODO: describe what NestedResourceTable tests for Panel.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for NestedResourceTable.'
+    MobilePanelPadding:
+      doc: 'TODO: describe what MobilePanelPadding tests for Panel.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for MobilePanelPadding.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/Panel/Panel.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/Panel/Panel.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/Panel/Panel.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/Panel/index.ts
+    tests:
+      path: web/src/admin-dsl/widgets/organisms/Panel/Panel.test.tsx
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+  - id: keep-raw-admin-dsl-json-parsing-in-adapters-not-in-this-widget
+    severity: recommended
+    doc: Keep raw Admin DSL JSON parsing in adapters, not in this widget.
+- id: admin.layout.toolbar
+  name: Toolbar
+  status: scaffolded
   classification:
     level: molecule
-  props: |-
-    export interface ToolbarProps extends CommonWidgetProps {
-      actions: ActionViewModel[];
-      onAction?: PageActionHandler;
-    }
-  action_slots:
-  - name: toolbarActions
-    callback_prop: onToolbarAction
-    intent: General toolbar actions receive page/tool context, not row or form context.
-    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
-      or backend action transport.
-  storybook_stories:
-  - Default
-  - ManyActionsWrap
-  - MobileTouchTargets
-  file_layout: |-
-    web/src/admin-dsl/widgets/molecules/Toolbar/
-      Toolbar.tsx
-      Toolbar.types.ts
-      Toolbar.stories.tsx
-      index.ts
-  human_notes:
-    intent: Small page/tool action row for legacy or non-workbench pages. It should eventually be a thin ActionGroup wrapper.
+    description: Toolbar is classified as a molecule in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "toolbar"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: Small page/tool action row for legacy or non-workbench pages. It should eventually be a thin ActionGroup wrapper.
+    design_rationale: Small page/tool action row for legacy or non-workbench pages. It should eventually be a thin ActionGroup
+      wrapper.
     adapter_boundary: Adapter maps toolbar node actions into ActionViewModel list.
-    slot_intent:
-      toolbarActions: General toolbar actions receive page/tool context, not row or form context.
-    storybook_intent: Stories should cover wrapping and mobile touch target behavior.
-  xxx:
-  - Replace generated scaffold placeholder with final implementation.
-  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
-- name: SplitPane
-  current_source: case "splitPane"
+    implementation_notes:
+    - 'TODO: add implementation notes for Toolbar.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for Toolbar.'
+  contract:
+    props:
+      ToolbarProps:
+        doc: 'ToolbarProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          actions:
+            type: ActionViewModel[]
+            required: true
+            doc: 'actions for ToolbarProps. TODO: replace this generated docstring with precise human intent.'
+          onAction:
+            type: PageActionHandler
+            required: false
+            doc: 'onAction for ToolbarProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots:
+      toolbarActions:
+        doc: General toolbar actions receive page/tool context, not row or form context.
+        callback: onToolbarAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: ToolbaractionsContext
+        context: {}
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples: {}
+  stories:
+    Default:
+      doc: 'TODO: describe what Default tests for Toolbar.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Default.'
+    ManyActionsWrap:
+      doc: 'TODO: describe what ManyActionsWrap tests for Toolbar.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for ManyActionsWrap.'
+    MobileTouchTargets:
+      doc: 'TODO: describe what MobileTouchTargets tests for Toolbar.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for MobileTouchTargets.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/Toolbar/Toolbar.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/Toolbar/Toolbar.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/Toolbar/Toolbar.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/Toolbar/index.ts
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+  - id: keep-raw-admin-dsl-json-parsing-in-adapters-not-in-this-widget
+    severity: recommended
+    doc: Keep raw Admin DSL JSON parsing in adapters, not in this widget.
+- id: admin.layout.split-pane
+  name: SplitPane
+  status: scaffolded
   classification:
     level: organism
-  props: |-
-    export interface SplitPaneProps extends CommonWidgetProps {
-      leftWidth?: string;
-      rightWidth?: string;
-      gap?: number;
-      children: React.ReactNode;
-    }
-  action_slots: []
-  storybook_stories:
-  - MasterDetail
-  - TwoPanels
-  - MobileStacked
-  file_layout: |-
-    web/src/admin-dsl/widgets/organisms/SplitPane/
-      SplitPane.tsx
-      SplitPane.types.ts
-      SplitPane.stories.tsx
-      index.ts
-  human_notes:
-    intent: Encodes master/detail or two-column layouts explicitly. It should replace ad hoc gridTemplateColumns usage for
+    description: SplitPane is classified as a organism in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "splitPane"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: Encodes master/detail or two-column layouts explicitly. It should replace ad hoc gridTemplateColumns usage for
       split surfaces.
+    design_rationale: Encodes master/detail or two-column layouts explicitly. It should replace ad hoc gridTemplateColumns
+      usage for split surfaces.
     adapter_boundary: Adapter passes rendered left/right children in order; widget owns responsive stacking.
-    storybook_intent: Stories should prove master/detail, two panels, and mobile stacking.
-  xxx:
-  - Replace generated scaffold placeholder with final implementation.
-  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
-- name: Tabs
-  current_source: case "tabs"
+    implementation_notes:
+    - 'TODO: add implementation notes for SplitPane.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for SplitPane.'
+  contract:
+    props:
+      SplitPaneProps:
+        doc: 'SplitPaneProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          leftWidth:
+            type: string
+            required: false
+            doc: 'leftWidth for SplitPaneProps. TODO: replace this generated docstring with precise human intent.'
+          rightWidth:
+            type: string
+            required: false
+            doc: 'rightWidth for SplitPaneProps. TODO: replace this generated docstring with precise human intent.'
+          gap:
+            type: number
+            required: false
+            doc: 'gap for SplitPaneProps. TODO: replace this generated docstring with precise human intent.'
+          children:
+            type: React.ReactNode
+            required: true
+            doc: 'children for SplitPaneProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots: {}
+  examples: {}
+  stories:
+    MasterDetail:
+      doc: 'TODO: describe what MasterDetail tests for SplitPane.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for MasterDetail.'
+    TwoPanels:
+      doc: 'TODO: describe what TwoPanels tests for SplitPane.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for TwoPanels.'
+    MobileStacked:
+      doc: 'TODO: describe what MobileStacked tests for SplitPane.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for MobileStacked.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/SplitPane/SplitPane.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/SplitPane/SplitPane.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/SplitPane/SplitPane.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/SplitPane/index.ts
+    tests:
+      path: web/src/admin-dsl/widgets/organisms/SplitPane/SplitPane.test.tsx
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+  - id: keep-raw-admin-dsl-json-parsing-in-adapters-not-in-this-widget
+    severity: recommended
+    doc: Keep raw Admin DSL JSON parsing in adapters, not in this widget.
+- id: admin.layout.tabs
+  name: Tabs
+  status: scaffolded
   classification:
     level: molecule
-  props: |-
-    export interface TabsProps extends CommonWidgetProps {
-      tabs: Array<{ id: string; label: string }>;
-      value?: string;
-      action?: ActionViewModel;
-      onTabChange?: (action: ActionViewModel | undefined, context: { tab: { id: string; label: string } }) => void;
-    }
-  action_slots:
-  - name: tabChange
-    callback_prop: onTabChange
-    intent: Tab changes are selection actions with tab context; they should not be modeled as row actions.
-    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
-      or backend action transport.
-  storybook_stories:
-  - Default
-  - ActiveTab
-  - NoActionReadonly
-  - WrappingMobile
-  file_layout: |-
-    web/src/admin-dsl/widgets/molecules/Tabs/
-      Tabs.tsx
-      Tabs.types.ts
-      Tabs.stories.tsx
-      index.ts
-  human_notes:
-    intent: Represents tab choice as a compact control with active state and optional action dispatch.
+    description: Tabs is classified as a molecule in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "tabs"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: Represents tab choice as a compact control with active state and optional action dispatch.
+    design_rationale: Represents tab choice as a compact control with active state and optional action dispatch.
     adapter_boundary: Adapter maps tabs/value/action props; widget emits selected tab context through onTabChange.
-    slot_intent:
-      tabChange: Tab changes are selection actions with tab context; they should not be modeled as row actions.
-    storybook_intent: Stories should cover active, readonly, action-backed, and wrapping states.
-  xxx:
-  - Replace generated scaffold placeholder with final implementation.
-  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
-- name: FilterBar
-  current_source: case "filterBar"
+    implementation_notes:
+    - 'TODO: add implementation notes for Tabs.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for Tabs.'
+  contract:
+    props:
+      TabsProps:
+        doc: 'TabsProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          tabs:
+            type: 'Array<{ id: string; label: string }>'
+            required: true
+            doc: 'tabs for TabsProps. TODO: replace this generated docstring with precise human intent.'
+          value:
+            type: string
+            required: false
+            doc: 'value for TabsProps. TODO: replace this generated docstring with precise human intent.'
+          action:
+            type: ActionViewModel
+            required: false
+            doc: 'action for TabsProps. TODO: replace this generated docstring with precise human intent.'
+          onTabChange:
+            type: '(action: ActionViewModel | undefined, context: { tab: { id: string; label: string } }) => void'
+            required: false
+            doc: 'onTabChange for TabsProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots:
+      tabChange:
+        doc: Tab changes are selection actions with tab context; they should not be modeled as row actions.
+        callback: onTabChange
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: TabchangeContext
+        context: {}
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples: {}
+  stories:
+    Default:
+      doc: 'TODO: describe what Default tests for Tabs.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Default.'
+    ActiveTab:
+      doc: 'TODO: describe what ActiveTab tests for Tabs.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for ActiveTab.'
+    NoActionReadonly:
+      doc: 'TODO: describe what NoActionReadonly tests for Tabs.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for NoActionReadonly.'
+    WrappingMobile:
+      doc: 'TODO: describe what WrappingMobile tests for Tabs.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WrappingMobile.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/Tabs/Tabs.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/Tabs/Tabs.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/Tabs/Tabs.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/Tabs/index.ts
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+  - id: keep-raw-admin-dsl-json-parsing-in-adapters-not-in-this-widget
+    severity: recommended
+    doc: Keep raw Admin DSL JSON parsing in adapters, not in this widget.
+- id: admin.layout.filter-bar
+  name: FilterBar
+  status: scaffolded
   classification:
     level: molecule
-  props: |-
-    export interface FilterBarProps extends CommonWidgetProps {
-      filters: Array<{ id: string; label: string }>;
-      value?: string;
-      action?: ActionViewModel;
-      onFilterChange?: (action: ActionViewModel | undefined, context: { filter: { id: string; label: string } }) => void;
-    }
-  action_slots:
-  - name: filterChange
-    callback_prop: onFilterChange
-    intent: Filter actions carry the chosen filter object so backend or frontend state can update consistently.
-    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
-      or backend action transport.
-  storybook_stories:
-  - Default
-  - ActiveFilter
-  - ManyFiltersWrap
-  - Readonly
-  file_layout: |-
-    web/src/admin-dsl/widgets/molecules/FilterBar/
-      FilterBar.tsx
-      FilterBar.types.ts
-      FilterBar.stories.tsx
-      index.ts
-  human_notes:
-    intent: Represents filter chips/pills as a specific action context rather than generic tabs or buttons.
+    description: FilterBar is classified as a molecule in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "filterBar"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: Represents filter chips/pills as a specific action context rather than generic tabs or buttons.
+    design_rationale: Represents filter chips/pills as a specific action context rather than generic tabs or buttons.
     adapter_boundary: Adapter maps filter list/value/action; widget emits selected filter context.
-    slot_intent:
-      filterChange: Filter actions carry the chosen filter object so backend or frontend state can update consistently.
-    storybook_intent: Stories should cover active filters, many filters, readonly mode, and wrapping.
-  xxx:
-  - Replace generated scaffold placeholder with final implementation.
-  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
-- name: SearchBox
-  current_source: case "searchBox"
+    implementation_notes:
+    - 'TODO: add implementation notes for FilterBar.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for FilterBar.'
+  contract:
+    props:
+      FilterBarProps:
+        doc: 'FilterBarProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          filters:
+            type: 'Array<{ id: string; label: string }>'
+            required: true
+            doc: 'filters for FilterBarProps. TODO: replace this generated docstring with precise human intent.'
+          value:
+            type: string
+            required: false
+            doc: 'value for FilterBarProps. TODO: replace this generated docstring with precise human intent.'
+          action:
+            type: ActionViewModel
+            required: false
+            doc: 'action for FilterBarProps. TODO: replace this generated docstring with precise human intent.'
+          onFilterChange:
+            type: '(action: ActionViewModel | undefined, context: { filter: { id: string; label: string } }) => void'
+            required: false
+            doc: 'onFilterChange for FilterBarProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots:
+      filterChange:
+        doc: Filter actions carry the chosen filter object so backend or frontend state can update consistently.
+        callback: onFilterChange
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: FilterchangeContext
+        context: {}
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples: {}
+  stories:
+    Default:
+      doc: 'TODO: describe what Default tests for FilterBar.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Default.'
+    ActiveFilter:
+      doc: 'TODO: describe what ActiveFilter tests for FilterBar.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for ActiveFilter.'
+    ManyFiltersWrap:
+      doc: 'TODO: describe what ManyFiltersWrap tests for FilterBar.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for ManyFiltersWrap.'
+    Readonly:
+      doc: 'TODO: describe what Readonly tests for FilterBar.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Readonly.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/FilterBar/FilterBar.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/FilterBar/FilterBar.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/FilterBar/FilterBar.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/FilterBar/index.ts
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+  - id: keep-raw-admin-dsl-json-parsing-in-adapters-not-in-this-widget
+    severity: recommended
+    doc: Keep raw Admin DSL JSON parsing in adapters, not in this widget.
+- id: admin.layout.search-box
+  name: SearchBox
+  status: scaffolded
   classification:
     level: molecule
-  props: |-
-    export interface SearchBoxProps extends CommonWidgetProps {
-      label?: string;
-      placeholder?: string;
-      value?: string;
-      action?: ActionViewModel;
-      onSearch?: (action: ActionViewModel | undefined, context: { query: string }) => void;
-    }
-  action_slots:
-  - name: searchSubmit
-    callback_prop: onSearch
-    intent: Search submit actions receive query context, not raw form events.
-    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
-      or backend action transport.
-  storybook_stories:
-  - Default
-  - WithInitialValue
-  - NoAction
-  - SubmitDispatch
-  file_layout: |-
-    web/src/admin-dsl/widgets/molecules/SearchBox/
-      SearchBox.tsx
-      SearchBox.types.ts
-      SearchBox.stories.tsx
-      index.ts
-  human_notes:
-    intent: Owns search form semantics and submit behavior in a reusable molecule.
+    description: SearchBox is classified as a molecule in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "searchBox"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: Owns search form semantics and submit behavior in a reusable molecule.
+    design_rationale: Owns search form semantics and submit behavior in a reusable molecule.
     adapter_boundary: Adapter maps placeholder/value/action; widget emits query text through onSearch.
-    slot_intent:
-      searchSubmit: Search submit actions receive query context, not raw form events.
-    storybook_intent: Stories should cover default, initial value, no action, and dispatch payload.
-  xxx:
-  - Replace generated scaffold placeholder with final implementation.
-  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
+    implementation_notes:
+    - 'TODO: add implementation notes for SearchBox.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for SearchBox.'
+  contract:
+    props:
+      SearchBoxProps:
+        doc: 'SearchBoxProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          label:
+            type: string
+            required: false
+            doc: 'label for SearchBoxProps. TODO: replace this generated docstring with precise human intent.'
+          placeholder:
+            type: string
+            required: false
+            doc: 'placeholder for SearchBoxProps. TODO: replace this generated docstring with precise human intent.'
+          value:
+            type: string
+            required: false
+            doc: 'value for SearchBoxProps. TODO: replace this generated docstring with precise human intent.'
+          action:
+            type: ActionViewModel
+            required: false
+            doc: 'action for SearchBoxProps. TODO: replace this generated docstring with precise human intent.'
+          onSearch:
+            type: '(action: ActionViewModel | undefined, context: { query: string }) => void'
+            required: false
+            doc: 'onSearch for SearchBoxProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots:
+      searchSubmit:
+        doc: Search submit actions receive query context, not raw form events.
+        callback: onSearch
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: SearchsubmitContext
+        context: {}
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples: {}
+  stories:
+    Default:
+      doc: 'TODO: describe what Default tests for SearchBox.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Default.'
+    WithInitialValue:
+      doc: 'TODO: describe what WithInitialValue tests for SearchBox.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WithInitialValue.'
+    NoAction:
+      doc: 'TODO: describe what NoAction tests for SearchBox.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for NoAction.'
+    SubmitDispatch:
+      doc: 'TODO: describe what SubmitDispatch tests for SearchBox.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for SubmitDispatch.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/SearchBox/SearchBox.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/SearchBox/SearchBox.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/SearchBox/SearchBox.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/SearchBox/index.ts
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+  - id: keep-raw-admin-dsl-json-parsing-in-adapters-not-in-this-widget
+    severity: recommended
+    doc: Keep raw Admin DSL JSON parsing in adapters, not in this widget.

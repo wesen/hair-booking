@@ -1,122 +1,447 @@
-schema_version: 1
-artifact_type: admin_dsl_react_widget_ir
-source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_version: 2
+artifact_type: admin_dsl_widget_definition_ir
 category: calendar_widgets
 summary: Calendar widgets extracted from monthCalendar and calendarWeek/appointment blocks.
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md
 widgets:
-- name: MonthCalendar
-  current_source: case "monthCalendar" and buildMonthCells
+- id: admin.calendar.month-calendar
+  name: MonthCalendar
+  status: scaffolded
   classification:
     level: organism
-  props: |-
-    export interface MonthCalendarMarker {
-      date: string;
-      kind: string;
-      tone?: "success" | "warning" | "danger" | "neutral";
-    }
-
-    export interface MonthCalendarLegendItem {
-      kind: string;
-      label: string;
-      tone?: "success" | "warning" | "danger" | "neutral";
-    }
-
-    export interface MonthCalendarProps extends CommonWidgetProps {
-      calendarId: string;
-      month: string; // YYYY-MM
-      label?: string;
-      selectedDate?: string;
-      markers?: MonthCalendarMarker[];
-      legend?: MonthCalendarLegendItem[];
-      previousMonthAction?: ActionViewModel;
-      nextMonthAction?: ActionViewModel;
-      selectDateAction?: ActionViewModel;
-      onMonthAction?: CalendarCellActionHandler;
-      onSelectDate?: CalendarCellActionHandler;
-    }
-  action_slots:
-  - name: previousMonth
-  - name: nextMonth
-  - name: selectDate
-    context: '{ calendarId, date }'
-  storybook_stories:
-  - DefaultMonth
-  - WithPublishedMarkers
-  - WithScheduledMarkers
-  - SelectedDate
-  - NoActionsReadonly
-  - PreviousNextActions
-  - MobileCalendar
-  file_layout: |-
-    web/src/admin-dsl/widgets/organisms/MonthCalendar/
-      MonthCalendar.tsx
-      MonthCalendar.types.ts
-      MonthCalendar.stories.tsx
-      MonthCalendar.test.tsx
-      parts/CalendarDayButton.tsx
-      parts/CalendarLegend.tsx
-      index.ts
-- name: CalendarWeek
-  current_source: web/src/admin-dsl/calendar.tsx and case "calendarWeek"
+    description: MonthCalendar is classified as a organism in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "monthCalendar" and buildMonthCells
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: MonthCalendar widget.
+    design_rationale: 'TODO: explain why MonthCalendar should be a distinct widget.'
+    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering MonthCalendar.'
+    implementation_notes:
+    - 'TODO: add implementation notes for MonthCalendar.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for MonthCalendar.'
+  contract:
+    props:
+      MonthCalendarMarker:
+        doc: 'MonthCalendarMarker contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          date:
+            type: string
+            required: true
+            doc: 'date for MonthCalendarMarker. TODO: replace this generated docstring with precise human intent.'
+          kind:
+            type: string
+            required: true
+            doc: 'kind for MonthCalendarMarker. TODO: replace this generated docstring with precise human intent.'
+          tone:
+            type: '"success" | "warning" | "danger" | "neutral"'
+            required: false
+            doc: 'tone for MonthCalendarMarker. TODO: replace this generated docstring with precise human intent.'
+      MonthCalendarLegendItem:
+        doc: 'MonthCalendarLegendItem contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          kind:
+            type: string
+            required: true
+            doc: 'kind for MonthCalendarLegendItem. TODO: replace this generated docstring with precise human intent.'
+          label:
+            type: string
+            required: true
+            doc: 'label for MonthCalendarLegendItem. TODO: replace this generated docstring with precise human intent.'
+          tone:
+            type: '"success" | "warning" | "danger" | "neutral"'
+            required: false
+            doc: 'tone for MonthCalendarLegendItem. TODO: replace this generated docstring with precise human intent.'
+      MonthCalendarProps:
+        doc: 'MonthCalendarProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          calendarId:
+            type: string
+            required: true
+            doc: 'calendarId for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+          month:
+            type: string; // YYYY-MM
+            required: true
+            doc: 'month for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+          label:
+            type: string
+            required: false
+            doc: 'label for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+          selectedDate:
+            type: string
+            required: false
+            doc: 'selectedDate for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+          markers:
+            type: MonthCalendarMarker[]
+            required: false
+            doc: 'markers for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+          legend:
+            type: MonthCalendarLegendItem[]
+            required: false
+            doc: 'legend for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+          previousMonthAction:
+            type: ActionViewModel
+            required: false
+            doc: 'previousMonthAction for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+          nextMonthAction:
+            type: ActionViewModel
+            required: false
+            doc: 'nextMonthAction for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+          selectDateAction:
+            type: ActionViewModel
+            required: false
+            doc: 'selectDateAction for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+          onMonthAction:
+            type: CalendarCellActionHandler
+            required: false
+            doc: 'onMonthAction for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+          onSelectDate:
+            type: CalendarCellActionHandler
+            required: false
+            doc: 'onSelectDate for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots:
+      previousMonth:
+        doc: 'previousMonth action slot. TODO: refine slot intent.'
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: PreviousmonthContext
+        context: {}
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+      nextMonth:
+        doc: 'nextMonth action slot. TODO: refine slot intent.'
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: NextmonthContext
+        context: {}
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+      selectDate:
+        doc: 'selectDate action slot. TODO: refine slot intent.'
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: SelectdateContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: { calendarId, date }'
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+  examples: {}
+  stories:
+    DefaultMonth:
+      doc: 'TODO: describe what DefaultMonth tests for MonthCalendar.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for DefaultMonth.'
+    WithPublishedMarkers:
+      doc: 'TODO: describe what WithPublishedMarkers tests for MonthCalendar.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WithPublishedMarkers.'
+    WithScheduledMarkers:
+      doc: 'TODO: describe what WithScheduledMarkers tests for MonthCalendar.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WithScheduledMarkers.'
+    SelectedDate:
+      doc: 'TODO: describe what SelectedDate tests for MonthCalendar.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for SelectedDate.'
+    NoActionsReadonly:
+      doc: 'TODO: describe what NoActionsReadonly tests for MonthCalendar.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for NoActionsReadonly.'
+    PreviousNextActions:
+      doc: 'TODO: describe what PreviousNextActions tests for MonthCalendar.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for PreviousNextActions.'
+    MobileCalendar:
+      doc: 'TODO: describe what MobileCalendar tests for MonthCalendar.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for MobileCalendar.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/MonthCalendar/MonthCalendar.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/MonthCalendar/MonthCalendar.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/MonthCalendar/MonthCalendar.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/MonthCalendar/index.ts
+    tests:
+      path: web/src/admin-dsl/widgets/organisms/MonthCalendar/MonthCalendar.test.tsx
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+- id: admin.calendar.calendar-week
+  name: CalendarWeek
+  status: scaffolded
   classification:
     level: organism
-  props: |-
-    export interface CalendarWeekProps extends CommonWidgetProps {
-      calendarId: string;
-      days: string[];
-      hours: string[];
-      blocks: CalendarEventBlockProps[];
-      onBlockAction?: (action: ActionViewModel, context: { block: CalendarEventBlockProps }) => void;
-    }
-  action_slots:
-  - name: child eventOpen actions
-    context: '{ block }'
-  storybook_stories:
-  - DefaultWeek
-  - AppointmentsAndTimeOff
-  - NoAppointments
-  - MobileAgenda
-  - LongDayLabels
-  file_layout: |-
-    web/src/admin-dsl/widgets/organisms/CalendarWeek/
-      CalendarWeek.tsx
-      CalendarWeek.types.ts
-      CalendarWeek.stories.tsx
-      parts/CalendarGrid.tsx
-      parts/CalendarAgenda.tsx
-      index.ts
-- name: CalendarEventBlock
-  current_source: appointmentBlock, availabilityBlock, timeOffBlock branches in render.tsx and calendar.tsx
+    description: CalendarWeek is classified as a organism in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - web/src/admin-dsl/calendar.tsx and case "calendarWeek"
+    current_files:
+    - path: web/src/admin-dsl/calendar.tsx
+      notes: Current source referenced by the v1 widget IR.
+  intent:
+    purpose: CalendarWeek widget.
+    design_rationale: 'TODO: explain why CalendarWeek should be a distinct widget.'
+    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering CalendarWeek.'
+    implementation_notes:
+    - 'TODO: add implementation notes for CalendarWeek.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for CalendarWeek.'
+  contract:
+    props:
+      CalendarWeekProps:
+        doc: 'CalendarWeekProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          calendarId:
+            type: string
+            required: true
+            doc: 'calendarId for CalendarWeekProps. TODO: replace this generated docstring with precise human intent.'
+          days:
+            type: string[]
+            required: true
+            doc: 'days for CalendarWeekProps. TODO: replace this generated docstring with precise human intent.'
+          hours:
+            type: string[]
+            required: true
+            doc: 'hours for CalendarWeekProps. TODO: replace this generated docstring with precise human intent.'
+          blocks:
+            type: CalendarEventBlockProps[]
+            required: true
+            doc: 'blocks for CalendarWeekProps. TODO: replace this generated docstring with precise human intent.'
+          onBlockAction:
+            type: '(action: ActionViewModel, context: { block: CalendarEventBlockProps }) => void'
+            required: false
+            doc: 'onBlockAction for CalendarWeekProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots:
+      child eventOpen actions:
+        doc: 'child eventOpen actions action slot. TODO: refine slot intent.'
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: ChildEventopenActionsContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: { block }'
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+  examples: {}
+  stories:
+    DefaultWeek:
+      doc: 'TODO: describe what DefaultWeek tests for CalendarWeek.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for DefaultWeek.'
+    AppointmentsAndTimeOff:
+      doc: 'TODO: describe what AppointmentsAndTimeOff tests for CalendarWeek.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for AppointmentsAndTimeOff.'
+    NoAppointments:
+      doc: 'TODO: describe what NoAppointments tests for CalendarWeek.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for NoAppointments.'
+    MobileAgenda:
+      doc: 'TODO: describe what MobileAgenda tests for CalendarWeek.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for MobileAgenda.'
+    LongDayLabels:
+      doc: 'TODO: describe what LongDayLabels tests for CalendarWeek.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for LongDayLabels.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/CalendarWeek/CalendarWeek.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/CalendarWeek/CalendarWeek.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/CalendarWeek/CalendarWeek.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/CalendarWeek/index.ts
+    tests:
+      path: web/src/admin-dsl/widgets/organisms/CalendarWeek/CalendarWeek.test.tsx
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+- id: admin.calendar.calendar-event-block
+  name: CalendarEventBlock
+  status: scaffolded
   classification:
     level: molecule
-  props: |-
-    export interface CalendarEventBlockProps extends CommonWidgetProps {
-      id: string;
-      kind: "appointment" | "availability" | "timeOff";
-      clientName?: string;
-      title?: string;
-      service?: string;
-      status?: string;
-      startsAt?: string;
-      endsAt?: string;
-      column?: number;
-      row?: number;
-      span?: number;
-      action?: ActionViewModel;
-      onAction?: (action: ActionViewModel, context: { blockId: string }) => void;
-    }
-  action_slots:
-  - name: eventOpen
-    context: '{ blockId }'
-  storybook_stories:
-  - Appointment
-  - Availability
-  - TimeOff
-  - CompactBlock
-  - AgendaItem
-  file_layout: |-
-    web/src/admin-dsl/widgets/molecules/CalendarEventBlock/
-      CalendarEventBlock.tsx
-      CalendarEventBlock.types.ts
-      CalendarEventBlock.stories.tsx
-      index.ts
+    description: CalendarEventBlock is classified as a molecule in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - appointmentBlock, availabilityBlock, timeOffBlock branches in render.tsx and calendar.tsx
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: CalendarEventBlock widget.
+    design_rationale: 'TODO: explain why CalendarEventBlock should be a distinct widget.'
+    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering CalendarEventBlock.'
+    implementation_notes:
+    - 'TODO: add implementation notes for CalendarEventBlock.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for CalendarEventBlock.'
+  contract:
+    props:
+      CalendarEventBlockProps:
+        doc: 'CalendarEventBlockProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          id:
+            type: string
+            required: true
+            doc: 'id for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+          kind:
+            type: '"appointment" | "availability" | "timeOff"'
+            required: true
+            doc: 'kind for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+          clientName:
+            type: string
+            required: false
+            doc: 'clientName for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+          title:
+            type: string
+            required: false
+            doc: 'title for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+          service:
+            type: string
+            required: false
+            doc: 'service for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+          status:
+            type: string
+            required: false
+            doc: 'status for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+          startsAt:
+            type: string
+            required: false
+            doc: 'startsAt for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+          endsAt:
+            type: string
+            required: false
+            doc: 'endsAt for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+          column:
+            type: number
+            required: false
+            doc: 'column for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+          row:
+            type: number
+            required: false
+            doc: 'row for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+          span:
+            type: number
+            required: false
+            doc: 'span for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+          action:
+            type: ActionViewModel
+            required: false
+            doc: 'action for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+          onAction:
+            type: '(action: ActionViewModel, context: { blockId: string }) => void'
+            required: false
+            doc: 'onAction for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots:
+      eventOpen:
+        doc: 'eventOpen action slot. TODO: refine slot intent.'
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: EventopenContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: { blockId }'
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+  examples: {}
+  stories:
+    Appointment:
+      doc: 'TODO: describe what Appointment tests for CalendarEventBlock.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Appointment.'
+    Availability:
+      doc: 'TODO: describe what Availability tests for CalendarEventBlock.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Availability.'
+    TimeOff:
+      doc: 'TODO: describe what TimeOff tests for CalendarEventBlock.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for TimeOff.'
+    CompactBlock:
+      doc: 'TODO: describe what CompactBlock tests for CalendarEventBlock.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for CompactBlock.'
+    AgendaItem:
+      doc: 'TODO: describe what AgendaItem tests for CalendarEventBlock.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for AgendaItem.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/CalendarEventBlock/index.ts
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.

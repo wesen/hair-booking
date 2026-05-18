@@ -1,222 +1,768 @@
-schema_version: 1
-artifact_type: admin_dsl_react_widget_ir
-source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_version: 2
+artifact_type: admin_dsl_widget_definition_ir
 category: data_display_widgets
 summary: Data display, state, and small content widgets extracted from metricCard, comparisonTable, kvList, markdownBlock,
   activityFeed, emptyState, loadingState, and inlineError.
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md
 widgets:
-- name: MetricCard
-  current_source: case "metricCard"
+- id: admin.data-display.metric-card
+  name: MetricCard
+  status: scaffolded
   classification:
     level: molecule
-  props: |-
-    export interface MetricCardProps extends CommonWidgetProps {
-      label: string;
-      value: string | number;
-      caption?: string;
-    }
-  action_slots: []
-  storybook_stories:
-  - Default
-  - SuccessTone
-  - WarningTone
-  - DangerTone
-  - LongCaption
-  file_layout: |-
-    web/src/admin-dsl/widgets/molecules/MetricCard/
-      MetricCard.tsx
-      MetricCard.types.ts
-      MetricCard.stories.tsx
-      index.ts
-- name: StatusText
-  current_source: renderTableCell badge branch and schema statusBadge
+    description: MetricCard is classified as a molecule in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "metricCard"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: MetricCard widget.
+    design_rationale: 'TODO: explain why MetricCard should be a distinct widget.'
+    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering MetricCard.'
+    implementation_notes:
+    - 'TODO: add implementation notes for MetricCard.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for MetricCard.'
+  contract:
+    props:
+      MetricCardProps:
+        doc: 'MetricCardProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          label:
+            type: string
+            required: true
+            doc: 'label for MetricCardProps. TODO: replace this generated docstring with precise human intent.'
+          value:
+            type: string | number
+            required: true
+            doc: 'value for MetricCardProps. TODO: replace this generated docstring with precise human intent.'
+          caption:
+            type: string
+            required: false
+            doc: 'caption for MetricCardProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots: {}
+  examples: {}
+  stories:
+    Default:
+      doc: 'TODO: describe what Default tests for MetricCard.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Default.'
+    SuccessTone:
+      doc: 'TODO: describe what SuccessTone tests for MetricCard.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for SuccessTone.'
+    WarningTone:
+      doc: 'TODO: describe what WarningTone tests for MetricCard.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WarningTone.'
+    DangerTone:
+      doc: 'TODO: describe what DangerTone tests for MetricCard.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for DangerTone.'
+    LongCaption:
+      doc: 'TODO: describe what LongCaption tests for MetricCard.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for LongCaption.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/MetricCard/MetricCard.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/MetricCard/MetricCard.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/MetricCard/MetricCard.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/MetricCard/index.ts
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+- id: admin.data-display.status-text
+  name: StatusText
+  status: scaffolded
   classification:
     level: atom
-  props: |-
-    export interface StatusTextProps extends CommonWidgetProps {
-      label: string;
-      tone?: "neutral" | "success" | "warning" | "danger";
-      variant?: "text" | "pill";
-    }
-  action_slots: []
-  storybook_stories:
-  - NeutralText
-  - SuccessText
-  - WarningText
-  - DangerText
-  - PillVariant
-  - MappedFromTableValue
-  file_layout: |-
-    web/src/admin-dsl/widgets/atoms/StatusText/
-      StatusText.tsx
-      StatusText.types.ts
-      StatusText.stories.tsx
-      index.ts
-- name: ComparisonTable
-  current_source: case "comparisonTable"
+    description: StatusText is classified as a atom in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - renderTableCell badge branch and schema statusBadge
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: StatusText widget.
+    design_rationale: 'TODO: explain why StatusText should be a distinct widget.'
+    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering StatusText.'
+    implementation_notes:
+    - 'TODO: add implementation notes for StatusText.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for StatusText.'
+  contract:
+    props:
+      StatusTextProps:
+        doc: 'StatusTextProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          label:
+            type: string
+            required: true
+            doc: 'label for StatusTextProps. TODO: replace this generated docstring with precise human intent.'
+          tone:
+            type: '"neutral" | "success" | "warning" | "danger"'
+            required: false
+            doc: 'tone for StatusTextProps. TODO: replace this generated docstring with precise human intent.'
+          variant:
+            type: '"text" | "pill"'
+            required: false
+            doc: 'variant for StatusTextProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots: {}
+  examples: {}
+  stories:
+    NeutralText:
+      doc: 'TODO: describe what NeutralText tests for StatusText.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for NeutralText.'
+    SuccessText:
+      doc: 'TODO: describe what SuccessText tests for StatusText.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for SuccessText.'
+    WarningText:
+      doc: 'TODO: describe what WarningText tests for StatusText.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WarningText.'
+    DangerText:
+      doc: 'TODO: describe what DangerText tests for StatusText.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for DangerText.'
+    PillVariant:
+      doc: 'TODO: describe what PillVariant tests for StatusText.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for PillVariant.'
+    MappedFromTableValue:
+      doc: 'TODO: describe what MappedFromTableValue tests for StatusText.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for MappedFromTableValue.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/atoms/StatusText/StatusText.tsx
+    types:
+      path: web/src/admin-dsl/widgets/atoms/StatusText/StatusText.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/atoms/StatusText/StatusText.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/atoms/StatusText/index.ts
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+- id: admin.data-display.comparison-table
+  name: ComparisonTable
+  status: scaffolded
   classification:
     level: organism
-  props: |-
-    export interface ComparisonTableRow {
-      id?: string;
-      field: string;
-      current?: string;
-      draft?: string;
-      scheduled?: string;
-      actions?: ActionViewModel[];
-    }
-
-    export interface ComparisonTableProps extends CommonWidgetProps {
-      tableId: string;
-      rows: ComparisonTableRow[];
-      empty?: React.ReactNode;
-      onRowAction?: (action: ActionViewModel, context: { tableId: string; row: ComparisonTableRow }) => void;
-    }
-  action_slots:
-  - name: rowActions
-    context: '{ tableId, row }'
-  storybook_stories:
-  - DefaultChanges
-  - NoChangesEmptyState
-  - RowActions
-  - MobileCards
-  - LongValues
-  file_layout: |-
-    web/src/admin-dsl/widgets/organisms/ComparisonTable/
-      ComparisonTable.tsx
-      ComparisonTable.types.ts
-      ComparisonTable.stories.tsx
-      ComparisonTable.test.tsx
-      index.ts
-- name: KeyValueList
-  current_source: case "kvList"
+    description: ComparisonTable is classified as a organism in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "comparisonTable"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: ComparisonTable widget.
+    design_rationale: 'TODO: explain why ComparisonTable should be a distinct widget.'
+    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering ComparisonTable.'
+    implementation_notes:
+    - 'TODO: add implementation notes for ComparisonTable.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for ComparisonTable.'
+  contract:
+    props:
+      ComparisonTableRow:
+        doc: 'ComparisonTableRow contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          id:
+            type: string
+            required: false
+            doc: 'id for ComparisonTableRow. TODO: replace this generated docstring with precise human intent.'
+          field:
+            type: string
+            required: true
+            doc: 'field for ComparisonTableRow. TODO: replace this generated docstring with precise human intent.'
+          current:
+            type: string
+            required: false
+            doc: 'current for ComparisonTableRow. TODO: replace this generated docstring with precise human intent.'
+          draft:
+            type: string
+            required: false
+            doc: 'draft for ComparisonTableRow. TODO: replace this generated docstring with precise human intent.'
+          scheduled:
+            type: string
+            required: false
+            doc: 'scheduled for ComparisonTableRow. TODO: replace this generated docstring with precise human intent.'
+          actions:
+            type: ActionViewModel[]
+            required: false
+            doc: 'actions for ComparisonTableRow. TODO: replace this generated docstring with precise human intent.'
+      ComparisonTableProps:
+        doc: 'ComparisonTableProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          tableId:
+            type: string
+            required: true
+            doc: 'tableId for ComparisonTableProps. TODO: replace this generated docstring with precise human intent.'
+          rows:
+            type: ComparisonTableRow[]
+            required: true
+            doc: 'rows for ComparisonTableProps. TODO: replace this generated docstring with precise human intent.'
+          empty:
+            type: React.ReactNode
+            required: false
+            doc: 'empty for ComparisonTableProps. TODO: replace this generated docstring with precise human intent.'
+          onRowAction:
+            type: '(action: ActionViewModel, context: { tableId: string; row: ComparisonTableRow }) => void'
+            required: false
+            doc: 'onRowAction for ComparisonTableProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots:
+      rowActions:
+        doc: 'rowActions action slot. TODO: refine slot intent.'
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: RowactionsContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: { tableId, row }'
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+  examples: {}
+  stories:
+    DefaultChanges:
+      doc: 'TODO: describe what DefaultChanges tests for ComparisonTable.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for DefaultChanges.'
+    NoChangesEmptyState:
+      doc: 'TODO: describe what NoChangesEmptyState tests for ComparisonTable.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for NoChangesEmptyState.'
+    RowActions:
+      doc: 'TODO: describe what RowActions tests for ComparisonTable.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for RowActions.'
+    MobileCards:
+      doc: 'TODO: describe what MobileCards tests for ComparisonTable.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for MobileCards.'
+    LongValues:
+      doc: 'TODO: describe what LongValues tests for ComparisonTable.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for LongValues.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/ComparisonTable/ComparisonTable.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/ComparisonTable/ComparisonTable.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/ComparisonTable/ComparisonTable.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/ComparisonTable/index.ts
+    tests:
+      path: web/src/admin-dsl/widgets/organisms/ComparisonTable/ComparisonTable.test.tsx
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+- id: admin.data-display.key-value-list
+  name: KeyValueList
+  status: scaffolded
   classification:
     level: molecule
-  props: |-
-    export interface KeyValueListProps extends CommonWidgetProps {
-      items: Array<{ label: string; value: string | number | React.ReactNode }>;
-      labelWidth?: number | string;
-    }
-  action_slots: []
-  storybook_stories:
-  - Default
-  - LongLabels
-  - EmptyItems
-  - AuditDetails
-  file_layout: |-
-    web/src/admin-dsl/widgets/molecules/KeyValueList/
-      KeyValueList.tsx
-      KeyValueList.types.ts
-      KeyValueList.stories.tsx
-      index.ts
-- name: ActivityFeed
-  current_source: case "activityFeed"
+    description: KeyValueList is classified as a molecule in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "kvList"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: KeyValueList widget.
+    design_rationale: 'TODO: explain why KeyValueList should be a distinct widget.'
+    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering KeyValueList.'
+    implementation_notes:
+    - 'TODO: add implementation notes for KeyValueList.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for KeyValueList.'
+  contract:
+    props:
+      KeyValueListProps:
+        doc: 'KeyValueListProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          items:
+            type: 'Array<{ label: string; value: string | number | React.ReactNode }>'
+            required: true
+            doc: 'items for KeyValueListProps. TODO: replace this generated docstring with precise human intent.'
+          labelWidth:
+            type: number | string
+            required: false
+            doc: 'labelWidth for KeyValueListProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots: {}
+  examples: {}
+  stories:
+    Default:
+      doc: 'TODO: describe what Default tests for KeyValueList.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Default.'
+    LongLabels:
+      doc: 'TODO: describe what LongLabels tests for KeyValueList.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for LongLabels.'
+    EmptyItems:
+      doc: 'TODO: describe what EmptyItems tests for KeyValueList.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for EmptyItems.'
+    AuditDetails:
+      doc: 'TODO: describe what AuditDetails tests for KeyValueList.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for AuditDetails.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/KeyValueList/KeyValueList.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/KeyValueList/KeyValueList.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/KeyValueList/KeyValueList.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/KeyValueList/index.ts
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+- id: admin.data-display.activity-feed
+  name: ActivityFeed
+  status: scaffolded
   classification:
     level: molecule
-  props: |-
-    export interface ActivityFeedItem {
-      time: string;
-      title: string;
-      body?: string;
-      action?: ActionViewModel;
-    }
-
-    export interface ActivityFeedProps extends CommonWidgetProps {
-      items: ActivityFeedItem[];
-      onItemAction?: (action: ActionViewModel, context: { item: ActivityFeedItem }) => void;
-    }
-  action_slots:
-  - name: itemAction
-    notes: Future item-level action slot.
-  storybook_stories:
-  - Default
-  - Empty
-  - LongBody
-  - AuditLog
-  - WithItemActions
-  file_layout: |-
-    web/src/admin-dsl/widgets/molecules/ActivityFeed/
-      ActivityFeed.tsx
-      ActivityFeed.types.ts
-      ActivityFeed.stories.tsx
-      index.ts
-- name: MarkdownBlock
-  current_source: case "markdownBlock"
+    description: ActivityFeed is classified as a molecule in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "activityFeed"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: ActivityFeed widget.
+    design_rationale: 'TODO: explain why ActivityFeed should be a distinct widget.'
+    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering ActivityFeed.'
+    implementation_notes:
+    - 'TODO: add implementation notes for ActivityFeed.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for ActivityFeed.'
+  contract:
+    props:
+      ActivityFeedItem:
+        doc: 'ActivityFeedItem contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          time:
+            type: string
+            required: true
+            doc: 'time for ActivityFeedItem. TODO: replace this generated docstring with precise human intent.'
+          title:
+            type: string
+            required: true
+            doc: 'title for ActivityFeedItem. TODO: replace this generated docstring with precise human intent.'
+          body:
+            type: string
+            required: false
+            doc: 'body for ActivityFeedItem. TODO: replace this generated docstring with precise human intent.'
+          action:
+            type: ActionViewModel
+            required: false
+            doc: 'action for ActivityFeedItem. TODO: replace this generated docstring with precise human intent.'
+      ActivityFeedProps:
+        doc: 'ActivityFeedProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          items:
+            type: ActivityFeedItem[]
+            required: true
+            doc: 'items for ActivityFeedProps. TODO: replace this generated docstring with precise human intent.'
+          onItemAction:
+            type: '(action: ActionViewModel, context: { item: ActivityFeedItem }) => void'
+            required: false
+            doc: 'onItemAction for ActivityFeedProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots:
+      itemAction:
+        doc: Future item-level action slot.
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: ItemactionContext
+        context: {}
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+  examples: {}
+  stories:
+    Default:
+      doc: 'TODO: describe what Default tests for ActivityFeed.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Default.'
+    Empty:
+      doc: 'TODO: describe what Empty tests for ActivityFeed.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Empty.'
+    LongBody:
+      doc: 'TODO: describe what LongBody tests for ActivityFeed.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for LongBody.'
+    AuditLog:
+      doc: 'TODO: describe what AuditLog tests for ActivityFeed.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for AuditLog.'
+    WithItemActions:
+      doc: 'TODO: describe what WithItemActions tests for ActivityFeed.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WithItemActions.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/ActivityFeed/ActivityFeed.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/ActivityFeed/ActivityFeed.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/ActivityFeed/ActivityFeed.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/ActivityFeed/index.ts
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+- id: admin.data-display.markdown-block
+  name: MarkdownBlock
+  status: scaffolded
   classification:
     level: molecule
-  props: |-
-    export interface MarkdownBlockProps extends CommonWidgetProps {
-      markdown: string;
-      tone?: "neutral" | "muted";
-    }
-  action_slots: []
-  storybook_stories:
-  - PlainText
-  - Multiline
-  - Muted
-  file_layout: |-
-    web/src/admin-dsl/widgets/molecules/MarkdownBlock/
-      MarkdownBlock.tsx
-      MarkdownBlock.types.ts
-      MarkdownBlock.stories.tsx
-      index.ts
-- name: EmptyState
-  current_source: case "emptyState"
+    description: MarkdownBlock is classified as a molecule in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "markdownBlock"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: MarkdownBlock widget.
+    design_rationale: 'TODO: explain why MarkdownBlock should be a distinct widget.'
+    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering MarkdownBlock.'
+    implementation_notes:
+    - 'TODO: add implementation notes for MarkdownBlock.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for MarkdownBlock.'
+  contract:
+    props:
+      MarkdownBlockProps:
+        doc: 'MarkdownBlockProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          markdown:
+            type: string
+            required: true
+            doc: 'markdown for MarkdownBlockProps. TODO: replace this generated docstring with precise human intent.'
+          tone:
+            type: '"neutral" | "muted"'
+            required: false
+            doc: 'tone for MarkdownBlockProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots: {}
+  examples: {}
+  stories:
+    PlainText:
+      doc: 'TODO: describe what PlainText tests for MarkdownBlock.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for PlainText.'
+    Multiline:
+      doc: 'TODO: describe what Multiline tests for MarkdownBlock.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Multiline.'
+    Muted:
+      doc: 'TODO: describe what Muted tests for MarkdownBlock.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Muted.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/MarkdownBlock/MarkdownBlock.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/MarkdownBlock/MarkdownBlock.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/MarkdownBlock/MarkdownBlock.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/MarkdownBlock/index.ts
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+- id: admin.data-display.empty-state
+  name: EmptyState
+  status: scaffolded
   classification:
     level: molecule
-  props: |-
-    export interface EmptyStateProps extends CommonWidgetProps {
-      title: string;
-      body?: string;
-      action?: ActionViewModel;
-      onAction?: PageActionHandler;
-    }
-  action_slots:
-  - name: primaryAction
-  storybook_stories:
-  - Default
-  - WithAction
-  file_layout: |-
-    web/src/admin-dsl/widgets/molecules/EmptyState/
-      EmptyState.tsx
-      EmptyState.types.ts
-      EmptyState.stories.tsx
-      index.ts
-- name: LoadingState
-  current_source: case "loadingState"
+    description: EmptyState is classified as a molecule in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "emptyState"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: EmptyState widget.
+    design_rationale: 'TODO: explain why EmptyState should be a distinct widget.'
+    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering EmptyState.'
+    implementation_notes:
+    - 'TODO: add implementation notes for EmptyState.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for EmptyState.'
+  contract:
+    props:
+      EmptyStateProps:
+        doc: 'EmptyStateProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          title:
+            type: string
+            required: true
+            doc: 'title for EmptyStateProps. TODO: replace this generated docstring with precise human intent.'
+          body:
+            type: string
+            required: false
+            doc: 'body for EmptyStateProps. TODO: replace this generated docstring with precise human intent.'
+          action:
+            type: ActionViewModel
+            required: false
+            doc: 'action for EmptyStateProps. TODO: replace this generated docstring with precise human intent.'
+          onAction:
+            type: PageActionHandler
+            required: false
+            doc: 'onAction for EmptyStateProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots:
+      primaryAction:
+        doc: 'primaryAction action slot. TODO: refine slot intent.'
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: PrimaryactionContext
+        context: {}
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+  examples: {}
+  stories:
+    Default:
+      doc: 'TODO: describe what Default tests for EmptyState.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Default.'
+    WithAction:
+      doc: 'TODO: describe what WithAction tests for EmptyState.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WithAction.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/EmptyState/EmptyState.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/EmptyState/EmptyState.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/EmptyState/EmptyState.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/EmptyState/index.ts
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+- id: admin.data-display.loading-state
+  name: LoadingState
+  status: scaffolded
   classification:
     level: molecule
-  props: |-
-    export interface LoadingStateProps extends CommonWidgetProps {
-      title?: string;
-      body?: string;
-    }
-  action_slots: []
-  storybook_stories:
-  - Default
-  - WithBody
-  file_layout: |-
-    web/src/admin-dsl/widgets/molecules/LoadingState/
-      LoadingState.tsx
-      LoadingState.types.ts
-      LoadingState.stories.tsx
-      index.ts
-- name: InlineError
-  current_source: case "inlineError"
+    description: LoadingState is classified as a molecule in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "loadingState"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: LoadingState widget.
+    design_rationale: 'TODO: explain why LoadingState should be a distinct widget.'
+    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering LoadingState.'
+    implementation_notes:
+    - 'TODO: add implementation notes for LoadingState.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for LoadingState.'
+  contract:
+    props:
+      LoadingStateProps:
+        doc: 'LoadingStateProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          title:
+            type: string
+            required: false
+            doc: 'title for LoadingStateProps. TODO: replace this generated docstring with precise human intent.'
+          body:
+            type: string
+            required: false
+            doc: 'body for LoadingStateProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots: {}
+  examples: {}
+  stories:
+    Default:
+      doc: 'TODO: describe what Default tests for LoadingState.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Default.'
+    WithBody:
+      doc: 'TODO: describe what WithBody tests for LoadingState.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WithBody.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/LoadingState/LoadingState.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/LoadingState/LoadingState.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/LoadingState/LoadingState.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/LoadingState/index.ts
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+- id: admin.data-display.inline-error
+  name: InlineError
+  status: scaffolded
   classification:
     level: molecule
-  props: |-
-    export interface InlineErrorProps extends CommonWidgetProps {
-      title: string;
-      body?: string;
-    }
-  action_slots: []
-  storybook_stories:
-  - Default
-  - LongMessage
-  file_layout: |-
-    web/src/admin-dsl/widgets/molecules/InlineError/
-      InlineError.tsx
-      InlineError.types.ts
-      InlineError.stories.tsx
-      index.ts
+    description: InlineError is classified as a molecule in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "inlineError"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: InlineError widget.
+    design_rationale: 'TODO: explain why InlineError should be a distinct widget.'
+    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering InlineError.'
+    implementation_notes:
+    - 'TODO: add implementation notes for InlineError.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for InlineError.'
+  contract:
+    props:
+      InlineErrorProps:
+        doc: 'InlineErrorProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          title:
+            type: string
+            required: true
+            doc: 'title for InlineErrorProps. TODO: replace this generated docstring with precise human intent.'
+          body:
+            type: string
+            required: false
+            doc: 'body for InlineErrorProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots: {}
+  examples: {}
+  stories:
+    Default:
+      doc: 'TODO: describe what Default tests for InlineError.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Default.'
+    LongMessage:
+      doc: 'TODO: describe what LongMessage tests for InlineError.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for LongMessage.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/InlineError/InlineError.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/InlineError/InlineError.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/InlineError/InlineError.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/InlineError/index.ts
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.

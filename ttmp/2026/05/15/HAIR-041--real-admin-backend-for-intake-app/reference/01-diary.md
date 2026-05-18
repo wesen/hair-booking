@@ -3509,3 +3509,73 @@ The key design decision is to keep prose first-class while making the machine co
 
 ### Technical details
 - The scaffold generator has not yet been updated to consume schema v2 directly. The current task only updates the YAML reference example and spec.
+
+## Step 47: Migrate all widget IR YAML artifacts to schema v2
+
+This step applies the cleaner widget definition IR shape beyond the shell widgets. All YAML files in `sources/admin-dsl-widget-ir/` now carry `schema_version: 2` and a schema document reference. Widget category files use `artifact_type: admin_dsl_widget_definition_ir`; support files use index/support artifact types so tooling can distinguish files that contain widget definitions from files that contain pass plans or matrices.
+
+The migration keeps the prior content but normalizes widget entries into the schema v2 sections: `source_mapping`, `intent`, `contract`, `examples`, `stories`, `outputs`, and `implementation_todos`. Some migrated fields intentionally contain TODO docstrings where the previous v1 YAML did not have enough human-written detail yet.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Now update alkl yaml files to match this format."
+
+**Assistant interpretation:** Convert the remaining widget IR YAML files to the schema v2 format and make sure all YAML files in the widget IR directory are consistently marked as schema v2.
+
+**Inferred user intent:** The user wants the YAML artifact set to be consistently scriptable under the new schema, not only the shell-widget example.
+
+**Commit (code):** pending — YAML/docs only.
+
+### What I did
+- Migrated these widget definition files to `schema_version: 2` and `artifact_type: admin_dsl_widget_definition_ir`:
+  - `04-action-widgets.yaml`
+  - `05-layout-widgets.yaml`
+  - `06-resource-widgets.yaml`
+  - `07-data-display-widgets.yaml`
+  - `08-media-widgets.yaml`
+  - `09-calendar-widgets.yaml`
+  - `10-form-widgets.yaml`
+  - `11-surface-widgets.yaml`
+- Confirmed `03-shell-widgets.yaml` remains the richer hand-authored schema v2 reference.
+- Updated support files to `schema_version: 2` with support artifact types:
+  - `00-index.yaml` uses `artifact_type: admin_dsl_widget_ir_index`
+  - `01-pass-model.yaml`, `02-shared-types.yaml`, `12-renderer-adapter-plan.yaml`, `13-storybook-scenario-matrix.yaml`, and `14-unsupported-constructs.yaml` use `artifact_type: admin_dsl_widget_support_ir`
+- Updated `00-index.yaml` to record artifact type and schema version for each listed file.
+- Updated `design-doc/09-widget-definition-ir-yaml-format-spec.md` to document support artifact files in the same directory.
+- Validated every YAML file in `sources/admin-dsl-widget-ir/` with PyYAML and asserted all have `schema_version: 2`.
+
+### Why
+- Scripts need a consistent marker and schema reference across the artifact directory.
+- Widget definition files should be distinguishable from support artifacts so generators do not try to read `contract` fields from pass-model or index files.
+
+### What worked
+- All YAML files parse successfully.
+- All widget definition files now contain schema v2 widget objects with `contract`, `outputs`, and `stories` sections.
+- The richer shell YAML remains the canonical hand-authored example, while the other migrated files provide a complete first-pass schema v2 conversion.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The directory needs both widget definition files and support artifacts. Treating every file as a widget definition would make index/pass-model/support data awkward, so `artifact_type` is the correct discriminator.
+
+### What was tricky to build
+- Some v1 YAML entries, especially aggregate field-widget entries, were not one direct widget contract. The migration keeps direct widget entries and leaves aggregate planning to future refinement.
+- Many v1 prop contracts were TypeScript snippets. The migration performs a basic interface/field extraction and marks generated docstrings as TODO where human intent still needs to be filled in.
+
+### What warrants a second pair of eyes
+- Review migrated non-shell YAML files for generated TODO docstrings and replace them with precise human-written intent over time.
+- Decide whether aggregate field widgets should become separate explicit widget entries in schema v2.
+
+### What should be done in the future
+- Update `scripts/05-scaffold-admin-dsl-widgets.py` to consume schema v2 directly.
+- Add a validator script for required schema v2 fields, story objects, outputs, and todos.
+
+### Code review instructions
+- Start with `00-index.yaml` to see artifact types.
+- Use `03-shell-widgets.yaml` as the hand-authored reference.
+- Spot-check migrated files such as `04-action-widgets.yaml`, `06-resource-widgets.yaml`, and `10-form-widgets.yaml` for TODO docstrings that need human refinement.
+
+### Technical details
+- Validation asserted every YAML file in `sources/admin-dsl-widget-ir/` has `schema_version: 2`.
+- Widget definition files were additionally checked for `artifact_type: admin_dsl_widget_definition_ir` and `widgets[*].contract`, `widgets[*].outputs`, and `widgets[*].stories`.

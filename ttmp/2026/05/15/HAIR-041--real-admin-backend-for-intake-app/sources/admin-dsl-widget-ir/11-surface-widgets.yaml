@@ -1,74 +1,285 @@
-schema_version: 1
-artifact_type: admin_dsl_react_widget_ir
-source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_version: 2
+artifact_type: admin_dsl_widget_definition_ir
 category: surface_widgets
 summary: Surface widgets extracted from modal/drawer/sheet/detailPanel/inlinePanel and confirmDialog branches.
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md
 widgets:
-- name: OverlaySurface
-  current_source: shared branch for modal, drawer, sheet, detailPanel, inlinePanel
+- id: admin.surface.overlay-surface
+  name: OverlaySurface
+  status: scaffolded
   classification:
     level: organism
-  props: |-
-    export type OverlaySurfaceKind = "modal" | "drawer" | "sheet" | "detailPanel" | "inlinePanel";
-
-    export interface OverlaySurfaceProps extends CommonWidgetProps {
-      surfaceId: string;
-      kind: OverlaySurfaceKind;
-      title: string;
-      open?: boolean;
-      children: React.ReactNode;
-      closeAction?: ActionViewModel;
-      footerActions?: ActionViewModel[];
-      onCloseAction?: (action: ActionViewModel, context: { surfaceId: string; kind: OverlaySurfaceKind }) => void;
-      onFooterAction?: (action: ActionViewModel, context: { surfaceId: string; kind: OverlaySurfaceKind }) => void;
-    }
-  action_slots:
-  - name: close
-  - name: footer
-  storybook_stories:
-  - Modal
-  - Drawer
-  - Sheet
-  - DetailPanel
-  - InlinePanel
-  - ClosedDashedPreview
-  - WithFooterActions
-  - MobileSurface
-  file_layout: |-
-    web/src/admin-dsl/widgets/organisms/OverlaySurface/
-      OverlaySurface.tsx
-      OverlaySurface.types.ts
-      OverlaySurface.stories.tsx
-      index.ts
-- name: ConfirmDialog
-  current_source: case "confirmDialog"
+    description: OverlaySurface is classified as a organism in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - shared branch for modal, drawer, sheet, detailPanel, inlinePanel
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: OverlaySurface widget.
+    design_rationale: 'TODO: explain why OverlaySurface should be a distinct widget.'
+    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering OverlaySurface.'
+    implementation_notes:
+    - 'TODO: add implementation notes for OverlaySurface.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for OverlaySurface.'
+  contract:
+    props:
+      OverlaySurfaceProps:
+        doc: 'OverlaySurfaceProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          surfaceId:
+            type: string
+            required: true
+            doc: 'surfaceId for OverlaySurfaceProps. TODO: replace this generated docstring with precise human intent.'
+          kind:
+            type: OverlaySurfaceKind
+            required: true
+            doc: 'kind for OverlaySurfaceProps. TODO: replace this generated docstring with precise human intent.'
+          title:
+            type: string
+            required: true
+            doc: 'title for OverlaySurfaceProps. TODO: replace this generated docstring with precise human intent.'
+          open:
+            type: boolean
+            required: false
+            doc: 'open for OverlaySurfaceProps. TODO: replace this generated docstring with precise human intent.'
+          children:
+            type: React.ReactNode
+            required: true
+            doc: 'children for OverlaySurfaceProps. TODO: replace this generated docstring with precise human intent.'
+          closeAction:
+            type: ActionViewModel
+            required: false
+            doc: 'closeAction for OverlaySurfaceProps. TODO: replace this generated docstring with precise human intent.'
+          footerActions:
+            type: ActionViewModel[]
+            required: false
+            doc: 'footerActions for OverlaySurfaceProps. TODO: replace this generated docstring with precise human intent.'
+          onCloseAction:
+            type: '(action: ActionViewModel, context: { surfaceId: string; kind: OverlaySurfaceKind }) => void'
+            required: false
+            doc: 'onCloseAction for OverlaySurfaceProps. TODO: replace this generated docstring with precise human intent.'
+          onFooterAction:
+            type: '(action: ActionViewModel, context: { surfaceId: string; kind: OverlaySurfaceKind }) => void'
+            required: false
+            doc: 'onFooterAction for OverlaySurfaceProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots:
+      close:
+        doc: 'close action slot. TODO: refine slot intent.'
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: CloseContext
+        context: {}
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+      footer:
+        doc: 'footer action slot. TODO: refine slot intent.'
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: FooterContext
+        context: {}
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+  examples: {}
+  stories:
+    Modal:
+      doc: 'TODO: describe what Modal tests for OverlaySurface.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Modal.'
+    Drawer:
+      doc: 'TODO: describe what Drawer tests for OverlaySurface.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Drawer.'
+    Sheet:
+      doc: 'TODO: describe what Sheet tests for OverlaySurface.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Sheet.'
+    DetailPanel:
+      doc: 'TODO: describe what DetailPanel tests for OverlaySurface.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for DetailPanel.'
+    InlinePanel:
+      doc: 'TODO: describe what InlinePanel tests for OverlaySurface.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for InlinePanel.'
+    ClosedDashedPreview:
+      doc: 'TODO: describe what ClosedDashedPreview tests for OverlaySurface.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for ClosedDashedPreview.'
+    WithFooterActions:
+      doc: 'TODO: describe what WithFooterActions tests for OverlaySurface.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WithFooterActions.'
+    MobileSurface:
+      doc: 'TODO: describe what MobileSurface tests for OverlaySurface.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for MobileSurface.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/OverlaySurface/OverlaySurface.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/OverlaySurface/OverlaySurface.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/OverlaySurface/OverlaySurface.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/OverlaySurface/index.ts
+    tests:
+      path: web/src/admin-dsl/widgets/organisms/OverlaySurface/OverlaySurface.test.tsx
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+- id: admin.surface.confirm-dialog
+  name: ConfirmDialog
+  status: scaffolded
   classification:
     level: organism
-  props: |-
-    export interface ConfirmDialogProps extends CommonWidgetProps {
-      dialogId: string;
-      title: string;
-      body?: string;
-      tone?: "neutral" | "danger";
-      confirmLabel?: string;
-      confirmAction?: ActionViewModel;
-      cancelAction?: ActionViewModel;
-      onConfirm?: (action: ActionViewModel, context: { dialogId: string }) => void;
-      onCancel?: (action: ActionViewModel, context: { dialogId: string }) => void;
-    }
-  action_slots:
-  - name: confirm
-  - name: cancel
-  storybook_stories:
-  - Default
-  - Danger
-  - LongBody
-  - WithCancel
-  - DispatchConfirm
-  file_layout: |-
-    web/src/admin-dsl/widgets/organisms/ConfirmDialog/
-      ConfirmDialog.tsx
-      ConfirmDialog.types.ts
-      ConfirmDialog.stories.tsx
-      ConfirmDialog.test.tsx
-      index.ts
+    description: ConfirmDialog is classified as a organism in the Admin DSL widget system.
+  source_mapping:
+    current_constructs:
+    - case "confirmDialog"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: ConfirmDialog widget.
+    design_rationale: 'TODO: explain why ConfirmDialog should be a distinct widget.'
+    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering ConfirmDialog.'
+    implementation_notes:
+    - 'TODO: add implementation notes for ConfirmDialog.'
+    accessibility_notes:
+    - 'TODO: define accessibility expectations for ConfirmDialog.'
+  contract:
+    props:
+      ConfirmDialogProps:
+        doc: 'ConfirmDialogProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        fields:
+          dialogId:
+            type: string
+            required: true
+            doc: 'dialogId for ConfirmDialogProps. TODO: replace this generated docstring with precise human intent.'
+          title:
+            type: string
+            required: true
+            doc: 'title for ConfirmDialogProps. TODO: replace this generated docstring with precise human intent.'
+          body:
+            type: string
+            required: false
+            doc: 'body for ConfirmDialogProps. TODO: replace this generated docstring with precise human intent.'
+          tone:
+            type: '"neutral" | "danger"'
+            required: false
+            doc: 'tone for ConfirmDialogProps. TODO: replace this generated docstring with precise human intent.'
+          confirmLabel:
+            type: string
+            required: false
+            doc: 'confirmLabel for ConfirmDialogProps. TODO: replace this generated docstring with precise human intent.'
+          confirmAction:
+            type: ActionViewModel
+            required: false
+            doc: 'confirmAction for ConfirmDialogProps. TODO: replace this generated docstring with precise human intent.'
+          cancelAction:
+            type: ActionViewModel
+            required: false
+            doc: 'cancelAction for ConfirmDialogProps. TODO: replace this generated docstring with precise human intent.'
+          onConfirm:
+            type: '(action: ActionViewModel, context: { dialogId: string }) => void'
+            required: false
+            doc: 'onConfirm for ConfirmDialogProps. TODO: replace this generated docstring with precise human intent.'
+          onCancel:
+            type: '(action: ActionViewModel, context: { dialogId: string }) => void'
+            required: false
+            doc: 'onCancel for ConfirmDialogProps. TODO: replace this generated docstring with precise human intent.'
+        extends: CommonWidgetProps
+    action_slots:
+      confirm:
+        doc: 'confirm action slot. TODO: refine slot intent.'
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: ConfirmContext
+        context: {}
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+      cancel:
+        doc: 'cancel action slot. TODO: refine slot intent.'
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: CancelContext
+        context: {}
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+  examples: {}
+  stories:
+    Default:
+      doc: 'TODO: describe what Default tests for ConfirmDialog.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Default.'
+    Danger:
+      doc: 'TODO: describe what Danger tests for ConfirmDialog.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for Danger.'
+    LongBody:
+      doc: 'TODO: describe what LongBody tests for ConfirmDialog.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for LongBody.'
+    WithCancel:
+      doc: 'TODO: describe what WithCancel tests for ConfirmDialog.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for WithCancel.'
+    DispatchConfirm:
+      doc: 'TODO: describe what DispatchConfirm tests for ConfirmDialog.'
+      viewport: desktop
+      fixtures: {}
+      asserts:
+      - 'TODO: add assertions for DispatchConfirm.'
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/ConfirmDialog/ConfirmDialog.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/ConfirmDialog/ConfirmDialog.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/ConfirmDialog/ConfirmDialog.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/ConfirmDialog/index.ts
+    tests:
+      path: web/src/admin-dsl/widgets/organisms/ConfirmDialog/ConfirmDialog.test.tsx
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.

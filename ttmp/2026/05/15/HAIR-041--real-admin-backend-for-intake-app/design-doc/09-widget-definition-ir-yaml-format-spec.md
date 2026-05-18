@@ -43,6 +43,8 @@ This specification describes `schema_version: 2`, which replaces the earlier Mar
 
 The format is an intermediate representation, not the final React implementation. A scaffold generator can consume it to create `.types.ts`, `.tsx`, `.stories.tsx`, tests, adapter stubs, or implementation prompts. A human can read it to understand the design. An LLM pass can use it as grounded context for filling in code. The same artifact must serve all three uses.
 
+The `sources/admin-dsl-widget-ir/` directory may also contain support artifacts such as an index, pass model, shared type notes, renderer adapter plan, Storybook matrix, or unsupported-construct list. Those files use `schema_version: 2` and a support `artifact_type`, but only files with `artifact_type: admin_dsl_widget_definition_ir` are required to contain the `widgets[*]` definition schema described below.
+
 ## Problem Statement
 
 The initial widget IR YAML files were direct conversions from the Markdown catalog. They were useful, but they had three weaknesses.
@@ -87,12 +89,12 @@ This structure gives scripts stable locations for formal data and gives humans s
 
 A widget IR YAML file contains metadata and a `widgets` list.
 
-### Required top-level fields
+### Required top-level fields for widget definition files
 
 | Field | Type | Required | Meaning |
 | --- | --- | --- | --- |
 | `schema_version` | integer | yes | Format version. Current version is `2`. |
-| `artifact_type` | string | yes | Must be `admin_dsl_widget_definition_ir`. |
+| `artifact_type` | string | yes | Must be `admin_dsl_widget_definition_ir` for widget definition files. |
 | `category` | string | yes | Category slug such as `shell_widgets`, `layout_widgets`, or `resource_widgets`. |
 | `summary` | string | yes | Human-readable summary of what the file contains. |
 | `widgets` | list | yes | List of widget definitions. |
@@ -115,6 +117,18 @@ source_document: ttmp/.../design-doc/08-admin-dsl-react-widget-ir-catalog.md
 schema_document: ttmp/.../design-doc/09-widget-definition-ir-yaml-format-spec.md
 widgets: []
 ```
+
+## Support Artifact Files
+
+Support files in the same directory use the same `schema_version: 2` marker and point to this schema document, but their `artifact_type` indicates that they are not widget definition files.
+
+| Artifact type | Meaning |
+| --- | --- |
+| `admin_dsl_widget_ir_index` | Directory index that lists all widget and support artifacts. |
+| `admin_dsl_widget_support_ir` | Supporting artifact such as pass model, shared type notes, renderer adapter plan, Storybook matrix, or unsupported construct list. |
+| `admin_dsl_widget_definition_ir` | Widget definition file that must contain `widgets[*]` objects matching this spec. |
+
+Generators should only expect `widgets[*].contract`, `widgets[*].outputs`, and related fields when `artifact_type` is `admin_dsl_widget_definition_ir`.
 
 ## Widget Object Schema
 
