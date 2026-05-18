@@ -222,7 +222,9 @@ Interpret the result:
 - If the scaffold is stale and has not been hand-promoted, run targeted `--force` regeneration and commit that generated refresh before manual implementation.
 - If the scaffold is already hand-promoted, do not force-regenerate over it. Instead, decide whether to preserve the implementation, manually patch generator-era metadata, or intentionally rebuild from generated output.
 
-When regeneration touches shared design files, rerun the design-language generator before validation:
+The widget scaffold generator now skips `web/src/admin-dsl/widgets/shared/types.ts` and `web/src/admin-dsl/widgets/shared/index.ts` by default because shared design helpers are owned by `06-generate-admin-dsl-design-language.py`. Only use `--write-shared` for legacy bootstrap cases where the design-language generator is intentionally not in play.
+
+If regeneration ever touches shared design files, rerun the design-language generator before validation:
 
 ```bash
 python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py
@@ -233,13 +235,14 @@ The clean review sequence is:
 
 1. revert accidental manual edits for the target widget if they happened before regeneration;
 2. run targeted `--force` scaffold generation;
-3. rerun design-language generation if shared helper files were overwritten;
-4. run TypeScript validation;
-5. commit generated refresh only;
-6. reapply manual implementation;
-7. add manual-edit changelog entries at the top of edited generated files;
-8. run validation again;
-9. commit implementation separately.
+3. confirm shared files were skipped unless `--write-shared` was intentional;
+4. rerun design-language generation only if shared helper files were overwritten or the design-language YAML changed;
+5. run TypeScript validation;
+6. commit generated refresh only;
+7. reapply manual implementation;
+8. add manual-edit changelog entries at the top of edited generated files;
+9. run validation again;
+10. commit implementation separately.
 
 ## Step 3: Generate or Refresh the Scaffold
 

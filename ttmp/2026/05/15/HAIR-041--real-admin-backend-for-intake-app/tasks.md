@@ -208,7 +208,7 @@ updated: 2026-05-15
 - [x] Add design-language generator and generated shared helper outputs.
 - [x] Refactor promoted shell/action widgets to consume generated design-language helpers.
 - [ ] Add a design-system lint script that flags raw token imports, hardcoded colors, duplicated action styling helpers, and manual Admin DSL data attributes.
-- [ ] Decide ownership boundary between widget scaffold generator and design-language generator for shared `types.ts`.
+- [x] Decide/enforce ownership boundary: design-language generator owns `widgets/shared/*`; widget scaffold generator skips shared files unless `--write-shared` is explicit.
 - [ ] Add generated-output freshness checks or manifest for widget/design-language generators.
 - [x] Update the widget playbook to require generated-version validation before hand implementation.
 - [x] Update the widget playbook to require top-of-file manual-edit changelogs for generated files that are promoted by hand.

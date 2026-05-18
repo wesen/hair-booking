@@ -5,13 +5,17 @@ The widget IR files under ``sources/admin-dsl-widget-ir/`` are now structured
 artifacts, not TypeScript snippets. This generator treats the YAML as the source
 of truth and emits deterministic, reviewable React scaffolds:
 
-- shared widget/action/context types under ``web/src/admin-dsl/widgets/shared``;
 - one directory per widget, using explicit ``outputs`` paths when present;
 - ``<Widget>.types.ts`` generated from ``contract.props``;
 - ``<Widget>.tsx`` generated from ``intent`` and action-slot metadata;
 - ``<Widget>.stories.tsx`` generated from ``stories`` docs, viewports, and assertions;
 - ``<Widget>.metadata.ts`` preserving source intent, examples, action slots, and provenance;
 - ``index.ts`` barrel files.
+
+Shared design-language files under ``web/src/admin-dsl/widgets/shared`` are now
+owned by ``06-generate-admin-dsl-design-language.py``. This scaffold generator
+skips shared files by default and only writes its legacy minimal shared fallback
+when explicitly requested with ``--write-shared``.
 
 Generated components are intentionally safe scaffolds, not final visual
 implementations. They are richer than placeholders: every output carries the
@@ -924,10 +928,19 @@ def write_file(path: Path, content: str, *, dry_run: bool, force: bool) -> str:
     return "write"
 
 
-def ensure_shared(widget_root: Path, repo_root: Path, script_path: Path, generated_at: str, *, dry_run: bool, force: bool) -> list[tuple[str, Path]]:
+def ensure_shared(widget_root: Path, repo_root: Path, script_path: Path, generated_at: str, *, dry_run: bool, force: bool, write_shared: bool) -> list[tuple[str, Path]]:
+    """Optionally write the legacy minimal shared fallback.
+
+    The design-language generator owns ``widgets/shared/*`` in the current Admin
+    DSL workflow. Keeping this fallback behind an explicit flag lets old ad-hoc
+    scaffolding still bootstrap a minimal shared directory without allowing
+    targeted widget regeneration to clobber richer generated design helpers.
+    """
     shared_dir = widget_root / "shared"
     types_file = shared_dir / "types.ts"
     index_file = shared_dir / "index.ts"
+    if not write_shared:
+        return [("skip", types_file), ("skip", index_file)]
     return [
         (write_file(types_file, generated_shared_header(repo_root, script_path, generated_at, types_file) + SHARED_TYPES, dry_run=dry_run, force=force), types_file),
         (write_file(index_file, generated_shared_header(repo_root, script_path, generated_at, index_file) + 'export type * from "./types";\n', dry_run=dry_run, force=force), index_file),
@@ -957,6 +970,7 @@ def main() -> int:
     parser.add_argument("--name", action="append", dest="names", help="Only scaffold a specific widget name; may be repeated")
     parser.add_argument("--force", action="store_true", help="Overwrite existing scaffold files")
     parser.add_argument("--dry-run", action="store_true", help="Print planned writes without writing files")
+    parser.add_argument("--write-shared", action="store_true", help="Also write the legacy minimal widgets/shared fallback. Default is false because the design-language generator owns shared helpers.")
     args = parser.parse_args()
 
     repo_root = args.repo_root.resolve()
@@ -978,8 +992,9 @@ def main() -> int:
 
     print(f"widget root: {widget_root}")
     script_path = Path(__file__).resolve()
-    for status, path in ensure_shared(widget_root, repo_root, script_path, generated_at, dry_run=args.dry_run, force=args.force):
-        print(f"{status.upper():5} {path.relative_to(repo_root)}")
+    for status, path in ensure_shared(widget_root, repo_root, script_path, generated_at, dry_run=args.dry_run, force=args.force, write_shared=args.write_shared):
+        suffix = " (use --write-shared to write legacy fallback)" if status == "skip" and not args.write_shared else ""
+        print(f"{status.upper():5} {path.relative_to(repo_root)}{suffix}")
 
     for plan in plans:
         paths = target_paths(plan)
