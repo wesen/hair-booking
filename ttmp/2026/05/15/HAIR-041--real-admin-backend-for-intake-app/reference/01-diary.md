@@ -3844,3 +3844,124 @@ The important architectural boundary is now visible in code: `render.tsx` still 
 ### Technical details
 - The shell markup came from the previous inline `WorkbenchShell` function in `render.tsx`.
 - The responsive CSS currently remains in `render.tsx` and is injected as a child style element when rendering the workbench shell.
+
+## Step 53: Preserve WorkbenchShell widget metadata beside implementation
+
+This step fixes a documentation/context loss caused by turning the generated WorkbenchShell scaffold into a real component. The generated scaffold had embedded diagnostics with purpose, adapter boundary, action slots, examples, and todos. When the real shell markup was extracted from `render.tsx`, that metadata was no longer present in the component file.
+
+I moved the metadata into a sidecar file next to the implementation. The component imports that metadata for its widget id, and the barrel exports it so future implementation, review, Storybook, and documentation passes can recover the original intent without searching the ticket YAML.
+
+### Prompt Context
+
+**User prompt (verbatim):** "you should keep the original diagnostics / metadta in the widget file at the end, or maybe have it stored in a separate file anyway. That way, when we have to modify things in the future, we'll have the full context and documentation and intent behind the code."
+
+**Assistant interpretation:** Preserve the generated widget diagnostics/metadata when replacing scaffold bodies with hand-written implementations, preferably in a sidecar metadata file.
+
+**Inferred user intent:** The user wants future maintainers and LLM/codegen passes to retain the full design context and not lose the rationale encoded in the widget IR.
+
+**Commit (code):** 47874f5 — "HAIR-041 Step 53: Preserve WorkbenchShell widget metadata"
+
+### What I did
+- Added `web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.metadata.ts`.
+- Preserved WorkbenchShell metadata:
+  - widget id and classification
+  - purpose and design rationale
+  - adapter boundary
+  - implementation notes
+  - accessibility notes
+  - sidebar navigation action-slot contract
+  - example usage
+  - implementation todos
+  - source mappings back to renderer, schema, and YAML IR
+- Updated `WorkbenchShell.tsx` to import metadata and use its widget id in a data attribute.
+- Updated the WorkbenchShell barrel to export the metadata.
+
+### Why
+- The generated metadata is part of the design artifact, not disposable scaffolding. Keeping it close to implementation makes future edits safer and more explainable.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed before committing.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Once a generated scaffold becomes real code, the code should keep a sidecar design-memory artifact. Otherwise the reason behind adapter boundaries and action contexts gets separated from the implementation.
+
+### What was tricky to build
+- The metadata should be close enough to the component to stay visible, but not embedded as a giant runtime diagnostics block inside production JSX. A `.metadata.ts` sidecar keeps it importable/exportable while keeping the component readable.
+
+### What warrants a second pair of eyes
+- Review whether metadata should be imported by the implementation or only exported by the barrel. Importing it for the widget id keeps it live, but it also means the metadata object is bundled wherever the widget is used.
+
+### What should be done in the future
+- Consider splitting metadata into a dev-only artifact or generated manifest if bundle size becomes a concern.
+- Add metadata sidecars for every widget when they become real implementations.
+
+### Code review instructions
+- Inspect `WorkbenchShell.metadata.ts` first, then verify `WorkbenchShell.tsx` still contains only implementation concerns and no raw Admin DSL parsing.
+- Validate with `cd web && npx tsc --noEmit`.
+
+### Technical details
+- The sidecar metadata duplicates and enriches the schema-v2 WorkbenchShell YAML intent so local code review does not require opening the ticket artifact.
+
+## Step 54: Teach generator to emit widget metadata sidecars
+
+This step updates the scaffold generator so future generated widgets preserve their IR context in a dedicated metadata file. This prevents the same context-loss problem from recurring when a generated scaffold body is replaced by a real implementation.
+
+The generator now emits `<Widget>.metadata.ts`, imports that metadata from generated component scaffolds, uses it for diagnostics and widget ids, and re-exports it from the widget barrel.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 53)
+
+**Assistant interpretation:** Update the generation path, not just WorkbenchShell manually, so metadata preservation becomes the default for all future widget scaffolds.
+
+**Inferred user intent:** The user wants the code generation system to retain design context automatically, not rely on humans remembering to copy diagnostics manually.
+
+**Commit (code):** 3b12f7e — "HAIR-041 Step 54: Generate widget metadata sidecars"
+
+### What I did
+- Updated `scripts/05-scaffold-admin-dsl-widgets.py` to generate `<Widget>.metadata.ts` files.
+- Added metadata generation from:
+  - widget id/name/category/classification
+  - purpose/design rationale/adapter boundary
+  - implementation and accessibility notes
+  - action slots
+  - examples
+  - stories
+  - implementation todos
+  - source mappings
+- Updated generated component templates to import metadata instead of embedding the diagnostics object inline.
+- Updated generated barrel templates to export metadata sidecars.
+
+### Why
+- Metadata sidecars make the source YAML intent durable even after hand-written implementation replaces scaffold JSX.
+
+### What worked
+- `python3 -m py_compile scripts/05-scaffold-admin-dsl-widgets.py` passed.
+- A dry run for `ActionButton` showed the generator would create `ActionButton.metadata.ts`.
+- `cd web && npx tsc --noEmit` passed with the WorkbenchShell sidecar in place.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Metadata should be generated as a first-class output target, like types, component, stories, and barrel files.
+
+### What was tricky to build
+- Avoiding a full regeneration was intentional. The generator now supports sidecars for future runs, while the current hand-extracted WorkbenchShell sidecar was added manually so we did not overwrite real component work.
+
+### What warrants a second pair of eyes
+- Decide whether to run a follow-up regeneration to add metadata sidecars for all scaffolded widgets, or wait until each widget is promoted from scaffold to implementation.
+
+### What should be done in the future
+- Add a generated metadata manifest across all widgets.
+- Consider a convention that hand-written components must import/export their metadata sidecar.
+
+### Code review instructions
+- Inspect `render_metadata`, `widget_metadata`, `metadata_const_name`, `render_component`, `render_index`, and `target_paths` in the generator.
+- Validate with `python3 -m py_compile ...` and dry-run a widget.
+
+### Technical details
+- Future generated components will render `Widget IR metadata` details instead of embedding a private `diagnostics` const.

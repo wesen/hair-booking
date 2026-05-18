@@ -414,3 +414,9 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Replaced the generated WorkbenchShell scaffold body with the real shell frame markup/styles extracted from `web/src/admin-dsl/render.tsx`.
 - Updated `render.tsx` so workbench rendering adapts Admin DSL page/sidebar JSON into typed `WorkbenchShell` props and lowers sidebar callbacks back to `dispatchAdminAction`.
 - Validated the extraction with `cd web && npx tsc --noEmit`.
+
+## 2026-05-18 — Preserve widget metadata beside implementations
+
+- Added a WorkbenchShell metadata sidecar so the real widget implementation keeps its schema-v2 intent, adapter boundary, action-slot contract, examples, todos, and source mapping nearby.
+- Updated the widget scaffold generator to emit `<Widget>.metadata.ts` sidecars and re-export metadata from generated barrels.
+- Validated the generator with `python3 -m py_compile`, a dry run for `ActionButton`, and `cd web && npx tsc --noEmit`.
