@@ -13,6 +13,7 @@
  * renderer can become an adapter instead of owning page-frame HTML.
  */
 import type { WorkbenchShellProps } from "./WorkbenchShell.types";
+import { workbenchShellWidgetMetadata } from "./WorkbenchShell.metadata";
 import { color, font, radius, type } from "../../../../fringe-ui/tokens";
 
 export function WorkbenchShell({
@@ -37,6 +38,7 @@ export function WorkbenchShell({
       data-admin-dsl-page={pageId}
       data-admin-dsl-shell={shellKind}
       data-admin-dsl-schema-version={schemaVersion}
+      data-admin-dsl-widget-id={workbenchShellWidgetMetadata.widgetId}
     >
       <div
         className="adminDslWorkbenchTopbar"

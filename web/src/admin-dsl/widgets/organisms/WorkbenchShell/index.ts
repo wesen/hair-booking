@@ -12,4 +12,5 @@
  * JSON decoding in adapters; generated widgets should receive typed props only.
  */
 export { WorkbenchShell } from "./WorkbenchShell";
+export { workbenchShellWidgetMetadata } from "./WorkbenchShell.metadata";
 export type * from "./WorkbenchShell.types";
