@@ -426,3 +426,9 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Added `reference/03-widget-ir-to-finished-widget-playbook.md`, a ticket playbook for taking schema-v2 Widget IR YAML to finished React widgets while preserving metadata, adapter boundaries, action contexts, Storybook coverage, validation, and commit hygiene.
 - Added Obsidian article/report `Projects/2026/05/18/ARTICLE - Report - Bottom-Up Admin DSL Widget IR.md` in `/home/manuel/code/wesen/obsidian-vault` and committed it there as `38c4285`.
 - Incorporated the report framing: `compiler`, `ui-dsl`, and “First IR extracted from render.ts to YAML to then codegen to TSX”.
+
+## 2026-05-18 — Harden WorkbenchShell Storybook variants
+
+- Replaced generated same-args WorkbenchShell stories with distinct desktop, mobile, long-navigation, no-user, and action-dispatch fixtures.
+- Moved WorkbenchShell mobile topbar/sidebar responsive rules into the widget so standalone stories do not depend on renderer-level CSS injection.
+- Validated with `cd web && npx tsc --noEmit` and `cd web && npx storybook build --quiet`.

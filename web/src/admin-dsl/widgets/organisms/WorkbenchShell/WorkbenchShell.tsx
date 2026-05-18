@@ -16,6 +16,14 @@ import type { WorkbenchShellProps } from "./WorkbenchShell.types";
 import { workbenchShellWidgetMetadata } from "./WorkbenchShell.metadata";
 import { color, font, radius, type } from "../../../../fringe-ui/tokens";
 
+const workbenchShellCss = `
+  @media (max-width: 860px) {
+    .adminDslWorkbenchTopbar { display: flex !important; }
+    .adminDslWorkbenchSidebar { display: none !important; }
+    .adminDslWorkbenchContent { margin-left: 0 !important; padding: 14px !important; }
+  }
+`;
+
 export function WorkbenchShell({
   pageId,
   title,
@@ -40,6 +48,7 @@ export function WorkbenchShell({
       data-admin-dsl-schema-version={schemaVersion}
       data-admin-dsl-widget-id={workbenchShellWidgetMetadata.widgetId}
     >
+      <style>{workbenchShellCss}</style>
       <div
         className="adminDslWorkbenchTopbar"
         style={{

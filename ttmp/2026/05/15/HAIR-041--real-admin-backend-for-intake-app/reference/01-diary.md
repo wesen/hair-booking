@@ -4080,3 +4080,63 @@ The user also provided a compact label for the report — `compiler, ui-dsl` and
 ### Technical details
 - Obsidian vault path: `/home/manuel/code/wesen/obsidian-vault`.
 - Vault commit: `38c4285 Add Admin DSL widget IR project report`.
+
+## Step 58: Make WorkbenchShell Storybook stories exercise real variants
+
+This step fixes the first Storybook quality issue in the generated widget catalog. The WorkbenchShell stories existed and built, but they all rendered the same default args because the generator only varied story documentation and fixture diagnostics. That made the stories technically discoverable but not useful for visual review.
+
+I replaced the generated WorkbenchShell stories with purpose-built fixtures for desktop, mobile, long navigation, no-user, and action-dispatch states. I also moved the shell's own mobile sidebar/topbar CSS into `WorkbenchShell.tsx` so the standalone widget story works without relying on the legacy renderer-level `responsiveCss` injection.
+
+### Prompt Context
+
+**User prompt (verbatim):** "do they actually work though? For example, all the WorkbenchShell stories look the same, is that because we have still work to do there?"
+
+**Assistant interpretation:** Confirm that the generated stories loaded but were not meaningful yet, then make WorkbenchShell stories actually vary and validate Storybook.
+
+**Inferred user intent:** The user wants Storybook stories to be real visual review artifacts, not only generated placeholders with different labels.
+
+**Commit (code):** pending — WorkbenchShell Storybook variants.
+
+### What I did
+- Updated `WorkbenchShell.stories.tsx` with distinct fixtures:
+  - `DefaultDesktop`
+  - `MobileTopbar`
+  - `LongNavigation`
+  - `NoUser`
+  - `ActionDispatch`
+- Added realistic sidebar data, user data, dense demo content, and an interactive callback probe.
+- Added local WorkbenchShell responsive CSS for mobile topbar/sidebar behavior directly inside `WorkbenchShell.tsx`.
+- Validated with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && npx storybook build --quiet`
+
+### Why
+- Storybook stories should prove visual and interaction states. Generated docs-only stories are useful as a starting scaffold but are not enough once a widget becomes a real implementation.
+
+### What worked
+- TypeScript validation passed.
+- Static Storybook build passed and included `WorkbenchShell.stories`.
+
+### What didn't work
+- The earlier generated story exports all reused `defaultArgs`, so they looked effectively identical.
+- The standalone mobile story also needed widget-local responsive CSS because the app renderer injects legacy responsive CSS but the isolated widget story does not.
+
+### What I learned
+- A generated story matrix is a plan, not finished coverage. Promoted widgets need hand-authored fixtures that actually vary props and interaction state.
+
+### What was tricky to build
+- WorkbenchShell responsive behavior was previously split between component markup and renderer-injected CSS. The widget needed to own its own shell-specific mobile rules before the Storybook mobile viewport could be trusted.
+
+### What warrants a second pair of eyes
+- Review whether the mobile menu button should remain inert in the story or become a functional menu before considering mobile shell behavior complete.
+
+### What should be done in the future
+- Apply the same story-hardening standard to `DefaultAdminShell` once its implementation is extracted.
+- Update the generator or playbook to explicitly mark generated stories as scenario plans until fixtures are hand-authored.
+
+### Code review instructions
+- Open `Admin DSL Widgets/Organisms/WorkbenchShell` in Storybook and compare all five stories.
+- Validate with `npx storybook build --quiet` from `web/`.
+
+### Technical details
+- Storybook build warning about large chunks is a general Storybook/Vite warning and did not fail the build.

@@ -5,32 +5,106 @@
  * Generated at: 2026-05-18T21:21:08+00:00
  * Source YAML: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/03-shell-widgets.yaml
  * Source YAML last commit: 8042b3e 2026-05-18T16:54:29-04:00 HAIR-041 Step 46: Specify widget IR YAML schema
- * Target file previous commit: dfc6ac6 2026-05-18T16:41:42-04:00 HAIR-041 Step 44: Scaffold Admin DSL widgets from IR
+ * Target file previous commit: baf8866 2026-05-18T17:23:13-04:00 HAIR-041 Step 50: Regenerate widget scaffolds from schema v2
  * Widget ID: admin.shell.workbench
  *
- * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
- * JSON decoding in adapters; generated widgets should receive typed props only.
+ * This story file started as generated schema-v2 scaffold output. It now uses
+ * purpose-built fixtures so WorkbenchShell stories exercise distinct shell
+ * states instead of rendering the same default args repeatedly.
  */
+import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
 import { WorkbenchShell } from "./WorkbenchShell";
 import type { WorkbenchShellProps } from "./WorkbenchShell.types";
+import type { ActionViewModel, SidebarNavItem } from "../../shared";
+
+const navAction = (target: string, label: string): ActionViewModel => ({
+  type: "navigate",
+  target,
+  label,
+  placement: "sidebarNav",
+});
+
+const normalItems: SidebarNavItem[] = [
+  { id: "dashboard", label: "Dashboard", icon: "D", action: navAction("nav.dashboard", "Dashboard") },
+  { id: "requests", label: "Requests", icon: "R", action: navAction("nav.requests", "Requests") },
+  { id: "services", label: "Services", icon: "S", action: navAction("nav.services", "Services") },
+  { id: "config", label: "Config", icon: "C", action: navAction("nav.config", "Config") },
+];
+
+const manyItems: SidebarNavItem[] = [
+  ...normalItems,
+  { id: "availability", label: "Availability", icon: "A", action: navAction("nav.availability", "Availability") },
+  { id: "drafts", label: "Draft Review", icon: "DR", action: navAction("nav.drafts", "Draft Review") },
+  { id: "preview", label: "Preview", icon: "P", action: navAction("nav.preview", "Preview") },
+  { id: "audit", label: "Audit Log", icon: "AL", action: navAction("nav.audit", "Audit Log") },
+  { id: "health", label: "Health", icon: "H", action: navAction("nav.health", "Health") },
+  { id: "settings", label: "Settings", icon: "ST", action: navAction("nav.settings", "Settings") },
+];
+
+const user = { name: "Avery Stone", role: "Salon Admin", initials: "AS" };
+
+function DemoContent({ title = "Request Triage", dense = false }: { title?: string; dense?: boolean }) {
+  return (
+    <div style={{ display: "grid", gap: 16 }}>
+      <header style={{ display: "grid", gap: 8 }}>
+        <div style={{ fontSize: 11, letterSpacing: 1.2, textTransform: "uppercase", color: "#7b6c5d" }}>Fringe Admin</div>
+        <h1 style={{ margin: 0, fontSize: dense ? 42 : 56, lineHeight: 0.95 }}>{title}</h1>
+        <p style={{ margin: 0, maxWidth: 680, color: "#6f6254", fontSize: 16 }}>
+          This content is already rendered before it enters the shell. The shell owns navigation, identity, frame layout,
+          and content width; it does not interpret Admin DSL nodes.
+        </p>
+      </header>
+      <div style={{ display: "grid", gridTemplateColumns: dense ? "repeat(3, minmax(0, 1fr))" : "repeat(2, minmax(0, 1fr))", gap: 14 }}>
+        {["New requests", "Draft changes", "Open reviews", "Publish queue", "Preview health", "Audit events"].slice(0, dense ? 6 : 4).map((label, index) => (
+          <article key={label} style={{ border: "1px solid #dfd2bd", borderRadius: 14, padding: 16, background: "#fffaf0" }}>
+            <div style={{ fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: "#7b6c5d" }}>{label}</div>
+            <strong style={{ display: "block", marginTop: 10, fontSize: 28 }}>{index + 2}</strong>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function ActionDispatchDemo(args: WorkbenchShellProps) {
+  const [lastAction, setLastAction] = useState<string>("No sidebar action clicked yet.");
+  return (
+    <WorkbenchShell
+      {...args}
+      onSidebarAction={(action, context) => {
+        setLastAction(`${action.label} → ${action.target}; previous active item: ${context.activeItemId ?? "none"}`);
+      }}
+    >
+      <DemoContent title="Action Dispatch Probe" />
+      <div style={{ border: "1px solid #dfd2bd", borderRadius: 12, padding: 12, background: "#fffaf0", color: "#3a3028" }}>
+        <strong>Last callback</strong>
+        <div style={{ marginTop: 6 }}>{lastAction}</div>
+      </div>
+    </WorkbenchShell>
+  );
+}
 
 const defaultArgs = {
-  pageId: "scaffold-workbench",
+  pageId: "workbench-shell-story",
   title: "Fringe Admin",
-  sidebar: { activeItemId: "requests", items: [{ id: "requests", label: "Requests" }, { id: "config", label: "Config" }] },
-  user: { name: "Admin User", role: "Administrator", initials: "AD" },
-  children: <div>Workbench content</div>,
-} as unknown as WorkbenchShellProps;
+  shellKind: "admin",
+  schemaVersion: 2,
+  sidebar: { activeItemId: "requests", items: normalItems },
+  user,
+  children: <DemoContent />,
+} satisfies WorkbenchShellProps;
 
 const meta = {
   title: "Admin DSL Widgets/Organisms/WorkbenchShell",
   component: WorkbenchShell,
   args: defaultArgs,
   parameters: {
+    layout: "fullscreen",
     docs: {
       description: {
-        component: "Render the information-dense admin workbench frame: persistent desktop sidebar, sticky mobile topbar, global admin background, content max width, page body region, and optional user identity footer.",
+        component:
+          "Render the information-dense admin workbench frame: persistent desktop sidebar, sticky mobile topbar, global admin background, content max width, page body region, and optional user identity footer.",
       },
     },
   },
@@ -41,116 +115,56 @@ type Story = StoryObj<typeof meta>;
 
 export const DefaultDesktop: Story = {
   name: "DefaultDesktop",
-  parameters: { docs: { description: { story: "Tests the normal desktop workbench frame with persistent sidebar, active navigation item, user footer, max-width content region, and dense page body spacing." } } },
-  args: {
-    ...defaultArgs,
+  parameters: {
+    docs: { description: { story: "Normal desktop workbench frame with persistent sidebar, active nav item, user footer, and rendered page content." } },
   },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <WorkbenchShell {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "sidebar": "normal",
-  "user": "present",
-  "active_item": "requests"
-}, asserts: [
-  "Sidebar is visible.",
-  "Active navigation item is highlighted and exposes aria-current.",
-  "User footer is visible.",
-  "Content region is offset from the sidebar."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
 };
+
 export const MobileTopbar: Story = {
   name: "MobileTopbar",
-  parameters: { viewport: { defaultViewport: "iphone12" }, docs: { description: { story: "Tests the mobile shell transformation where sidebar navigation is hidden and the sticky topbar becomes the primary shell chrome. This story should catch viewport-specific regressions." } } },
+  parameters: {
+    viewport: { defaultViewport: "iphone12" },
+    docs: { description: { story: "Narrow viewport shell where the desktop sidebar is hidden and the sticky mobile topbar is visible." } },
+  },
   args: {
     ...defaultArgs,
+    sidebar: { activeItemId: "config", items: normalItems },
+    children: <DemoContent title="Config" />,
   },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <WorkbenchShell {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "sidebar": "normal",
-  "user": "present"
-}, asserts: [
-  "Desktop sidebar is hidden.",
-  "Sticky topbar is visible.",
-  "Topbar label reflects active navigation or page title."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
 };
+
 export const LongNavigation: Story = {
   name: "LongNavigation",
-  parameters: { docs: { description: { story: "Tests sidebar overflow and spacing when many navigation items are present. It should prove that the footer user block and active item remain usable with dense nav lists." } } },
   args: {
     ...defaultArgs,
+    sidebar: { activeItemId: "audit", items: manyItems },
+    children: <DemoContent title="Audit Workbench" dense />,
   },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <WorkbenchShell {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "sidebar": "many_items",
-  "user": "present"
-}, asserts: [
-  "Navigation items remain readable.",
-  "Active item remains visible and visually distinct.",
-  "User footer does not overlap navigation."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  parameters: {
+    docs: { description: { story: "Dense sidebar with many navigation entries; verifies active item, spacing, and footer layout." } },
+  },
 };
+
 export const NoUser: Story = {
   name: "NoUser",
-  parameters: { docs: { description: { story: "Tests that the shell works without optional user identity. The sidebar footer should disappear or collapse cleanly without leaving broken spacing." } } },
   args: {
     ...defaultArgs,
+    user: undefined,
+    children: <DemoContent title="No User Footer" />,
   },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <WorkbenchShell {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "sidebar": "normal",
-  "user": "absent"
-}, asserts: [
-  "No user footer is rendered.",
-  "Sidebar grid still fills available height cleanly."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  parameters: {
+    docs: { description: { story: "Shell without optional user identity; the sidebar footer should collapse cleanly." } },
+  },
 };
+
 export const ActionDispatch: Story = {
   name: "ActionDispatch",
-  parameters: { docs: { description: { story: "Tests the sidebar action slot contract. Clicking a nav item should call `onSidebarAction` with the clicked `SidebarNavItem` and active item id so adapters can lower it into Admin DSL dispatch." } } },
   args: {
     ...defaultArgs,
+    sidebar: { activeItemId: "dashboard", items: normalItems },
   },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <WorkbenchShell {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "sidebar": "normal_with_actions",
-  "user": "present"
-}, asserts: [
-  "onSidebarAction receives action metadata.",
-  "callback context includes clicked item and previous activeItemId."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  render: (args) => <ActionDispatchDemo {...args} />,
+  parameters: {
+    docs: { description: { story: "Interactive callback probe. Click a sidebar item and inspect the callback context shown in the content region." } },
+  },
 };
