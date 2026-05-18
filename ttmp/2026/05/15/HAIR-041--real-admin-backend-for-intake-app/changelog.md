@@ -432,3 +432,7 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Replaced generated same-args WorkbenchShell stories with distinct desktop, mobile, long-navigation, no-user, and action-dispatch fixtures.
 - Moved WorkbenchShell mobile topbar/sidebar responsive rules into the widget so standalone stories do not depend on renderer-level CSS injection.
 - Validated with `cd web && npx tsc --noEmit` and `cd web && npx storybook build --quiet`.
+
+## 2026-05-18 — Update widget playbook with Storybook and diary workflow
+
+- Expanded `reference/03-widget-ir-to-finished-widget-playbook.md` to cover generated-story limitations, meaningful Storybook fixtures, callback probes, widget-local responsive CSS, Storybook build validation, explicit commit boundaries, and diary/changelog expectations.

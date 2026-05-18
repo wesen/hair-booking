@@ -4140,3 +4140,56 @@ I replaced the generated WorkbenchShell stories with purpose-built fixtures for 
 
 ### Technical details
 - Storybook build warning about large chunks is a general Storybook/Vite warning and did not fail the build.
+
+## Step 59: Update widget playbook with Storybook hardening and diary/commit rules
+
+This step updates the YAML-to-finished-widget playbook with the lessons from hardening WorkbenchShell stories. The previous playbook said to update Storybook, but it did not explicitly warn that generated stories can all render the same `defaultArgs` and therefore fail as visual review artifacts.
+
+The playbook now states that generated stories are scenario plans, not finished coverage. It also gives concrete guidance for purposeful fixtures, callback probe stories, widget-local responsive CSS, Storybook build validation, committing at reviewable boundaries, and keeping the diary/changelog current during the work.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Update the playbook to cover that part too, and also touch upon committing at appropriate intervals and keeping a diary as part of the steps."
+
+**Assistant interpretation:** Update the ticket playbook to include Storybook story hardening, meaningful fixtures, responsive CSS ownership, commit discipline, and diary/changelog workflow.
+
+**Inferred user intent:** The user wants the playbook to capture the real implementation lessons from WorkbenchShell so future widget extractions do not repeat the same generated-story problem and do not lose work history.
+
+**Commit (code):** pending — playbook documentation update.
+
+### What I did
+- Updated `reference/03-widget-ir-to-finished-widget-playbook.md`.
+- Expanded the Storybook step to explain that generated stories are scenario plans and must be hand-hardened with distinct fixtures.
+- Added examples for `NoUser`, `LongNavigation`, and callback probe stories.
+- Added a Storybook CSS ownership subsection explaining why isolated widget stories cannot rely on renderer-injected `responsiveCss`.
+- Expanded commit guidance with explicit review boundaries and `git status`/`git diff` checks.
+- Reworked the documentation step into a diary/changelog step with concrete questions every widget diary entry should answer.
+- Updated the definition of done and review checklist to include meaningful stories and callback-context evidence.
+- Validated playbook frontmatter with `docmgr validate frontmatter`.
+
+### Why
+- The WorkbenchShell stories revealed an important gap: generated Storybook files can exist and compile without actually proving different states. The playbook needed to make that distinction explicit.
+
+### What worked
+- Frontmatter validation passed.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Storybook coverage has two levels: discovery/build correctness and visual/interaction usefulness. The playbook now distinguishes those levels.
+
+### What was tricky to build
+- The playbook needed to encourage frequent commits and diary updates without forcing one commit per tiny edit. The updated guidance focuses on review boundaries rather than arbitrary commit counts.
+
+### What warrants a second pair of eyes
+- Review whether the commit guidance should require diary/changelog in the same commit as implementation or allow separate documentation commits. The playbook currently allows separate commits when it improves reviewability.
+
+### What should be done in the future
+- After hardening DefaultAdminShell stories, update the playbook again if a new shell-specific pattern appears.
+
+### Code review instructions
+- Review the new `Step 10`, `Step 13`, `Step 14`, definition of done, and review checklist in the playbook.
+
+### Technical details
+- The updated playbook now lists `npx storybook build --quiet` as a Storybook completion check.

@@ -33,7 +33,7 @@ RelatedFiles:
       Note: First promoted widget implementation extracted from render.tsx
 ExternalSources: []
 Summary: Playbook for taking an Admin DSL Widget Definition IR YAML entry from structured source artifact to finished React widget, renderer adapter, Storybook coverage, validation, screenshots, and ticket documentation.
-LastUpdated: 2026-05-18T22:10:00-04:00
+LastUpdated: 2026-05-18T22:45:00-04:00
 WhatFor: Use when promoting generated Admin DSL widget scaffolds into real React components while preserving adapter boundaries and metadata context.
 WhenToUse: Use before implementing ActionButton, ActionGroup, Panel, PageHeader, DashboardGrid, ResourceTable, AdminForm, MonthCalendar, or any other Admin DSL widget from YAML.
 ---
@@ -294,7 +294,9 @@ The goal is to avoid drift between the IR and implementation. The YAML does not 
 
 ## Step 10: Update Storybook
 
-Generated stories are a starting point. Finished widgets need stories with meaningful fixtures.
+Generated stories are a starting point. They are a scenario plan, not finished coverage. A generated story can have a good name and good documentation while still rendering the same `defaultArgs` as every other story. That is useful for scaffolding, but it is not useful for visual review.
+
+A promoted widget needs hand-authored stories with fixtures that actually vary the widget state. Each story should answer a specific question. If two stories look the same, either the fixtures are wrong or the stories do not need to be separate.
 
 A promoted widget should usually have:
 
@@ -305,7 +307,60 @@ A promoted widget should usually have:
 - dense data stories for table and admin workbench widgets;
 - long text/wrapping stories for content-heavy widgets.
 
+For each generated story, replace generic `defaultArgs` reuse with purposeful props:
+
+```tsx
+export const NoUser: Story = {
+  args: {
+    ...defaultArgs,
+    user: undefined,
+    children: <DemoContent title="No User Footer" />,
+  },
+};
+
+export const LongNavigation: Story = {
+  args: {
+    ...defaultArgs,
+    sidebar: { activeItemId: "audit", items: manyItems },
+    children: <DenseWorkbenchContent />,
+  },
+};
+```
+
+Callback-heavy widgets should include at least one interactive probe story. The probe should show callback output on screen so a reviewer can click the widget and see the typed context that would be lowered by the adapter:
+
+```tsx
+function ActionDispatchDemo(args: WorkbenchShellProps) {
+  const [lastAction, setLastAction] = useState("No action clicked yet.");
+
+  return (
+    <WorkbenchShell
+      {...args}
+      onSidebarAction={(action, context) => {
+        setLastAction(`${action.label} -> ${action.target}; active=${context.activeItemId}`);
+      }}
+    >
+      <CallbackOutput>{lastAction}</CallbackOutput>
+    </WorkbenchShell>
+  );
+}
+```
+
 Storybook should show both visual behavior and callback context. For example, a `ResourceTable` story should not only display rows. It should also prove that row actions receive `{ tableId, row, rowId }` and bulk actions receive `{ tableId, scope, rows, selectedRowIds }`.
+
+### Storybook CSS ownership
+
+Standalone widget stories cannot rely on `render.tsx` injecting legacy `responsiveCss`. When a promoted widget owns responsive behavior, move the widget-specific rules into the widget, a widget-local CSS module/file, or a local style helper before trusting the mobile story.
+
+`WorkbenchShell` exposed this issue. Its generated stories existed, but all stories looked the same and the mobile viewport could not prove shell behavior until the shell-specific rules for `.adminDslWorkbenchTopbar`, `.adminDslWorkbenchSidebar`, and `.adminDslWorkbenchContent` moved into the widget.
+
+Use this check before considering story work complete:
+
+- The story names correspond to distinct props or interactions.
+- The rendered output visibly differs where the story says it should differ.
+- Mobile stories work in isolated Storybook, not only through the app renderer.
+- Action/callback stories display the emitted context or assert it through a test/play function.
+- `npx storybook build --quiet` succeeds after story changes.
 
 ## Step 11: Validate
 
@@ -348,16 +403,29 @@ Use stable filenames that identify the story, viewport, and date or step when us
 
 ## Step 13: Commit at Natural Boundaries
 
+Commit at boundaries that make review easier. A widget extraction often has multiple kinds of changes: source YAML, generated scaffold, hand-written implementation, renderer adapter, stories, screenshots, and ticket docs. These should not be mixed blindly.
+
 Use separate commits for separate review concerns:
 
 1. YAML/metadata contract changes.
 2. Generated scaffold or regenerated files.
 3. Hand-written implementation extraction.
 4. Renderer adapter changes, if they are large enough to review separately.
-5. Storybook/test/screenshot updates.
-6. Diary/changelog updates.
+5. Storybook fixture hardening and interaction probes.
+6. Screenshot artifacts, when they are large or numerous.
+7. Diary/changelog updates.
 
-Small widget extractions can combine implementation, adapter, stories, and docs in one commit if the diff is easy to review. Large table/form/calendar extractions should be split.
+Small widget extractions can combine implementation, adapter, stories, and docs in one commit if the diff is easy to review. Large table/form/calendar extractions should be split. Storybook hardening is often worth its own commit when it changes only fixtures and coverage, because generated stories may exist before they are meaningful.
+
+Before every commit, run:
+
+```bash
+git status --short
+git diff --stat
+git diff -- <paths-you-plan-to-commit>
+```
+
+Stage explicit paths. Prefer `git commit --only -- <paths>` when the working tree contains unrelated changes. Do not rely on broad `git add .` in this ticket.
 
 Always avoid committing unrelated working tree changes. At the time this playbook was written, the known unrelated files were:
 
@@ -368,15 +436,29 @@ web/src/admin-dsl/AdminDslWorkbench.stories.tsx
 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/various/remarkable-pdfs/
 ```
 
-## Step 14: Update Ticket Documentation
+## Step 14: Keep the Diary and Changelog Current
 
-After implementation, update:
+Update the ticket diary as part of the work, not only after everything is finished. The diary is the continuity mechanism for this migration. It should record what moved, what failed, why a boundary was chosen, what validation ran, and what still remains in `render.tsx`.
 
-- `reference/01-diary.md` with what moved, what failed, validation commands, and review instructions;
+After each meaningful implementation step, update:
+
+- `reference/01-diary.md` with the prompt context, files changed, failures, validation commands, tricky details, second-pair-of-eyes risks, future work, and code review instructions;
 - `changelog.md` with the user-visible or architecture-visible change;
-- doc relations using `docmgr doc relate` for the widget, adapter, YAML, and generator files.
+- doc relations using `docmgr doc relate` for the widget, adapter, YAML, generator, and story files.
 
 The diary entry should explicitly state what remains in `render.tsx`. That makes the next extraction easier.
+
+A useful diary entry for a widget extraction should answer:
+
+- Which renderer branch or helper moved?
+- Which widget now owns the HTML and CSS?
+- Which adapter function now converts JSON to typed props?
+- Which callbacks are emitted by the widget, and where are they lowered to `dispatchAdminAction`?
+- Which generated stories were still scaffold-level, and which were made meaningful?
+- Which validation commands passed?
+- Which known issues remain?
+
+Do not wait until the final report to record failures. If Storybook stories all look the same because they reuse `defaultArgs`, record that immediately and explain the fix. Those small observations are valuable implementation guidance for the next widget.
 
 ## Recommended Extraction Order
 
@@ -403,7 +485,8 @@ A widget is finished when all of these are true:
 - The widget receives typed props and does not parse raw `AdminNode` JSON.
 - `render.tsx` adapts Admin DSL JSON into typed props.
 - `render.tsx` lowers widget callbacks into `dispatchAdminAction`.
-- Storybook stories exercise the important states and action contexts.
+- Storybook stories exercise the important states and action contexts with distinct fixtures, not repeated `defaultArgs`.
+- Mobile/responsive stories work in isolated Storybook because widget-specific responsive CSS is owned by the widget or its local styles.
 - TypeScript validation passes.
 - Relevant tests and smoke scripts pass when behavior changed.
 - Screenshots exist for visual changes.
@@ -419,6 +502,8 @@ Use this checklist during review:
 - Are action callbacks typed by context rather than passed as generic event blobs?
 - Did any CSS remain in `responsiveCss`, and is that intentional?
 - Do stories cover mobile behavior when the widget has responsive layout?
+- Do the stories actually look or behave differently when their names claim different states?
+- Does at least one callback-heavy story expose emitted action context through visible output or assertions?
 - Did validation run after the final edit?
 - Were unrelated working tree files excluded from the commit?
 
@@ -432,7 +517,9 @@ The first extraction followed this path:
 4. Added `WorkbenchShell.metadata.ts` to preserve the original IR context.
 5. Converted the old inline renderer function into `renderWorkbenchShell`, an adapter from `AdminPage` to typed props.
 6. Kept `dispatchAdminAction` in `render.tsx`.
-7. Ran `cd web && npx tsc --noEmit`.
-8. Committed the extraction and metadata preservation separately.
+7. Replaced generated same-args Storybook stories with distinct fixtures for desktop, mobile, long navigation, no-user, and action-dispatch states.
+8. Moved WorkbenchShell-specific mobile responsive CSS into the widget so isolated Storybook stories could prove mobile behavior.
+9. Ran `cd web && npx tsc --noEmit` and `cd web && npx storybook build --quiet`.
+10. Committed extraction, metadata preservation, and Storybook hardening as separate reviewable steps.
 
 This is the model for the remaining widgets.
