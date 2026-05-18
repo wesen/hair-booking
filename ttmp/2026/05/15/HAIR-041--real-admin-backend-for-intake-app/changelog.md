@@ -401,3 +401,10 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 
 - Replaced generated placeholder TODO text in non-shell widget definition YAML files with concrete first-pass intent, prop docs, action-slot docs, story docs, assertions, examples, implementation notes, and accessibility notes.
 - Validated all widget IR YAML files with PyYAML and confirmed widget definition entries no longer contain `TODO` placeholder text.
+
+## 2026-05-18 — Update schema-v2 widget scaffold generator
+
+- Reworked `scripts/05-scaffold-admin-dsl-widgets.py` to consume schema-v2 Widget Definition IR directly.
+- Generated TypeScript prop contracts from `contract.props` instead of old raw prop snippets.
+- Generated component scaffolds and Storybook stories from `intent`, `contract.action_slots`, `examples`, `stories`, and `outputs`.
+- Regenerated widget scaffold files under `web/src/admin-dsl/widgets/` and validated them with `cd web && npx tsc --noEmit`.

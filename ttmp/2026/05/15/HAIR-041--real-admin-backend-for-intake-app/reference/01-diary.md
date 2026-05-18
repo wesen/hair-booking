@@ -3651,3 +3651,132 @@ The result is still not final hand-tuned prose for every widget, but it is no lo
 
 ### Technical details
 - Validation asserted every widget definition file has `schema_version: 2` and no `TODO` text in each widget object.
+
+## Step 49: Teach widget scaffold generator schema v2
+
+This step updates the widget scaffold generator so it consumes the new Widget Definition IR schema v2 directly. The previous generator expected migrated v1-ish fields such as raw TypeScript prop snippets, `storybook_stories`, and freeform action slots. That shape no longer matched the new YAML contract.
+
+The generator now treats `contract.props`, `contract.action_slots`, `intent`, `examples`, `stories`, and `outputs` as first-class source data. It produces richer TypeScript prop contracts, component scaffolds with embedded diagnostics from the YAML intent, and Storybook stories with scenario docs, viewport parameters, fixtures, and assertions.
+
+### Prompt Context
+
+**User prompt (verbatim):** "commit at appropriate intervals. Then update the code generator scripts (and feel free to start modularizing it / extracting generation templates) to handle the new format and create high quality output"
+
+**Assistant interpretation:** Commit generator changes separately from generated output, then update the scaffold generator for schema v2 and improve output quality.
+
+**Inferred user intent:** The user wants the widget IR to become a useful generation source, with clean commit boundaries and generated files that are valuable implementation handoff material.
+
+**Commit (code):** 81a1973 — "HAIR-041 Step 49: Teach widget scaffold generator schema v2"
+
+### What I did
+- Rewrote `scripts/05-scaffold-admin-dsl-widgets.py` around schema-v2 concepts:
+  - structured prop contract parsing from `contract.props`
+  - structured story parsing from `stories`
+  - action-slot, example, implementation-note, accessibility-note, and source-mapping propagation
+  - explicit `outputs` path support
+  - richer shared types and Storybook docs
+- Added generator helpers for interface rendering, stories, component diagnostics, output path selection, and provenance headers.
+- Fixed generic `extends` parsing for migrated values such as `<Row = Record<string, unknown>> CommonWidgetProps`.
+
+### Why
+- The schema-v2 YAML is now the source of truth. The generator needed to stop relying on old snippet fields and start generating from the structured IR.
+
+### What worked
+- `python3 -m py_compile` succeeded.
+- A dry-run showed the generator could discover schema-v2 widgets and planned outputs correctly.
+
+### What didn't work
+- First generated TypeScript pass failed because generic `extends` parsing used a first-`>` style assumption that does not work with nested `Record<string, unknown>` defaults.
+- First Storybook pass emitted `dataAttributes` in story args for widgets whose props do not extend `CommonWidgetProps`.
+- `CalendarWeek` initially imported `CalendarEventBlockProps` from the wrong relative path.
+
+### What I learned
+- Schema-v2 has enough information to generate useful TS contracts and story docs, but the generator needs defensive normalization for imperfect migrated types such as `pagination: {` and generic extends strings.
+
+### What was tricky to build
+- TypeScript generics embedded in YAML `extends` strings can contain nested angle brackets. I replaced the simple regex approach with a split on the known `CommonWidgetProps` tail.
+- Not every widget extends `CommonWidgetProps`, so generated story args cannot assume a `dataAttributes` prop exists.
+
+### What warrants a second pair of eyes
+- Review generated prop contracts for migrated YAML oddities, especially `ResourceTable.pagination` and table pagination fields.
+- Review whether shared aliases such as `ResourceTableColumnKind` and `OverlaySurfaceKind` should become generated from YAML rather than hard-coded shared scaffold types.
+
+### What should be done in the future
+- Extract the Python string templates into separate template files if the generator grows further.
+- Add a schema-v2 validator before generation so broken migrated field shapes are caught before TypeScript generation.
+
+### Code review instructions
+- Start with `scripts/05-scaffold-admin-dsl-widgets.py`.
+- Inspect `normalize_contracts`, `parse_extends`, `render_types`, `render_component`, and `render_stories`.
+- Validate with `python3 -m py_compile ...` and `cd web && npx tsc --noEmit` after regeneration.
+
+### Technical details
+- The generator still emits reviewable scaffolds rather than final visual implementations.
+- Generated components embed YAML intent in a `diagnostics` object so the compiled scaffold carries design context.
+
+## Step 50: Regenerate widget scaffolds from schema v2
+
+This step runs the updated generator against all schema-v2 widget definition files and commits the generated output separately from the generator change. The generated scaffolds now cover action, layout, resource, data-display, media, calendar, form, surface, and shell widgets using the new structured YAML format.
+
+The regenerated output is intentionally richer than the previous placeholder scaffolds. Type files are generated from structured contracts, components surface the widget purpose and adapter boundary, and stories include scenario docs, fixtures, assertions, and viewport metadata derived from the YAML.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 49)
+
+**Assistant interpretation:** Regenerate all widget scaffold files after updating the generator, then commit that generated output as its own review boundary.
+
+**Inferred user intent:** The user wants the generator changes validated by real output and wants the generated scaffolds to become a concrete starting point for modular widget implementation.
+
+**Commit (code):** baf8866 — "HAIR-041 Step 50: Regenerate widget scaffolds from schema v2"
+
+### What I did
+- Ran the updated scaffold generator with `--force` on all widget definition YAML files from `03-shell-widgets.yaml` through `11-surface-widgets.yaml`.
+- Regenerated 150 widget scaffold files under `web/src/admin-dsl/widgets/`.
+- Added newly generated widget directories for previously ungenerated schema-v2 categories such as data display, media, calendar, form, and surfaces.
+- Validated the regenerated scaffolds with `cd web && npx tsc --noEmit`.
+
+### Why
+- Generator support is only useful if the generated output compiles and carries enough content to guide implementation.
+- Keeping regeneration in a separate commit makes it easier to review script logic separately from large generated diffs.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed after generator fixes.
+- Generated stories compile while preserving story docs and fixture/assertion diagnostics.
+
+### What didn't work
+- The first regeneration attempt used a mistyped YAML path and failed with `missing input`.
+- The first TypeScript validation pass failed on generic `extends`, story `dataAttributes`, and `CalendarWeek` import path issues; these were fixed in the generator and the output was regenerated.
+
+### What I learned
+- High-quality generated output needs both structured source data and a generator that does not over-assume common props across all widgets.
+- Explicit `outputs` paths in the YAML are useful: they allowed the generator to create all expected widget directories deterministically.
+
+### What was tricky to build
+- The generator must bridge imperfect migrated YAML with compile-safe TypeScript. For now it normalizes invalid type fragments such as `{` to `Record<string, unknown>` and supplies shared aliases for common domain type names.
+
+### What warrants a second pair of eyes
+- The generated scaffolds are compile-safe and content-rich, but they are still scaffolds. Review high-priority widgets before implementing real visual bodies:
+  - `ActionButton`
+  - `ActionGroup`
+  - `Panel`
+  - `ResourceTable`
+  - `AdminForm`
+  - `MonthCalendar`
+
+### What should be done in the future
+- Add a generated manifest listing input YAML files, generated files, and source commits.
+- Add validator checks for type fragments and required prop coverage before generation.
+- Begin replacing scaffolds with real widget implementations one widget family at a time.
+
+### Code review instructions
+- Review commit 81a1973 first, then commit baf8866.
+- Spot-check generated output in:
+  - `web/src/admin-dsl/widgets/organisms/ResourceTable/ResourceTable.types.ts`
+  - `web/src/admin-dsl/widgets/organisms/Panel/Panel.tsx`
+  - `web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.stories.tsx`
+  - `web/src/admin-dsl/widgets/shared/types.ts`
+- Validate with `cd web && npx tsc --noEmit`.
+
+### Technical details
+- Generated files include provenance headers with generator path, generation timestamp, source YAML path, source YAML last commit, target previous commit, and widget id.
