@@ -444,3 +444,8 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Updated `render.tsx` so the non-workbench fallback path adapts `AdminPage` into typed `DefaultAdminShell` props.
 - Replaced generated DefaultAdminShell same-args stories with distinct main-only, side-surface, calendar, and mobile-side-column fixtures.
 - Validated with `cd web && npx tsc --noEmit`, `cd web && npx storybook build --quiet`, and `cd web && pnpm test -- --runInBand`.
+
+## 2026-05-18 — Clarify targeted widget regeneration workflow
+
+- Updated the widget implementation playbook to distinguish schema-v2 YAML migration from stale generated scaffold files.
+- Added guidance for targeted regeneration of scaffold-only widgets before hand implementation, using ActionButton and ActionGroup as examples.

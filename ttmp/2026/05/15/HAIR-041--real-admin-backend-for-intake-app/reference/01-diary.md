@@ -4266,3 +4266,52 @@ This mirrors the WorkbenchShell pattern but for the fallback shell: `DefaultAdmi
 ### Technical details
 - `DefaultAdminShell` uses `shellKind === "calendar"` to preserve the old fallback branch's calendar background behavior.
 - The side region is rendered as an `aside` with `aria-label="Supplementary admin surfaces"`.
+
+## Step 62: Clarify targeted regeneration in the widget playbook
+
+This step updates the widget implementation playbook with an important distinction discovered before starting the action widgets: a YAML file can already be schema v2 while its generated files are still older scaffolds. That means a new widget family should be target-regenerated before hand implementation if the generator has gained capabilities since the scaffold was first emitted.
+
+The playbook now recommends targeted `--force` regeneration for scaffold-only widgets, followed by TypeScript validation and a separate generated-refresh commit before hand-writing implementation code.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, update the playbook to address this issue, then code gen the action widgets properly and then work on them according to the playbook"
+
+**Assistant interpretation:** First update the playbook to explain schema-v2 YAML versus stale generated scaffold state, then proceed with action widget regeneration and implementation.
+
+**Inferred user intent:** The user wants future widget work to start from current generator output without accidentally overwriting hand-promoted widgets.
+
+**Commit (code):** pending — playbook update.
+
+### What I did
+- Updated `reference/03-widget-ir-to-finished-widget-playbook.md`.
+- Added a “Regeneration after generator changes” subsection.
+- Documented targeted regeneration for scaffold-only widgets with `ActionButton` and `ActionGroup` as the concrete example.
+- Clarified the sequence: dry run, targeted force regeneration, TypeScript validation, generated-refresh commit, hand implementation, implementation/story commit.
+
+### Why
+- The action YAML is already schema v2, but the existing ActionButton/ActionGroup TSX files were older scaffold outputs without metadata sidecars. The playbook needed to capture this mismatch.
+
+### What worked
+- N/A yet; validation and commit happen next.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- “YAML migrated” is not the same as “generated files are current.” The playbook now makes that explicit.
+
+### What was tricky to build
+- The guidance must discourage broad regeneration over hand-written widgets while still encouraging targeted regeneration for untouched scaffold-only widgets.
+
+### What warrants a second pair of eyes
+- Review whether generator output should include a manifest to make stale generated files easier to detect automatically.
+
+### What should be done in the future
+- Add a generated-file freshness checker that compares source YAML commit, generator commit, and target previous commit.
+
+### Code review instructions
+- Review Step 3 in the widget implementation playbook.
+
+### Technical details
+- This step changes documentation only.

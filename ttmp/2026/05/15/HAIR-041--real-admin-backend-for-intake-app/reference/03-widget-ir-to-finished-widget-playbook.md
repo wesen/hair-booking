@@ -40,7 +40,7 @@ RelatedFiles:
       Note: First promoted widget implementation extracted from render.tsx
 ExternalSources: []
 Summary: Playbook for taking an Admin DSL Widget Definition IR YAML entry from structured source artifact to finished React widget, renderer adapter, Storybook coverage, validation, screenshots, and ticket documentation.
-LastUpdated: 2026-05-18T22:45:00-04:00
+LastUpdated: 2026-05-18T23:20:00-04:00
 WhatFor: Use when promoting generated Admin DSL widget scaffolds into real React components while preserving adapter boundaries and metadata context.
 WhenToUse: Use before implementing ActionButton, ActionGroup, Panel, PageHeader, DashboardGrid, ResourceTable, AdminForm, MonthCalendar, or any other Admin DSL widget from YAML.
 ---
@@ -152,7 +152,30 @@ web/src/admin-dsl/widgets/<level>/<Widget>/index.ts
 
 Use `--dry-run` before `--force`. Do not run broad `--force` regeneration over hand-written widgets unless you have reviewed the overwrite scope.
 
-If scaffold output is new or materially refreshed, commit it before hand-editing. That gives reviewers a clean boundary between generated code and implementation code.
+### Regeneration after generator changes
+
+YAML migration and generator migration are separate facts. A YAML file can already be schema v2 while its generated widget files are still older scaffolds. Before implementing a new widget family, check whether the generated files were created before the latest generator capabilities, especially metadata sidecars.
+
+For target widgets that are still scaffold-only, prefer targeted regeneration:
+
+```bash
+python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py \
+  --force \
+  --name ActionButton \
+  --name ActionGroup \
+  ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/04-action-widgets.yaml
+```
+
+Do not regenerate an entire category if some widgets in that category have already been promoted to hand-written implementations. Regeneration is safe for untouched scaffolds; it is dangerous for files that contain real extracted code unless you intentionally plan to overwrite them.
+
+If scaffold output is new or materially refreshed, commit it before hand-editing. That gives reviewers a clean boundary between generated code and implementation code. The usual sequence is:
+
+1. targeted dry run;
+2. targeted `--force` regeneration;
+3. TypeScript validation;
+4. commit generated refresh;
+5. hand-write implementation and stories;
+6. commit implementation and story hardening.
 
 ## Step 4: Preserve Metadata Before Replacing Scaffold JSX
 
