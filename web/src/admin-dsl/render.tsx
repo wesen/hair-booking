@@ -5,6 +5,7 @@ import { AdminCalendarWeek } from "./calendar";
 import { WorkbenchShell as WorkbenchShellWidget } from "./widgets/organisms/WorkbenchShell";
 import { DefaultAdminShell } from "./widgets/organisms/DefaultAdminShell";
 import { ActionGroup } from "./widgets/molecules/ActionGroup";
+import { PageHeader } from "./widgets/organisms/PageHeader";
 import type { ActionViewModel, SidebarNavItem } from "./widgets/shared";
 
 import { actionIsDanger, actionIsPrimary, actionKey, actionList, dispatchAdminAction, isActionRef } from "./actions";
@@ -116,17 +117,19 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
   switch (node.kind) {
     case "pageHeader": {
       const breadcrumbs = jsonArray<string>(props, "breadcrumbs");
+      const actions = actionList(props).map(actionViewModel);
+      const pageId = node.meta?.id || str(props, "id", undefined as unknown as string);
       return (
-        <header key={key} {...common} className="adminDslPageHeader" style={{ marginBottom: 24, display: "grid", gap: 10, ...style(props) }}>
-          {breadcrumbs.length > 0 && <div style={{ ...type.eyebrow, color: color.softInk }}>{breadcrumbs.join(" / ")}</div>}
-          <div className="adminDslPageHeaderRow" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: 18, alignItems: "start" }}>
-            <div>
-              <h1 className="adminDslTitle" style={{ ...type.display2, fontSize: 56, margin: 0 }}>{str(props, "title", "Admin")}</h1>
-              {str(props, "description") && <p style={{ ...type.bodyLg, color: color.softInk, maxWidth: 760, margin: "10px 0 0" }}>{str(props, "description")}</p>}
-            </div>
-            {renderActions(node, ctx)}
-          </div>
-        </header>
+        <PageHeader
+          key={key}
+          id={pageId}
+          title={str(props, "title", "Admin")}
+          description={str(props, "description") || undefined}
+          breadcrumbs={breadcrumbs}
+          primaryActions={actions}
+          style={style(props)}
+          onPrimaryAction={(action, value) => dispatchAdminAction(ctx, node, action as AdminActionRef, value)}
+        />
       );
     }
 

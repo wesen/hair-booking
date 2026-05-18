@@ -5,65 +5,65 @@
  * Generated at: 2026-05-18T23:28:16+00:00
  * Source YAML: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/05-layout-widgets.yaml
  * Source YAML last commit: e555038 2026-05-18T17:11:02-04:00 HAIR-041 Step 48: Fill widget IR YAML intent
- * Target file previous commit: baf8866 2026-05-18T17:21:36-04:00 HAIR-041 Step 50: Regenerate widget scaffolds from schema v2
+ * Target file previous commit: dfc6ac6 2026-05-18T16:41:42-04:00 HAIR-041 Step 44: Scaffold Admin DSL widgets from IR
  * Widget ID: admin.layout.page-header
  *
- * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
- * JSON decoding in adapters; generated widgets should receive typed props only.
+ * Manual edits after generation:
+ * - 2026-05-18 / HAIR-041 Step 70: Promoted scaffold to the real PageHeader implementation extracted from render.tsx.
+ * - 2026-05-18 / HAIR-041 Step 70: Replaced generated diagnostic placeholder with typed props, ActionGroup delegation, and shared design-language helpers.
+ *
+ * Keep raw Admin DSL JSON decoding in adapters; this widget receives typed props only.
  */
-import type * as React from "react";
-import type { ReactNode } from "react";
+import { ActionGroup } from "../../molecules/ActionGroup";
+import { adminTextStyle, adminTokens, dataAttrsFromRecord, widgetDataAttributes } from "../../shared";
 import { pageHeaderWidgetMetadata } from "./PageHeader.metadata";
 import type { PageHeaderProps } from "./PageHeader.types";
 
-/**
- * Scaffold for `PageHeader`.
- *
- * Purpose: Owns page-level title hierarchy, breadcrumbs, description, and primary page actions. It should make the top-of-page layout reusable across workbench screens.
- *
- * Adapter boundary: Adapter maps pageHeader props/actions into typed props; widget receives strings and ActionViewModel values only.
- */
-export function PageHeader(props: PageHeaderProps) {
-  const scaffoldProps = props as PageHeaderProps & {
-    id?: string;
-    className?: string;
-    style?: React.CSSProperties;
-    dataAttributes?: Record<string, string | number | boolean>;
-    children?: ReactNode;
-    main?: ReactNode;
-    title?: string;
-    label?: string;
-    name?: string;
-    value?: unknown;
-  };
-  const heading = scaffoldProps.title || scaffoldProps.label || scaffoldProps.name || "PageHeader";
-  const dataAttributes = Object.fromEntries(
-    Object.entries(scaffoldProps.dataAttributes ?? {}).map(([key, value]) => [`data-${key}`, String(value)]),
-  ) as Record<string, string>;
+const pageHeaderCss = `
+  .adminDslPageHeaderTitle { text-wrap: balance; overflow-wrap: anywhere; }
+  @media (max-width: 720px) {
+    .adminDslPageHeader { margin-bottom: 18px !important; }
+    .adminDslPageHeaderRow { grid-template-columns: 1fr !important; gap: 14px !important; }
+    .adminDslPageHeaderTitle { font-size: clamp(30px, 10vw, 40px) !important; line-height: 0.98 !important; }
+  }
+`;
+
+export function PageHeader({
+  id,
+  className,
+  style,
+  dataAttributes,
+  breadcrumbs = [],
+  title,
+  description,
+  primaryActions = [],
+  onPrimaryAction,
+}: PageHeaderProps) {
+  const dataAttrs = dataAttrsFromRecord(dataAttributes);
 
   return (
-    <section
-      id={scaffoldProps.id}
-      className={scaffoldProps.className}
-      data-admin-dsl-widget="PageHeader"
-      data-admin-dsl-widget-id={pageHeaderWidgetMetadata.widgetId}
-      data-admin-dsl-widget-level="organism"
-      style={scaffoldProps.style}
-      {...dataAttributes}
+    <header
+      id={id}
+      className={["adminDslPageHeader", className].filter(Boolean).join(" ") || undefined}
+      style={{ marginBottom: 24, display: "grid", gap: 10, ...style }}
+      {...widgetDataAttributes(pageHeaderWidgetMetadata.widgetId, pageHeaderWidgetMetadata.classification.level)}
+      {...dataAttrs}
     >
-      <div style={{ border: "1px solid #dfd2bd", borderRadius: 12, padding: 12, background: "#fffaf0" }}>
-        <strong>{heading}</strong>
-        <p style={{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}>{pageHeaderWidgetMetadata.purpose}</p>
-        {pageHeaderWidgetMetadata.adapterBoundary ? (
-          <p style={{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}>Adapter: {pageHeaderWidgetMetadata.adapterBoundary}</p>
-        ) : null}
-        <details style={{ marginTop: 10, fontSize: 12, color: "#6f6254" }}>
-          <summary>Widget IR metadata</summary>
-          <pre style={{ whiteSpace: "pre-wrap", margin: "8px 0 0" }}>{JSON.stringify(pageHeaderWidgetMetadata, null, 2)}</pre>
-        </details>
+      <style>{pageHeaderCss}</style>
+      {breadcrumbs.length > 0 ? (
+        <nav aria-label="Breadcrumb" style={{ ...adminTextStyle("eyebrow"), color: adminTokens.text.muted }}>
+          {breadcrumbs.join(" / ")}
+        </nav>
+      ) : null}
+      <div className="adminDslPageHeaderRow" style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: 18, alignItems: "start" }}>
+        <div>
+          <h1 className="adminDslTitle adminDslPageHeaderTitle" style={{ ...adminTextStyle("pageTitle"), margin: 0 }}>
+            {title}
+          </h1>
+          {description ? <p style={{ ...adminTextStyle("bodyLarge"), color: adminTokens.text.muted, maxWidth: 760, margin: "10px 0 0" }}>{description}</p> : null}
+        </div>
+        <ActionGroup actions={primaryActions} slot="pageHeader" align="end" context={{ pageId: id }} onAction={onPrimaryAction} />
       </div>
-      {scaffoldProps.children ? <div style={{ marginTop: 12 }}>{scaffoldProps.children}</div> : null}
-      {scaffoldProps.main ? <div style={{ marginTop: 12 }}>{scaffoldProps.main}</div> : null}
-    </section>
+    </header>
   );
 }

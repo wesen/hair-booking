@@ -10,6 +10,9 @@
  *
  * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
  * JSON decoding in adapters; generated widgets should receive typed props only.
+ *
+ * Manual edits after generation:
+ * - N/A: generated barrel already exports the metadata sidecar.
  */
 export { PageHeader } from "./PageHeader";
 export { pageHeaderWidgetMetadata } from "./PageHeader.metadata";
