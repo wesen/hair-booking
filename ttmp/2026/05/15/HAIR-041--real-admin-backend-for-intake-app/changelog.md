@@ -355,3 +355,9 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - The guide covers shell types, node types, prop schemas, child rules, action types, action slots, action contexts, renderer contracts, backend-owned action execution, and Go/TypeScript/protobuf/docs/test generation targets.
 - Related the guide to current Admin DSL backend, frontend, protobuf, renderer, action bridge, and Storybook files.
 - Uploaded `HAIR 041 UI DSL Meta Spec Compiler Guide.pdf` to reMarkable at `/ai/2026/05/17/HAIR-041`.
+
+## 2026-05-18 — Admin DSL React widget IR catalog
+
+- Added `design-doc/08-admin-dsl-react-widget-ir-catalog.md`, a widget-level IR catalog for rebuilding the Admin DSL renderer from the current monolithic `render.tsx` into explicit React widgets.
+- The catalog maps current Admin DSL constructs to atom/molecule/organism widgets, props, contextual action slots, usage scenarios, Storybook story plans, and one-directory-per-widget file layouts.
+- The document also captures the artifact-pass model from `meta-dsl-comments.md`: passes are defined by required and produced artifacts rather than one fixed consecutive pipeline.

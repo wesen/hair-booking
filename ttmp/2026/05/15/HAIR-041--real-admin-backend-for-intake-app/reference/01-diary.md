@@ -3076,3 +3076,91 @@ Create  a detailed analysis / design / implementation guide that is for a new in
 ### Technical details
 - Upload command:
   - `remarquee upload bundle ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/07-ui-dsl-meta-spec-compiler-implementation-guide.md --name "HAIR 041 UI DSL Meta Spec Compiler Guide" --remote-dir "/ai/2026/05/17/HAIR-041" --toc-depth 2 --non-interactive 2>&1`
+
+## Step 42: Define the Admin DSL React widget IR catalog
+
+This step turns the user's meta-DSL comments into a concrete artifact for the next rebuild phase. The document does not implement React widgets yet. It defines the intermediate representation that should exist before implementation: a catalog of explicit React widgets extracted from the current monolithic `render.tsx` branches, including atom/molecule/organism classification, props, contextual action slots, file paths, and Storybook scenarios.
+
+The key architectural shift is that passes are artifact-driven rather than one fixed consecutive pipeline. A pass is defined by the artifacts it requires and produces. In this case, the current renderer, schema, builder, action helpers, calendar renderer, and Storybook fixtures are the inputs; the widget IR catalog is the output. Later passes can consume this output to scaffold files, generate Storybook stories, create renderer adapters, define action-slot signatures, or produce LLM implementation prompts.
+
+### Prompt Context
+
+**User prompt (verbatim):** "yes, the next document is us refining what the artifacts could be for that part of the system. Not that passes don't need to be consecutive per se, rather they are defined by the type of artifacts they require and the ones they produce.
+
+Let's work on creating the following document:
+
+- for each current admin DSL construct, extract from the big render.ts and its mass of div and css a set of clear react widgets and classify it within our component system structure of atom/molecule/organisms. This includes: props, action \"slots\" (callbacks in the props i guess), usage scenarios / examples of usage, storybook stories, file layout (one directory per widget, widget.tsx, widget.stories.tsx)"
+
+**Assistant interpretation:** Create a single ticket document that inventories current Admin DSL renderer constructs and maps them to explicit React widget IR entries with classifications, props, action slots, scenarios, stories, and file layout.
+
+**Inferred user intent:** The user wants a concrete artifact that can drive a bottom-up rewrite of the Admin DSL renderer from monolithic JSX/CSS branches into a component catalog and adapter-based renderer.
+
+**Commit (code):** pending — documentation only.
+
+### What I did
+- Read the user comments in:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/meta-dsl-comments.md`
+- Studied current Admin DSL frontend implementation files:
+  - `web/src/admin-dsl/render.tsx`
+  - `web/src/admin-dsl/calendar.tsx`
+  - `web/src/admin-dsl/schema.ts`
+  - `web/src/admin-dsl/builder.ts`
+  - `web/src/admin-dsl/actions.ts`
+  - `web/src/admin-dsl/AdminDslWorkbench.stories.tsx`
+- Created a new design document:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md`
+- The document defines:
+  - artifact-pass model for widget extraction
+  - shared action callback signatures by context
+  - common widget props
+  - proposed widget file layout
+  - widget catalog summary for all current Admin DSL constructs
+  - shell, action, layout, resource, display, media, calendar, form, and surface widgets
+  - unsupported/ambiguous constructs that currently fall through or are only partially implemented
+  - renderer adapter plan
+  - Storybook scenario matrix
+  - implementation plan
+- Related the document to the relevant current files.
+- Validated frontmatter successfully.
+
+### Why
+- The current `render.tsx` is a large mixed renderer/interpreter/styling file. Before rebuilding implementation, the team needs an explicit target component catalog and artifact contract.
+- The user wants deterministic passes and LLM-assisted passes to operate on clear artifacts rather than free-form intentions.
+
+### What worked
+- The current schema and renderer branches were small enough to inventory directly.
+- The document now identifies both supported render branches and unsupported/ambiguous constructs such as `statusBadge`, `resourceDetail`, and `actionMenu`.
+- `docmgr validate frontmatter` passed.
+
+### What didn't work
+- My first attempt to commit only the new document/diary/changelog used the wrong `git commit` flag ordering and failed:
+  - `git commit --only -- ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/01-diary.md ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/changelog.md -m 'HAIR-041 Step 42: Add Admin DSL widget IR catalog'`
+  - `error: pathspec '-m' did not match any file(s) known to git`
+  - `error: pathspec 'HAIR-041 Step 42: Add Admin DSL widget IR catalog' did not match any file(s) known to git`
+- I reran the commit with `-m` before the pathspec and `--only -- ...`, which committed only the intended documentation files and left pre-existing staged/uncommitted files untouched.
+
+### What I learned
+- The immediate useful IR is not a grammar yet. It is a widget catalog that names the React target surface the grammar/compiler should eventually generate around.
+- Contextual action callback signatures are the bridge between semantic action slots and the current `dispatchAdminAction` runtime.
+
+### What was tricky to build
+- Some current Admin DSL constructs are not one-to-one widgets. For example, `resourceTable` contains several internal widget candidates: table shell, cell renderer, row renderer, bulk action bar, and pagination bar. The document keeps `ResourceTable` as the public organism and lists the internal parts under that directory.
+- Shells do not fit atom/molecule/organism perfectly. The document classifies them as organisms with `role: shell` to keep the classification system simple.
+
+### What warrants a second pair of eyes
+- Review the proposed widget split, especially whether `ResourceTableCell`, `BulkActionBar`, and `PaginationBar` should be public widgets or internal parts.
+- Review whether `OverlaySurface` should stay one organism for modal/drawer/sheet/detail/inline variants or split earlier.
+- Review whether field widgets should be separate molecule directories or a single configurable field-control family.
+
+### What should be done in the future
+- If accepted, create a scaffold-generation pass or manually scaffold the first widgets: `ActionButton`, `ActionGroup`, `Panel`, `PageHeader`, and `ResourceTable`.
+- Do not replace production rendering until widget-level Storybook coverage exists for the moved constructs.
+
+### Code review instructions
+- Start with `design-doc/08-admin-dsl-react-widget-ir-catalog.md`.
+- Compare the widget catalog against the current branch list in `web/src/admin-dsl/render.tsx` and `web/src/admin-dsl/calendar.tsx`.
+- Confirm every current Admin DSL construct is either mapped to a widget or explicitly listed as unsupported/ambiguous.
+
+### Technical details
+- Frontmatter validation command:
+  - `docmgr validate frontmatter --doc /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md --suggest-fixes`
