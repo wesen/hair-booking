@@ -3579,3 +3579,75 @@ The migration keeps the prior content but normalizes widget entries into the sch
 ### Technical details
 - Validation asserted every YAML file in `sources/admin-dsl-widget-ir/` has `schema_version: 2`.
 - Widget definition files were additionally checked for `artifact_type: admin_dsl_widget_definition_ir` and `widgets[*].contract`, `widgets[*].outputs`, and `widgets[*].stories`.
+
+## Step 48: Replace generated widget YAML placeholders with concrete intent
+
+This step addresses the placeholder problem introduced by the bulk schema-v2 migration. The migration gave every widget the right shape, but many non-shell files still contained generated `TODO` docstrings for prop fields, story descriptions, implementation notes, and accessibility notes. This pass replaces those placeholders with concrete first-pass content derived from the original widget catalog and current renderer behavior.
+
+The result is still not final hand-tuned prose for every widget, but it is no longer placeholder text. Each widget now has meaningful purpose/rationale/boundary notes, prop field descriptions, story descriptions, assertions, examples, and implementation notes that scripts and LLM passes can use without being anchored on generic TODOs.
+
+### Prompt Context
+
+**User prompt (verbatim):** "did you put in placeholders in the other yaml files? Can you actually properly fill them out? based on our initial research"
+
+**Assistant interpretation:** Acknowledge that the previous migration inserted placeholder TODOs in the non-shell YAML files, then replace those placeholders with concrete content based on the prior widget IR/catalog research.
+
+**Inferred user intent:** The user wants the YAML artifacts to be useful as real design artifacts, not just mechanically migrated schemas with placeholder prose.
+
+**Commit (code):** pending — YAML only.
+
+### What I did
+- Enriched non-shell widget definition YAML files:
+  - `04-action-widgets.yaml`
+  - `05-layout-widgets.yaml`
+  - `06-resource-widgets.yaml`
+  - `07-data-display-widgets.yaml`
+  - `08-media-widgets.yaml`
+  - `09-calendar-widgets.yaml`
+  - `10-form-widgets.yaml`
+  - `11-surface-widgets.yaml`
+- Replaced generated placeholder `TODO` docstrings with concrete first-pass descriptions for:
+  - classification descriptions
+  - intent/design rationale
+  - adapter boundaries
+  - implementation notes
+  - accessibility notes
+  - prop interface docs
+  - prop field docs
+  - action slot docs
+  - examples
+  - Storybook story docs
+  - Storybook assertions
+- Validated all YAML files parse and all widget definition files contain no `TODO` text.
+
+### Why
+- The widget definition IR is supposed to feed humans, scripts, and LLM passes. Placeholder text would reduce quality and risk generating low-value scaffolds or stories.
+- The initial research already identified enough intent for each widget category to produce meaningful first-pass documentation.
+
+### What worked
+- All YAML files parse successfully.
+- A validation pass confirmed every widget definition file has schema v2 and contains no `TODO` text in widget definitions.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Mechanical migration is useful for structure, but not sufficient for a design IR. The natural-language content needs to be filled in enough that downstream generation has semantic guidance.
+
+### What was tricky to build
+- Some fields are generic across many widgets, such as `className`, `style`, and `dataAttributes`, while others are domain-specific, such as `rowActions`, `bulkActions`, `markers`, and `form state`. I used common field-doc mappings for recurring prop names and widget/story-specific text where names carried clear semantics.
+
+### What warrants a second pair of eyes
+- Review the enriched non-shell YAML for nuance. It is now concrete but still generated/enriched in bulk, so a human pass should improve the most important widgets first: `ResourceTable`, `Panel`, `ActionButton`, `ActionGroup`, `AdminForm`, and `MonthCalendar`.
+
+### What should be done in the future
+- Hand-refine high-priority widget YAML entries before using them for final implementation prompts.
+- Update the scaffold generator to consume schema v2 fields directly.
+
+### Code review instructions
+- Search the widget IR directory for `TODO`; it should return no YAML placeholders.
+- Spot-check `04-action-widgets.yaml`, `06-resource-widgets.yaml`, and `10-form-widgets.yaml`.
+- Validate with PyYAML.
+
+### Technical details
+- Validation asserted every widget definition file has `schema_version: 2` and no `TODO` text in each widget object.

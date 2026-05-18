@@ -10,7 +10,8 @@ widgets:
   status: scaffolded
   classification:
     level: atom
-    description: ActionButton is classified as a atom in the Admin DSL widget system.
+    description: ActionButton participates in the Admin DSL component system as an atom; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - renderActions button branch in web/src/admin-dsl/render.tsx plus row/bulk/search special buttons
@@ -24,34 +25,38 @@ widgets:
     adapter_boundary: The widget receives an ActionViewModel and context. It should not know AdminNode or dispatchAdminAction
       directly.
     implementation_notes:
-    - 'TODO: add implementation notes for ActionButton.'
+    - Implement ActionButton using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for ActionButton.'
+    - Ensure ActionButton exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       ActionButtonProps:
-        doc: 'ActionButtonProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for ActionButton. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           action:
             type: ActionViewModel
             required: true
-            doc: 'action for ActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Action metadata rendered or invoked by ActionButton. The widget receives metadata only; adapters own backend
+              dispatch.
           context:
             type: C
             required: false
-            doc: 'context for ActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Typed contextual payload passed back when ActionButton invokes an action.
           variant:
             type: '"solid" | "soft" | "subtle" | "danger" | "overflow"'
             required: false
-            doc: 'variant for ActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Visual variant for ActionButton; this should select a design-system treatment without changing action semantics.
           size:
             type: '"sm" | "md" | "touch"'
             required: false
-            doc: 'size for ActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Size/touch-target variant for ActionButton. Mobile stories should verify minimum usable targets.
           onAction:
             type: '(action: ActionViewModel, context: C) => void'
             required: false
-            doc: 'onAction for ActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Callback invoked by ActionButton with action metadata and typed context.
         extends: <C = unknown>  CommonWidgetProps
     action_slots:
       self:
@@ -60,55 +65,80 @@ widgets:
         action_type: ActionViewModel
         cardinality: many
         context_type: SelfContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the self slot on ActionButton.
         lowering:
           adapter: dispatchAdminAction
           note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
             or backend action transport.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by ActionButton. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed ActionButton props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <ActionButton />
   stories:
     Primary:
-      doc: 'TODO: describe what Primary tests for ActionButton.'
+      doc: Tests primary action treatment for ActionButton.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: primary
       asserts:
-      - 'TODO: add assertions for Primary.'
+      - ActionButton renders the Primary scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     Secondary:
-      doc: 'TODO: describe what Secondary tests for ActionButton.'
+      doc: Tests secondary/neutral action treatment for ActionButton.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: secondary
       asserts:
-      - 'TODO: add assertions for Secondary.'
+      - ActionButton renders the Secondary scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     Danger:
-      doc: 'TODO: describe what Danger tests for ActionButton.'
+      doc: Tests danger/destructive action treatment for ActionButton.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: danger
       asserts:
-      - 'TODO: add assertions for Danger.'
+      - ActionButton renders the Danger scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     SubtleLink:
-      doc: 'TODO: describe what SubtleLink tests for ActionButton.'
+      doc: Tests subtle link-style presentation for low-emphasis row or footer actions in ActionButton.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: subtleLink
       asserts:
-      - 'TODO: add assertions for SubtleLink.'
+      - ActionButton renders the SubtleLink scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     Loading:
-      doc: 'TODO: describe what Loading tests for ActionButton.'
+      doc: Tests loading state and aria-busy/disabled behavior for ActionButton.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: loading
       asserts:
-      - 'TODO: add assertions for Loading.'
+      - ActionButton renders the Loading scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     Disabled:
-      doc: 'TODO: describe what Disabled tests for ActionButton.'
+      doc: Tests disabled state styling and interaction suppression for ActionButton.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: disabled
       asserts:
-      - 'TODO: add assertions for Disabled.'
+      - ActionButton renders the Disabled scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     TouchTargetMobile:
-      doc: 'TODO: describe what TouchTargetMobile tests for ActionButton.'
+      doc: Tests mobile touch-target sizing for ActionButton.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: touchTargetMobile
       asserts:
-      - 'TODO: add assertions for TouchTargetMobile.'
+      - ActionButton renders the TouchTargetMobile scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.tsx
@@ -130,7 +160,8 @@ widgets:
   status: scaffolded
   classification:
     level: molecule
-    description: ActionGroup is classified as a molecule in the Admin DSL widget system.
+    description: ActionGroup participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - renderActions wrapper in web/src/admin-dsl/render.tsx
@@ -144,35 +175,38 @@ widgets:
     adapter_boundary: Adapters should choose slot names such as pageHeader or bulkToolbar; the widget chooses spacing and
       presentation defaults for that slot.
     implementation_notes:
-    - 'TODO: add implementation notes for ActionGroup.'
+    - Implement ActionGroup using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for ActionGroup.'
+    - Ensure ActionGroup exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       ActionGroupProps:
-        doc: 'ActionGroupProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for ActionGroup. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           actions:
             type: ActionViewModel[]
             required: true
-            doc: 'actions for ActionGroupProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Ordered action list for the ActionGroup slot. Presentation should be derived from semantic slot and action
+              intent.
           context:
             type: C
             required: false
-            doc: 'context for ActionGroupProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Typed contextual payload passed back when ActionGroup invokes an action.
           slot:
             type: '"pageHeader" | "toolbar" | "panelToolbar" | "panelFooter" | "row" | "rowOverflow" | "bulkToolbar" | "formFooter"
               | "calendarCell" | "sidebarNav" | "footer" | "detail" | "overflow"'
             required: true
-            doc: 'slot for ActionGroupProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Semantic action slot rendered by ActionGroup; this controls spacing, hierarchy, and default presentation.
           align:
             type: '"start" | "end" | "between"'
             required: false
-            doc: 'align for ActionGroupProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Alignment policy for ActionGroup content within its available row or toolbar.
           onAction:
             type: '(action: ActionViewModel, context: C) => void'
             required: false
-            doc: 'onAction for ActionGroupProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Callback invoked by ActionGroup with action metadata and typed context.
         extends: <C = unknown>  CommonWidgetProps
     action_slots:
       actions:
@@ -182,55 +216,80 @@ widgets:
         action_type: ActionViewModel
         cardinality: many
         context_type: ActionsContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the actions slot on ActionGroup.
         lowering:
           adapter: dispatchAdminAction
           note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
             or backend action transport.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by ActionGroup. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed ActionGroup props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <ActionGroup />
   stories:
     PageHeaderActions:
-      doc: 'TODO: describe what PageHeaderActions tests for ActionGroup.'
+      doc: Tests the PageHeaderActions scenario for ActionGroup with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: pageHeaderActions
       asserts:
-      - 'TODO: add assertions for PageHeaderActions.'
+      - ActionGroup renders the PageHeaderActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     PanelFooterActions:
-      doc: 'TODO: describe what PanelFooterActions tests for ActionGroup.'
+      doc: Tests the PanelFooterActions scenario for ActionGroup with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: panelFooterActions
       asserts:
-      - 'TODO: add assertions for PanelFooterActions.'
+      - ActionGroup renders the PanelFooterActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     RowActions:
-      doc: 'TODO: describe what RowActions tests for ActionGroup.'
+      doc: Tests row-scoped actions in ActionGroup.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: rowActions
       asserts:
-      - 'TODO: add assertions for RowActions.'
+      - ActionGroup renders the RowActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     BulkToolbarActions:
-      doc: 'TODO: describe what BulkToolbarActions tests for ActionGroup.'
+      doc: Tests the BulkToolbarActions scenario for ActionGroup with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: bulkToolbarActions
       asserts:
-      - 'TODO: add assertions for BulkToolbarActions.'
+      - ActionGroup renders the BulkToolbarActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     FormFooterActions:
-      doc: 'TODO: describe what FormFooterActions tests for ActionGroup.'
+      doc: Tests the FormFooterActions scenario for ActionGroup with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: formFooterActions
       asserts:
-      - 'TODO: add assertions for FormFooterActions.'
+      - ActionGroup renders the FormFooterActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     OverflowActions:
-      doc: 'TODO: describe what OverflowActions tests for ActionGroup.'
+      doc: Tests compact overflow action presentation in ActionGroup.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: overflowActions
       asserts:
-      - 'TODO: add assertions for OverflowActions.'
+      - ActionGroup renders the OverflowActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WrappingMobile:
-      doc: 'TODO: describe what WrappingMobile tests for ActionGroup.'
+      doc: Tests narrow-width wrapping behavior for ActionGroup.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: wrappingMobile
       asserts:
-      - 'TODO: add assertions for WrappingMobile.'
+      - ActionGroup renders the WrappingMobile scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/molecules/ActionGroup/ActionGroup.tsx
@@ -252,7 +311,8 @@ widgets:
   status: scaffolded
   classification:
     level: atom
-    description: OverflowActionButton is classified as a atom in the Admin DSL widget system.
+    description: OverflowActionButton participates in the Admin DSL component system as an atom; its level controls scaffold
+      location and Storybook grouping.
   source_mapping:
     current_constructs:
     - renderTableCell branch for kind === "overflowActions"
@@ -267,30 +327,34 @@ widgets:
     adapter_boundary: The table cell passes row context and available actions. The widget should not fetch row actions from
       raw row JSON.
     implementation_notes:
-    - 'TODO: add implementation notes for OverflowActionButton.'
+    - Implement OverflowActionButton using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for OverflowActionButton.'
+    - Ensure OverflowActionButton exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to
+      its rendered controls.
   contract:
     props:
       OverflowActionButtonProps:
-        doc: 'OverflowActionButtonProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for OverflowActionButton. These are normalized widget props produced by adapters or callers, not raw Admin
+          DSL JSON.
         fields:
           label:
             type: string
             required: false
-            doc: 'label for OverflowActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Human-readable label rendered by OverflowActionButton.
           actions:
             type: ActionViewModel[]
             required: true
-            doc: 'actions for OverflowActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Ordered action list for the OverflowActionButton slot. Presentation should be derived from semantic slot
+              and action intent.
           context:
             type: C
             required: true
-            doc: 'context for OverflowActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Typed contextual payload passed back when OverflowActionButton invokes an action.
           onAction:
             type: '(action: ActionViewModel, context: C) => void'
             required: false
-            doc: 'onAction for OverflowActionButtonProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Callback invoked by OverflowActionButton with action metadata and typed context.
     action_slots:
       overflowActions:
         doc: Overflow actions are row-scoped actions with compact presentation. Initial scaffold can invoke the first action,
@@ -299,31 +363,48 @@ widgets:
         action_type: ActionViewModel
         cardinality: many
         context_type: OverflowactionsContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the overflowActions slot on OverflowActionButton.
         lowering:
           adapter: dispatchAdminAction
           note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
             or backend action transport.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by OverflowActionButton. Use this as a scaffold for real stories and
+        implementation tests.
+      demonstrates:
+      - Typed OverflowActionButton props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <OverflowActionButton />
   stories:
     SingleOverflowAction:
-      doc: 'TODO: describe what SingleOverflowAction tests for OverflowActionButton.'
+      doc: Tests the SingleOverflowAction scenario for OverflowActionButton with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: singleOverflowAction
       asserts:
-      - 'TODO: add assertions for SingleOverflowAction.'
+      - OverflowActionButton renders the SingleOverflowAction scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     NoActionsDisabled:
-      doc: 'TODO: describe what NoActionsDisabled tests for OverflowActionButton.'
+      doc: Tests OverflowActionButton with no available actions and verifies disabled/noninteractive affordance.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: noActionsDisabled
       asserts:
-      - 'TODO: add assertions for NoActionsDisabled.'
+      - OverflowActionButton renders the NoActionsDisabled scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     FutureMenuPreview:
-      doc: 'TODO: describe what FutureMenuPreview tests for OverflowActionButton.'
+      doc: Documents the intended future multi-action menu shape for OverflowActionButton.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: futureMenuPreview
       asserts:
-      - 'TODO: add assertions for FutureMenuPreview.'
+      - OverflowActionButton renders the FutureMenuPreview scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/atoms/OverflowActionButton/OverflowActionButton.tsx

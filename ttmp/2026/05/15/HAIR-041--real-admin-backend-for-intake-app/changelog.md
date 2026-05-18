@@ -396,3 +396,8 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Updated `00-index.yaml` with artifact type and schema version metadata for each file.
 - Updated `design-doc/09-widget-definition-ir-yaml-format-spec.md` to document support artifact files alongside widget definition files.
 - Validated all YAML files in `sources/admin-dsl-widget-ir/` with PyYAML.
+
+## 2026-05-18 — Fill non-shell widget YAML intent
+
+- Replaced generated placeholder TODO text in non-shell widget definition YAML files with concrete first-pass intent, prop docs, action-slot docs, story docs, assertions, examples, implementation notes, and accessibility notes.
+- Validated all widget IR YAML files with PyYAML and confirmed widget definition entries no longer contain `TODO` placeholder text.

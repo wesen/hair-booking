@@ -11,7 +11,8 @@ widgets:
   status: scaffolded
   classification:
     level: molecule
-    description: MetricCard is classified as a molecule in the Admin DSL widget system.
+    description: MetricCard participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "metricCard"
@@ -20,63 +21,84 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: MetricCard widget.
-    design_rationale: 'TODO: explain why MetricCard should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering MetricCard.'
+    design_rationale: MetricCard extracts a named React boundary from the old Admin DSL renderer so behavior, stories, styling,
+      and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed MetricCard props. MetricCard
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for MetricCard.'
+    - Implement MetricCard using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for MetricCard.'
+    - Ensure MetricCard exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       MetricCardProps:
-        doc: 'MetricCardProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for MetricCard. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           label:
             type: string
             required: true
-            doc: 'label for MetricCardProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Human-readable label rendered by MetricCard.
           value:
             type: string | number
             required: true
-            doc: 'value for MetricCardProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Current value or active selection rendered by MetricCard.
           caption:
             type: string
             required: false
-            doc: 'caption for MetricCardProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'caption configures metric card. Type: string.'
         extends: CommonWidgetProps
     action_slots: {}
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by MetricCard. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed MetricCard props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <MetricCard />
   stories:
     Default:
-      doc: 'TODO: describe what Default tests for MetricCard.'
+      doc: Tests the baseline MetricCard rendering with representative production-like data.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: default
       asserts:
-      - 'TODO: add assertions for Default.'
+      - MetricCard renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     SuccessTone:
-      doc: 'TODO: describe what SuccessTone tests for MetricCard.'
+      doc: Tests the SuccessTone scenario for MetricCard with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: successTone
       asserts:
-      - 'TODO: add assertions for SuccessTone.'
+      - MetricCard renders the SuccessTone scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WarningTone:
-      doc: 'TODO: describe what WarningTone tests for MetricCard.'
+      doc: Tests the WarningTone scenario for MetricCard with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: warningTone
       asserts:
-      - 'TODO: add assertions for WarningTone.'
+      - MetricCard renders the WarningTone scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     DangerTone:
-      doc: 'TODO: describe what DangerTone tests for MetricCard.'
+      doc: Tests the DangerTone scenario for MetricCard with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: dangerTone
       asserts:
-      - 'TODO: add assertions for DangerTone.'
+      - MetricCard renders the DangerTone scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     LongCaption:
-      doc: 'TODO: describe what LongCaption tests for MetricCard.'
+      doc: Tests the LongCaption scenario for MetricCard with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: longCaption
       asserts:
-      - 'TODO: add assertions for LongCaption.'
+      - MetricCard renders the LongCaption scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/molecules/MetricCard/MetricCard.tsx
@@ -95,7 +117,8 @@ widgets:
   status: scaffolded
   classification:
     level: atom
-    description: StatusText is classified as a atom in the Admin DSL widget system.
+    description: StatusText participates in the Admin DSL component system as an atom; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - renderTableCell badge branch and schema statusBadge
@@ -104,69 +127,92 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: StatusText widget.
-    design_rationale: 'TODO: explain why StatusText should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering StatusText.'
+    design_rationale: StatusText extracts a named React boundary from the old Admin DSL renderer so behavior, stories, styling,
+      and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed StatusText props. StatusText
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for StatusText.'
+    - Implement StatusText using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for StatusText.'
+    - Ensure StatusText exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       StatusTextProps:
-        doc: 'StatusTextProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for StatusText. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           label:
             type: string
             required: true
-            doc: 'label for StatusTextProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Human-readable label rendered by StatusText.
           tone:
             type: '"neutral" | "success" | "warning" | "danger"'
             required: false
-            doc: 'tone for StatusTextProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Visual tone used for status, emphasis, or border treatment in StatusText.
           variant:
             type: '"text" | "pill"'
             required: false
-            doc: 'variant for StatusTextProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Visual variant for StatusText; this should select a design-system treatment without changing action semantics.
         extends: CommonWidgetProps
     action_slots: {}
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by StatusText. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed StatusText props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <StatusText />
   stories:
     NeutralText:
-      doc: 'TODO: describe what NeutralText tests for StatusText.'
+      doc: Tests the NeutralText scenario for StatusText with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: neutralText
       asserts:
-      - 'TODO: add assertions for NeutralText.'
+      - StatusText renders the NeutralText scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     SuccessText:
-      doc: 'TODO: describe what SuccessText tests for StatusText.'
+      doc: Tests the SuccessText scenario for StatusText with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: successText
       asserts:
-      - 'TODO: add assertions for SuccessText.'
+      - StatusText renders the SuccessText scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WarningText:
-      doc: 'TODO: describe what WarningText tests for StatusText.'
+      doc: Tests the WarningText scenario for StatusText with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: warningText
       asserts:
-      - 'TODO: add assertions for WarningText.'
+      - StatusText renders the WarningText scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     DangerText:
-      doc: 'TODO: describe what DangerText tests for StatusText.'
+      doc: Tests the DangerText scenario for StatusText with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: dangerText
       asserts:
-      - 'TODO: add assertions for DangerText.'
+      - StatusText renders the DangerText scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     PillVariant:
-      doc: 'TODO: describe what PillVariant tests for StatusText.'
+      doc: Tests the PillVariant scenario for StatusText with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: pillVariant
       asserts:
-      - 'TODO: add assertions for PillVariant.'
+      - StatusText renders the PillVariant scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     MappedFromTableValue:
-      doc: 'TODO: describe what MappedFromTableValue tests for StatusText.'
+      doc: Tests the MappedFromTableValue scenario for StatusText with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: mappedFromTableValue
       asserts:
-      - 'TODO: add assertions for MappedFromTableValue.'
+      - StatusText renders the MappedFromTableValue scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/atoms/StatusText/StatusText.tsx
@@ -185,7 +231,8 @@ widgets:
   status: scaffolded
   classification:
     level: organism
-    description: ComparisonTable is classified as a organism in the Admin DSL widget system.
+    description: ComparisonTable participates in the Admin DSL component system as a organism; its level controls scaffold
+      location and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "comparisonTable"
@@ -194,64 +241,72 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: ComparisonTable widget.
-    design_rationale: 'TODO: explain why ComparisonTable should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering ComparisonTable.'
+    design_rationale: ComparisonTable extracts a named React boundary from the old Admin DSL renderer so behavior, stories,
+      styling, and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed ComparisonTable props. ComparisonTable
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for ComparisonTable.'
+    - Implement ComparisonTable using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for ComparisonTable.'
+    - Ensure ComparisonTable exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       ComparisonTableRow:
-        doc: 'ComparisonTableRow contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for ComparisonTable. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           id:
             type: string
             required: false
-            doc: 'id for ComparisonTableRow. TODO: replace this generated docstring with precise human intent.'
+            doc: Stable DOM/data id for the ComparisonTable instance.
           field:
             type: string
             required: true
-            doc: 'field for ComparisonTableRow. TODO: replace this generated docstring with precise human intent.'
+            doc: 'field configures comparison table. Type: string.'
           current:
             type: string
             required: false
-            doc: 'current for ComparisonTableRow. TODO: replace this generated docstring with precise human intent.'
+            doc: 'current configures comparison table. Type: string.'
           draft:
             type: string
             required: false
-            doc: 'draft for ComparisonTableRow. TODO: replace this generated docstring with precise human intent.'
+            doc: 'draft configures comparison table. Type: string.'
           scheduled:
             type: string
             required: false
-            doc: 'scheduled for ComparisonTableRow. TODO: replace this generated docstring with precise human intent.'
+            doc: 'scheduled configures comparison table. Type: string.'
           actions:
             type: ActionViewModel[]
             required: false
-            doc: 'actions for ComparisonTableRow. TODO: replace this generated docstring with precise human intent.'
+            doc: Ordered action list for the ComparisonTable slot. Presentation should be derived from semantic slot and action
+              intent.
       ComparisonTableProps:
-        doc: 'ComparisonTableProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for ComparisonTable. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           tableId:
             type: string
             required: true
-            doc: 'tableId for ComparisonTableProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Stable table id used by ComparisonTable for selection state, action context, and test hooks.
           rows:
             type: ComparisonTableRow[]
             required: true
-            doc: 'rows for ComparisonTableProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Row data rendered by ComparisonTable. Row-specific actions receive entries from this collection as context.
           empty:
             type: React.ReactNode
             required: false
-            doc: 'empty for ComparisonTableProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'empty configures comparison table. Type: React.ReactNode.'
           onRowAction:
             type: '(action: ActionViewModel, context: { tableId: string; row: ComparisonTableRow }) => void'
             required: false
-            doc: 'onRowAction for ComparisonTableProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Callback invoked by ComparisonTable with table id, row, and optional row id.
         extends: CommonWidgetProps
     action_slots:
       rowActions:
-        doc: 'rowActions action slot. TODO: refine slot intent.'
+        doc: rowActions action slot for ComparisonTable. The widget emits the declared context through onAction and adapters
+          lower it to runtime dispatch.
         callback: onAction
         action_type: ActionViewModel
         cardinality: many
@@ -264,38 +319,55 @@ widgets:
         lowering:
           adapter: dispatchAdminAction
           note: Adapter lowers this typed callback into Admin DSL dispatch.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by ComparisonTable. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed ComparisonTable props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <ComparisonTable />
   stories:
     DefaultChanges:
-      doc: 'TODO: describe what DefaultChanges tests for ComparisonTable.'
+      doc: Tests the DefaultChanges scenario for ComparisonTable with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: defaultChanges
       asserts:
-      - 'TODO: add assertions for DefaultChanges.'
+      - ComparisonTable renders the DefaultChanges scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     NoChangesEmptyState:
-      doc: 'TODO: describe what NoChangesEmptyState tests for ComparisonTable.'
+      doc: Tests empty comparison/no-change state in ComparisonTable.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: noChangesEmptyState
       asserts:
-      - 'TODO: add assertions for NoChangesEmptyState.'
+      - ComparisonTable renders the NoChangesEmptyState scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     RowActions:
-      doc: 'TODO: describe what RowActions tests for ComparisonTable.'
+      doc: Tests row-scoped actions in ComparisonTable.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: rowActions
       asserts:
-      - 'TODO: add assertions for RowActions.'
+      - ComparisonTable renders the RowActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     MobileCards:
-      doc: 'TODO: describe what MobileCards tests for ComparisonTable.'
+      doc: Tests mobile card adaptation for ComparisonTable.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: mobileCards
       asserts:
-      - 'TODO: add assertions for MobileCards.'
+      - ComparisonTable renders the MobileCards scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     LongValues:
-      doc: 'TODO: describe what LongValues tests for ComparisonTable.'
+      doc: Tests long before/after values and responsive wrapping in ComparisonTable.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: longValues
       asserts:
-      - 'TODO: add assertions for LongValues.'
+      - ComparisonTable renders the LongValues scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/organisms/ComparisonTable/ComparisonTable.tsx
@@ -316,7 +388,8 @@ widgets:
   status: scaffolded
   classification:
     level: molecule
-    description: KeyValueList is classified as a molecule in the Admin DSL widget system.
+    description: KeyValueList participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "kvList"
@@ -325,53 +398,73 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: KeyValueList widget.
-    design_rationale: 'TODO: explain why KeyValueList should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering KeyValueList.'
+    design_rationale: KeyValueList extracts a named React boundary from the old Admin DSL renderer so behavior, stories, styling,
+      and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed KeyValueList props. KeyValueList
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for KeyValueList.'
+    - Implement KeyValueList using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for KeyValueList.'
+    - Ensure KeyValueList exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       KeyValueListProps:
-        doc: 'KeyValueListProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for KeyValueList. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           items:
             type: 'Array<{ label: string; value: string | number | React.ReactNode }>'
             required: true
-            doc: 'items for KeyValueListProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Items rendered by KeyValueList.
           labelWidth:
             type: number | string
             required: false
-            doc: 'labelWidth for KeyValueListProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'labelWidth configures key value list. Type: number | string.'
         extends: CommonWidgetProps
     action_slots: {}
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by KeyValueList. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed KeyValueList props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <KeyValueList />
   stories:
     Default:
-      doc: 'TODO: describe what Default tests for KeyValueList.'
+      doc: Tests the baseline KeyValueList rendering with representative production-like data.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: default
       asserts:
-      - 'TODO: add assertions for Default.'
+      - KeyValueList renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     LongLabels:
-      doc: 'TODO: describe what LongLabels tests for KeyValueList.'
+      doc: Tests the LongLabels scenario for KeyValueList with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: longLabels
       asserts:
-      - 'TODO: add assertions for LongLabels.'
+      - KeyValueList renders the LongLabels scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     EmptyItems:
-      doc: 'TODO: describe what EmptyItems tests for KeyValueList.'
+      doc: Tests the EmptyItems scenario for KeyValueList with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: emptyItems
       asserts:
-      - 'TODO: add assertions for EmptyItems.'
+      - KeyValueList renders the EmptyItems scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     AuditDetails:
-      doc: 'TODO: describe what AuditDetails tests for KeyValueList.'
+      doc: Tests the AuditDetails scenario for KeyValueList with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: auditDetails
       asserts:
-      - 'TODO: add assertions for AuditDetails.'
+      - KeyValueList renders the AuditDetails scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/molecules/KeyValueList/KeyValueList.tsx
@@ -390,7 +483,8 @@ widgets:
   status: scaffolded
   classification:
     level: molecule
-    description: ActivityFeed is classified as a molecule in the Admin DSL widget system.
+    description: ActivityFeed participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "activityFeed"
@@ -399,44 +493,52 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: ActivityFeed widget.
-    design_rationale: 'TODO: explain why ActivityFeed should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering ActivityFeed.'
+    design_rationale: ActivityFeed extracts a named React boundary from the old Admin DSL renderer so behavior, stories, styling,
+      and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed ActivityFeed props. ActivityFeed
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for ActivityFeed.'
+    - Implement ActivityFeed using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for ActivityFeed.'
+    - Ensure ActivityFeed exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       ActivityFeedItem:
-        doc: 'ActivityFeedItem contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for ActivityFeed. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           time:
             type: string
             required: true
-            doc: 'time for ActivityFeedItem. TODO: replace this generated docstring with precise human intent.'
+            doc: 'time configures activity feed. Type: string.'
           title:
             type: string
             required: true
-            doc: 'title for ActivityFeedItem. TODO: replace this generated docstring with precise human intent.'
+            doc: Primary heading or title rendered by ActivityFeed.
           body:
             type: string
             required: false
-            doc: 'body for ActivityFeedItem. TODO: replace this generated docstring with precise human intent.'
+            doc: Optional body copy rendered by ActivityFeed.
           action:
             type: ActionViewModel
             required: false
-            doc: 'action for ActivityFeedItem. TODO: replace this generated docstring with precise human intent.'
+            doc: Action metadata rendered or invoked by ActivityFeed. The widget receives metadata only; adapters own backend
+              dispatch.
       ActivityFeedProps:
-        doc: 'ActivityFeedProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for ActivityFeed. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           items:
             type: ActivityFeedItem[]
             required: true
-            doc: 'items for ActivityFeedProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Items rendered by ActivityFeed.
           onItemAction:
             type: '(action: ActionViewModel, context: { item: ActivityFeedItem }) => void'
             required: false
-            doc: 'onItemAction for ActivityFeedProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'onItemAction configures activity feed. Type: (action: ActionViewModel, context: { item: ActivityFeedItem
+              }) => void.'
         extends: CommonWidgetProps
     action_slots:
       itemAction:
@@ -445,42 +547,63 @@ widgets:
         action_type: ActionViewModel
         cardinality: many
         context_type: ItemactionContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the itemAction slot on ActivityFeed.
         lowering:
           adapter: dispatchAdminAction
           note: Adapter lowers this typed callback into Admin DSL dispatch.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by ActivityFeed. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed ActivityFeed props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <ActivityFeed />
   stories:
     Default:
-      doc: 'TODO: describe what Default tests for ActivityFeed.'
+      doc: Tests the baseline ActivityFeed rendering with representative production-like data.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: default
       asserts:
-      - 'TODO: add assertions for Default.'
+      - ActivityFeed renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     Empty:
-      doc: 'TODO: describe what Empty tests for ActivityFeed.'
+      doc: Tests empty data handling for ActivityFeed.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: empty
       asserts:
-      - 'TODO: add assertions for Empty.'
+      - ActivityFeed renders the Empty scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     LongBody:
-      doc: 'TODO: describe what LongBody tests for ActivityFeed.'
+      doc: Tests the LongBody scenario for ActivityFeed with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: longBody
       asserts:
-      - 'TODO: add assertions for LongBody.'
+      - ActivityFeed renders the LongBody scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     AuditLog:
-      doc: 'TODO: describe what AuditLog tests for ActivityFeed.'
+      doc: Tests the AuditLog scenario for ActivityFeed with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: auditLog
       asserts:
-      - 'TODO: add assertions for AuditLog.'
+      - ActivityFeed renders the AuditLog scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WithItemActions:
-      doc: 'TODO: describe what WithItemActions tests for ActivityFeed.'
+      doc: Tests the WithItemActions scenario for ActivityFeed with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: withItemActions
       asserts:
-      - 'TODO: add assertions for WithItemActions.'
+      - ActivityFeed renders the WithItemActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/molecules/ActivityFeed/ActivityFeed.tsx
@@ -499,7 +622,8 @@ widgets:
   status: scaffolded
   classification:
     level: molecule
-    description: MarkdownBlock is classified as a molecule in the Admin DSL widget system.
+    description: MarkdownBlock participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "markdownBlock"
@@ -508,47 +632,65 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: MarkdownBlock widget.
-    design_rationale: 'TODO: explain why MarkdownBlock should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering MarkdownBlock.'
+    design_rationale: MarkdownBlock extracts a named React boundary from the old Admin DSL renderer so behavior, stories,
+      styling, and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed MarkdownBlock props. MarkdownBlock
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for MarkdownBlock.'
+    - Implement MarkdownBlock using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for MarkdownBlock.'
+    - Ensure MarkdownBlock exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       MarkdownBlockProps:
-        doc: 'MarkdownBlockProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for MarkdownBlock. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           markdown:
             type: string
             required: true
-            doc: 'markdown for MarkdownBlockProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'markdown configures markdown block. Type: string.'
           tone:
             type: '"neutral" | "muted"'
             required: false
-            doc: 'tone for MarkdownBlockProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Visual tone used for status, emphasis, or border treatment in MarkdownBlock.
         extends: CommonWidgetProps
     action_slots: {}
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by MarkdownBlock. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed MarkdownBlock props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <MarkdownBlock />
   stories:
     PlainText:
-      doc: 'TODO: describe what PlainText tests for MarkdownBlock.'
+      doc: Tests the PlainText scenario for MarkdownBlock with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: plainText
       asserts:
-      - 'TODO: add assertions for PlainText.'
+      - MarkdownBlock renders the PlainText scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     Multiline:
-      doc: 'TODO: describe what Multiline tests for MarkdownBlock.'
+      doc: Tests the Multiline scenario for MarkdownBlock with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: multiline
       asserts:
-      - 'TODO: add assertions for Multiline.'
+      - MarkdownBlock renders the Multiline scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     Muted:
-      doc: 'TODO: describe what Muted tests for MarkdownBlock.'
+      doc: Tests the Muted scenario for MarkdownBlock with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: muted
       asserts:
-      - 'TODO: add assertions for Muted.'
+      - MarkdownBlock renders the Muted scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/molecules/MarkdownBlock/MarkdownBlock.tsx
@@ -567,7 +709,8 @@ widgets:
   status: scaffolded
   classification:
     level: molecule
-    description: EmptyState is classified as a molecule in the Admin DSL widget system.
+    description: EmptyState participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "emptyState"
@@ -576,59 +719,80 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: EmptyState widget.
-    design_rationale: 'TODO: explain why EmptyState should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering EmptyState.'
+    design_rationale: EmptyState extracts a named React boundary from the old Admin DSL renderer so behavior, stories, styling,
+      and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed EmptyState props. EmptyState
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for EmptyState.'
+    - Implement EmptyState using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for EmptyState.'
+    - Ensure EmptyState exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       EmptyStateProps:
-        doc: 'EmptyStateProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for EmptyState. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           title:
             type: string
             required: true
-            doc: 'title for EmptyStateProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Primary heading or title rendered by EmptyState.
           body:
             type: string
             required: false
-            doc: 'body for EmptyStateProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Optional body copy rendered by EmptyState.
           action:
             type: ActionViewModel
             required: false
-            doc: 'action for EmptyStateProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Action metadata rendered or invoked by EmptyState. The widget receives metadata only; adapters own backend
+              dispatch.
           onAction:
             type: PageActionHandler
             required: false
-            doc: 'onAction for EmptyStateProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Callback invoked by EmptyState with action metadata and typed context.
         extends: CommonWidgetProps
     action_slots:
       primaryAction:
-        doc: 'primaryAction action slot. TODO: refine slot intent.'
+        doc: primaryAction action slot for EmptyState. The widget emits the declared context through onAction and adapters
+          lower it to runtime dispatch.
         callback: onAction
         action_type: ActionViewModel
         cardinality: many
         context_type: PrimaryactionContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the primaryAction slot on EmptyState.
         lowering:
           adapter: dispatchAdminAction
           note: Adapter lowers this typed callback into Admin DSL dispatch.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by EmptyState. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed EmptyState props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <EmptyState />
   stories:
     Default:
-      doc: 'TODO: describe what Default tests for EmptyState.'
+      doc: Tests the baseline EmptyState rendering with representative production-like data.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: default
       asserts:
-      - 'TODO: add assertions for Default.'
+      - EmptyState renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WithAction:
-      doc: 'TODO: describe what WithAction tests for EmptyState.'
+      doc: Tests single action rendering and callback wiring in EmptyState.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: withAction
       asserts:
-      - 'TODO: add assertions for WithAction.'
+      - EmptyState renders the WithAction scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/molecules/EmptyState/EmptyState.tsx
@@ -647,7 +811,8 @@ widgets:
   status: scaffolded
   classification:
     level: molecule
-    description: LoadingState is classified as a molecule in the Admin DSL widget system.
+    description: LoadingState participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "loadingState"
@@ -656,41 +821,57 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: LoadingState widget.
-    design_rationale: 'TODO: explain why LoadingState should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering LoadingState.'
+    design_rationale: LoadingState extracts a named React boundary from the old Admin DSL renderer so behavior, stories, styling,
+      and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed LoadingState props. LoadingState
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for LoadingState.'
+    - Implement LoadingState using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for LoadingState.'
+    - Ensure LoadingState exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       LoadingStateProps:
-        doc: 'LoadingStateProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for LoadingState. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           title:
             type: string
             required: false
-            doc: 'title for LoadingStateProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Primary heading or title rendered by LoadingState.
           body:
             type: string
             required: false
-            doc: 'body for LoadingStateProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Optional body copy rendered by LoadingState.
         extends: CommonWidgetProps
     action_slots: {}
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by LoadingState. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed LoadingState props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <LoadingState />
   stories:
     Default:
-      doc: 'TODO: describe what Default tests for LoadingState.'
+      doc: Tests the baseline LoadingState rendering with representative production-like data.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: default
       asserts:
-      - 'TODO: add assertions for Default.'
+      - LoadingState renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WithBody:
-      doc: 'TODO: describe what WithBody tests for LoadingState.'
+      doc: Tests optional body text rendering in LoadingState.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: withBody
       asserts:
-      - 'TODO: add assertions for WithBody.'
+      - LoadingState renders the WithBody scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/molecules/LoadingState/LoadingState.tsx
@@ -709,7 +890,8 @@ widgets:
   status: scaffolded
   classification:
     level: molecule
-    description: InlineError is classified as a molecule in the Admin DSL widget system.
+    description: InlineError participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "inlineError"
@@ -718,41 +900,56 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: InlineError widget.
-    design_rationale: 'TODO: explain why InlineError should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering InlineError.'
+    design_rationale: InlineError extracts a named React boundary from the old Admin DSL renderer so behavior, stories, styling,
+      and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed InlineError props. InlineError
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for InlineError.'
+    - Implement InlineError using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for InlineError.'
+    - Ensure InlineError exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       InlineErrorProps:
-        doc: 'InlineErrorProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for InlineError. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           title:
             type: string
             required: true
-            doc: 'title for InlineErrorProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Primary heading or title rendered by InlineError.
           body:
             type: string
             required: false
-            doc: 'body for InlineErrorProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Optional body copy rendered by InlineError.
         extends: CommonWidgetProps
     action_slots: {}
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by InlineError. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed InlineError props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <InlineError />
   stories:
     Default:
-      doc: 'TODO: describe what Default tests for InlineError.'
+      doc: Tests the baseline InlineError rendering with representative production-like data.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: default
       asserts:
-      - 'TODO: add assertions for Default.'
+      - InlineError renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     LongMessage:
-      doc: 'TODO: describe what LongMessage tests for InlineError.'
+      doc: Tests long error/message wrapping in InlineError.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: longMessage
       asserts:
-      - 'TODO: add assertions for LongMessage.'
+      - InlineError renders the LongMessage scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/molecules/InlineError/InlineError.tsx

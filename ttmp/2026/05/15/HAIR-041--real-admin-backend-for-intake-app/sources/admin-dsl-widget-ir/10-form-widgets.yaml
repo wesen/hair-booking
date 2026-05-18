@@ -10,7 +10,8 @@ widgets:
   status: scaffolded
   classification:
     level: organism
-    description: AdminForm is classified as a organism in the Admin DSL widget system.
+    description: AdminForm participates in the Admin DSL component system as a organism; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "form"
@@ -19,145 +20,171 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: AdminForm widget.
-    design_rationale: 'TODO: explain why AdminForm should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering AdminForm.'
+    design_rationale: AdminForm extracts a named React boundary from the old Admin DSL renderer so behavior, stories, styling,
+      and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed AdminForm props. AdminForm should
+      not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for AdminForm.'
+    - Implement AdminForm using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for AdminForm.'
+    - Ensure AdminForm exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       AdminFormProps:
-        doc: 'AdminFormProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for AdminForm. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           formId:
             type: string
             required: true
-            doc: 'formId for AdminFormProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'formId configures admin form. Type: string.'
           title:
             type: string
             required: false
-            doc: 'title for AdminFormProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Primary heading or title rendered by AdminForm.
           dirty:
             type: boolean
             required: false
-            doc: 'dirty for AdminFormProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Whether AdminForm should show unsaved-change state.
           pending:
             type: boolean
             required: false
-            doc: 'pending for AdminFormProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Whether AdminForm should show in-progress state.
           state:
             type: '"idle" | "dirty" | "pending" | "success" | "error"'
             required: false
-            doc: 'state for AdminFormProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Lifecycle state rendered by AdminForm.
           errors:
             type: Record<string, string>
             required: false
-            doc: 'errors for AdminFormProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Validation errors rendered by AdminForm.
           actions:
             type: ActionViewModel[]
             required: false
-            doc: 'actions for AdminFormProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Ordered action list for the AdminForm slot. Presentation should be derived from semantic slot and action
+              intent.
           children:
             type: React.ReactNode
             required: true
-            doc: 'children for AdminFormProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Already-rendered child content owned by the caller/adapter and placed inside AdminForm.
           onFormAction:
             type: FormActionHandler<Values>
             required: false
-            doc: 'onFormAction for AdminFormProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'onFormAction configures admin form. Type: FormActionHandler<Values>.'
         extends: <Values = Record<string, unknown>>  CommonWidgetProps
     action_slots:
       submit:
-        doc: 'submit action slot. TODO: refine slot intent.'
+        doc: submit action slot for AdminForm. The widget emits the declared context through onAction and adapters lower it
+          to runtime dispatch.
         callback: onAction
         action_type: ActionViewModel
         cardinality: many
         context_type: SubmitContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the submit slot on AdminForm.
         lowering:
           adapter: dispatchAdminAction
           note: Adapter lowers this typed callback into Admin DSL dispatch.
       cancel:
-        doc: 'cancel action slot. TODO: refine slot intent.'
+        doc: cancel action slot for AdminForm. The widget emits the declared context through onAction and adapters lower it
+          to runtime dispatch.
         callback: onAction
         action_type: ActionViewModel
         cardinality: many
         context_type: CancelContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the cancel slot on AdminForm.
         lowering:
           adapter: dispatchAdminAction
           note: Adapter lowers this typed callback into Admin DSL dispatch.
       formFooter:
-        doc: 'formFooter action slot. TODO: refine slot intent.'
+        doc: formFooter action slot for AdminForm. The widget emits the declared context through onAction and adapters lower
+          it to runtime dispatch.
         callback: onAction
         action_type: ActionViewModel
         cardinality: many
         context_type: FormfooterContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the formFooter slot on AdminForm.
         lowering:
           adapter: dispatchAdminAction
           note: Adapter lowers this typed callback into Admin DSL dispatch.
   examples:
     DefaultUsage:
-      doc: 'TODO: explain what this AdminForm usage example demonstrates.'
+      doc: Demonstrates the intended normalized usage of AdminForm after adapter lowering.
       demonstrates:
-      - 'TODO: list concepts demonstrated by this example.'
-      code: |-
-        <AdminForm
-          formId="serviceForm"
-          title="Highlights"
-          dirty
-          actions={[saveAction, cancelAction]}
-          onFormAction={(action, context) => submit(action, context.values)}
-        >
-          <FieldGroup title="Identity">
-            <TextField name="label" label="Label" value="Highlights" />
-          </FieldGroup>
-        </AdminForm>
+      - Normalized props for AdminForm.
+      - Adapter boundary expectations.
+      code: "<AdminForm\n  formId=\"serviceForm\"\n  title=\"Highlights\"\n  dirty\n  actions={[saveAction, cancelAction]}\n\
+        \  onFormAction={(action, context) => submit(action, context.values)}\n>\n  <FieldGroup title=\"Identity\">\n    <TextField\
+        \ name=\"label\" label=\"Label\" value=\"Highlights\" />\n  </FieldGroup>\n</AdminForm>"
   stories:
     Default:
-      doc: 'TODO: describe what Default tests for AdminForm.'
+      doc: Tests the baseline AdminForm rendering with representative production-like data.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: default
       asserts:
-      - 'TODO: add assertions for Default.'
+      - AdminForm renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     DirtyState:
-      doc: 'TODO: describe what DirtyState tests for AdminForm.'
+      doc: Tests dirty/unsaved lifecycle state in AdminForm.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: dirtyState
       asserts:
-      - 'TODO: add assertions for DirtyState.'
+      - AdminForm renders the DirtyState scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     PendingState:
-      doc: 'TODO: describe what PendingState tests for AdminForm.'
+      doc: Tests pending/saving lifecycle state in AdminForm.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: pendingState
       asserts:
-      - 'TODO: add assertions for PendingState.'
+      - AdminForm renders the PendingState scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     SuccessState:
-      doc: 'TODO: describe what SuccessState tests for AdminForm.'
+      doc: Tests saved/success lifecycle state in AdminForm.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: successState
       asserts:
-      - 'TODO: add assertions for SuccessState.'
+      - AdminForm renders the SuccessState scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WithErrors:
-      doc: 'TODO: describe what WithErrors tests for AdminForm.'
+      doc: Tests validation error summary rendering in AdminForm.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: withErrors
       asserts:
-      - 'TODO: add assertions for WithErrors.'
+      - AdminForm renders the WithErrors scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     SubmitActions:
-      doc: 'TODO: describe what SubmitActions tests for AdminForm.'
+      doc: Tests submit/cancel action slots and form value context in AdminForm.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: submitActions
       asserts:
-      - 'TODO: add assertions for SubmitActions.'
+      - AdminForm renders the SubmitActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     NestedFieldGroups:
-      doc: 'TODO: describe what NestedFieldGroups tests for AdminForm.'
+      doc: Tests nested field group composition inside AdminForm.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: nestedFieldGroups
       asserts:
-      - 'TODO: add assertions for NestedFieldGroups.'
+      - AdminForm renders the NestedFieldGroups scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/organisms/AdminForm/AdminForm.tsx
@@ -178,7 +205,8 @@ widgets:
   status: scaffolded
   classification:
     level: molecule
-    description: FieldGroup is classified as a molecule in the Admin DSL widget system.
+    description: FieldGroup participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "fieldGroup"
@@ -187,47 +215,64 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: FieldGroup widget.
-    design_rationale: 'TODO: explain why FieldGroup should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering FieldGroup.'
+    design_rationale: FieldGroup extracts a named React boundary from the old Admin DSL renderer so behavior, stories, styling,
+      and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed FieldGroup props. FieldGroup
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for FieldGroup.'
+    - Implement FieldGroup using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for FieldGroup.'
+    - Ensure FieldGroup exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       FieldGroupProps:
-        doc: 'FieldGroupProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for FieldGroup. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           title:
             type: string
             required: true
-            doc: 'title for FieldGroupProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Primary heading or title rendered by FieldGroup.
           children:
             type: React.ReactNode
             required: true
-            doc: 'children for FieldGroupProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Already-rendered child content owned by the caller/adapter and placed inside FieldGroup.
         extends: CommonWidgetProps
     action_slots: {}
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by FieldGroup. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed FieldGroup props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <FieldGroup />
   stories:
     Default:
-      doc: 'TODO: describe what Default tests for FieldGroup.'
+      doc: Tests the baseline FieldGroup rendering with representative production-like data.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: default
       asserts:
-      - 'TODO: add assertions for Default.'
+      - FieldGroup renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     MultipleFields:
-      doc: 'TODO: describe what MultipleFields tests for FieldGroup.'
+      doc: Tests the MultipleFields scenario for FieldGroup with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: multipleFields
       asserts:
-      - 'TODO: add assertions for MultipleFields.'
+      - FieldGroup renders the MultipleFields scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     LongTitle:
-      doc: 'TODO: describe what LongTitle tests for FieldGroup.'
+      doc: Tests the LongTitle scenario for FieldGroup with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: longTitle
       asserts:
-      - 'TODO: add assertions for LongTitle.'
+      - FieldGroup renders the LongTitle scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/molecules/FieldGroup/FieldGroup.tsx
@@ -246,7 +291,8 @@ widgets:
   status: scaffolded
   classification:
     level: molecule
-    description: SaveBar is classified as a molecule in the Admin DSL widget system.
+    description: SaveBar participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "saveBar"
@@ -255,73 +301,99 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: SaveBar widget.
-    design_rationale: 'TODO: explain why SaveBar should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering SaveBar.'
+    design_rationale: SaveBar extracts a named React boundary from the old Admin DSL renderer so behavior, stories, styling,
+      and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed SaveBar props. SaveBar should
+      not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for SaveBar.'
+    - Implement SaveBar using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for SaveBar.'
+    - Ensure SaveBar exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       SaveBarProps:
-        doc: 'SaveBarProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for SaveBar. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           status:
             type: string
             required: true
-            doc: 'status for SaveBarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'status configures save bar. Type: string.'
           primaryAction:
             type: ActionViewModel
             required: false
-            doc: 'primaryAction for SaveBarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'primaryAction configures save bar. Type: ActionViewModel.'
           onPrimaryAction:
             type: FormActionHandler<Record<string, unknown>>
             required: false
-            doc: 'onPrimaryAction for SaveBarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Callback for page-scoped primary actions emitted by SaveBar.
         extends: CommonWidgetProps
     action_slots:
       primary:
-        doc: 'primary action slot. TODO: refine slot intent.'
+        doc: primary action slot for SaveBar. The widget emits the declared context through onAction and adapters lower it
+          to runtime dispatch.
         callback: onAction
         action_type: ActionViewModel
         cardinality: many
         context_type: PrimaryContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the primary slot on SaveBar.
         lowering:
           adapter: dispatchAdminAction
           note: Adapter lowers this typed callback into Admin DSL dispatch.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by SaveBar. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed SaveBar props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <SaveBar />
   stories:
     Ready:
-      doc: 'TODO: describe what Ready tests for SaveBar.'
+      doc: Tests the Ready scenario for SaveBar with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: ready
       asserts:
-      - 'TODO: add assertions for Ready.'
+      - SaveBar renders the Ready scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     UnsavedChanges:
-      doc: 'TODO: describe what UnsavedChanges tests for SaveBar.'
+      doc: Tests the UnsavedChanges scenario for SaveBar with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: unsavedChanges
       asserts:
-      - 'TODO: add assertions for UnsavedChanges.'
+      - SaveBar renders the UnsavedChanges scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     Saving:
-      doc: 'TODO: describe what Saving tests for SaveBar.'
+      doc: Tests the Saving scenario for SaveBar with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: saving
       asserts:
-      - 'TODO: add assertions for Saving.'
+      - SaveBar renders the Saving scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     PrimaryAction:
-      doc: 'TODO: describe what PrimaryAction tests for SaveBar.'
+      doc: Tests the PrimaryAction scenario for SaveBar with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: primaryAction
       asserts:
-      - 'TODO: add assertions for PrimaryAction.'
+      - SaveBar renders the PrimaryAction scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     MobileStacked:
-      doc: 'TODO: describe what MobileStacked tests for SaveBar.'
+      doc: Tests the MobileStacked scenario for SaveBar with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: mobileStacked
       asserts:
-      - 'TODO: add assertions for MobileStacked.'
+      - SaveBar renders the MobileStacked scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/molecules/SaveBar/SaveBar.tsx

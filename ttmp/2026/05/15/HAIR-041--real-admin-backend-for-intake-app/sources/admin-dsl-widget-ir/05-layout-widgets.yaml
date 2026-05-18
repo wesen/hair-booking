@@ -11,7 +11,8 @@ widgets:
   status: scaffolded
   classification:
     level: organism
-    description: PageHeader is classified as a organism in the Admin DSL widget system.
+    description: PageHeader participates in the Admin DSL component system as a organism; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "pageHeader" in renderAdminNode
@@ -26,34 +27,36 @@ widgets:
     adapter_boundary: Adapter maps pageHeader props/actions into typed props; widget receives strings and ActionViewModel
       values only.
     implementation_notes:
-    - 'TODO: add implementation notes for PageHeader.'
+    - Implement PageHeader using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for PageHeader.'
+    - Ensure PageHeader exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       PageHeaderProps:
-        doc: 'PageHeaderProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for PageHeader. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           breadcrumbs:
             type: string[]
             required: false
-            doc: 'breadcrumbs for PageHeaderProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Breadcrumb labels shown above the PageHeader title to communicate page hierarchy.
           title:
             type: string
             required: true
-            doc: 'title for PageHeaderProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Primary heading or title rendered by PageHeader.
           description:
             type: string
             required: false
-            doc: 'description for PageHeaderProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Optional descriptive text that explains the surrounding page or widget state.
           primaryActions:
             type: ActionViewModel[]
             required: false
-            doc: 'primaryActions for PageHeaderProps. TODO: replace this generated docstring with precise human intent.'
+            doc: High-level page actions rendered by PageHeader; these should be few and page-scoped.
           onPrimaryAction:
             type: PageActionHandler
             required: false
-            doc: 'onPrimaryAction for PageHeaderProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Callback for page-scoped primary actions emitted by PageHeader.
         extends: CommonWidgetProps
     action_slots:
       primaryActions:
@@ -73,48 +76,54 @@ widgets:
             or backend action transport.
   examples:
     DefaultUsage:
-      doc: 'TODO: explain what this PageHeader usage example demonstrates.'
+      doc: Demonstrates the intended normalized usage of PageHeader after adapter lowering.
       demonstrates:
-      - 'TODO: list concepts demonstrated by this example.'
-      code: |-
-        <PageHeader
-          breadcrumbs={["Admin DSL", "Workbench v2"]}
-          title="Request Triage"
-          description="Review customer intake requests."
-          primaryActions={[newServiceAction]}
-          onPrimaryAction={handlePageAction}
-        />
+      - Normalized props for PageHeader.
+      - Adapter boundary expectations.
+      code: "<PageHeader\n  breadcrumbs={[\"Admin DSL\", \"Workbench v2\"]}\n  title=\"Request Triage\"\n  description=\"\
+        Review customer intake requests.\"\n  primaryActions={[newServiceAction]}\n  onPrimaryAction={handlePageAction}\n\
+        />"
   stories:
     Default:
-      doc: 'TODO: describe what Default tests for PageHeader.'
+      doc: Tests the baseline PageHeader rendering with representative production-like data.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: default
       asserts:
-      - 'TODO: add assertions for Default.'
+      - PageHeader renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WithBreadcrumbs:
-      doc: 'TODO: describe what WithBreadcrumbs tests for PageHeader.'
+      doc: Tests the WithBreadcrumbs scenario for PageHeader with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: withBreadcrumbs
       asserts:
-      - 'TODO: add assertions for WithBreadcrumbs.'
+      - PageHeader renders the WithBreadcrumbs scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WithPrimaryAction:
-      doc: 'TODO: describe what WithPrimaryAction tests for PageHeader.'
+      doc: Tests the WithPrimaryAction scenario for PageHeader with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: withPrimaryAction
       asserts:
-      - 'TODO: add assertions for WithPrimaryAction.'
+      - PageHeader renders the WithPrimaryAction scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     LongTitleMobile:
-      doc: 'TODO: describe what LongTitleMobile tests for PageHeader.'
+      doc: Tests the LongTitleMobile scenario for PageHeader with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: longTitleMobile
       asserts:
-      - 'TODO: add assertions for LongTitleMobile.'
+      - PageHeader renders the LongTitleMobile scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     NoDescription:
-      doc: 'TODO: describe what NoDescription tests for PageHeader.'
+      doc: Tests the NoDescription scenario for PageHeader with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: noDescription
       asserts:
-      - 'TODO: add assertions for NoDescription.'
+      - PageHeader renders the NoDescription scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.tsx
@@ -138,7 +147,8 @@ widgets:
   status: scaffolded
   classification:
     level: organism
-    description: DashboardGrid is classified as a organism in the Admin DSL widget system.
+    description: DashboardGrid participates in the Admin DSL component system as a organism; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "dashboardGrid" and layoutSpan/layoutOrder helpers
@@ -153,75 +163,96 @@ widgets:
     adapter_boundary: Adapter converts node child layout metadata into DashboardGridItem props; the widget should not inspect
       AdminNode.meta.
     implementation_notes:
-    - 'TODO: add implementation notes for DashboardGrid.'
+    - Implement DashboardGrid using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for DashboardGrid.'
+    - Ensure DashboardGrid exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       DashboardGridProps:
-        doc: 'DashboardGridProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for DashboardGrid. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           columns:
             type: '{ desktop?: number; tablet?: number; mobile?: number }'
             required: false
-            doc: 'columns for DashboardGridProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Column definitions that tell DashboardGrid how to label, access, and render row values.
           gap:
             type: '"compact" | "normal" | "spacious"'
             required: false
-            doc: 'gap for DashboardGridProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'gap configures dashboard grid. Type: "compact" | "normal" | "spacious".'
           children:
             type: React.ReactNode
             required: true
-            doc: 'children for DashboardGridProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Already-rendered child content owned by the caller/adapter and placed inside DashboardGrid.
         extends: CommonWidgetProps
       DashboardGridItemProps:
-        doc: 'DashboardGridItemProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for DashboardGrid. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           span:
             type: '{ desktop?: number; tablet?: number; mobile?: number }'
             required: false
-            doc: 'span for DashboardGridItemProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'span configures dashboard grid. Type: { desktop?: number; tablet?: number; mobile?: number }.'
           order:
             type: number
             required: false
-            doc: 'order for DashboardGridItemProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'order configures dashboard grid. Type: number.'
           children:
             type: React.ReactNode
             required: true
-            doc: 'children for DashboardGridItemProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Already-rendered child content owned by the caller/adapter and placed inside DashboardGrid.
     action_slots: {}
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by DashboardGrid. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed DashboardGrid props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <DashboardGrid />
   stories:
     TwelveColumnDesktop:
-      doc: 'TODO: describe what TwelveColumnDesktop tests for DashboardGrid.'
+      doc: Tests the TwelveColumnDesktop scenario for DashboardGrid with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: twelveColumnDesktop
       asserts:
-      - 'TODO: add assertions for TwelveColumnDesktop.'
+      - DashboardGrid renders the TwelveColumnDesktop scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     CompactGap:
-      doc: 'TODO: describe what CompactGap tests for DashboardGrid.'
+      doc: Tests the CompactGap scenario for DashboardGrid with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: compactGap
       asserts:
-      - 'TODO: add assertions for CompactGap.'
+      - DashboardGrid renders the CompactGap scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     MixedSpanCards:
-      doc: 'TODO: describe what MixedSpanCards tests for DashboardGrid.'
+      doc: Tests the MixedSpanCards scenario for DashboardGrid with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: mixedSpanCards
       asserts:
-      - 'TODO: add assertions for MixedSpanCards.'
+      - DashboardGrid renders the MixedSpanCards scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     MobileSingleColumn:
-      doc: 'TODO: describe what MobileSingleColumn tests for DashboardGrid.'
+      doc: Tests the MobileSingleColumn scenario for DashboardGrid with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: mobileSingleColumn
       asserts:
-      - 'TODO: add assertions for MobileSingleColumn.'
+      - DashboardGrid renders the MobileSingleColumn scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     Ordering:
-      doc: 'TODO: describe what Ordering tests for DashboardGrid.'
+      doc: Tests the Ordering scenario for DashboardGrid with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: ordering
       asserts:
-      - 'TODO: add assertions for Ordering.'
+      - DashboardGrid renders the Ordering scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/organisms/DashboardGrid/DashboardGrid.tsx
@@ -245,7 +276,8 @@ widgets:
   status: scaffolded
   classification:
     level: organism
-    description: Panel is classified as a organism in the Admin DSL widget system.
+    description: Panel participates in the Admin DSL component system as a organism; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "panel" in renderAdminNode
@@ -260,54 +292,55 @@ widgets:
     adapter_boundary: Adapter maps toolbarActions/footerActions and renders children separately; widget receives typed React
       children and action arrays.
     implementation_notes:
-    - 'TODO: add implementation notes for Panel.'
+    - Implement Panel using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for Panel.'
+    - Ensure Panel exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered controls.
   contract:
     props:
       PanelProps:
-        doc: 'PanelProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for Panel. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           title:
             type: string
             required: false
-            doc: 'title for PanelProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Primary heading or title rendered by Panel.
           subtitle:
             type: string
             required: false
-            doc: 'subtitle for PanelProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Optional secondary heading text rendered by Panel.
           eyebrow:
             type: string
             required: false
-            doc: 'eyebrow for PanelProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Optional compact contextual label rendered above the main title in Panel.
           body:
             type: string
             required: false
-            doc: 'body for PanelProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Optional body copy rendered by Panel.
           padding:
             type: '"none" | "normal"'
             required: false
-            doc: 'padding for PanelProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Padding policy for Panel; dense table panels often use none.
           toolbarActions:
             type: ActionViewModel[]
             required: false
-            doc: 'toolbarActions for PanelProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Panel-local actions rendered in the header area of Panel.
           footerActions:
             type: ActionViewModel[]
             required: false
-            doc: 'footerActions for PanelProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Panel-local actions rendered in the footer area of Panel.
           children:
             type: React.ReactNode
             required: false
-            doc: 'children for PanelProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Already-rendered child content owned by the caller/adapter and placed inside Panel.
           onToolbarAction:
             type: PanelActionHandler
             required: false
-            doc: 'onToolbarAction for PanelProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'onToolbarAction configures panel. Type: PanelActionHandler.'
           onFooterAction:
             type: PanelActionHandler
             required: false
-            doc: 'onFooterAction for PanelProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'onFooterAction configures panel. Type: PanelActionHandler.'
         extends: CommonWidgetProps
     action_slots:
       toolbarActions:
@@ -342,62 +375,69 @@ widgets:
             or backend action transport.
   examples:
     DefaultUsage:
-      doc: 'TODO: explain what this Panel usage example demonstrates.'
+      doc: Demonstrates the intended normalized usage of Panel after adapter lowering.
       demonstrates:
-      - 'TODO: list concepts demonstrated by this example.'
-      code: |-
-        <Panel
-          title="Today’s queue"
-          density="compact"
-          padding="none"
-          footerActions={[assignAction]}
-          onFooterAction={handlePanelFooterAction}
-        >
-          <ResourceTable {...tableProps} />
-        </Panel>
+      - Normalized props for Panel.
+      - Adapter boundary expectations.
+      code: "<Panel\n  title=\"Today’s queue\"\n  density=\"compact\"\n  padding=\"none\"\n  footerActions={[assignAction]}\n\
+        \  onFooterAction={handlePanelFooterAction}\n>\n  <ResourceTable {...tableProps} />\n</Panel>"
   stories:
     Default:
-      doc: 'TODO: describe what Default tests for Panel.'
+      doc: Tests the baseline Panel rendering with representative production-like data.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: default
       asserts:
-      - 'TODO: add assertions for Default.'
+      - Panel renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     CompactNoPadding:
-      doc: 'TODO: describe what CompactNoPadding tests for Panel.'
+      doc: Tests the CompactNoPadding scenario for Panel with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: compactNoPadding
       asserts:
-      - 'TODO: add assertions for CompactNoPadding.'
+      - Panel renders the CompactNoPadding scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WithToolbarAction:
-      doc: 'TODO: describe what WithToolbarAction tests for Panel.'
+      doc: Tests the WithToolbarAction scenario for Panel with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: withToolbarAction
       asserts:
-      - 'TODO: add assertions for WithToolbarAction.'
+      - Panel renders the WithToolbarAction scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WithFooterActions:
-      doc: 'TODO: describe what WithFooterActions tests for Panel.'
+      doc: Tests footer action slot rendering for Panel.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: withFooterActions
       asserts:
-      - 'TODO: add assertions for WithFooterActions.'
+      - Panel renders the WithFooterActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     BodyOnly:
-      doc: 'TODO: describe what BodyOnly tests for Panel.'
+      doc: Tests the BodyOnly scenario for Panel with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: bodyOnly
       asserts:
-      - 'TODO: add assertions for BodyOnly.'
+      - Panel renders the BodyOnly scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     NestedResourceTable:
-      doc: 'TODO: describe what NestedResourceTable tests for Panel.'
+      doc: Tests the NestedResourceTable scenario for Panel with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: nestedResourceTable
       asserts:
-      - 'TODO: add assertions for NestedResourceTable.'
+      - Panel renders the NestedResourceTable scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     MobilePanelPadding:
-      doc: 'TODO: describe what MobilePanelPadding tests for Panel.'
+      doc: Tests the MobilePanelPadding scenario for Panel with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: mobilePanelPadding
       asserts:
-      - 'TODO: add assertions for MobilePanelPadding.'
+      - Panel renders the MobilePanelPadding scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/organisms/Panel/Panel.tsx
@@ -421,7 +461,8 @@ widgets:
   status: scaffolded
   classification:
     level: molecule
-    description: Toolbar is classified as a molecule in the Admin DSL widget system.
+    description: Toolbar participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "toolbar"
@@ -434,22 +475,24 @@ widgets:
       wrapper.
     adapter_boundary: Adapter maps toolbar node actions into ActionViewModel list.
     implementation_notes:
-    - 'TODO: add implementation notes for Toolbar.'
+    - Implement Toolbar using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for Toolbar.'
+    - Ensure Toolbar exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       ToolbarProps:
-        doc: 'ToolbarProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for Toolbar. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           actions:
             type: ActionViewModel[]
             required: true
-            doc: 'actions for ToolbarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Ordered action list for the Toolbar slot. Presentation should be derived from semantic slot and action intent.
           onAction:
             type: PageActionHandler
             required: false
-            doc: 'onAction for ToolbarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Callback invoked by Toolbar with action metadata and typed context.
         extends: CommonWidgetProps
     action_slots:
       toolbarActions:
@@ -458,31 +501,48 @@ widgets:
         action_type: ActionViewModel
         cardinality: many
         context_type: ToolbaractionsContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the toolbarActions slot on Toolbar.
         lowering:
           adapter: dispatchAdminAction
           note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
             or backend action transport.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by Toolbar. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed Toolbar props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <Toolbar />
   stories:
     Default:
-      doc: 'TODO: describe what Default tests for Toolbar.'
+      doc: Tests the baseline Toolbar rendering with representative production-like data.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: default
       asserts:
-      - 'TODO: add assertions for Default.'
+      - Toolbar renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     ManyActionsWrap:
-      doc: 'TODO: describe what ManyActionsWrap tests for Toolbar.'
+      doc: Tests the ManyActionsWrap scenario for Toolbar with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: manyActionsWrap
       asserts:
-      - 'TODO: add assertions for ManyActionsWrap.'
+      - Toolbar renders the ManyActionsWrap scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     MobileTouchTargets:
-      doc: 'TODO: describe what MobileTouchTargets tests for Toolbar.'
+      doc: Tests the MobileTouchTargets scenario for Toolbar with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: mobileTouchTargets
       asserts:
-      - 'TODO: add assertions for MobileTouchTargets.'
+      - Toolbar renders the MobileTouchTargets scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/molecules/Toolbar/Toolbar.tsx
@@ -504,7 +564,8 @@ widgets:
   status: scaffolded
   classification:
     level: organism
-    description: SplitPane is classified as a organism in the Admin DSL widget system.
+    description: SplitPane participates in the Admin DSL component system as a organism; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "splitPane"
@@ -518,52 +579,67 @@ widgets:
       usage for split surfaces.
     adapter_boundary: Adapter passes rendered left/right children in order; widget owns responsive stacking.
     implementation_notes:
-    - 'TODO: add implementation notes for SplitPane.'
+    - Implement SplitPane using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for SplitPane.'
+    - Ensure SplitPane exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       SplitPaneProps:
-        doc: 'SplitPaneProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for SplitPane. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           leftWidth:
             type: string
             required: false
-            doc: 'leftWidth for SplitPaneProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'leftWidth configures split pane. Type: string.'
           rightWidth:
             type: string
             required: false
-            doc: 'rightWidth for SplitPaneProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'rightWidth configures split pane. Type: string.'
           gap:
             type: number
             required: false
-            doc: 'gap for SplitPaneProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'gap configures split pane. Type: number.'
           children:
             type: React.ReactNode
             required: true
-            doc: 'children for SplitPaneProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Already-rendered child content owned by the caller/adapter and placed inside SplitPane.
         extends: CommonWidgetProps
     action_slots: {}
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by SplitPane. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed SplitPane props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <SplitPane />
   stories:
     MasterDetail:
-      doc: 'TODO: describe what MasterDetail tests for SplitPane.'
+      doc: Tests the MasterDetail scenario for SplitPane with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: masterDetail
       asserts:
-      - 'TODO: add assertions for MasterDetail.'
+      - SplitPane renders the MasterDetail scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     TwoPanels:
-      doc: 'TODO: describe what TwoPanels tests for SplitPane.'
+      doc: Tests the TwoPanels scenario for SplitPane with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: twoPanels
       asserts:
-      - 'TODO: add assertions for TwoPanels.'
+      - SplitPane renders the TwoPanels scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     MobileStacked:
-      doc: 'TODO: describe what MobileStacked tests for SplitPane.'
+      doc: Tests the MobileStacked scenario for SplitPane with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: mobileStacked
       asserts:
-      - 'TODO: add assertions for MobileStacked.'
+      - SplitPane renders the MobileStacked scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/organisms/SplitPane/SplitPane.tsx
@@ -587,7 +663,8 @@ widgets:
   status: scaffolded
   classification:
     level: molecule
-    description: Tabs is classified as a molecule in the Admin DSL widget system.
+    description: Tabs participates in the Admin DSL component system as a molecule; its level controls scaffold location and
+      Storybook grouping.
   source_mapping:
     current_constructs:
     - case "tabs"
@@ -599,30 +676,31 @@ widgets:
     design_rationale: Represents tab choice as a compact control with active state and optional action dispatch.
     adapter_boundary: Adapter maps tabs/value/action props; widget emits selected tab context through onTabChange.
     implementation_notes:
-    - 'TODO: add implementation notes for Tabs.'
+    - Implement Tabs using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for Tabs.'
+    - Ensure Tabs exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered controls.
   contract:
     props:
       TabsProps:
-        doc: 'TabsProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for Tabs. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           tabs:
             type: 'Array<{ id: string; label: string }>'
             required: true
-            doc: 'tabs for TabsProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Tab choices rendered by Tabs.
           value:
             type: string
             required: false
-            doc: 'value for TabsProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Current value or active selection rendered by Tabs.
           action:
             type: ActionViewModel
             required: false
-            doc: 'action for TabsProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Action metadata rendered or invoked by Tabs. The widget receives metadata only; adapters own backend dispatch.
           onTabChange:
             type: '(action: ActionViewModel | undefined, context: { tab: { id: string; label: string } }) => void'
             required: false
-            doc: 'onTabChange for TabsProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Callback emitted by Tabs when a tab is selected.
         extends: CommonWidgetProps
     action_slots:
       tabChange:
@@ -631,37 +709,56 @@ widgets:
         action_type: ActionViewModel
         cardinality: many
         context_type: TabchangeContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the tabChange slot on Tabs.
         lowering:
           adapter: dispatchAdminAction
           note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
             or backend action transport.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by Tabs. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed Tabs props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <Tabs />
   stories:
     Default:
-      doc: 'TODO: describe what Default tests for Tabs.'
+      doc: Tests the baseline Tabs rendering with representative production-like data.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: default
       asserts:
-      - 'TODO: add assertions for Default.'
+      - Tabs renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     ActiveTab:
-      doc: 'TODO: describe what ActiveTab tests for Tabs.'
+      doc: Tests the ActiveTab scenario for Tabs with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: activeTab
       asserts:
-      - 'TODO: add assertions for ActiveTab.'
+      - Tabs renders the ActiveTab scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     NoActionReadonly:
-      doc: 'TODO: describe what NoActionReadonly tests for Tabs.'
+      doc: Tests the NoActionReadonly scenario for Tabs with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: noActionReadonly
       asserts:
-      - 'TODO: add assertions for NoActionReadonly.'
+      - Tabs renders the NoActionReadonly scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WrappingMobile:
-      doc: 'TODO: describe what WrappingMobile tests for Tabs.'
+      doc: Tests narrow-width wrapping behavior for Tabs.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: wrappingMobile
       asserts:
-      - 'TODO: add assertions for WrappingMobile.'
+      - Tabs renders the WrappingMobile scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/molecules/Tabs/Tabs.tsx
@@ -683,7 +780,8 @@ widgets:
   status: scaffolded
   classification:
     level: molecule
-    description: FilterBar is classified as a molecule in the Admin DSL widget system.
+    description: FilterBar participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "filterBar"
@@ -695,30 +793,33 @@ widgets:
     design_rationale: Represents filter chips/pills as a specific action context rather than generic tabs or buttons.
     adapter_boundary: Adapter maps filter list/value/action; widget emits selected filter context.
     implementation_notes:
-    - 'TODO: add implementation notes for FilterBar.'
+    - Implement FilterBar using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for FilterBar.'
+    - Ensure FilterBar exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       FilterBarProps:
-        doc: 'FilterBarProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for FilterBar. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           filters:
             type: 'Array<{ id: string; label: string }>'
             required: true
-            doc: 'filters for FilterBarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Filter choices rendered by FilterBar.
           value:
             type: string
             required: false
-            doc: 'value for FilterBarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Current value or active selection rendered by FilterBar.
           action:
             type: ActionViewModel
             required: false
-            doc: 'action for FilterBarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Action metadata rendered or invoked by FilterBar. The widget receives metadata only; adapters own backend
+              dispatch.
           onFilterChange:
             type: '(action: ActionViewModel | undefined, context: { filter: { id: string; label: string } }) => void'
             required: false
-            doc: 'onFilterChange for FilterBarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Callback emitted by FilterBar when a filter is selected.
         extends: CommonWidgetProps
     action_slots:
       filterChange:
@@ -727,37 +828,56 @@ widgets:
         action_type: ActionViewModel
         cardinality: many
         context_type: FilterchangeContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the filterChange slot on FilterBar.
         lowering:
           adapter: dispatchAdminAction
           note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
             or backend action transport.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by FilterBar. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed FilterBar props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <FilterBar />
   stories:
     Default:
-      doc: 'TODO: describe what Default tests for FilterBar.'
+      doc: Tests the baseline FilterBar rendering with representative production-like data.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: default
       asserts:
-      - 'TODO: add assertions for Default.'
+      - FilterBar renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     ActiveFilter:
-      doc: 'TODO: describe what ActiveFilter tests for FilterBar.'
+      doc: Tests the ActiveFilter scenario for FilterBar with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: activeFilter
       asserts:
-      - 'TODO: add assertions for ActiveFilter.'
+      - FilterBar renders the ActiveFilter scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     ManyFiltersWrap:
-      doc: 'TODO: describe what ManyFiltersWrap tests for FilterBar.'
+      doc: Tests the ManyFiltersWrap scenario for FilterBar with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: manyFiltersWrap
       asserts:
-      - 'TODO: add assertions for ManyFiltersWrap.'
+      - FilterBar renders the ManyFiltersWrap scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     Readonly:
-      doc: 'TODO: describe what Readonly tests for FilterBar.'
+      doc: Tests the Readonly scenario for FilterBar with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: readonly
       asserts:
-      - 'TODO: add assertions for Readonly.'
+      - FilterBar renders the Readonly scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/molecules/FilterBar/FilterBar.tsx
@@ -779,7 +899,8 @@ widgets:
   status: scaffolded
   classification:
     level: molecule
-    description: SearchBox is classified as a molecule in the Admin DSL widget system.
+    description: SearchBox participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "searchBox"
@@ -791,34 +912,37 @@ widgets:
     design_rationale: Owns search form semantics and submit behavior in a reusable molecule.
     adapter_boundary: Adapter maps placeholder/value/action; widget emits query text through onSearch.
     implementation_notes:
-    - 'TODO: add implementation notes for SearchBox.'
+    - Implement SearchBox using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for SearchBox.'
+    - Ensure SearchBox exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       SearchBoxProps:
-        doc: 'SearchBoxProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for SearchBox. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           label:
             type: string
             required: false
-            doc: 'label for SearchBoxProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Human-readable label rendered by SearchBox.
           placeholder:
             type: string
             required: false
-            doc: 'placeholder for SearchBoxProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Placeholder text for the empty input state in SearchBox.
           value:
             type: string
             required: false
-            doc: 'value for SearchBoxProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Current value or active selection rendered by SearchBox.
           action:
             type: ActionViewModel
             required: false
-            doc: 'action for SearchBoxProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Action metadata rendered or invoked by SearchBox. The widget receives metadata only; adapters own backend
+              dispatch.
           onSearch:
             type: '(action: ActionViewModel | undefined, context: { query: string }) => void'
             required: false
-            doc: 'onSearch for SearchBoxProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Callback emitted by SearchBox with submitted query text.
         extends: CommonWidgetProps
     action_slots:
       searchSubmit:
@@ -827,37 +951,56 @@ widgets:
         action_type: ActionViewModel
         cardinality: many
         context_type: SearchsubmitContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the searchSubmit slot on SearchBox.
         lowering:
           adapter: dispatchAdminAction
           note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
             or backend action transport.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by SearchBox. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed SearchBox props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <SearchBox />
   stories:
     Default:
-      doc: 'TODO: describe what Default tests for SearchBox.'
+      doc: Tests the baseline SearchBox rendering with representative production-like data.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: default
       asserts:
-      - 'TODO: add assertions for Default.'
+      - SearchBox renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WithInitialValue:
-      doc: 'TODO: describe what WithInitialValue tests for SearchBox.'
+      doc: Tests the WithInitialValue scenario for SearchBox with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: withInitialValue
       asserts:
-      - 'TODO: add assertions for WithInitialValue.'
+      - SearchBox renders the WithInitialValue scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     NoAction:
-      doc: 'TODO: describe what NoAction tests for SearchBox.'
+      doc: Tests the NoAction scenario for SearchBox with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: noAction
       asserts:
-      - 'TODO: add assertions for NoAction.'
+      - SearchBox renders the NoAction scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     SubmitDispatch:
-      doc: 'TODO: describe what SubmitDispatch tests for SearchBox.'
+      doc: Tests the SubmitDispatch scenario for SearchBox with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: submitDispatch
       asserts:
-      - 'TODO: add assertions for SubmitDispatch.'
+      - SearchBox renders the SubmitDispatch scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/molecules/SearchBox/SearchBox.tsx

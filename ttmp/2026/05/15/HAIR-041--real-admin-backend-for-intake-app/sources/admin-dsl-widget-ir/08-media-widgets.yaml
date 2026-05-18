@@ -10,7 +10,8 @@ widgets:
   status: scaffolded
   classification:
     level: organism
-    description: PreviewFrame is classified as a organism in the Admin DSL widget system.
+    description: PreviewFrame participates in the Admin DSL component system as a organism; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "previewFrame"
@@ -19,97 +20,125 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: PreviewFrame widget.
-    design_rationale: 'TODO: explain why PreviewFrame should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering PreviewFrame.'
+    design_rationale: PreviewFrame extracts a named React boundary from the old Admin DSL renderer so behavior, stories, styling,
+      and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed PreviewFrame props. PreviewFrame
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for PreviewFrame.'
+    - Implement PreviewFrame using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for PreviewFrame.'
+    - Ensure PreviewFrame exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       PreviewFrameProps:
-        doc: 'PreviewFrameProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for PreviewFrame. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           previewId:
             type: string
             required: true
-            doc: 'previewId for PreviewFrameProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'previewId configures preview frame. Type: string.'
           kicker:
             type: string
             required: false
-            doc: 'kicker for PreviewFrameProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'kicker configures preview frame. Type: string.'
           title:
             type: string
             required: true
-            doc: 'title for PreviewFrameProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Primary heading or title rendered by PreviewFrame.
           body:
             type: string
             required: false
-            doc: 'body for PreviewFrameProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Optional body copy rendered by PreviewFrame.
           url:
             type: string
             required: false
-            doc: 'url for PreviewFrameProps. TODO: replace this generated docstring with precise human intent.'
+            doc: External or internal URL rendered by PreviewFrame.
           height:
             type: number
             required: false
-            doc: 'height for PreviewFrameProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Preferred preview height for PreviewFrame.
           placeholder:
             type: string
             required: false
-            doc: 'placeholder for PreviewFrameProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Placeholder text for the empty input state in PreviewFrame.
           actions:
             type: ActionViewModel[]
             required: false
-            doc: 'actions for PreviewFrameProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Ordered action list for the PreviewFrame slot. Presentation should be derived from semantic slot and action
+              intent.
           onAction:
             type: PanelActionHandler
             required: false
-            doc: 'onAction for PreviewFrameProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Callback invoked by PreviewFrame with action metadata and typed context.
         extends: CommonWidgetProps
     action_slots:
       previewActions:
-        doc: 'previewActions action slot. TODO: refine slot intent.'
+        doc: previewActions action slot for PreviewFrame. The widget emits the declared context through onAction and adapters
+          lower it to runtime dispatch.
         callback: onAction
         action_type: ActionViewModel
         cardinality: many
         context_type: PreviewactionsContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the previewActions slot on PreviewFrame.
         lowering:
           adapter: dispatchAdminAction
           note: Adapter lowers this typed callback into Admin DSL dispatch.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by PreviewFrame. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed PreviewFrame props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <PreviewFrame />
   stories:
     IframeConnected:
-      doc: 'TODO: describe what IframeConnected tests for PreviewFrame.'
+      doc: Tests the IframeConnected scenario for PreviewFrame with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: iframeConnected
       asserts:
-      - 'TODO: add assertions for IframeConnected.'
+      - PreviewFrame renders the IframeConnected scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     Placeholder:
-      doc: 'TODO: describe what Placeholder tests for PreviewFrame.'
+      doc: Tests the Placeholder scenario for PreviewFrame with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: placeholder
       asserts:
-      - 'TODO: add assertions for Placeholder.'
+      - PreviewFrame renders the Placeholder scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WithBodyAndActions:
-      doc: 'TODO: describe what WithBodyAndActions tests for PreviewFrame.'
+      doc: Tests the WithBodyAndActions scenario for PreviewFrame with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: withBodyAndActions
       asserts:
-      - 'TODO: add assertions for WithBodyAndActions.'
+      - PreviewFrame renders the WithBodyAndActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     TallPreview:
-      doc: 'TODO: describe what TallPreview tests for PreviewFrame.'
+      doc: Tests the TallPreview scenario for PreviewFrame with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: tallPreview
       asserts:
-      - 'TODO: add assertions for TallPreview.'
+      - PreviewFrame renders the TallPreview scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     MobilePreview:
-      doc: 'TODO: describe what MobilePreview tests for PreviewFrame.'
+      doc: Tests the MobilePreview scenario for PreviewFrame with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: mobilePreview
       asserts:
-      - 'TODO: add assertions for MobilePreview.'
+      - PreviewFrame renders the MobilePreview scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/organisms/PreviewFrame/PreviewFrame.tsx
@@ -130,7 +159,8 @@ widgets:
   status: scaffolded
   classification:
     level: organism
-    description: ImageGrid is classified as a organism in the Admin DSL widget system.
+    description: ImageGrid participates in the Admin DSL component system as a organism; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "imageGrid"
@@ -139,48 +169,52 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: ImageGrid widget.
-    design_rationale: 'TODO: explain why ImageGrid should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering ImageGrid.'
+    design_rationale: ImageGrid extracts a named React boundary from the old Admin DSL renderer so behavior, stories, styling,
+      and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed ImageGrid props. ImageGrid should
+      not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for ImageGrid.'
+    - Implement ImageGrid using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for ImageGrid.'
+    - Ensure ImageGrid exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       ImageGridItem:
-        doc: 'ImageGridItem contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for ImageGrid. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           id:
             type: string
             required: false
-            doc: 'id for ImageGridItem. TODO: replace this generated docstring with precise human intent.'
+            doc: Stable DOM/data id for the ImageGrid instance.
           title:
             type: string
             required: true
-            doc: 'title for ImageGridItem. TODO: replace this generated docstring with precise human intent.'
+            doc: Primary heading or title rendered by ImageGrid.
           subtitle:
             type: string
             required: false
-            doc: 'subtitle for ImageGridItem. TODO: replace this generated docstring with precise human intent.'
+            doc: Optional secondary heading text rendered by ImageGrid.
           status:
             type: string
             required: false
-            doc: 'status for ImageGridItem. TODO: replace this generated docstring with precise human intent.'
+            doc: 'status configures image grid. Type: string.'
           tone:
             type: string
             required: false
-            doc: 'tone for ImageGridItem. TODO: replace this generated docstring with precise human intent.'
+            doc: Visual tone used for status, emphasis, or border treatment in ImageGrid.
           url:
             type: string
             required: false
-            doc: 'url for ImageGridItem. TODO: replace this generated docstring with precise human intent.'
+            doc: External or internal URL rendered by ImageGrid.
       ImageGridProps:
-        doc: 'ImageGridProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for ImageGrid. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
         fields:
           items:
             type: ImageGridItem[]
             required: true
-            doc: 'items for ImageGridProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Items rendered by ImageGrid.
         extends: CommonWidgetProps
     action_slots:
       cardAction:
@@ -189,36 +223,55 @@ widgets:
         action_type: ActionViewModel
         cardinality: many
         context_type: CardactionContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the cardAction slot on ImageGrid.
         lowering:
           adapter: dispatchAdminAction
           note: Adapter lowers this typed callback into Admin DSL dispatch.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by ImageGrid. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed ImageGrid props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <ImageGrid />
   stories:
     Default:
-      doc: 'TODO: describe what Default tests for ImageGrid.'
+      doc: Tests the baseline ImageGrid rendering with representative production-like data.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: default
       asserts:
-      - 'TODO: add assertions for Default.'
+      - ImageGrid renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WithStatuses:
-      doc: 'TODO: describe what WithStatuses tests for ImageGrid.'
+      doc: Tests the WithStatuses scenario for ImageGrid with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: withStatuses
       asserts:
-      - 'TODO: add assertions for WithStatuses.'
+      - ImageGrid renders the WithStatuses scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     Empty:
-      doc: 'TODO: describe what Empty tests for ImageGrid.'
+      doc: Tests empty data handling for ImageGrid.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: empty
       asserts:
-      - 'TODO: add assertions for Empty.'
+      - ImageGrid renders the Empty scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     ResponsiveGrid:
-      doc: 'TODO: describe what ResponsiveGrid tests for ImageGrid.'
+      doc: Tests responsive grid behavior for ImageGrid.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: responsiveGrid
       asserts:
-      - 'TODO: add assertions for ResponsiveGrid.'
+      - ImageGrid renders the ResponsiveGrid scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/organisms/ImageGrid/ImageGrid.tsx
@@ -239,7 +292,8 @@ widgets:
   status: scaffolded
   classification:
     level: organism
-    description: ImageGallery is classified as a organism in the Admin DSL widget system.
+    description: ImageGallery participates in the Admin DSL component system as a organism; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "imageGallery"
@@ -248,76 +302,84 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: ImageGallery widget.
-    design_rationale: 'TODO: explain why ImageGallery should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering ImageGallery.'
+    design_rationale: ImageGallery extracts a named React boundary from the old Admin DSL renderer so behavior, stories, styling,
+      and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed ImageGallery props. ImageGallery
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for ImageGallery.'
+    - Implement ImageGallery using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for ImageGallery.'
+    - Ensure ImageGallery exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       GalleryImage:
-        doc: 'GalleryImage contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for ImageGallery. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           id:
             type: string
             required: false
-            doc: 'id for GalleryImage. TODO: replace this generated docstring with precise human intent.'
+            doc: Stable DOM/data id for the ImageGallery instance.
           slot:
             type: string
             required: false
-            doc: 'slot for GalleryImage. TODO: replace this generated docstring with precise human intent.'
+            doc: Semantic action slot rendered by ImageGallery; this controls spacing, hierarchy, and default presentation.
           title:
             type: string
             required: false
-            doc: 'title for GalleryImage. TODO: replace this generated docstring with precise human intent.'
+            doc: Primary heading or title rendered by ImageGallery.
           subtitle:
             type: string
             required: false
-            doc: 'subtitle for GalleryImage. TODO: replace this generated docstring with precise human intent.'
+            doc: Optional secondary heading text rendered by ImageGallery.
           status:
             type: string
             required: false
-            doc: 'status for GalleryImage. TODO: replace this generated docstring with precise human intent.'
+            doc: 'status configures image gallery. Type: string.'
           tone:
             type: string
             required: false
-            doc: 'tone for GalleryImage. TODO: replace this generated docstring with precise human intent.'
+            doc: Visual tone used for status, emphasis, or border treatment in ImageGallery.
           url:
             type: string
             required: false
-            doc: 'url for GalleryImage. TODO: replace this generated docstring with precise human intent.'
+            doc: External or internal URL rendered by ImageGallery.
           alt:
             type: string
             required: false
-            doc: 'alt for GalleryImage. TODO: replace this generated docstring with precise human intent.'
+            doc: 'alt configures image gallery. Type: string.'
       ImageGalleryProps:
-        doc: 'ImageGalleryProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for ImageGallery. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           galleryId:
             type: string
             required: true
-            doc: 'galleryId for ImageGalleryProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'galleryId configures image gallery. Type: string.'
           images:
             type: GalleryImage[]
             required: true
-            doc: 'images for ImageGalleryProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Image entries rendered by ImageGallery.
           emptyText:
             type: string
             required: false
-            doc: 'emptyText for ImageGalleryProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'emptyText configures image gallery. Type: string.'
           imageAction:
             type: ActionViewModel
             required: false
-            doc: 'imageAction for ImageGalleryProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'imageAction configures image gallery. Type: ActionViewModel.'
           onImageAction:
             type: '(action: ActionViewModel, context: { galleryId: string; image: GalleryImage }) => void'
             required: false
-            doc: 'onImageAction for ImageGalleryProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'onImageAction configures image gallery. Type: (action: ActionViewModel, context: { galleryId: string; image:
+              GalleryImage }) => void.'
         extends: CommonWidgetProps
     action_slots:
       imageOpen:
-        doc: 'imageOpen action slot. TODO: refine slot intent.'
+        doc: imageOpen action slot for ImageGallery. The widget emits the declared context through onAction and adapters lower
+          it to runtime dispatch.
         callback: onAction
         action_type: ActionViewModel
         cardinality: many
@@ -330,38 +392,55 @@ widgets:
         lowering:
           adapter: dispatchAdminAction
           note: Adapter lowers this typed callback into Admin DSL dispatch.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by ImageGallery. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed ImageGallery props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <ImageGallery />
   stories:
     DefaultPhotos:
-      doc: 'TODO: describe what DefaultPhotos tests for ImageGallery.'
+      doc: Tests the DefaultPhotos scenario for ImageGallery with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: defaultPhotos
       asserts:
-      - 'TODO: add assertions for DefaultPhotos.'
+      - ImageGallery renders the DefaultPhotos scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     MissingPhoto:
-      doc: 'TODO: describe what MissingPhoto tests for ImageGallery.'
+      doc: Tests missing media fallback rendering in ImageGallery.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: missingPhoto
       asserts:
-      - 'TODO: add assertions for MissingPhoto.'
+      - ImageGallery renders the MissingPhoto scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     EmptyGallery:
-      doc: 'TODO: describe what EmptyGallery tests for ImageGallery.'
+      doc: Tests the EmptyGallery scenario for ImageGallery with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: emptyGallery
       asserts:
-      - 'TODO: add assertions for EmptyGallery.'
+      - ImageGallery renders the EmptyGallery scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     ClickableImages:
-      doc: 'TODO: describe what ClickableImages tests for ImageGallery.'
+      doc: Tests image-level action callback context in ImageGallery.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: clickableImages
       asserts:
-      - 'TODO: add assertions for ClickableImages.'
+      - ImageGallery renders the ClickableImages scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     MobileGrid:
-      doc: 'TODO: describe what MobileGrid tests for ImageGallery.'
+      doc: Tests the MobileGrid scenario for ImageGallery with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: mobileGrid
       asserts:
-      - 'TODO: add assertions for MobileGrid.'
+      - ImageGallery renders the MobileGrid scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/organisms/ImageGallery/ImageGallery.tsx

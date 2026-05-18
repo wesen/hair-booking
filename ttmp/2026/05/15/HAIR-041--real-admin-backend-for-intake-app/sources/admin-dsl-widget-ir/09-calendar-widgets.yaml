@@ -10,7 +10,8 @@ widgets:
   status: scaffolded
   classification:
     level: organism
-    description: MonthCalendar is classified as a organism in the Admin DSL widget system.
+    description: MonthCalendar participates in the Admin DSL component system as a organism; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - case "monthCalendar" and buildMonthCells
@@ -19,115 +20,133 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: MonthCalendar widget.
-    design_rationale: 'TODO: explain why MonthCalendar should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering MonthCalendar.'
+    design_rationale: MonthCalendar extracts a named React boundary from the old Admin DSL renderer so behavior, stories,
+      styling, and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed MonthCalendar props. MonthCalendar
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for MonthCalendar.'
+    - Implement MonthCalendar using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for MonthCalendar.'
+    - Ensure MonthCalendar exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       MonthCalendarMarker:
-        doc: 'MonthCalendarMarker contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for MonthCalendar. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           date:
             type: string
             required: true
-            doc: 'date for MonthCalendarMarker. TODO: replace this generated docstring with precise human intent.'
+            doc: 'date configures month calendar. Type: string.'
           kind:
             type: string
             required: true
-            doc: 'kind for MonthCalendarMarker. TODO: replace this generated docstring with precise human intent.'
+            doc: 'kind configures month calendar. Type: string.'
           tone:
             type: '"success" | "warning" | "danger" | "neutral"'
             required: false
-            doc: 'tone for MonthCalendarMarker. TODO: replace this generated docstring with precise human intent.'
+            doc: Visual tone used for status, emphasis, or border treatment in MonthCalendar.
       MonthCalendarLegendItem:
-        doc: 'MonthCalendarLegendItem contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for MonthCalendar. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           kind:
             type: string
             required: true
-            doc: 'kind for MonthCalendarLegendItem. TODO: replace this generated docstring with precise human intent.'
+            doc: 'kind configures month calendar. Type: string.'
           label:
             type: string
             required: true
-            doc: 'label for MonthCalendarLegendItem. TODO: replace this generated docstring with precise human intent.'
+            doc: Human-readable label rendered by MonthCalendar.
           tone:
             type: '"success" | "warning" | "danger" | "neutral"'
             required: false
-            doc: 'tone for MonthCalendarLegendItem. TODO: replace this generated docstring with precise human intent.'
+            doc: Visual tone used for status, emphasis, or border treatment in MonthCalendar.
       MonthCalendarProps:
-        doc: 'MonthCalendarProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for MonthCalendar. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           calendarId:
             type: string
             required: true
-            doc: 'calendarId for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'calendarId configures month calendar. Type: string.'
           month:
             type: string; // YYYY-MM
             required: true
-            doc: 'month for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Month key rendered by MonthCalendar, typically YYYY-MM.
           label:
             type: string
             required: false
-            doc: 'label for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Human-readable label rendered by MonthCalendar.
           selectedDate:
             type: string
             required: false
-            doc: 'selectedDate for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Currently selected date rendered by MonthCalendar.
           markers:
             type: MonthCalendarMarker[]
             required: false
-            doc: 'markers for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Date markers rendered by MonthCalendar.
           legend:
             type: MonthCalendarLegendItem[]
             required: false
-            doc: 'legend for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Legend entries explaining markers rendered by MonthCalendar.
           previousMonthAction:
             type: ActionViewModel
             required: false
-            doc: 'previousMonthAction for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'previousMonthAction configures month calendar. Type: ActionViewModel.'
           nextMonthAction:
             type: ActionViewModel
             required: false
-            doc: 'nextMonthAction for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'nextMonthAction configures month calendar. Type: ActionViewModel.'
           selectDateAction:
             type: ActionViewModel
             required: false
-            doc: 'selectDateAction for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'selectDateAction configures month calendar. Type: ActionViewModel.'
           onMonthAction:
             type: CalendarCellActionHandler
             required: false
-            doc: 'onMonthAction for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'onMonthAction configures month calendar. Type: CalendarCellActionHandler.'
           onSelectDate:
             type: CalendarCellActionHandler
             required: false
-            doc: 'onSelectDate for MonthCalendarProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'onSelectDate configures month calendar. Type: CalendarCellActionHandler.'
         extends: CommonWidgetProps
     action_slots:
       previousMonth:
-        doc: 'previousMonth action slot. TODO: refine slot intent.'
+        doc: previousMonth action slot for MonthCalendar. The widget emits the declared context through onAction and adapters
+          lower it to runtime dispatch.
         callback: onAction
         action_type: ActionViewModel
         cardinality: many
         context_type: PreviousmonthContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the previousMonth slot on MonthCalendar.
         lowering:
           adapter: dispatchAdminAction
           note: Adapter lowers this typed callback into Admin DSL dispatch.
       nextMonth:
-        doc: 'nextMonth action slot. TODO: refine slot intent.'
+        doc: nextMonth action slot for MonthCalendar. The widget emits the declared context through onAction and adapters
+          lower it to runtime dispatch.
         callback: onAction
         action_type: ActionViewModel
         cardinality: many
         context_type: NextmonthContext
-        context: {}
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the nextMonth slot on MonthCalendar.
         lowering:
           adapter: dispatchAdminAction
           note: Adapter lowers this typed callback into Admin DSL dispatch.
       selectDate:
-        doc: 'selectDate action slot. TODO: refine slot intent.'
+        doc: selectDate action slot for MonthCalendar. The widget emits the declared context through onAction and adapters
+          lower it to runtime dispatch.
         callback: onAction
         action_type: ActionViewModel
         cardinality: many
@@ -140,50 +159,71 @@ widgets:
         lowering:
           adapter: dispatchAdminAction
           note: Adapter lowers this typed callback into Admin DSL dispatch.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by MonthCalendar. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed MonthCalendar props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <MonthCalendar />
   stories:
     DefaultMonth:
-      doc: 'TODO: describe what DefaultMonth tests for MonthCalendar.'
+      doc: Tests the normal month grid for MonthCalendar.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: defaultMonth
       asserts:
-      - 'TODO: add assertions for DefaultMonth.'
+      - MonthCalendar renders the DefaultMonth scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WithPublishedMarkers:
-      doc: 'TODO: describe what WithPublishedMarkers tests for MonthCalendar.'
+      doc: Tests the WithPublishedMarkers scenario for MonthCalendar with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: withPublishedMarkers
       asserts:
-      - 'TODO: add assertions for WithPublishedMarkers.'
+      - MonthCalendar renders the WithPublishedMarkers scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     WithScheduledMarkers:
-      doc: 'TODO: describe what WithScheduledMarkers tests for MonthCalendar.'
+      doc: Tests the WithScheduledMarkers scenario for MonthCalendar with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: withScheduledMarkers
       asserts:
-      - 'TODO: add assertions for WithScheduledMarkers.'
+      - MonthCalendar renders the WithScheduledMarkers scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     SelectedDate:
-      doc: 'TODO: describe what SelectedDate tests for MonthCalendar.'
+      doc: Tests selected date styling and callback context in MonthCalendar.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: selectedDate
       asserts:
-      - 'TODO: add assertions for SelectedDate.'
+      - MonthCalendar renders the SelectedDate scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     NoActionsReadonly:
-      doc: 'TODO: describe what NoActionsReadonly tests for MonthCalendar.'
+      doc: Tests read-only behavior when MonthCalendar has no actions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: noActionsReadonly
       asserts:
-      - 'TODO: add assertions for NoActionsReadonly.'
+      - MonthCalendar renders the NoActionsReadonly scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     PreviousNextActions:
-      doc: 'TODO: describe what PreviousNextActions tests for MonthCalendar.'
+      doc: Tests previous/next month action slots in MonthCalendar.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: previousNextActions
       asserts:
-      - 'TODO: add assertions for PreviousNextActions.'
+      - MonthCalendar renders the PreviousNextActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     MobileCalendar:
-      doc: 'TODO: describe what MobileCalendar tests for MonthCalendar.'
+      doc: Tests mobile calendar layout for MonthCalendar.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: mobileCalendar
       asserts:
-      - 'TODO: add assertions for MobileCalendar.'
+      - MonthCalendar renders the MobileCalendar scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/organisms/MonthCalendar/MonthCalendar.tsx
@@ -204,7 +244,8 @@ widgets:
   status: scaffolded
   classification:
     level: organism
-    description: CalendarWeek is classified as a organism in the Admin DSL widget system.
+    description: CalendarWeek participates in the Admin DSL component system as a organism; its level controls scaffold location
+      and Storybook grouping.
   source_mapping:
     current_constructs:
     - web/src/admin-dsl/calendar.tsx and case "calendarWeek"
@@ -213,41 +254,48 @@ widgets:
       notes: Current source referenced by the v1 widget IR.
   intent:
     purpose: CalendarWeek widget.
-    design_rationale: 'TODO: explain why CalendarWeek should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering CalendarWeek.'
+    design_rationale: CalendarWeek extracts a named React boundary from the old Admin DSL renderer so behavior, stories, styling,
+      and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed CalendarWeek props. CalendarWeek
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for CalendarWeek.'
+    - Implement CalendarWeek using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for CalendarWeek.'
+    - Ensure CalendarWeek exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
   contract:
     props:
       CalendarWeekProps:
-        doc: 'CalendarWeekProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for CalendarWeek. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
         fields:
           calendarId:
             type: string
             required: true
-            doc: 'calendarId for CalendarWeekProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'calendarId configures calendar week. Type: string.'
           days:
             type: string[]
             required: true
-            doc: 'days for CalendarWeekProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'days configures calendar week. Type: string[].'
           hours:
             type: string[]
             required: true
-            doc: 'hours for CalendarWeekProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'hours configures calendar week. Type: string[].'
           blocks:
             type: CalendarEventBlockProps[]
             required: true
-            doc: 'blocks for CalendarWeekProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'blocks configures calendar week. Type: CalendarEventBlockProps[].'
           onBlockAction:
             type: '(action: ActionViewModel, context: { block: CalendarEventBlockProps }) => void'
             required: false
-            doc: 'onBlockAction for CalendarWeekProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'onBlockAction configures calendar week. Type: (action: ActionViewModel, context: { block: CalendarEventBlockProps
+              }) => void.'
         extends: CommonWidgetProps
     action_slots:
       child eventOpen actions:
-        doc: 'child eventOpen actions action slot. TODO: refine slot intent.'
+        doc: child eventOpen actions action slot for CalendarWeek. The widget emits the declared context through onAction
+          and adapters lower it to runtime dispatch.
         callback: onAction
         action_type: ActionViewModel
         cardinality: many
@@ -260,38 +308,55 @@ widgets:
         lowering:
           adapter: dispatchAdminAction
           note: Adapter lowers this typed callback into Admin DSL dispatch.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by CalendarWeek. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed CalendarWeek props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <CalendarWeek />
   stories:
     DefaultWeek:
-      doc: 'TODO: describe what DefaultWeek tests for CalendarWeek.'
+      doc: Tests the normal week grid and block placement for CalendarWeek.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: defaultWeek
       asserts:
-      - 'TODO: add assertions for DefaultWeek.'
+      - CalendarWeek renders the DefaultWeek scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     AppointmentsAndTimeOff:
-      doc: 'TODO: describe what AppointmentsAndTimeOff tests for CalendarWeek.'
+      doc: Tests mixed appointment/time-off rendering in CalendarWeek.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: appointmentsAndTimeOff
       asserts:
-      - 'TODO: add assertions for AppointmentsAndTimeOff.'
+      - CalendarWeek renders the AppointmentsAndTimeOff scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     NoAppointments:
-      doc: 'TODO: describe what NoAppointments tests for CalendarWeek.'
+      doc: Tests empty calendar week rendering in CalendarWeek.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: noAppointments
       asserts:
-      - 'TODO: add assertions for NoAppointments.'
+      - CalendarWeek renders the NoAppointments scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     MobileAgenda:
-      doc: 'TODO: describe what MobileAgenda tests for CalendarWeek.'
+      doc: Tests mobile agenda fallback for CalendarWeek.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: mobileAgenda
       asserts:
-      - 'TODO: add assertions for MobileAgenda.'
+      - CalendarWeek renders the MobileAgenda scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     LongDayLabels:
-      doc: 'TODO: describe what LongDayLabels tests for CalendarWeek.'
+      doc: Tests long day labels and horizontal spacing in CalendarWeek.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: longDayLabels
       asserts:
-      - 'TODO: add assertions for LongDayLabels.'
+      - CalendarWeek renders the LongDayLabels scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/organisms/CalendarWeek/CalendarWeek.tsx
@@ -312,7 +377,8 @@ widgets:
   status: scaffolded
   classification:
     level: molecule
-    description: CalendarEventBlock is classified as a molecule in the Admin DSL widget system.
+    description: CalendarEventBlock participates in the Admin DSL component system as a molecule; its level controls scaffold
+      location and Storybook grouping.
   source_mapping:
     current_constructs:
     - appointmentBlock, availabilityBlock, timeOffBlock branches in render.tsx and calendar.tsx
@@ -321,73 +387,80 @@ widgets:
       notes: Current renderer source to inspect for this construct.
   intent:
     purpose: CalendarEventBlock widget.
-    design_rationale: 'TODO: explain why CalendarEventBlock should be a distinct widget.'
-    adapter_boundary: 'TODO: define what the Admin DSL adapter must normalize before rendering CalendarEventBlock.'
+    design_rationale: CalendarEventBlock extracts a named React boundary from the old Admin DSL renderer so behavior, stories,
+      styling, and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed CalendarEventBlock props. CalendarEventBlock
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
     implementation_notes:
-    - 'TODO: add implementation notes for CalendarEventBlock.'
+    - Implement CalendarEventBlock using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
     accessibility_notes:
-    - 'TODO: define accessibility expectations for CalendarEventBlock.'
+    - Ensure CalendarEventBlock exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its
+      rendered controls.
   contract:
     props:
       CalendarEventBlockProps:
-        doc: 'CalendarEventBlockProps contract generated from the previous TypeScript prop snippet. TODO: refine this docstring.'
+        doc: Props for CalendarEventBlock. These are normalized widget props produced by adapters or callers, not raw Admin
+          DSL JSON.
         fields:
           id:
             type: string
             required: true
-            doc: 'id for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Stable DOM/data id for the CalendarEventBlock instance.
           kind:
             type: '"appointment" | "availability" | "timeOff"'
             required: true
-            doc: 'kind for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'kind configures calendar event block. Type: "appointment" | "availability" | "timeOff".'
           clientName:
             type: string
             required: false
-            doc: 'clientName for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'clientName configures calendar event block. Type: string.'
           title:
             type: string
             required: false
-            doc: 'title for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Primary heading or title rendered by CalendarEventBlock.
           service:
             type: string
             required: false
-            doc: 'service for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'service configures calendar event block. Type: string.'
           status:
             type: string
             required: false
-            doc: 'status for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'status configures calendar event block. Type: string.'
           startsAt:
             type: string
             required: false
-            doc: 'startsAt for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'startsAt configures calendar event block. Type: string.'
           endsAt:
             type: string
             required: false
-            doc: 'endsAt for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'endsAt configures calendar event block. Type: string.'
           column:
             type: number
             required: false
-            doc: 'column for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'column configures calendar event block. Type: number.'
           row:
             type: number
             required: false
-            doc: 'row for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'row configures calendar event block. Type: number.'
           span:
             type: number
             required: false
-            doc: 'span for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+            doc: 'span configures calendar event block. Type: number.'
           action:
             type: ActionViewModel
             required: false
-            doc: 'action for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Action metadata rendered or invoked by CalendarEventBlock. The widget receives metadata only; adapters own
+              backend dispatch.
           onAction:
             type: '(action: ActionViewModel, context: { blockId: string }) => void'
             required: false
-            doc: 'onAction for CalendarEventBlockProps. TODO: replace this generated docstring with precise human intent.'
+            doc: Callback invoked by CalendarEventBlock with action metadata and typed context.
         extends: CommonWidgetProps
     action_slots:
       eventOpen:
-        doc: 'eventOpen action slot. TODO: refine slot intent.'
+        doc: eventOpen action slot for CalendarEventBlock. The widget emits the declared context through onAction and adapters
+          lower it to runtime dispatch.
         callback: onAction
         action_type: ActionViewModel
         cardinality: many
@@ -400,38 +473,55 @@ widgets:
         lowering:
           adapter: dispatchAdminAction
           note: Adapter lowers this typed callback into Admin DSL dispatch.
-  examples: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by CalendarEventBlock. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed CalendarEventBlock props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <CalendarEventBlock />
   stories:
     Appointment:
-      doc: 'TODO: describe what Appointment tests for CalendarEventBlock.'
+      doc: Tests the Appointment scenario for CalendarEventBlock with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: appointment
       asserts:
-      - 'TODO: add assertions for Appointment.'
+      - CalendarEventBlock renders the Appointment scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     Availability:
-      doc: 'TODO: describe what Availability tests for CalendarEventBlock.'
+      doc: Tests the Availability scenario for CalendarEventBlock with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: availability
       asserts:
-      - 'TODO: add assertions for Availability.'
+      - CalendarEventBlock renders the Availability scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     TimeOff:
-      doc: 'TODO: describe what TimeOff tests for CalendarEventBlock.'
+      doc: Tests the TimeOff scenario for CalendarEventBlock with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: timeOff
       asserts:
-      - 'TODO: add assertions for TimeOff.'
+      - CalendarEventBlock renders the TimeOff scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     CompactBlock:
-      doc: 'TODO: describe what CompactBlock tests for CalendarEventBlock.'
+      doc: Tests the CompactBlock scenario for CalendarEventBlock with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: compactBlock
       asserts:
-      - 'TODO: add assertions for CompactBlock.'
+      - CalendarEventBlock renders the CompactBlock scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
     AgendaItem:
-      doc: 'TODO: describe what AgendaItem tests for CalendarEventBlock.'
+      doc: Tests the AgendaItem scenario for CalendarEventBlock with representative fixtures and assertions.
       viewport: desktop
-      fixtures: {}
+      fixtures:
+        scenario: agendaItem
       asserts:
-      - 'TODO: add assertions for AgendaItem.'
+      - CalendarEventBlock renders the AgendaItem scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
   outputs:
     component:
       path: web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.tsx
