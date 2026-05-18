@@ -1,30 +1,33 @@
 #!/usr/bin/env python3
-"""Scaffold Admin DSL React widgets from widget-IR YAML files.
+"""Scaffold Admin DSL React widgets from schema-v2 Widget Definition IR YAML.
 
-The widget IR YAML files under `sources/admin-dsl-widget-ir/` are intentionally
-semi-formal: many prop contracts are TypeScript snippets preserved from the
-Markdown design document. This tool consumes those artifacts and creates a first
-pass of final-code scaffolding:
+The widget IR files under ``sources/admin-dsl-widget-ir/`` are now structured
+artifacts, not TypeScript snippets. This generator treats the YAML as the source
+of truth and emits deterministic, reviewable React scaffolds:
 
-- one directory per widget;
-- `<Widget>.types.ts` containing the prop contract snippet;
-- `<Widget>.tsx` containing a compile-safe placeholder component;
-- `<Widget>.stories.tsx` containing one Storybook export per planned story;
-- `index.ts` barrel file;
-- shared widget/action/context types under `widgets/shared/`.
+- shared widget/action/context types under ``web/src/admin-dsl/widgets/shared``;
+- one directory per widget, using explicit ``outputs`` paths when present;
+- ``<Widget>.types.ts`` generated from ``contract.props``;
+- ``<Widget>.tsx`` generated from ``intent`` and action-slot metadata;
+- ``<Widget>.stories.tsx`` generated from ``stories`` docs, viewports, and assertions;
+- ``index.ts`` barrel files.
 
-It does not implement the final visual components. It creates deterministic,
-reviewable file scaffolds so follow-up passes or humans can fill in the bodies.
+Generated components are intentionally safe scaffolds, not final visual
+implementations. They are richer than placeholders: every output carries the
+widget purpose, adapter boundary, implementation notes, accessibility notes,
+story docs, and provenance so humans/LLM passes can continue from concrete
+requirements rather than from a blank file.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import subprocess
 import sys
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -40,19 +43,32 @@ LEVEL_DIRS = {
     "organism": "organisms",
 }
 
-SHARED_TYPES = '''import type { CSSProperties } from "react";
+VIEWPORT_PARAMETERS = {
+    "mobile": '{ viewport: { defaultViewport: "iphone12" } }',
+    "tablet": '{ viewport: { defaultViewport: "ipad" } }',
+    "desktop": "{}",
+}
+
+SHARED_TYPES = '''import type { CSSProperties, ReactNode } from "react";
 
 export interface ActionViewModel {
   id?: string;
-  type: "open" | "close" | "navigate" | "mutation" | "confirm" | "refresh" | "upload";
+  type: "open" | "close" | "navigate" | "mutation" | "confirm" | "refresh" | "upload" | string;
   target: string;
   label: string;
-  intent?: "neutral" | "primary" | "danger";
-  priority?: "primary" | "secondary" | "tertiary";
-  presentation?: "button" | "icon" | "menuItem" | "overflow" | "link";
+  intent?: "neutral" | "primary" | "danger" | string;
+  priority?: "primary" | "secondary" | "tertiary" | string;
+  presentation?: "button" | "icon" | "menuItem" | "overflow" | "link" | string;
   disabled?: boolean;
   loading?: boolean;
   accessibilityLabel?: string;
+  confirmation?: {
+    title?: string;
+    body?: string;
+    confirmLabel?: string;
+    cancelLabel?: string;
+  };
+  [key: string]: unknown;
 }
 
 export interface SidebarNavItem {
@@ -73,8 +89,28 @@ export interface CommonWidgetProps {
   className?: string;
   style?: CSSProperties;
   density?: "compact" | "normal" | "spacious";
-  tone?: "neutral" | "success" | "warning" | "danger" | "info";
+  tone?: "neutral" | "success" | "warning" | "danger" | "info" | "muted" | string;
   dataAttributes?: Record<string, string | number | boolean>;
+}
+
+export type ResourceTableColumnKind =
+  | "text"
+  | "badge"
+  | "status"
+  | "actions"
+  | "image"
+  | "date"
+  | "number"
+  | "boolean"
+  | "dragHandle"
+  | string;
+
+export type OverlaySurfaceKind = "modal" | "drawer" | "popover" | "sheet" | string;
+
+export interface PaginationModel {
+  page: number;
+  total: number;
+  actions?: ActionViewModel[];
 }
 
 export type PageActionHandler = (action: ActionViewModel, context: {
@@ -107,25 +143,65 @@ export type CalendarCellActionHandler = (action: ActionViewModel, context: {
   calendarId: string;
   date: string;
 }) => void;
+
+export interface GeneratedStoryFixture {
+  scenario: string;
+  [key: string]: unknown;
+}
+
+export interface WidgetScaffoldDiagnostics {
+  widgetId: string;
+  purpose: string;
+  adapterBoundary?: string;
+  implementationNotes: string[];
+  accessibilityNotes: string[];
+  actionSlots: Record<string, unknown>;
+  examples: Record<string, unknown>;
+}
+
+export type WidgetChildren = ReactNode;
 '''
 
+@dataclass
+class PropField:
+    name: str
+    ts_type: str
+    required: bool
+    doc: str
+
+@dataclass
+class InterfaceContract:
+    name: str
+    doc: str
+    fields: list[PropField]
+    extends: str | None = None
+
+@dataclass
+class StoryContract:
+    name: str
+    doc: str
+    viewport: str = "desktop"
+    fixtures: dict[str, Any] = field(default_factory=dict)
+    asserts: list[str] = field(default_factory=list)
 
 @dataclass
 class ScaffoldPlan:
+    widget_id: str
     name: str
     props_type: str
     output_dir: Path
     level: str
     category: str
     source_yaml: Path
-    current_source: str
     classification: dict[str, Any]
-    purpose: str | None
-    human_notes: dict[str, Any]
-    props_snippet: str
-    stories: list[str]
-    action_slots: list[Any]
-    xxx: list[str]
+    source_mapping: dict[str, Any]
+    intent: dict[str, Any]
+    contracts: list[InterfaceContract]
+    stories: list[StoryContract]
+    action_slots: dict[str, Any]
+    examples: dict[str, Any]
+    implementation_todos: list[dict[str, Any]]
+    outputs: dict[str, Any]
     repo_root: Path
     script_path: Path
     generated_at: str
@@ -136,10 +212,13 @@ def pascal_case(value: str) -> str:
     return "".join(part[:1].upper() + part[1:] for part in parts if part)
 
 
+def camel_case(value: str) -> str:
+    pascal = pascal_case(value)
+    return pascal[:1].lower() + pascal[1:] if pascal else "value"
+
+
 def story_export_name(value: str) -> str:
-    name = pascal_case(value)
-    if not name:
-        name = "Default"
+    name = pascal_case(value) or "Default"
     if name[0].isdigit():
         name = f"Story{name}"
     return name
@@ -147,129 +226,170 @@ def story_export_name(value: str) -> str:
 
 def widget_level(widget: dict[str, Any]) -> str:
     classification = widget.get("classification") or {}
-    level = classification.get("level") if isinstance(classification, dict) else None
-    return str(level or "molecule")
+    if isinstance(classification, dict):
+        return str(classification.get("level") or "molecule")
+    return "molecule"
 
 
-def infer_output_dir(widget: dict[str, Any], widget_root: Path, repo_root: Path) -> Path:
-    """Infer a one-directory-per-widget output location.
+def output_path(widget: dict[str, Any], key: str) -> str | None:
+    outputs = widget.get("outputs") if isinstance(widget.get("outputs"), dict) else {}
+    entry = outputs.get(key) if isinstance(outputs, dict) else None
+    if isinstance(entry, dict):
+        raw = entry.get("path")
+        return str(raw) if raw else None
+    return None
 
-    The YAML currently contains Markdown-derived `file_layout` blocks. When a
-    layout block already names `web/src/admin-dsl/widgets/.../<Widget>/`, use it.
-    For internal ResourceTable parts, normalize to one directory per part under
-    `ResourceTable/parts/<Widget>/`. Otherwise fall back to classification.
-    """
-    name = str(widget["name"])
-    layout = str(widget.get("file_layout") or "")
 
-    for raw_line in layout.splitlines():
-        line = raw_line.strip()
-        if line.startswith("web/src/admin-dsl/widgets/") and line.endswith("/"):
-            return repo_root / line.rstrip("/")
-
-    if "ResourceTable/parts" in layout:
-        return widget_root / "organisms" / "ResourceTable" / "parts" / name
-
-    match = re.search(r"(atoms|molecules|organisms)/(.+?)(?:/|$)", layout)
-    if match:
-        base = widget_root / match.group(1)
-        remainder = match.group(2).strip("/")
-        if remainder.endswith(".tsx"):
-            return base / Path(remainder).stem
-        if remainder:
-            return base / remainder
-
+def infer_output_dir(widget: dict[str, Any], widget_root: Path) -> Path:
+    component_path = output_path(widget, "component")
+    if component_path:
+        return Path(component_path).parent
     level_dir = LEVEL_DIRS.get(widget_level(widget), "molecules")
-    return widget_root / level_dir / name
+    return widget_root / level_dir / str(widget["name"])
 
 
-def props_type_name(widget_name: str, props_snippet: str) -> str:
+def normalize_type(ts_type: Any) -> str:
+    text = str(ts_type or "unknown").strip()
+    text = re.sub(r";\s*//.*$", "", text).strip()
+    text = re.sub(r"\s+//.*$", "", text).strip()
+    if text in {"", "{"}:
+        return "Record<string, unknown>"
+    return text
+
+
+def parse_extends(raw: Any, interface_name: str, fields: list[PropField]) -> tuple[str, str | None]:
+    """Return ``(generic_suffix, extends_clause)`` for a YAML extends value.
+
+    Older migrated entries encode generics and extends together, for example
+    ``<Row = Record<string, unknown>>  CommonWidgetProps``. A regular expression
+    that stops at the first ``>`` is wrong because the generic default itself can
+    contain ``Record<...>``. Split on the known extends tail instead.
+    """
+    text = str(raw or "").strip()
+    generic = ""
+    extends_clause = text or None
+    if text.startswith("<") and "CommonWidgetProps" in text:
+        before, after = text.split("CommonWidgetProps", 1)
+        generic = before.strip()
+        extends_clause = ("CommonWidgetProps" + after).strip()
+    elif text.startswith("<") and " " in text:
+        before, after = text.rsplit(" ", 1)
+        generic = before.strip()
+        extends_clause = after.strip()
+    elif any(re.search(r"\bRow\b", f.ts_type) for f in fields):
+        generic = "<Row = Record<string, unknown>>"
+    elif any(re.search(r"\bValues\b", f.ts_type) for f in fields):
+        generic = "<Values = Record<string, unknown>>"
+    elif any(re.search(r"\bC\b", f.ts_type) for f in fields):
+        generic = "<C = unknown>"
+    return generic, extends_clause
+
+
+def normalize_contracts(widget: dict[str, Any]) -> list[InterfaceContract]:
+    contract = widget.get("contract") if isinstance(widget.get("contract"), dict) else {}
+    props = contract.get("props") if isinstance(contract.get("props"), dict) else {}
+    contracts: list[InterfaceContract] = []
+    for name, iface in props.items():
+        if not isinstance(iface, dict):
+            continue
+        fields_raw = iface.get("fields") if isinstance(iface.get("fields"), dict) else {}
+        fields: list[PropField] = []
+        for field_name, field_def in fields_raw.items():
+            if not isinstance(field_def, dict):
+                continue
+            fields.append(PropField(
+                name=str(field_name),
+                ts_type=normalize_type(field_def.get("type")),
+                required=bool(field_def.get("required")),
+                doc=str(field_def.get("doc") or f"{field_name} for {name}."),
+            ))
+        contracts.append(InterfaceContract(
+            name=str(name),
+            doc=str(iface.get("doc") or f"Props for {widget.get('name')}"),
+            fields=fields,
+            extends=str(iface.get("extends")).strip() if iface.get("extends") else None,
+        ))
+    return contracts
+
+
+def normalize_stories(widget: dict[str, Any]) -> list[StoryContract]:
+    raw = widget.get("stories")
+    stories: list[StoryContract] = []
+    if isinstance(raw, dict):
+        for name, story in raw.items():
+            story = story if isinstance(story, dict) else {}
+            assertions = story.get("asserts") if isinstance(story.get("asserts"), list) else []
+            fixtures = story.get("fixtures") if isinstance(story.get("fixtures"), dict) else {}
+            stories.append(StoryContract(
+                name=str(name),
+                doc=str(story.get("doc") or f"{name} scenario."),
+                viewport=str(story.get("viewport") or "desktop"),
+                fixtures=fixtures,
+                asserts=[str(item) for item in assertions],
+            ))
+    elif isinstance(raw, list):
+        for item in raw:
+            stories.append(StoryContract(name=str(item), doc=f"{item} scenario."))
+    return stories or [StoryContract(name="Default", doc="Baseline generated scaffold story.")]
+
+
+def props_type_name(widget_name: str, contracts: list[InterfaceContract]) -> str:
     preferred = f"{widget_name}Props"
-    if re.search(rf"\binterface\s+{re.escape(preferred)}\b", props_snippet):
+    if any(contract.name == preferred for contract in contracts):
         return preferred
-    interfaces = re.findall(r"\binterface\s+([A-Za-z0-9_]+)", props_snippet)
-    if interfaces:
-        return interfaces[-1]
-    return preferred
-
-
-def normalize_stories(widget: dict[str, Any]) -> list[str]:
-    stories = widget.get("storybook_stories") or []
-    if not isinstance(stories, list):
-        return ["Default"]
-    clean = [str(story).split("/")[-1] for story in stories if str(story).strip()]
-    return clean or ["Default"]
+    return contracts[-1].name if contracts else preferred
 
 
 def collect_plans(input_files: list[Path], widget_root: Path, repo_root: Path, names: set[str] | None, generated_at: str) -> list[ScaffoldPlan]:
     plans: list[ScaffoldPlan] = []
     script_path = Path(__file__).resolve()
     for input_file in input_files:
-        with input_file.open("r", encoding="utf-8") as handle:
-            data = yaml.safe_load(handle)
+        data = yaml.safe_load(input_file.read_text(encoding="utf-8"))
+        if not isinstance(data, dict):
+            continue
+        if data.get("artifact_type") != "admin_dsl_widget_definition_ir":
+            print(f"SKIP {input_file}: artifact_type={data.get('artifact_type')!r}", file=sys.stderr)
+            continue
+        if data.get("schema_version") != 2:
+            raise ValueError(f"{input_file} is not schema_version: 2")
         category = str(data.get("category") or input_file.stem)
         widgets = data.get("widgets") or []
-        if not isinstance(widgets, list):
-            continue
         for widget in widgets:
             if not isinstance(widget, dict):
                 continue
             name = str(widget.get("name") or "").strip()
             if not name or (names and name not in names):
                 continue
-            props_snippet = str(widget.get("props") or widget.get("shared_props") or "").strip()
-            # Some aggregate entries, such as "Field widgets", contain nested
-            # widget tables rather than one component contract. Skip those in
-            # this scaffold pass.
-            if not props_snippet or " " in name:
-                print(f"SKIP {name or '<unnamed>'}: no direct props snippet", file=sys.stderr)
+            contracts = normalize_contracts(widget)
+            if not contracts:
+                print(f"SKIP {name}: no contract.props", file=sys.stderr)
                 continue
-            output_dir = infer_output_dir(widget, widget_root, repo_root)
+            out_dir = infer_output_dir(widget, widget_root)
+            if not out_dir.is_absolute():
+                out_dir = repo_root / out_dir
+            action_slots = widget.get("contract", {}).get("action_slots", {}) if isinstance(widget.get("contract"), dict) else {}
             plans.append(ScaffoldPlan(
+                widget_id=str(widget.get("id") or name),
                 name=name,
-                props_type=props_type_name(name, props_snippet),
-                output_dir=output_dir,
+                props_type=props_type_name(name, contracts),
+                output_dir=out_dir,
                 level=widget_level(widget),
                 category=category,
                 source_yaml=input_file,
-                current_source=str(widget.get("current_source") or ""),
                 classification=widget.get("classification") if isinstance(widget.get("classification"), dict) else {"level": widget_level(widget)},
-                purpose=str(widget.get("purpose") or "") or None,
-                human_notes=widget.get("human_notes") if isinstance(widget.get("human_notes"), dict) else {},
-                props_snippet=props_snippet,
+                source_mapping=widget.get("source_mapping") if isinstance(widget.get("source_mapping"), dict) else {},
+                intent=widget.get("intent") if isinstance(widget.get("intent"), dict) else {},
+                contracts=contracts,
                 stories=normalize_stories(widget),
-                action_slots=list(widget.get("action_slots") or []),
-                xxx=[str(item) for item in (widget.get("xxx") or [])],
+                action_slots=action_slots if isinstance(action_slots, dict) else {},
+                examples=widget.get("examples") if isinstance(widget.get("examples"), dict) else {},
+                implementation_todos=widget.get("implementation_todos") if isinstance(widget.get("implementation_todos"), list) else [],
+                outputs=widget.get("outputs") if isinstance(widget.get("outputs"), dict) else {},
                 repo_root=repo_root,
                 script_path=script_path,
                 generated_at=generated_at,
             ))
     return plans
-
-
-def shared_import_path(output_dir: Path, widget_root: Path) -> str:
-    rel = Path("shared") / "types"
-    # Use os.path.relpath semantics via pathlib by comparing absolute paths.
-    target = widget_root / rel
-    relative = Path(__import__("os").path.relpath(target, output_dir)).with_suffix("")
-    text = relative.as_posix()
-    if not text.startswith("."):
-        text = "./" + text
-    return text
-
-
-def strip_code_extension(path: Path) -> Path:
-    if path.suffix in {".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs"}:
-        return path.with_suffix("")
-    return path
-
-
-def import_path_between(source_dir: Path, target_file_no_ext: Path) -> str:
-    relative = strip_code_extension(Path(__import__("os").path.relpath(target_file_no_ext, source_dir)))
-    text = relative.as_posix()
-    if not text.startswith("."):
-        text = "./" + text
-    return text
 
 
 def git_last_commit(repo_root: Path, path: Path) -> str:
@@ -299,174 +419,202 @@ def relpath(path: Path, repo_root: Path) -> str:
         return path.as_posix()
 
 
+def import_path_between(source_dir: Path, target_file_no_ext: Path) -> str:
+    relative = Path(os.path.relpath(target_file_no_ext, source_dir))
+    if relative.suffix in {".ts", ".tsx", ".js", ".jsx"}:
+        relative = relative.with_suffix("")
+    text = relative.as_posix()
+    return text if text.startswith(".") else f"./{text}"
+
+
+def shared_import_path(output_dir: Path, widget_root: Path) -> str:
+    return import_path_between(output_dir, widget_root / "shared" / "types")
+
+
 def ts_header(plan: ScaffoldPlan, target_file: Path) -> str:
     source_commit = git_last_commit(plan.repo_root, plan.source_yaml)
     target_previous_commit = git_last_commit(plan.repo_root, target_file)
     return f'''/**
- * GENERATED SCAFFOLD — DO NOT TREAT AS FINISHED IMPLEMENTATION.
+ * GENERATED SCAFFOLD — REVIEW BEFORE PROMOTING TO FINAL IMPLEMENTATION.
  *
  * Generated by: {relpath(plan.script_path, plan.repo_root)}
  * Generated at: {plan.generated_at}
  * Source YAML: {relpath(plan.source_yaml, plan.repo_root)}
  * Source YAML last commit: {source_commit}
  * Target file previous commit: {target_previous_commit}
+ * Widget ID: {plan.widget_id}
  *
- * This header is the first changelog entry for this generated scaffold. When a
- * human replaces generated placeholders, keep the generated provenance above and
- * add implementation notes below it rather than deleting the history.
+ * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
+ * JSON decoding in adapters; generated widgets should receive typed props only.
  */
 '''
 
 
-def comment_lines(value: Any, indent: str = " * ") -> list[str]:
-    if value is None or value == "":
-        return []
-    if isinstance(value, (dict, list)):
-        text = json.dumps(value, indent=2, ensure_ascii=False)
-    else:
-        text = str(value)
-    return [f"{indent}{line}" if line else indent.rstrip() for line in text.splitlines()]
+def generated_shared_header(repo_root: Path, script_path: Path, generated_at: str, target_file: Path) -> str:
+    return f'''/**
+ * GENERATED SHARED SCAFFOLD — REVIEW BEFORE PROMOTING TO FINAL IMPLEMENTATION.
+ *
+ * Generated by: {relpath(script_path, repo_root)}
+ * Generated at: {generated_at}
+ * Source YAML: shared synthesis from schema-v2 widget IR
+ * Target file previous commit: {git_last_commit(repo_root, target_file)}
+ */
+'''
 
 
-def widget_ir_comment(plan: ScaffoldPlan) -> str:
-    lines = ["/**", f" * Widget IR: {plan.name}", f" * Category: {plan.category}", f" * Classification: {json.dumps(plan.classification, ensure_ascii=False)}"]
-    if plan.current_source:
-        lines.append(f" * Current source inventory: {plan.current_source}")
-    if plan.purpose:
-        lines.append(" *")
-        lines.append(" * Purpose:")
-        lines.extend(comment_lines(plan.purpose))
-    if plan.human_notes:
-        lines.append(" *")
-        lines.append(" * Human notes from YAML:")
-        lines.extend(comment_lines(plan.human_notes))
-    if plan.action_slots:
-        lines.append(" *")
-        lines.append(" * Action slots / callback intent:")
-        lines.extend(comment_lines(plan.action_slots))
-    if plan.xxx:
-        lines.append(" *")
-        lines.append(" * XXX items from YAML:")
-        for item in plan.xxx:
-            lines.append(f" * - XXX: {item}")
-    lines.append(" */")
-    return "\n".join(lines) + "\n"
+def jsdoc(text: str, indent: str = "") -> str:
+    lines = [line.rstrip() for line in str(text).strip().splitlines()] or [""]
+    out = [f"{indent}/**"]
+    for line in lines:
+        out.append(f"{indent} * {line}" if line else f"{indent} *")
+    out.append(f"{indent} */")
+    return "\n".join(out)
 
 
-def extra_type_imports(plan: ScaffoldPlan) -> list[str]:
+def render_interface(contract: InterfaceContract) -> str:
+    generic, extends_clause = parse_extends(contract.extends, contract.name, contract.fields)
+    extends_text = f" extends {extends_clause}" if extends_clause else ""
+    lines = [jsdoc(contract.doc), f"export interface {contract.name}{generic}{extends_text} {{"]
+    for field in contract.fields:
+        optional = "" if field.required else "?"
+        lines.append(jsdoc(field.doc, "  "))
+        lines.append(f"  {field.name}{optional}: {field.ts_type};")
+    lines.append("}")
+    return "\n".join(lines)
+
+
+def extra_type_imports(plan: ScaffoldPlan, widget_root: Path) -> list[str]:
     imports: list[str] = []
     if plan.name == "ResourceTableCell":
         parent_types = plan.output_dir.parents[1] / "ResourceTable.types"
         imports.append(f'import type {{ ResourceTableColumn }} from "{import_path_between(plan.output_dir, parent_types)}";')
+    if plan.name == "CalendarWeek":
+        sibling = widget_root / "molecules" / "CalendarEventBlock" / "CalendarEventBlock.types"
+        imports.append(f'import type {{ CalendarEventBlockProps }} from "{import_path_between(plan.output_dir, sibling)}";')
     return imports
 
 
 def render_types(plan: ScaffoldPlan, widget_root: Path, target_file: Path) -> str:
     shared = shared_import_path(plan.output_dir, widget_root)
-    extra = "\n".join(extra_type_imports(plan))
-    if extra:
-        extra += "\n"
-    return f'''{ts_header(plan, target_file)}{widget_ir_comment(plan)}// XXX: Review this generated prop contract against the final widget implementation before relying on it as stable API.
-import type * as React from "react";
+    imports = f'''import type * as React from "react";
 import type {{
   ActionViewModel,
   CalendarCellActionHandler,
   CommonWidgetProps,
   FormActionHandler,
+  OverlaySurfaceKind,
   PageActionHandler,
   PanelActionHandler,
+  ResourceTableColumnKind,
   SidebarNavItem,
   SidebarNavProps,
   TableBulkActionHandler,
   TableRowActionHandler,
 }} from "{shared}";
-{extra}
-{plan.props_snippet}
 '''
+    extra = "\n".join(extra_type_imports(plan, widget_root))
+    if extra:
+        imports += extra + "\n"
+    body = "\n\n".join(render_interface(contract) for contract in plan.contracts)
+    return f"{ts_header(plan, target_file)}{imports}\n{body}\n"
 
 
-def ts_string_literal(value: Any) -> str:
-    return json.dumps(str(value), ensure_ascii=False)
+def ts_literal(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, indent=2)
+
+
+def render_data_attrs_expr() -> str:
+    return '''Object.fromEntries(
+    Object.entries(scaffoldProps.dataAttributes ?? {}).map(([key, value]) => [`data-${key}`, String(value)]),
+  ) as Record<string, string>'''
 
 
 def render_component(plan: ScaffoldPlan, target_file: Path) -> str:
-    classification_text = json.dumps(plan.classification, ensure_ascii=False)
-    purpose_text = plan.purpose or "No purpose provided in YAML."
-    notes_text = json.dumps(plan.human_notes, indent=2, ensure_ascii=False) if plan.human_notes else "No human notes provided in YAML."
-    slots_text = json.dumps(plan.action_slots, indent=2, ensure_ascii=False) if plan.action_slots else "No action slots declared in YAML."
-    xxx_text = "\n".join(f"XXX: {item}" for item in plan.xxx) if plan.xxx else "XXX: Replace scaffold placeholder with final implementation."
-    return f'''{ts_header(plan, target_file)}{widget_ir_comment(plan)}import type * as React from "react";
+    purpose = str(plan.intent.get("purpose") or "")
+    adapter = str(plan.intent.get("adapter_boundary") or "")
+    implementation_notes = plan.intent.get("implementation_notes") if isinstance(plan.intent.get("implementation_notes"), list) else []
+    accessibility_notes = plan.intent.get("accessibility_notes") if isinstance(plan.intent.get("accessibility_notes"), list) else []
+    diagnostics = {
+        "widgetId": plan.widget_id,
+        "purpose": purpose,
+        "adapterBoundary": adapter,
+        "implementationNotes": implementation_notes,
+        "accessibilityNotes": accessibility_notes,
+        "actionSlots": plan.action_slots,
+        "examples": plan.examples,
+        "implementationTodos": plan.implementation_todos,
+        "sourceMapping": plan.source_mapping,
+    }
+    return f'''{ts_header(plan, target_file)}import type * as React from "react";
 import type {{ ReactNode }} from "react";
 import type {{ {plan.props_type} }} from "./{plan.name}.types";
 
-const widgetClassification = {ts_string_literal(classification_text)};
-const widgetPurpose = {ts_string_literal(purpose_text)};
-const widgetHumanNotes = {ts_string_literal(notes_text)};
-const widgetActionSlots = {ts_string_literal(slots_text)};
-const widgetXxx = {ts_string_literal(xxx_text)};
+const diagnostics = {ts_literal(diagnostics)} as const;
 
 /**
  * Scaffold for `{plan.name}`.
  *
- * Generated from `{plan.source_yaml.as_posix()}`.
- * Current source inventory: {plan.current_source or "N/A"}.
+ * Purpose: {purpose or "See diagnostics."}
  *
- * XXX: Replace this placeholder body with the real visual implementation. Keep
- * raw Admin DSL node decoding in renderer adapters; this component should
- * receive typed widget props only.
+ * Adapter boundary: {adapter or "Receive normalized widget props only."}
  */
 export function {plan.name}(props: {plan.props_type}) {{
   const scaffoldProps = props as {plan.props_type} & {{
     id?: string;
     className?: string;
     style?: React.CSSProperties;
+    dataAttributes?: Record<string, string | number | boolean>;
     children?: ReactNode;
+    main?: ReactNode;
     title?: string;
     label?: string;
     name?: string;
     value?: unknown;
   }};
   const heading = scaffoldProps.title || scaffoldProps.label || scaffoldProps.name || "{plan.name}";
+  const dataAttributes = {render_data_attrs_expr()};
 
   return (
     <section
       id={{scaffoldProps.id}}
       className={{scaffoldProps.className}}
       data-admin-dsl-widget="{plan.name}"
+      data-admin-dsl-widget-id="{plan.widget_id}"
       data-admin-dsl-widget-level="{plan.level}"
       style={{scaffoldProps.style}}
+      {{...dataAttributes}}
     >
-      <div style={{{{ border: "1px dashed #c8b89b", borderRadius: 12, padding: 12, background: "#fffaf0" }}}}>
+      <div style={{{{ border: "1px solid #dfd2bd", borderRadius: 12, padding: 12, background: "#fffaf0" }}}}>
         <strong>{{heading}}</strong>
-        <div style={{{{ marginTop: 4, fontSize: 12, color: "#6f6254" }}}}>
-          {plan.name} scaffold — XXX replace with final implementation.
-        </div>
-        <dl style={{{{ margin: "10px 0 0", display: "grid", gap: 6, fontSize: 12, color: "#6f6254" }}}}>
-          <div><dt style={{{{ fontWeight: 700 }}}}>Classification</dt><dd style={{{{ margin: 0, whiteSpace: "pre-wrap" }}}}>{{widgetClassification}}</dd></div>
-          <div><dt style={{{{ fontWeight: 700 }}}}>Purpose</dt><dd style={{{{ margin: 0, whiteSpace: "pre-wrap" }}}}>{{widgetPurpose}}</dd></div>
-          <div><dt style={{{{ fontWeight: 700 }}}}>Human notes</dt><dd style={{{{ margin: 0, whiteSpace: "pre-wrap" }}}}>{{widgetHumanNotes}}</dd></div>
-          <div><dt style={{{{ fontWeight: 700 }}}}>Action slots</dt><dd style={{{{ margin: 0, whiteSpace: "pre-wrap" }}}}>{{widgetActionSlots}}</dd></div>
-          <div><dt style={{{{ fontWeight: 700 }}}}>Implementation warnings</dt><dd style={{{{ margin: 0, whiteSpace: "pre-wrap" }}}}>{{widgetXxx}}</dd></div>
-        </dl>
+        <p style={{{{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}}}>{{diagnostics.purpose}}</p>
+        {{diagnostics.adapterBoundary ? (
+          <p style={{{{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}}}>Adapter: {{diagnostics.adapterBoundary}}</p>
+        ) : null}}
+        <details style={{{{ marginTop: 10, fontSize: 12, color: "#6f6254" }}}}>
+          <summary>Widget IR diagnostics</summary>
+          <pre style={{{{ whiteSpace: "pre-wrap", margin: "8px 0 0" }}}}>{{JSON.stringify(diagnostics, null, 2)}}</pre>
+        </details>
       </div>
       {{scaffoldProps.children ? <div style={{{{ marginTop: 12 }}}}>{{scaffoldProps.children}}</div> : null}}
+      {{scaffoldProps.main ? <div style={{{{ marginTop: 12 }}}}>{{scaffoldProps.main}}</div> : null}}
     </section>
   );
 }}
 '''
 
 
-def action_sample(label: str = "Open") -> dict[str, Any]:
+def action_sample(label: str = "Run action") -> dict[str, Any]:
     return {"type": "mutation", "target": "scaffold.action", "label": label}
 
 
-def sample_args(plan: ScaffoldPlan) -> str:
+def sample_args(plan: ScaffoldPlan, story: StoryContract | None = None) -> str:
     name = plan.name
+    scenario = story.name if story else "Default"
     if name == "WorkbenchShell":
         return '''{
   pageId: "scaffold-workbench",
-  title: "Workbench Shell",
-  sidebar: { activeItemId: "overview", items: [{ id: "overview", label: "Overview" }] },
+  title: "Fringe Admin",
+  sidebar: { activeItemId: "requests", items: [{ id: "requests", label: "Requests" }, { id: "config", label: "Config" }] },
   user: { name: "Admin User", role: "Administrator", initials: "AD" },
   children: <div>Workbench content</div>,
 }'''
@@ -479,7 +627,7 @@ def sample_args(plan: ScaffoldPlan) -> str:
 }'''
     if name == "ActionButton":
         return '''{
-  action: { type: "mutation", target: "scaffold.action", label: "Run action" },
+  action: { type: "mutation", target: "scaffold.action", label: "Run action", intent: "primary" },
 }'''
     if name == "ActionGroup":
         return '''{
@@ -488,6 +636,7 @@ def sample_args(plan: ScaffoldPlan) -> str:
 }'''
     if name == "OverflowActionButton":
         return '''{
+  label: "More actions",
   actions: [{ type: "open", target: "scaffold.menu", label: "Open" }],
   context: { rowId: "row_1" },
 }'''
@@ -502,6 +651,8 @@ def sample_args(plan: ScaffoldPlan) -> str:
     { id: "req_1", customer: "Maya Chen", status: "new" },
     { id: "req_2", customer: "Jules Park", status: "needsInfo" },
   ],
+  page: 1,
+  total: 2,
   selectable: true,
   bulkActions: [{ type: "mutation", target: "requests.assign", label: "Assign" }],
 }'''
@@ -514,7 +665,6 @@ def sample_args(plan: ScaffoldPlan) -> str:
     if name == "BulkActionBar":
         return '''{
   tableId: "requests",
-  label: "3 visible requests",
   rows: [{ id: "req_1" }, { id: "req_2" }],
   selectedRowIds: ["req_1"],
   actions: [{ type: "mutation", target: "requests.assign", label: "Assign" }],
@@ -543,7 +693,7 @@ def sample_args(plan: ScaffoldPlan) -> str:
   density: "compact",
   children: <div>Panel content</div>,
 }'''
-    if name in {"Toolbar"}:
+    if name == "Toolbar":
         return '''{
   actions: [{ type: "mutation", target: "scaffold.action", label: "Run action" }],
 }'''
@@ -566,35 +716,159 @@ def sample_args(plan: ScaffoldPlan) -> str:
   placeholder: "Search requests",
   value: "",
 }'''
+    if name == "ComparisonTable":
+        return '''{
+  tableId: "comparison",
+  rows: [{ field: "Price", current: "$90", draft: "$95" }],
+}'''
+    if name == "KeyValueList":
+        return '''{
+  items: [{ label: "Status", value: "Published" }],
+}'''
+    if name == "ActivityFeed":
+        return '''{
+  items: [{ time: "09:30", title: "Draft published", body: "Version 12" }],
+}'''
+    if name == "ImageGrid":
+        return '''{
+  items: [{ id: "photo_1", title: "Front", url: "/placeholder.png" }],
+}'''
+    if name == "ImageGallery":
+        return '''{
+  galleryId: "photos",
+  images: [{ id: "photo_1", title: "Front", url: "/placeholder.png" }],
+}'''
+    if name == "MonthCalendar":
+        return '''{
+  calendarId: "availability",
+  month: "2026-06",
+  markers: [{ date: "2026-06-12", kind: "available", tone: "success" }],
+}'''
+    if name == "CalendarWeek":
+        return '''{
+  calendarId: "schedule",
+  days: ["Mon", "Tue", "Wed"],
+  hours: ["09:00", "10:00"],
+  blocks: [],
+}'''
+    if name == "CalendarEventBlock":
+        return '''{
+  id: "block_1",
+  kind: "appointment",
+  title: "Cut + color",
+}'''
+    if name == "AdminForm":
+        return '''{
+  formId: "service-form",
+  title: "Edit service",
+  children: <div>Fields</div>,
+}'''
+    if name == "FieldGroup":
+        return '''{
+  title: "Service details",
+  children: <div>Fields</div>,
+}'''
+    if name == "SaveBar":
+        return '''{
+  status: "Unsaved changes",
+  primaryAction: { type: "mutation", target: "save", label: "Save" },
+}'''
+    if name == "OverlaySurface":
+        return '''{
+  surfaceId: "drawer_1",
+  kind: "drawer",
+  title: "Review request",
+  children: <div>Surface content</div>,
+}'''
+    if name == "ConfirmDialog":
+        return '''{
+  dialogId: "confirm_publish",
+  title: "Publish draft?",
+  confirmAction: { type: "mutation", target: "publish", label: "Publish", intent: "primary" },
+}'''
+    if name in {"MetricCard", "StatusText"}:
+        return '''{
+  label: "Published",
+  value: "12",
+}''' if name == "MetricCard" else '''{
+  label: "Published",
+  tone: "success",
+}'''
+    if name in {"MarkdownBlock"}:
+        return '''{
+  markdown: "**Preview** markdown content",
+}'''
+    if name in {"EmptyState", "LoadingState", "InlineError"}:
+        return '''{
+  title: "Nothing here yet",
+  body: "This scaffold story exercises the state component.",
+}'''
+    if name == "PreviewFrame":
+        return '''{
+  previewId: "customer-preview",
+  title: "Customer intake preview",
+  url: "/dsl-goja-demo/service",
+  height: 420,
+}'''
     return '''{
   id: "scaffold-widget",
 }'''
 
 
+def story_parameters(story: StoryContract) -> str:
+    viewport = VIEWPORT_PARAMETERS.get(story.viewport, "{}")
+    docs = json.dumps(story.doc, ensure_ascii=False)
+    if viewport == "{}":
+        return f'{{ docs: {{ description: {{ story: {docs} }} }} }}'
+    inner = viewport.strip()[1:-1].strip()
+    return f'{{ {inner}, docs: {{ description: {{ story: {docs} }} }} }}'
+
+
 def render_stories(plan: ScaffoldPlan, target_file: Path) -> str:
     title_level = LEVEL_DIRS.get(plan.level, "molecules").title()
-    args = sample_args(plan)
-    story_exports = []
+    default_args = sample_args(plan)
+    story_exports: list[str] = []
     seen: set[str] = set()
     for story in plan.stories:
-        export_name = story_export_name(story)
+        export_name = story_export_name(story.name)
         if export_name in seen:
             continue
         seen.add(export_name)
-        story_exports.append(f"export const {export_name}: Story = {{}};")
-    if not story_exports:
-        story_exports.append("export const Default: Story = {};")
-    return f'''{ts_header(plan, target_file)}{widget_ir_comment(plan)}// XXX: Replace generated defaultArgs with purposeful fixtures for every planned story before treating this as visual coverage.
-import type {{ Meta, StoryObj }} from "@storybook/react";
+        fixtures = ts_literal(story.fixtures or {"scenario": camel_case(story.name)})
+        assertions = ts_literal(story.asserts)
+        story_exports.append(f'''export const {export_name}: Story = {{
+  name: {json.dumps(story.name)},
+  parameters: {story_parameters(story)},
+  args: {{
+    ...defaultArgs,
+  }},
+  render: (args) => (
+    <div style={{{{ padding: 24, maxWidth: 1120 }}}}>
+      <{plan.name} {{...args}} />
+      <details style={{{{ marginTop: 12, fontSize: 12, color: "#6f6254" }}}}>
+        <summary>Story fixture and assertions</summary>
+        <pre style={{{{ whiteSpace: "pre-wrap" }}}}>{{JSON.stringify({{ fixtures: {fixtures}, asserts: {assertions} }}, null, 2)}}</pre>
+      </details>
+    </div>
+  ),
+}};''')
+    return f'''{ts_header(plan, target_file)}import type {{ Meta, StoryObj }} from "@storybook/react";
 import {{ {plan.name} }} from "./{plan.name}";
 import type {{ {plan.props_type} }} from "./{plan.name}.types";
 
-const defaultArgs = {args} as unknown as {plan.props_type};
+const defaultArgs = {default_args} as unknown as {plan.props_type};
 
 const meta = {{
   title: "Admin DSL Widgets/{title_level}/{plan.name}",
   component: {plan.name},
   args: defaultArgs,
+  parameters: {{
+    docs: {{
+      description: {{
+        component: {json.dumps(str(plan.intent.get('purpose') or plan.name), ensure_ascii=False)},
+      }},
+    }},
+  }},
 }} satisfies Meta<typeof {plan.name}>;
 
 export default meta;
@@ -619,34 +893,33 @@ def write_file(path: Path, content: str, *, dry_run: bool, force: bool) -> str:
     return "write"
 
 
-def generated_shared_header(repo_root: Path, script_path: Path, generated_at: str, target_file: Path) -> str:
-    return f'''/**
- * GENERATED SHARED SCAFFOLD — DO NOT TREAT AS FINISHED IMPLEMENTATION.
- *
- * Generated by: {relpath(script_path, repo_root)}
- * Generated at: {generated_at}
- * Source YAML: shared synthesis from scaffold generator
- * Source YAML last commit: N/A
- * Target file previous commit: {git_last_commit(repo_root, target_file)}
- *
- * XXX: Replace or harden this shared scaffold once widget contracts stabilize.
- */
-'''
-
-
 def ensure_shared(widget_root: Path, repo_root: Path, script_path: Path, generated_at: str, *, dry_run: bool, force: bool) -> list[tuple[str, Path]]:
-    results = []
     shared_dir = widget_root / "shared"
     types_file = shared_dir / "types.ts"
     index_file = shared_dir / "index.ts"
-    results.append((write_file(types_file, generated_shared_header(repo_root, script_path, generated_at, types_file) + SHARED_TYPES, dry_run=dry_run, force=force), types_file))
-    results.append((write_file(index_file, generated_shared_header(repo_root, script_path, generated_at, index_file) + 'export type * from "./types";\n', dry_run=dry_run, force=force), index_file))
-    return results
+    return [
+        (write_file(types_file, generated_shared_header(repo_root, script_path, generated_at, types_file) + SHARED_TYPES, dry_run=dry_run, force=force), types_file),
+        (write_file(index_file, generated_shared_header(repo_root, script_path, generated_at, index_file) + 'export type * from "./types";\n', dry_run=dry_run, force=force), index_file),
+    ]
+
+
+def target_paths(plan: ScaffoldPlan) -> dict[str, Path]:
+    default = {
+        "types": plan.output_dir / f"{plan.name}.types.ts",
+        "component": plan.output_dir / f"{plan.name}.tsx",
+        "stories": plan.output_dir / f"{plan.name}.stories.tsx",
+        "barrel": plan.output_dir / "index.ts",
+    }
+    for key, path_text in ((key, output_path({"outputs": plan.outputs}, key)) for key in default):
+        if path_text:
+            path = Path(path_text)
+            default[key] = path if path.is_absolute() else plan.repo_root / path
+    return default
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("inputs", nargs="+", type=Path, help="Widget IR YAML files to scaffold from")
+    parser.add_argument("inputs", nargs="+", type=Path, help="schema-v2 widget IR YAML files to scaffold from")
     parser.add_argument("--repo-root", type=Path, default=REPO_ROOT_DEFAULT, help="Repository root")
     parser.add_argument("--output-root", type=Path, default=DEFAULT_WIDGET_ROOT, help="Widget root relative to repo root unless absolute")
     parser.add_argument("--name", action="append", dest="names", help="Only scaffold a specific widget name; may be repeated")
@@ -677,15 +950,12 @@ def main() -> int:
         print(f"{status.upper():5} {path.relative_to(repo_root)}")
 
     for plan in plans:
-        types_file = plan.output_dir / f"{plan.name}.types.ts"
-        component_file = plan.output_dir / f"{plan.name}.tsx"
-        stories_file = plan.output_dir / f"{plan.name}.stories.tsx"
-        index_file = plan.output_dir / "index.ts"
+        paths = target_paths(plan)
         outputs = {
-            types_file: render_types(plan, widget_root, types_file),
-            component_file: render_component(plan, component_file),
-            stories_file: render_stories(plan, stories_file),
-            index_file: render_index(plan, index_file),
+            paths["types"]: render_types(plan, widget_root, paths["types"]),
+            paths["component"]: render_component(plan, paths["component"]),
+            paths["stories"]: render_stories(plan, paths["stories"]),
+            paths["barrel"]: render_index(plan, paths["barrel"]),
         }
         for path, content in outputs.items():
             status = write_file(path, content, dry_run=args.dry_run, force=args.force)
