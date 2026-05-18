@@ -382,3 +382,9 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Added `XXX` markers to generated scaffold files where placeholder implementation or generated contracts require human replacement/review.
 - Enriched shell/action/layout/resource widget YAML artifacts with natural-language `human_notes`, action-slot intent, callback prop hints, implementation notes, and `xxx` warnings.
 - Re-ran scaffold generation for shell/action/layout/resource widgets and validated with `cd web && npx tsc --noEmit`.
+
+## 2026-05-18 — Widget Definition IR YAML schema v2
+
+- Migrated `sources/admin-dsl-widget-ir/03-shell-widgets.yaml` to `schema_version: 2` with sectioned widget definitions: `source_mapping`, `intent`, `contract`, `examples`, `stories`, `outputs`, and `implementation_todos`.
+- Added `design-doc/09-widget-definition-ir-yaml-format-spec.md`, a detailed specification for the widget definition IR YAML format.
+- Validated the updated shell YAML with PyYAML and validated the spec frontmatter with docmgr.

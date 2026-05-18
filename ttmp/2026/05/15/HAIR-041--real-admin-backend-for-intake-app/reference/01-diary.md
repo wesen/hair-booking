@@ -3422,3 +3422,90 @@ that way we can have the start of a changelog of how files got modified."
 ### Technical details
 - Regeneration command:
   - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py --force ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/03-shell-widgets.yaml ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/04-action-widgets.yaml ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/05-layout-widgets.yaml ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/06-resource-widgets.yaml`
+
+## Step 46: Define widget definition IR YAML schema v2 and migrate shell widgets
+
+This step refines the widget IR YAML from a Markdown-shaped conversion into a cleaner schema. The new shape separates source mapping, human intent, formal-ish contracts, examples, Storybook scenarios, outputs, and implementation todos. `03-shell-widgets.yaml` now acts as the reference `schema_version: 2` example.
+
+The key design decision is to keep prose first-class while making the machine contract more regular. Props are now structured under `contract.props`, action slots are structured under `contract.action_slots`, stories are maps with their own docs/assertions/fixtures, and output paths are explicit rather than inferred from file-layout text.
+
+### Prompt Context
+
+**User prompt (verbatim):** "yes, good. update the yaml, and then write a detailed spec for the YAML format for the widget definition IR."
+
+**Assistant interpretation:** Apply the proposed cleaner YAML schema to the shell widget YAML file and write a detailed specification document for the widget definition IR format.
+
+**Inferred user intent:** The user wants a stable artifact format that can be consumed by scripts and LLM passes while preserving rich human design intent.
+
+**Commit (code):** pending — documentation/YAML only.
+
+### What I did
+- Rewrote `sources/admin-dsl-widget-ir/03-shell-widgets.yaml` to `schema_version: 2`.
+- The shell YAML now uses:
+  - `id`
+  - `status`
+  - `classification`
+  - `source_mapping`
+  - `intent`
+  - `contract.props`
+  - `contract.action_slots`
+  - `examples`
+  - `stories`
+  - `outputs`
+  - `implementation_todos`
+- Added a new design document:
+  - `design-doc/09-widget-definition-ir-yaml-format-spec.md`
+- The spec describes:
+  - top-level document schema
+  - widget object schema
+  - classification
+  - source mapping
+  - intent
+  - structured prop contracts
+  - structured action slots
+  - examples
+  - Storybook story objects
+  - explicit outputs
+  - implementation todos
+  - design decisions and migration plan
+- Validated the updated YAML with PyYAML.
+- Validated the new doc frontmatter with `docmgr validate frontmatter`.
+- Related the spec to the shell YAML, widget catalog, scaffold generator, and current Admin DSL renderer/schema files.
+
+### Why
+- The previous YAML shape was useful but too close to the Markdown document structure. Scripts would have to infer too much from `file_layout` and parallel lists/maps.
+- The new schema is clearer for code generation while preserving natural-language intent for humans and LLM-assisted implementation.
+
+### What worked
+- `03-shell-widgets.yaml` now parses successfully as schema v2.
+- The new spec frontmatter validates successfully.
+- The shell YAML provides concrete examples for props, action slots, examples, stories, outputs, and todos.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The widget definition IR should treat TypeScript as an output target, not the source of truth. Structured prop fields can generate TypeScript later.
+- Storybook stories should be maps keyed by story name so docstrings, viewports, fixtures, interactions, and assertions cannot drift from the story list.
+
+### What was tricky to build
+- The schema needs to be formal enough for generators but not so formal that it loses design rationale. I kept sections such as `intent`, `examples.*.doc`, and `stories.*.doc` required/recommended rather than treating them as comments.
+
+### What warrants a second pair of eyes
+- Review whether `contract.props.*.fields.*.type` should use TypeScript syntax, a target-neutral type grammar, or both.
+- Review whether every story should require assertions.
+- Review whether generated provenance should live in every file, in a manifest, or both.
+
+### What should be done in the future
+- Update `scripts/05-scaffold-admin-dsl-widgets.py` to support schema v2 directly and optionally keep schema v1 compatibility during migration.
+- Convert action, layout, resource, data-display, media, calendar, form, and surface YAML files to schema v2.
+
+### Code review instructions
+- Start with `design-doc/09-widget-definition-ir-yaml-format-spec.md`.
+- Then review `sources/admin-dsl-widget-ir/03-shell-widgets.yaml` as the concrete reference implementation.
+- Validate with:
+  - `python3 - <<'PY' ... yaml.safe_load(...) ... PY`
+  - `docmgr validate frontmatter --doc .../design-doc/09-widget-definition-ir-yaml-format-spec.md --suggest-fixes`
+
+### Technical details
+- The scaffold generator has not yet been updated to consume schema v2 directly. The current task only updates the YAML reference example and spec.
