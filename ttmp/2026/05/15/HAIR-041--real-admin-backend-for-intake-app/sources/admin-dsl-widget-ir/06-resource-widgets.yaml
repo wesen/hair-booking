@@ -54,12 +54,28 @@ widgets:
   action_slots:
   - name: rowActions
     context: '{ tableId, row, rowId }'
+    callback_prop: onRowAction
+    intent: Row actions receive table and row context.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   - name: rowOverflow
     context: '{ tableId, row, rowId }'
+    callback_prop: onRowAction
+    intent: Overflow is row-scoped but compact and menu-oriented.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   - name: bulkToolbar
     context: '{ tableId, scope, rows, selectedRowIds }'
+    callback_prop: onBulkAction
+    intent: Bulk actions receive table, visible/selected scope, rows, and selected IDs.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   - name: pagination
     context: table/page
+    callback_prop: onAction
+    intent: Pagination actions receive page/total context.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   usage_example: |-
     <ResourceTable
       tableId="requests"
@@ -96,6 +112,21 @@ widgets:
         ResourceTableCell.tsx
         ResourceTableRow.tsx
       index.ts
+  human_notes:
+    intent: Primary dense data organism. It owns desktop table/mobile card behavior, selection, row actions, bulk actions,
+      empty state, and pagination composition.
+    adapter_boundary: Adapter reads current Admin DSL columns/rows/actions and turns placements into rowActions, rowOverflow,
+      bulkActions, and pagination actions.
+    slot_intent:
+      rowActions: Row actions receive table and row context.
+      rowOverflow: Overflow is row-scoped but compact and menu-oriented.
+      bulkToolbar: Bulk actions receive table, visible/selected scope, rows, and selected IDs.
+      pagination: Pagination actions receive page/total context.
+    storybook_intent: Stories should be the canonical visual harness for dense admin tables, including mobile cards and contextual
+      action payloads.
+  xxx:
+  - Replace placeholder with desktop table plus mobile card implementation.
+  - Wire real selection state and row/bulk callback contexts.
 - name: ResourceTableCell
   current_source: renderTableCell
   classification:
@@ -110,6 +141,10 @@ widgets:
   action_slots:
   - name: rowAction
     context: table row when column kind is actions/overflowActions
+    callback_prop: onRowAction
+    intent: Only action/overflow cells invoke row-scoped callbacks; text/badge/boolean cells are pure display.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   storybook_stories:
   - TextCell
   - PrimaryTextCell
@@ -119,8 +154,16 @@ widgets:
   - DragHandleCell
   - ActionsCell
   - OverflowCell
-  file_layout: |-
-    inside ResourceTable/parts/ unless promoted to standalone widget later.
+  file_layout: inside ResourceTable/parts/ unless promoted to standalone widget later.
+  human_notes:
+    intent: Localizes cell-kind rendering so ResourceTable is not a pile of conditional JSX. It can later become a registry
+      of cell renderers.
+    adapter_boundary: Receives already-normalized column and row data; should not parse AdminNode directly.
+    slot_intent:
+      rowAction: Only action/overflow cells invoke row-scoped callbacks; text/badge/boolean cells are pure display.
+    storybook_intent: Stories should cover every current cell kind and make unmapped kinds obvious.
+  xxx:
+  - Implement real cell-kind rendering or a cell renderer registry.
 - name: BulkActionBar
   current_source: bulk action bar inside resourceTable branch
   classification:
@@ -137,14 +180,26 @@ widgets:
   action_slots:
   - name: bulkToolbar
     context: visible/selected/allMatching rows
+    callback_prop: onBulkAction
+    intent: Bulk toolbar actions are table-selection actions, not page or row actions.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   storybook_stories:
   - VisibleRowsScope
   - SelectedRowsScope
   - PrimaryBulkAction
   - DangerBulkAction
   - NoSelectionDisabled
-  file_layout: |-
-    organisms/ResourceTable/parts/BulkActionBar.tsx
+  file_layout: organisms/ResourceTable/parts/BulkActionBar.tsx
+  human_notes:
+    intent: Owns the selected/visible-row action strip and visual hierarchy for table-level operations.
+    adapter_boundary: ResourceTable computes selected/visible context and passes it down; BulkActionBar only renders and invokes
+      bulk callbacks.
+    slot_intent:
+      bulkToolbar: Bulk toolbar actions are table-selection actions, not page or row actions.
+    storybook_intent: Stories should cover selected vs visible scope, disabled no-selection state, primary and danger actions.
+  xxx:
+  - Define selected-row disabled behavior before production use.
 - name: PaginationBar
   current_source: pagination footer inside resourceTable branch
   classification:
@@ -159,9 +214,20 @@ widgets:
   action_slots:
   - name: paginationActions
     context: '{ page, total }'
+    callback_prop: onAction
+    intent: Pagination actions carry page/total context and should be visually secondary.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   storybook_stories:
   - Default
   - WithNextPrevious
   - ManyResults
-  file_layout: |-
-    organisms/ResourceTable/parts/PaginationBar.tsx
+  file_layout: organisms/ResourceTable/parts/PaginationBar.tsx
+  human_notes:
+    intent: Owns table paging footer and keeps paging actions separate from row/table bulk actions.
+    adapter_boundary: Adapter passes page/total/action state. Widget should not know query params or backend transport.
+    slot_intent:
+      paginationActions: Pagination actions carry page/total context and should be visually secondary.
+    storybook_intent: Stories should cover default, next/previous, and large-result displays.
+  xxx:
+  - Define paging action payload contract before production use.

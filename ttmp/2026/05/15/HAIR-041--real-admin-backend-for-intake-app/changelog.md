@@ -367,3 +367,18 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Added `sources/admin-dsl-widget-ir/*.yaml`, a machine-readable YAML version of the Admin DSL React widget IR catalog.
 - Split the catalog into index, pass model, shared types, shell widgets, action widgets, layout widgets, resource widgets, data-display widgets, media widgets, calendar widgets, form widgets, surface widgets, renderer adapter plan, Storybook scenario matrix, and unsupported constructs.
 - Validated all YAML files with Python/PyYAML so follow-up scripts can load them directly.
+
+## 2026-05-18 — Widget IR scaffold generator
+
+- Added `scripts/05-scaffold-admin-dsl-widgets.py`, a Python scaffold generator that reads Admin DSL widget IR YAML files and emits React widget scaffolds.
+- Generated compile-safe initial scaffolds under `web/src/admin-dsl/widgets/` for shell, action, layout, and resource widget categories.
+- Generated shared widget/action/context types plus one directory per widget with `.types.ts`, `.tsx`, `.stories.tsx`, and `index.ts` files.
+- Validated the generated code with `cd web && npx tsc --noEmit`.
+
+## 2026-05-18 — Enriched widget scaffold provenance and intent
+
+- Updated `scripts/05-scaffold-admin-dsl-widgets.py` so generated files include provenance headers with generator path, generation time, source YAML path, source YAML last commit, and target file previous commit.
+- Updated generated component scaffolds to visibly render widget classification, purpose, human notes, action slots, and implementation warnings.
+- Added `XXX` markers to generated scaffold files where placeholder implementation or generated contracts require human replacement/review.
+- Enriched shell/action/layout/resource widget YAML artifacts with natural-language `human_notes`, action-slot intent, callback prop hints, implementation notes, and `xxx` warnings.
+- Re-ran scaffold generation for shell/action/layout/resource widgets and validated with `cd web && npx tsc --noEmit`.

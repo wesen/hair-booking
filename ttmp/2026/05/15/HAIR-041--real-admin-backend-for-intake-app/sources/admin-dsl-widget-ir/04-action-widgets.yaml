@@ -20,6 +20,10 @@ widgets:
   action_slots:
   - name: self
     notes: The widget executes the action it receives through onAction.
+    callback_prop: onAction
+    intent: The caller chooses the semantic slot and passes an onAction callback; ActionButton only renders and invokes.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   storybook_stories:
   - Primary
   - Secondary
@@ -34,6 +38,18 @@ widgets:
       ActionButton.types.ts
       ActionButton.stories.tsx
       index.ts
+  human_notes:
+    intent: Unifies visual treatment for action metadata so primary, danger, subtle, loading, disabled, and touch-target rules
+      do not get reimplemented in every table/panel/form branch.
+    adapter_boundary: The widget receives an ActionViewModel and context. It should not know AdminNode or dispatchAdminAction
+      directly.
+    slot_intent:
+      self: The caller chooses the semantic slot and passes an onAction callback; ActionButton only renders and invokes.
+    storybook_intent: Stories should pin visual variants and prevent regressions in button shape, subtle row links, danger
+      styling, and loading/disabled states.
+  xxx:
+  - Replace placeholder with actual button element styles from design tokens.
+  - Map variant/slot semantics without reintroducing placement-specific conditionals everywhere.
 - name: ActionGroup
   current_source: renderActions wrapper in web/src/admin-dsl/render.tsx
   classification:
@@ -50,6 +66,11 @@ widgets:
   action_slots:
   - name: actions
     notes: Slot-specific list of actions rendered as ActionButton children.
+    callback_prop: onAction
+    intent: A group represents one semantic slot, not an arbitrary pile of buttons. The slot name should influence density,
+      wrapping, and hierarchy.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   storybook_stories:
   - PageHeaderActions
   - PanelFooterActions
@@ -64,6 +85,19 @@ widgets:
       ActionGroup.types.ts
       ActionGroup.stories.tsx
       index.ts
+  human_notes:
+    intent: Provides the flex/wrap/alignment behavior for a slot of actions. It is the main bridge between semantic action
+      slots and repeated ActionButton atoms.
+    adapter_boundary: Adapters should choose slot names such as pageHeader or bulkToolbar; the widget chooses spacing and
+      presentation defaults for that slot.
+    slot_intent:
+      actions: A group represents one semantic slot, not an arbitrary pile of buttons. The slot name should influence density,
+        wrapping, and hierarchy.
+    storybook_intent: Stories should prove page-header, row, panel-footer, form-footer, overflow, and bulk-toolbar groups
+      at desktop and mobile widths.
+  xxx:
+  - Replace placeholder with ActionButton composition.
+  - Define exact wrapping rules for mobile and dense row contexts.
 - name: OverflowActionButton
   current_source: renderTableCell branch for kind === "overflowActions"
   classification:
@@ -80,6 +114,11 @@ widgets:
   action_slots:
   - name: overflowActions
     notes: Uses the provided context and selected action.
+    callback_prop: onAction
+    intent: Overflow actions are row-scoped actions with compact presentation. Initial scaffold can invoke the first action,
+      but final implementation should open a menu.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   storybook_stories:
   - SingleOverflowAction
   - NoActionsDisabled
@@ -90,3 +129,14 @@ widgets:
       OverflowActionButton.types.ts
       OverflowActionButton.stories.tsx
       index.ts
+  human_notes:
+    intent: Represents row overflow affordance as a named atom so the current ellipsis behavior can later grow into a real
+      menu without changing ResourceTable cell contracts.
+    adapter_boundary: The table cell passes row context and available actions. The widget should not fetch row actions from
+      raw row JSON.
+    slot_intent:
+      overflowActions: Overflow actions are row-scoped actions with compact presentation. Initial scaffold can invoke the
+        first action, but final implementation should open a menu.
+    storybook_intent: Stories should distinguish single-action shortcut behavior from future multi-action menu behavior.
+  xxx:
+  - Implement menu behavior before supporting multiple overflow actions.

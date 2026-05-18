@@ -32,6 +32,11 @@ widgets:
         item: SidebarNavItem;
         activeItemId?: string;
       }) => void;
+    callback_prop: onSidebarAction
+    intent: Navigation actions are frontend-rendered but may still dispatch to the backend flow. The context must include
+      the clicked nav item and active item so handlers can update page state deterministically.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   usage_example: |-
     <WorkbenchShell
       pageId="admin-intake"
@@ -56,6 +61,19 @@ widgets:
       WorkbenchShell.stories.tsx
       WorkbenchShell.test.tsx
       index.ts
+  human_notes:
+    intent: Owns the full information-dense admin workspace frame. It should make global navigation, user identity, page body
+      width, and mobile topbar behavior explicit instead of embedding them inside the renderer switch.
+    adapter_boundary: The Admin DSL adapter should translate shell.props.sidebar into SidebarNavProps and bind sidebar item
+      actions; the widget should not parse raw AdminPage objects.
+    slot_intent:
+      sidebarNav: Navigation actions are frontend-rendered but may still dispatch to the backend flow. The context must include
+        the clicked nav item and active item so handlers can update page state deterministically.
+    storybook_intent: Stories should prove desktop sidebar, mobile topbar, long navigation, missing user footer, and contextual
+      sidebar dispatch.
+  xxx:
+  - Replace generated scaffold placeholder with final implementation.
+  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
 - name: DefaultAdminShell
   current_source: fallback branch in AdminPageRenderer in web/src/admin-dsl/render.tsx
   classification:
@@ -85,3 +103,12 @@ widgets:
       DefaultAdminShell.types.ts
       DefaultAdminShell.stories.tsx
       index.ts
+  human_notes:
+    intent: Keeps the non-workbench shell path explicit while the workbench shell evolves. This prevents side-surface layout
+      and page chrome from being hidden in AdminPageRenderer.
+    adapter_boundary: Adapter receives AdminPage and separates main region from side surfaces; widget receives already-rendered
+      main/side React nodes.
+    storybook_intent: Stories should show main-only pages, side surfaces, calendar shell color, and mobile stacking.
+  xxx:
+  - Replace generated scaffold placeholder with final implementation.
+  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.

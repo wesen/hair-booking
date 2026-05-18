@@ -20,6 +20,10 @@ widgets:
   action_slots:
   - name: primaryActions
     context: page
+    callback_prop: onPrimaryAction
+    intent: Page actions should be few and high-level. They should not receive row/form context.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   usage_example: |-
     <PageHeader
       breadcrumbs={["Admin DSL", "Workbench v2"]}
@@ -41,6 +45,17 @@ widgets:
       PageHeader.stories.tsx
       PageHeader.test.tsx
       index.ts
+  human_notes:
+    intent: Owns page-level title hierarchy, breadcrumbs, description, and primary page actions. It should make the top-of-page
+      layout reusable across workbench screens.
+    adapter_boundary: Adapter maps pageHeader props/actions into typed props; widget receives strings and ActionViewModel
+      values only.
+    slot_intent:
+      primaryActions: Page actions should be few and high-level. They should not receive row/form context.
+    storybook_intent: Stories should cover long responsive titles, breadcrumbs, descriptions, and primary action alignment.
+  xxx:
+  - Replace generated scaffold placeholder with final implementation.
+  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
 - name: DashboardGrid
   current_source: case "dashboardGrid" and layoutSpan/layoutOrder helpers
   classification:
@@ -70,6 +85,16 @@ widgets:
       DashboardGrid.types.ts
       DashboardGrid.stories.tsx
       index.ts
+  human_notes:
+    intent: Owns responsive dashboard grid layout and item span/order behavior instead of scattering grid styles across Admin
+      DSL render branches.
+    adapter_boundary: Adapter converts node child layout metadata into DashboardGridItem props; the widget should not inspect
+      AdminNode.meta.
+    storybook_intent: Stories should prove 12-column layout, compact/spacious gaps, mixed spans, mobile single-column layout,
+      and ordering.
+  xxx:
+  - Replace generated scaffold placeholder with final implementation.
+  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
 - name: Panel
   current_source: case "panel" in renderAdminNode
   classification:
@@ -90,8 +115,16 @@ widgets:
   action_slots:
   - name: toolbarActions
     context: panel
+    callback_prop: onToolbarAction
+    intent: Toolbar actions are local to the panel header and usually secondary.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   - name: footerActions
     context: panel
+    callback_prop: onFooterAction
+    intent: Footer actions are local to the panel result/flow and should preserve panel context.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   usage_example: |-
     <Panel
       title="Today’s queue"
@@ -117,6 +150,19 @@ widgets:
       Panel.stories.tsx
       Panel.test.tsx
       index.ts
+  human_notes:
+    intent: Central admin surface primitive for dense workbench content. It owns header/body/footer chrome, padding, density,
+      and action placement.
+    adapter_boundary: Adapter maps toolbarActions/footerActions and renders children separately; widget receives typed React
+      children and action arrays.
+    slot_intent:
+      toolbarActions: Toolbar actions are local to the panel header and usually secondary.
+      footerActions: Footer actions are local to the panel result/flow and should preserve panel context.
+    storybook_intent: Stories should cover no-padding table panels, toolbar actions, footer actions, body-only panels, and
+      mobile padding.
+  xxx:
+  - Replace generated scaffold placeholder with final implementation.
+  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
 - name: Toolbar
   current_source: case "toolbar"
   classification:
@@ -128,6 +174,10 @@ widgets:
     }
   action_slots:
   - name: toolbarActions
+    callback_prop: onToolbarAction
+    intent: General toolbar actions receive page/tool context, not row or form context.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   storybook_stories:
   - Default
   - ManyActionsWrap
@@ -138,6 +188,15 @@ widgets:
       Toolbar.types.ts
       Toolbar.stories.tsx
       index.ts
+  human_notes:
+    intent: Small page/tool action row for legacy or non-workbench pages. It should eventually be a thin ActionGroup wrapper.
+    adapter_boundary: Adapter maps toolbar node actions into ActionViewModel list.
+    slot_intent:
+      toolbarActions: General toolbar actions receive page/tool context, not row or form context.
+    storybook_intent: Stories should cover wrapping and mobile touch target behavior.
+  xxx:
+  - Replace generated scaffold placeholder with final implementation.
+  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
 - name: SplitPane
   current_source: case "splitPane"
   classification:
@@ -160,6 +219,14 @@ widgets:
       SplitPane.types.ts
       SplitPane.stories.tsx
       index.ts
+  human_notes:
+    intent: Encodes master/detail or two-column layouts explicitly. It should replace ad hoc gridTemplateColumns usage for
+      split surfaces.
+    adapter_boundary: Adapter passes rendered left/right children in order; widget owns responsive stacking.
+    storybook_intent: Stories should prove master/detail, two panels, and mobile stacking.
+  xxx:
+  - Replace generated scaffold placeholder with final implementation.
+  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
 - name: Tabs
   current_source: case "tabs"
   classification:
@@ -173,6 +240,10 @@ widgets:
     }
   action_slots:
   - name: tabChange
+    callback_prop: onTabChange
+    intent: Tab changes are selection actions with tab context; they should not be modeled as row actions.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   storybook_stories:
   - Default
   - ActiveTab
@@ -184,6 +255,15 @@ widgets:
       Tabs.types.ts
       Tabs.stories.tsx
       index.ts
+  human_notes:
+    intent: Represents tab choice as a compact control with active state and optional action dispatch.
+    adapter_boundary: Adapter maps tabs/value/action props; widget emits selected tab context through onTabChange.
+    slot_intent:
+      tabChange: Tab changes are selection actions with tab context; they should not be modeled as row actions.
+    storybook_intent: Stories should cover active, readonly, action-backed, and wrapping states.
+  xxx:
+  - Replace generated scaffold placeholder with final implementation.
+  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
 - name: FilterBar
   current_source: case "filterBar"
   classification:
@@ -197,6 +277,10 @@ widgets:
     }
   action_slots:
   - name: filterChange
+    callback_prop: onFilterChange
+    intent: Filter actions carry the chosen filter object so backend or frontend state can update consistently.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   storybook_stories:
   - Default
   - ActiveFilter
@@ -208,6 +292,15 @@ widgets:
       FilterBar.types.ts
       FilterBar.stories.tsx
       index.ts
+  human_notes:
+    intent: Represents filter chips/pills as a specific action context rather than generic tabs or buttons.
+    adapter_boundary: Adapter maps filter list/value/action; widget emits selected filter context.
+    slot_intent:
+      filterChange: Filter actions carry the chosen filter object so backend or frontend state can update consistently.
+    storybook_intent: Stories should cover active filters, many filters, readonly mode, and wrapping.
+  xxx:
+  - Replace generated scaffold placeholder with final implementation.
+  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.
 - name: SearchBox
   current_source: case "searchBox"
   classification:
@@ -222,6 +315,10 @@ widgets:
     }
   action_slots:
   - name: searchSubmit
+    callback_prop: onSearch
+    intent: Search submit actions receive query context, not raw form events.
+    implementation_note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+      or backend action transport.
   storybook_stories:
   - Default
   - WithInitialValue
@@ -233,3 +330,12 @@ widgets:
       SearchBox.types.ts
       SearchBox.stories.tsx
       index.ts
+  human_notes:
+    intent: Owns search form semantics and submit behavior in a reusable molecule.
+    adapter_boundary: Adapter maps placeholder/value/action; widget emits query text through onSearch.
+    slot_intent:
+      searchSubmit: Search submit actions receive query context, not raw form events.
+    storybook_intent: Stories should cover default, initial value, no action, and dispatch payload.
+  xxx:
+  - Replace generated scaffold placeholder with final implementation.
+  - Keep raw Admin DSL JSON parsing in adapters, not in this widget.

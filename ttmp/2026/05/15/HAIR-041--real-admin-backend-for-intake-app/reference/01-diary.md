@@ -3238,3 +3238,187 @@ The main purpose is to make the next transformation passes easier to write. Inst
 - YAML generation target directory:
   - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/`
 - YAML validation used Python `yaml.safe_load` for every `*.yaml` file in that directory.
+
+## Step 44: Add a widget-IR scaffold generator and run it on shell/action/layout/resource widgets
+
+This step makes the YAML widget IR actionable. The new script reads category YAML files such as `03-shell-widgets.yaml` and creates a first-pass React scaffold for each widget: one widget directory, a `.types.ts` file containing the TypeScript prop snippet from the IR, a placeholder `.tsx` component, a Storybook file with the planned story exports, and an `index.ts` barrel.
+
+The generated code is intentionally scaffold code, not final visual implementation. It establishes deterministic file paths and compile-safe contracts so follow-up implementation passes can replace the placeholder bodies with real widgets while keeping the adapter boundary clean.
+
+### Prompt Context
+
+**User prompt (verbatim):** "can you write a tool that takes a widgte yaml like @hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/03-shell-widgets.yaml and creates a scaffold of the final code? You might need to modify the yaml format. Save in the scripts directory, run it on a few files. Adjust as needed"
+
+**Assistant interpretation:** Build a script that consumes widget IR YAML files and emits final-code scaffold directories/files for the corresponding React widgets, then test it by running it on several YAML categories and adjust issues discovered during generation/TypeScript validation.
+
+**Inferred user intent:** The user wants the widget IR to become an executable artifact source that can generate concrete code scaffolds for the Admin DSL renderer rebuild.
+
+**Commit (code):** pending.
+
+### What I did
+- Added scaffold generator:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py`
+- The script reads widget category YAML files and generates:
+  - shared widget/action/context types in `web/src/admin-dsl/widgets/shared/`
+  - one directory per widget
+  - `<Widget>.types.ts`
+  - `<Widget>.tsx`
+  - `<Widget>.stories.tsx`
+  - `index.ts`
+- Ran a dry-run on:
+  - `03-shell-widgets.yaml`
+  - `04-action-widgets.yaml`
+  - `06-resource-widgets.yaml`
+- Ran real generation on:
+  - `03-shell-widgets.yaml`
+  - `04-action-widgets.yaml`
+  - `06-resource-widgets.yaml`
+  - `05-layout-widgets.yaml`
+- Generated scaffold files under:
+  - `web/src/admin-dsl/widgets/`
+- Ran TypeScript validation:
+  - `cd web && npx tsc --noEmit`
+
+### Why
+- The YAML widget IR is meant to feed follow-up deterministic passes. A scaffold generator is the smallest useful pass: it proves that the YAML can drive code layout and story creation.
+- The generated placeholder widgets give the team concrete files to replace incrementally rather than continuing to grow `render.tsx`.
+
+### What worked
+- The tool generated 70 widget scaffold files for shell, action, layout, and resource widget categories.
+- The generated code compiled with:
+  - `cd web && npx tsc --noEmit`
+- The script did not require changing the YAML format yet; it can infer output directories from existing `file_layout` snippets and classification metadata.
+
+### What didn't work
+- The first dry-run failed because the script guessed the repository root incorrectly from the ticket script path:
+  - `missing input: /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/03-shell-widgets.yaml`
+- Fix: changed `REPO_ROOT_DEFAULT` from `Path(__file__).resolve().parents[5]` to `parents[6]`.
+- The first generated `ResourceTableCell` import stripped `.types` from `ResourceTable.types.ts`, producing `../../ResourceTable` instead of `../../ResourceTable.types`.
+- Fix: changed the import helper to strip only code extensions such as `.ts` and `.tsx`, not semantic suffixes like `.types`.
+- The first generated component template referenced `React.CSSProperties` without importing the React namespace.
+- Fix: generated components now include `import type * as React from "react";`.
+
+### What I learned
+- The current YAML structure is good enough for initial scaffolding. A later pass may still normalize `props` into structured schemas, but block-scalar TypeScript prop snippets are sufficient for code skeletons.
+- One-directory-per-widget works for public widgets and internal ResourceTable parts when the generator normalizes internal parts under `ResourceTable/parts/<Widget>/`.
+
+### What was tricky to build
+- The Markdown-derived `file_layout` fields are semi-structured. The script handles clear `web/src/admin-dsl/widgets/.../` blocks first, then special-cases `ResourceTable/parts`, then falls back to classification-based paths.
+- TypeScript prop snippets reference shared symbols such as `ActionViewModel`, `CommonWidgetProps`, and contextual handler types. The script generates shared types up front and imports them into every widget `.types.ts` file.
+
+### What warrants a second pair of eyes
+- Review whether `ResourceTable` internal parts should remain nested under `ResourceTable/parts/<Widget>/` or move to public molecule directories.
+- Review whether generated stories should be minimal placeholders or richer scenario scaffolds derived from `storybook_stories` and sample fixtures.
+- Review whether the next version should add explicit `scaffold.output_dir` fields to YAML instead of inferring paths from `file_layout` text.
+
+### What should be done in the future
+- Extend the script to scaffold the remaining category files once the initial generated layout is approved.
+- Add a follow-up pass that generates renderer adapter stubs from the same YAML artifacts.
+
+### Code review instructions
+- Start with the generator script:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py`
+- Review generated examples:
+  - `web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.types.ts`
+  - `web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.tsx`
+  - `web/src/admin-dsl/widgets/organisms/ResourceTable/ResourceTable.stories.tsx`
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+
+### Technical details
+- Dry-run command:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py --dry-run ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/03-shell-widgets.yaml ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/04-action-widgets.yaml ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/06-resource-widgets.yaml`
+- Generation commands:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/03-shell-widgets.yaml ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/04-action-widgets.yaml ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/06-resource-widgets.yaml`
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/05-layout-widgets.yaml`
+
+## Step 45: Enrich widget IR scaffolds with human intent, XXX markers, and provenance headers
+
+This step improves the scaffold generator and the YAML artifacts so the generated files carry both formal structure and human-readable design intent. The previous scaffold pass proved that YAML could create directories, props, placeholder components, and stories. This refinement makes those generated files useful as handoff artifacts: they now include purpose, classification, action-slot intent, human notes, explicit `XXX` implementation warnings, generation time, source YAML path, and git provenance.
+
+The YAML is intentionally not reduced to only machine fields. Natural language is now part of the IR because later humans and LLM passes need to understand why a slot exists, where adapter boundaries should be, and what kind of Storybook coverage the widget is supposed to prove.
+
+### Prompt Context
+
+**User prompt (verbatim):** "also render freeform information like the purpose, the classification, etc... into the resulting scaffold, and add // XXX where something definitely needs to be changed. Also update the YAML to be richer in human written fields giving the intent behind the different slots / etc... Natural language is just as important here as the formal structure."
+
+**User prompt (verbatim):** "also add a header that says this is was generated by the script from which file at what time, and what the last commit on the file was.
+
+that way we can have the start of a changelog of how files got modified."
+
+**Assistant interpretation:** Update the scaffold generator and YAML artifacts so generated files contain visible design intent, explicit implementation warnings, and provenance headers that can serve as the beginning of a generated-file changelog.
+
+**Inferred user intent:** The user wants generated scaffolds to be useful for humans and future LLM passes, not merely compile-safe shells. The files should explain why they exist and where they came from.
+
+**Commit (code):** pending.
+
+### What I did
+- Updated `scripts/05-scaffold-admin-dsl-widgets.py` to generate provenance headers in `.tsx`, `.types.ts`, `.stories.tsx`, `index.ts`, and shared scaffold files.
+- Headers now include:
+  - generator script path
+  - generation timestamp
+  - source YAML path
+  - source YAML last git commit
+  - target file previous git commit
+- Updated generated component scaffolds to render widget IR metadata visibly in the placeholder UI:
+  - classification
+  - purpose
+  - human notes
+  - action slots
+  - implementation warnings
+- Added `XXX` markers to generated types, stories, component placeholders, and shared scaffold headers.
+- Enriched these YAML files with `human_notes`, slot intent, callback prop hints, implementation notes, and `xxx` warnings:
+  - `03-shell-widgets.yaml`
+  - `04-action-widgets.yaml`
+  - `05-layout-widgets.yaml`
+  - `06-resource-widgets.yaml`
+- Re-ran the scaffold generator with `--force` for shell/action/layout/resource widgets.
+- Re-validated generated TypeScript:
+  - `cd web && npx tsc --noEmit`
+
+### Why
+- The generated scaffold is meant to guide implementation, not hide context. Purpose, slot intent, adapter boundaries, and warnings are part of the artifact.
+- Provenance headers make regenerated files auditable and begin a lightweight changelog for scaffold evolution.
+
+### What worked
+- The enriched generated files still compile with `npx tsc --noEmit`.
+- Source YAML last-commit lookup works for committed YAML artifacts; generated headers show the last commit for the source YAML file.
+- Target file previous-commit lookup currently reports `none (untracked or no history)` for newly generated files, which is expected before the first commit of the scaffold files.
+
+### What didn't work
+- My first attempt to rewrite `render_component(...)` with nested triple-quoted Python strings failed locally with:
+  - `SyntaxError: invalid character '—' (U+2014)`
+- Cause: the outer Python string closed earlier than intended because the replacement text embedded another `'''` block.
+- Fix: rewrote the replacement using triple-double-quoted Python text so the generated inner triple-single-quoted f-string remained intact.
+
+### What I learned
+- The YAML artifact needs two layers: machine-consumable fields and human-readable intent fields. Both are useful downstream.
+- Provenance headers should include both source-file history and target-file previous history, because future regeneration can then show whether a file has been manually changed since its last generated state.
+
+### What was tricky to build
+- Rendering JSON-like classification and notes inside TSX required care. Inserting raw `{ "level": "organism" }` text into JSX would be parsed as an invalid JSX expression. The generator now emits string constants and renders those constants.
+- Header generation calls `git log` for both source YAML and target file. For new files, the target correctly has no previous history.
+
+### What warrants a second pair of eyes
+- Confirm whether provenance headers should remain in every generated file or move to a separate generated manifest later.
+- Review the YAML natural-language fields for tone and usefulness before generating more categories.
+- Decide whether future YAML should add explicit `output_dir` fields instead of inferring from `file_layout`.
+
+### What should be done in the future
+- Add a generated manifest that records all scaffold files, source YAML files, generation timestamp, and source/target commits in one place.
+- Normalize human notes into a consistent shape across the remaining widget categories before scaffolding them.
+
+### Code review instructions
+- Review the generator:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py`
+- Review enriched YAML examples:
+  - `sources/admin-dsl-widget-ir/06-resource-widgets.yaml`
+  - `sources/admin-dsl-widget-ir/05-layout-widgets.yaml`
+- Review generated output example:
+  - `web/src/admin-dsl/widgets/organisms/ResourceTable/ResourceTable.tsx`
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+
+### Technical details
+- Regeneration command:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py --force ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/03-shell-widgets.yaml ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/04-action-widgets.yaml ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/05-layout-widgets.yaml ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/06-resource-widgets.yaml`
