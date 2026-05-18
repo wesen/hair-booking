@@ -12,4 +12,5 @@
  * JSON decoding in adapters; generated widgets should receive typed props only.
  */
 export { DefaultAdminShell } from "./DefaultAdminShell";
+export { defaultAdminShellWidgetMetadata } from "./DefaultAdminShell.metadata";
 export type * from "./DefaultAdminShell.types";

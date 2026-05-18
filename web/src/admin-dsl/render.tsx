@@ -3,6 +3,7 @@ import type { AdminActionRef, AdminJsonObject, AdminNode, AdminPage, AdminRender
 import { color, font, radius, shadow, type } from "../fringe-ui/tokens";
 import { AdminCalendarWeek } from "./calendar";
 import { WorkbenchShell as WorkbenchShellWidget } from "./widgets/organisms/WorkbenchShell";
+import { DefaultAdminShell } from "./widgets/organisms/DefaultAdminShell";
 import type { ActionViewModel, SidebarNavItem } from "./widgets/shared";
 
 import { actionIsDanger, actionIsPrimary, actionKey, actionList, dispatchAdminAction, isActionRef } from "./actions";
@@ -550,6 +551,28 @@ function renderWorkbenchShell({ page, context }: { page: AdminPage; context?: Ad
   );
 }
 
+function renderDefaultAdminShell({ page, context, sideNodes }: { page: AdminPage; context?: AdminRenderContext; sideNodes: AdminNode[] }) {
+  const main = (
+    <>
+      <style>{responsiveCss}</style>
+      {page.nodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}
+    </>
+  );
+  const side = sideNodes.length > 0 ? <>{sideNodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</> : undefined;
+
+  return (
+    <DefaultAdminShell
+      pageId={page.id}
+      shellKind={page.shell.kind}
+      eyebrow={str(page.shell.props, "eyebrow", "Admin DSL")}
+      title={page.title}
+      description={page.description}
+      main={main}
+      side={side}
+    />
+  );
+}
+
 const responsiveCss = `
   .adminDslRoot { box-sizing: border-box; }
   .adminDslRoot *, .adminDslRoot *::before, .adminDslRoot *::after { box-sizing: border-box; }
@@ -610,20 +633,5 @@ export function AdminPageRenderer({ page, context }: { page: AdminPage; context?
     return renderWorkbenchShell({ page, context });
   }
 
-  return (
-    <main className="adminDslRoot" style={{ minHeight: "100vh", background: shell === "calendar" ? color.cream : color.creamDeep, color: color.ink, fontFamily: font.sans, padding: 24 }} data-admin-dsl-page={page.id} data-admin-dsl-shell={shell} data-admin-dsl-schema-version={page.schemaVersion}>
-      <style>{responsiveCss}</style>
-      <div className="adminDslGrid" style={{ maxWidth: 1180, margin: "0 auto", display: "grid", ["--admin-dsl-grid-columns" as string]: sideNodes.length ? "minmax(0, 1fr) 340px" : "1fr", gap: 20 }}>
-        <div style={{ minWidth: 0 }}>
-          <header style={{ marginBottom: 24 }}>
-            <div style={{ ...type.eyebrow, color: color.plum }}>{str(page.shell.props, "eyebrow", "Admin DSL")}</div>
-            <h1 className="adminDslTitle" style={{ ...type.display2, fontSize: 56, margin: "6px 0 8px" }}>{page.title}</h1>
-            {page.description && <p style={{ ...type.bodyLg, color: color.softInk, maxWidth: 680, margin: 0 }}>{page.description}</p>}
-          </header>
-          <div style={{ display: "grid", gap: 4 }}>{page.nodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</div>
-        </div>
-        {sideNodes.length > 0 && <div className="adminDslSideColumn" style={{ display: "grid", gap: 14, alignContent: "start" }}>{sideNodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</div>}
-      </div>
-    </main>
-  );
+  return renderDefaultAdminShell({ page, context, sideNodes });
 }

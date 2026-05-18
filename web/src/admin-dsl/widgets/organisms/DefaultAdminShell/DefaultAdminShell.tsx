@@ -5,126 +5,95 @@
  * Generated at: 2026-05-18T21:21:08+00:00
  * Source YAML: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/03-shell-widgets.yaml
  * Source YAML last commit: 8042b3e 2026-05-18T16:54:29-04:00 HAIR-041 Step 46: Specify widget IR YAML schema
- * Target file previous commit: dfc6ac6 2026-05-18T16:41:42-04:00 HAIR-041 Step 44: Scaffold Admin DSL widgets from IR
+ * Target file previous commit: baf8866 2026-05-18T17:23:13-04:00 HAIR-041 Step 50: Regenerate widget scaffolds from schema v2
  * Widget ID: admin.shell.default
  *
- * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
- * JSON decoding in adapters; generated widgets should receive typed props only.
+ * This file started as generated schema-v2 scaffold output. The visual shell
+ * implementation below was extracted from the AdminPageRenderer fallback branch
+ * in web/src/admin-dsl/render.tsx so the renderer can become an adapter instead
+ * of owning default page-frame HTML.
  */
-import type * as React from "react";
-import type { ReactNode } from "react";
+import { defaultAdminShellWidgetMetadata } from "./DefaultAdminShell.metadata";
 import type { DefaultAdminShellProps } from "./DefaultAdminShell.types";
+import { color, font, type } from "../../../../fringe-ui/tokens";
 
-const diagnostics = {
-  "widgetId": "admin.shell.default",
-  "purpose": "Render non-workbench Admin DSL pages with optional side surfaces. This keeps the legacy/default page shell separate from workbench chrome.",
-  "adapterBoundary": "The adapter receives `AdminPage`, separates main region from side surfaces, renders those regions, and passes React nodes to DefaultAdminShell. The widget receives already-rendered `main` and `side` content and should not traverse Admin DSL nodes.",
-  "implementationNotes": [
-    "Main-only pages should remain simple and readable.",
-    "Optional side content should align with the main region on desktop and stack predictably on mobile.",
-    "Shell kind should influence coarse page chrome only, not detailed child behavior."
-  ],
-  "accessibilityNotes": [
-    "Main content should be exposed as the primary page region.",
-    "Side content should be labeled when it represents drawers, details, or modal previews."
-  ],
-  "actionSlots": {},
-  "examples": {
-    "WithSidePreview": {
-      "doc": "Demonstrates how the fallback shell receives rendered main and side regions after adapter/layout separation. Use this for legacy or non-workbench pages while WorkbenchShell becomes the primary dense admin shell.",
-      "demonstrates": [
-        "Rendered main region input.",
-        "Rendered side region input.",
-        "Shell kind as coarse visual mode."
-      ],
-      "code": "<DefaultAdminShell\n  pageId=\"admin-services\"\n  shellKind=\"admin\"\n  eyebrow=\"Admin DSL\"\n  title=\"Services\"\n  description=\"Manage services, pricing, and availability.\"\n  main={<ServiceOperationsContent />}\n  side={<DraftDrawerPreview />}\n/>"
-    }
-  },
-  "implementationTodos": [
-    {
-      "id": "replace-placeholder",
-      "severity": "required",
-      "doc": "Replace generated scaffold placeholder with final implementation."
-    },
-    {
-      "id": "adapter-boundary",
-      "severity": "required",
-      "doc": "Keep raw Admin DSL JSON parsing in adapters, not in this widget."
-    },
-    {
-      "id": "compatibility-decision",
-      "severity": "recommended",
-      "doc": "Decide whether this shell remains long-term or becomes a compatibility wrapper after WorkbenchShell migration."
-    }
-  ],
-  "sourceMapping": {
-    "current_constructs": [
-      "AdminPageRenderer fallback shell",
-      "shell.kind=admin|dashboard|resource|calendar|settings|bare"
-    ],
-    "current_files": [
-      {
-        "path": "web/src/admin-dsl/render.tsx",
-        "symbol": "AdminPageRenderer fallback branch",
-        "notes": "Current non-workbench page chrome and optional side-column implementation."
-      },
-      {
-        "path": "web/src/admin-dsl/schema.ts",
-        "symbol": "AdminShellKind",
-        "notes": "Current shell kind vocabulary consumed by this fallback shell."
-      }
-    ]
+const defaultAdminShellCss = `
+  .adminDslDefaultRoot { box-sizing: border-box; }
+  .adminDslDefaultRoot *, .adminDslDefaultRoot *::before, .adminDslDefaultRoot *::after { box-sizing: border-box; }
+  .adminDslDefaultGrid { grid-template-columns: var(--admin-dsl-grid-columns, 1fr); }
+  .adminDslDefaultTitle { text-wrap: balance; overflow-wrap: anywhere; }
+  .adminDslDefaultSideColumn { min-width: 0; }
+  @media (max-width: 720px) {
+    .adminDslDefaultRoot { padding: 16px !important; overflow-x: hidden !important; }
+    .adminDslDefaultGrid { grid-template-columns: 1fr !important; gap: 16px !important; }
+    .adminDslDefaultTitle { font-size: clamp(28px, 9vw, 34px) !important; line-height: 0.98 !important; letter-spacing: -0.15px !important; }
+    .adminDslDefaultSideColumn { display: grid !important; grid-template-columns: 1fr !important; margin: 16px 0 22px !important; }
   }
-} as const;
+  @media (max-width: 430px) {
+    .adminDslDefaultRoot { padding: 12px !important; }
+  }
+`;
 
-/**
- * Scaffold for `DefaultAdminShell`.
- *
- * Purpose: Render non-workbench Admin DSL pages with optional side surfaces. This keeps the legacy/default page shell separate from workbench chrome.
- *
- * Adapter boundary: The adapter receives `AdminPage`, separates main region from side surfaces, renders those regions, and passes React nodes to DefaultAdminShell. The widget receives already-rendered `main` and `side` content and should not traverse Admin DSL nodes.
- */
-export function DefaultAdminShell(props: DefaultAdminShellProps) {
-  const scaffoldProps = props as DefaultAdminShellProps & {
-    id?: string;
-    className?: string;
-    style?: React.CSSProperties;
-    dataAttributes?: Record<string, string | number | boolean>;
-    children?: ReactNode;
-    main?: ReactNode;
-    title?: string;
-    label?: string;
-    name?: string;
-    value?: unknown;
-  };
-  const heading = scaffoldProps.title || scaffoldProps.label || scaffoldProps.name || "DefaultAdminShell";
-  const dataAttributes = Object.fromEntries(
-    Object.entries(scaffoldProps.dataAttributes ?? {}).map(([key, value]) => [`data-${key}`, String(value)]),
-  ) as Record<string, string>;
+export function DefaultAdminShell({
+  pageId,
+  shellKind,
+  eyebrow = "Admin DSL",
+  title,
+  description,
+  main,
+  side,
+}: DefaultAdminShellProps) {
+  const hasSide = Boolean(side);
 
   return (
-    <section
-      id={scaffoldProps.id}
-      className={scaffoldProps.className}
-      data-admin-dsl-widget="DefaultAdminShell"
-      data-admin-dsl-widget-id="admin.shell.default"
-      data-admin-dsl-widget-level="organism"
-      style={scaffoldProps.style}
-      {...dataAttributes}
+    <main
+      className="adminDslRoot adminDslDefaultRoot"
+      style={{
+        minHeight: "100vh",
+        background: shellKind === "calendar" ? color.cream : color.creamDeep,
+        color: color.ink,
+        fontFamily: font.sans,
+        padding: 24,
+      }}
+      data-admin-dsl-page={pageId}
+      data-admin-dsl-shell={shellKind}
+      data-admin-dsl-widget-id={defaultAdminShellWidgetMetadata.widgetId}
     >
-      <div style={{ border: "1px solid #dfd2bd", borderRadius: 12, padding: 12, background: "#fffaf0" }}>
-        <strong>{heading}</strong>
-        <p style={{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}>{diagnostics.purpose}</p>
-        {diagnostics.adapterBoundary ? (
-          <p style={{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}>Adapter: {diagnostics.adapterBoundary}</p>
+      <style>{defaultAdminShellCss}</style>
+      <div
+        className="adminDslGrid adminDslDefaultGrid"
+        style={{
+          maxWidth: 1180,
+          margin: "0 auto",
+          display: "grid",
+          ["--admin-dsl-grid-columns" as string]: hasSide ? "minmax(0, 1fr) 340px" : "1fr",
+          gap: 20,
+        }}
+      >
+        <section style={{ minWidth: 0 }} aria-labelledby={`${pageId}-title`}>
+          <header style={{ marginBottom: 24 }}>
+            {eyebrow ? <div style={{ ...type.eyebrow, color: color.plum }}>{eyebrow}</div> : null}
+            <h1
+              id={`${pageId}-title`}
+              className="adminDslTitle adminDslDefaultTitle"
+              style={{ ...type.display2, fontSize: 56, margin: "6px 0 8px" }}
+            >
+              {title}
+            </h1>
+            {description ? <p style={{ ...type.bodyLg, color: color.softInk, maxWidth: 680, margin: 0 }}>{description}</p> : null}
+          </header>
+          <div style={{ display: "grid", gap: 4 }}>{main}</div>
+        </section>
+        {hasSide ? (
+          <aside
+            className="adminDslSideColumn adminDslDefaultSideColumn"
+            aria-label="Supplementary admin surfaces"
+            style={{ display: "grid", gap: 14, alignContent: "start" }}
+          >
+            {side}
+          </aside>
         ) : null}
-        <details style={{ marginTop: 10, fontSize: 12, color: "#6f6254" }}>
-          <summary>Widget IR diagnostics</summary>
-          <pre style={{ whiteSpace: "pre-wrap", margin: "8px 0 0" }}>{JSON.stringify(diagnostics, null, 2)}</pre>
-        </details>
       </div>
-      {scaffoldProps.children ? <div style={{ marginTop: 12 }}>{scaffoldProps.children}</div> : null}
-      {scaffoldProps.main ? <div style={{ marginTop: 12 }}>{scaffoldProps.main}</div> : null}
-    </section>
+    </main>
   );
 }

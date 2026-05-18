@@ -5,31 +5,75 @@
  * Generated at: 2026-05-18T21:21:08+00:00
  * Source YAML: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/03-shell-widgets.yaml
  * Source YAML last commit: 8042b3e 2026-05-18T16:54:29-04:00 HAIR-041 Step 46: Specify widget IR YAML schema
- * Target file previous commit: dfc6ac6 2026-05-18T16:41:42-04:00 HAIR-041 Step 44: Scaffold Admin DSL widgets from IR
+ * Target file previous commit: baf8866 2026-05-18T17:23:13-04:00 HAIR-041 Step 50: Regenerate widget scaffolds from schema v2
  * Widget ID: admin.shell.default
  *
- * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
- * JSON decoding in adapters; generated widgets should receive typed props only.
+ * This story file started as generated schema-v2 scaffold output. It now uses
+ * purpose-built fixtures so DefaultAdminShell stories exercise distinct fallback
+ * shell states instead of rendering the same default args repeatedly.
  */
 import type { Meta, StoryObj } from "@storybook/react";
 import { DefaultAdminShell } from "./DefaultAdminShell";
 import type { DefaultAdminShellProps } from "./DefaultAdminShell.types";
 
+function MainContent({ dense = false }: { dense?: boolean }) {
+  return (
+    <div style={{ display: "grid", gap: 14 }}>
+      <section style={{ border: "1px solid #dfd2bd", borderRadius: 16, background: "#fffaf0", padding: 18 }}>
+        <div style={{ fontSize: 11, letterSpacing: 1.1, textTransform: "uppercase", color: "#7b6c5d" }}>Primary region</div>
+        <h2 style={{ margin: "8px 0 6px", fontSize: 24 }}>Rendered main Admin DSL content</h2>
+        <p style={{ margin: 0, maxWidth: 640, color: "#6f6254" }}>
+          The default shell receives this region after the renderer adapter has already interpreted Admin DSL nodes.
+          It should only own page chrome and column layout.
+        </p>
+      </section>
+      <div style={{ display: "grid", gridTemplateColumns: dense ? "repeat(3, minmax(0, 1fr))" : "repeat(2, minmax(0, 1fr))", gap: 12 }}>
+        {["Services", "Availability", "Preview", "Audit", "Health", "Settings"].slice(0, dense ? 6 : 4).map((label, index) => (
+          <article key={label} style={{ border: "1px solid #dfd2bd", borderRadius: 14, background: "#fffaf0", padding: 14 }}>
+            <div style={{ fontSize: 11, letterSpacing: 1, textTransform: "uppercase", color: "#7b6c5d" }}>{label}</div>
+            <strong style={{ display: "block", marginTop: 8, fontSize: 26 }}>{index + 1}</strong>
+          </article>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function SideContent() {
+  return (
+    <div style={{ display: "grid", gap: 12 }}>
+      <aside style={{ border: "1px solid #dfd2bd", borderRadius: 16, background: "#f8efde", padding: 16 }}>
+        <div style={{ fontSize: 11, letterSpacing: 1.1, textTransform: "uppercase", color: "#7b6c5d" }}>Side surface</div>
+        <h3 style={{ margin: "8px 0", fontSize: 20 }}>Draft drawer preview</h3>
+        <p style={{ margin: 0, color: "#6f6254" }}>Optional side content aligns to the top of the main region on desktop.</p>
+      </aside>
+      <aside style={{ border: "1px solid #dfd2bd", borderRadius: 16, background: "#fffaf0", padding: 16 }}>
+        <strong>Publish status</strong>
+        <div style={{ marginTop: 8, color: "#6f6254" }}>No pending release.</div>
+      </aside>
+    </div>
+  );
+}
+
 const defaultArgs = {
-  pageId: "scaffold-default",
+  pageId: "default-shell-story",
   shellKind: "admin",
+  eyebrow: "Admin DSL",
   title: "Default Admin Shell",
-  main: <div>Main content</div>,
-} as unknown as DefaultAdminShellProps;
+  description: "Fallback page chrome for non-workbench Admin DSL screens.",
+  main: <MainContent />,
+} satisfies DefaultAdminShellProps;
 
 const meta = {
   title: "Admin DSL Widgets/Organisms/DefaultAdminShell",
   component: DefaultAdminShell,
   args: defaultArgs,
   parameters: {
+    layout: "fullscreen",
     docs: {
       description: {
-        component: "Render non-workbench Admin DSL pages with optional side surfaces. This keeps the legacy/default page shell separate from workbench chrome.",
+        component:
+          "Render non-workbench Admin DSL pages with optional side surfaces. This keeps the legacy/default page shell separate from workbench chrome.",
       },
     },
   },
@@ -40,85 +84,49 @@ type Story = StoryObj<typeof meta>;
 
 export const MainOnly: Story = {
   name: "MainOnly",
-  parameters: { docs: { description: { story: "Tests the simplest fallback page shape with header chrome and one primary content column. It should remain useful for legacy admin pages and smoke fixtures." } } },
-  args: {
-    ...defaultArgs,
+  parameters: {
+    docs: { description: { story: "Simplest fallback page shape with header chrome and one primary content column." } },
   },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <DefaultAdminShell {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "side": "absent"
-}, asserts: [
-  "Header title is visible.",
-  "Main region renders without side-column spacing artifacts."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
 };
+
 export const WithSideSurfaces: Story = {
   name: "WithSideSurfaces",
-  parameters: { docs: { description: { story: "Tests the optional side region used for drawers, modals, or detail panels. It should prove that side content aligns with the main region without requiring WorkbenchShell." } } },
   args: {
     ...defaultArgs,
+    title: "Services & Draft Preview",
+    main: <MainContent dense />,
+    side: <SideContent />,
   },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <DefaultAdminShell {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "side": "present"
-}, asserts: [
-  "Main and side regions form a two-column layout.",
-  "Side region remains aligned with top of main content."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  parameters: {
+    docs: { description: { story: "Two-column fallback layout with already-rendered side surfaces." } },
+  },
 };
+
 export const CalendarShell: Story = {
   name: "CalendarShell",
-  parameters: { docs: { description: { story: "Tests shell-level visual treatment for calendar pages, especially background and spacing differences inherited from the current default renderer." } } },
   args: {
     ...defaultArgs,
+    shellKind: "calendar",
+    eyebrow: "Calendar",
+    title: "June Availability",
+    description: "Calendar shell variant uses the calendar page background while preserving readable page chrome.",
+    main: <MainContent dense />,
   },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <DefaultAdminShell {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "shellKind": "calendar"
-}, asserts: [
-  "Calendar shell background treatment is applied.",
-  "Main content remains readable on calendar background."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  parameters: {
+    docs: { description: { story: "Calendar-flavored fallback shell background and spacing." } },
+  },
 };
+
 export const MobileSideColumn: Story = {
   name: "MobileSideColumn",
-  parameters: { viewport: { defaultViewport: "iphone12" }, docs: { description: { story: "Tests responsive behavior when a side region exists. The side region should stack predictably and remain readable on narrow screens." } } },
   args: {
     ...defaultArgs,
+    title: "Mobile Side Stack",
+    main: <MainContent />,
+    side: <SideContent />,
   },
-  render: (args) => (
-    <div style={{ padding: 24, maxWidth: 1120 }}>
-      <DefaultAdminShell {...args} />
-      <details style={{ marginTop: 12, fontSize: 12, color: "#6f6254" }}>
-        <summary>Story fixture and assertions</summary>
-        <pre style={{ whiteSpace: "pre-wrap" }}>{JSON.stringify({ fixtures: {
-  "side": "present"
-}, asserts: [
-  "Side region stacks after main content.",
-  "No horizontal overflow is introduced."
-] }, null, 2)}</pre>
-      </details>
-    </div>
-  ),
+  parameters: {
+    viewport: { defaultViewport: "iphone12" },
+    docs: { description: { story: "Narrow viewport where optional side content stacks after the main region without horizontal overflow." } },
+  },
 };
