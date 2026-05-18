@@ -25,6 +25,13 @@ RelatedFiles:
       Note: |-
         Current renderer adapter and source of existing inline widget implementations
         Renderer adapter and source of existing inline widget implementations
+        DefaultAdminShell renderer adapter after Step 60
+    - Path: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.metadata.ts
+      Note: Default shell metadata sidecar preserving IR intent
+    - Path: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.stories.tsx
+      Note: Hardened default shell Storybook variants
+    - Path: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.tsx
+      Note: Default shell implementation promoted from scaffold
     - Path: web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.metadata.ts
       Note: |-
         First metadata sidecar preserving Widget IR intent beside hand-written implementation
@@ -37,6 +44,7 @@ LastUpdated: 2026-05-18T22:45:00-04:00
 WhatFor: Use when promoting generated Admin DSL widget scaffolds into real React components while preserving adapter boundaries and metadata context.
 WhenToUse: Use before implementing ActionButton, ActionGroup, Panel, PageHeader, DashboardGrid, ResourceTable, AdminForm, MonthCalendar, or any other Admin DSL widget from YAML.
 ---
+
 
 
 # Widget IR to Finished Widget Playbook

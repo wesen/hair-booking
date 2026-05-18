@@ -436,3 +436,11 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 ## 2026-05-18 — Update widget playbook with Storybook and diary workflow
 
 - Expanded `reference/03-widget-ir-to-finished-widget-playbook.md` to cover generated-story limitations, meaningful Storybook fixtures, callback probes, widget-local responsive CSS, Storybook build validation, explicit commit boundaries, and diary/changelog expectations.
+
+## 2026-05-18 — Extract DefaultAdminShell widget
+
+- Promoted `DefaultAdminShell` from generated scaffold to real fallback shell implementation.
+- Added `DefaultAdminShell.metadata.ts` and exported it from the widget barrel.
+- Updated `render.tsx` so the non-workbench fallback path adapts `AdminPage` into typed `DefaultAdminShell` props.
+- Replaced generated DefaultAdminShell same-args stories with distinct main-only, side-surface, calendar, and mobile-side-column fixtures.
+- Validated with `cd web && npx tsc --noEmit`, `cd web && npx storybook build --quiet`, and `cd web && pnpm test -- --runInBand`.

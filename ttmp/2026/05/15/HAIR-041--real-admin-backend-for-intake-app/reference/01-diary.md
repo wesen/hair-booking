@@ -4193,3 +4193,76 @@ The playbook now states that generated stories are scenario plans, not finished 
 
 ### Technical details
 - The updated playbook now lists `npx storybook build --quiet` as a Storybook completion check.
+
+## Step 60: Extract DefaultAdminShell widget
+
+This step completes the remaining shell widget from `03-shell-widgets.yaml`. `DefaultAdminShell` is now promoted from generated scaffold to real implementation, and the non-workbench branch of `AdminPageRenderer` has been reduced to an adapter that renders main and side regions before passing typed props into the widget.
+
+This mirrors the WorkbenchShell pattern but for the fallback shell: `DefaultAdminShell` owns page chrome, coarse shell background, header, main column, optional side column, and widget-local responsive layout. `render.tsx` still owns raw Admin DSL JSON interpretation and child node rendering.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue."
+
+**Assistant interpretation:** Continue the in-progress work on the remaining shell widget in `03-shell-widgets.yaml`, after WorkbenchShell was extracted and the playbook was updated.
+
+**Inferred user intent:** The user wants the shell widget category completed using the new YAML-to-widget playbook: real implementation, metadata preservation, meaningful stories, validation, and commits.
+
+**Commit (code):** d0f9689 — "HAIR-041 Step 60: Extract DefaultAdminShell widget"
+
+### What I did
+- Replaced `DefaultAdminShell.tsx` scaffold diagnostics with a real fallback shell implementation extracted from the `AdminPageRenderer` fallback branch.
+- Added `DefaultAdminShell.metadata.ts` to preserve the schema-v2 IR context beside the implementation.
+- Updated `DefaultAdminShell/index.ts` to export the metadata sidecar.
+- Updated `render.tsx`:
+  - imported `DefaultAdminShell`;
+  - added `renderDefaultAdminShell(...)` adapter;
+  - changed the non-workbench fallback path to return the widget adapter.
+- Replaced generated same-args DefaultAdminShell stories with meaningful variants:
+  - `MainOnly`
+  - `WithSideSurfaces`
+  - `CalendarShell`
+  - `MobileSideColumn`
+- Validated with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && npx storybook build --quiet`
+  - `cd web && pnpm test -- --runInBand`
+- Related the changed files to the widget implementation playbook with `docmgr doc relate`.
+
+### Why
+- `03-shell-widgets.yaml` contains two shell widgets. WorkbenchShell was already promoted; DefaultAdminShell remained scaffold-only. Completing it finishes the shell category and proves both page-frame patterns can be moved out of the renderer.
+
+### What worked
+- TypeScript validation passed.
+- Storybook static build passed.
+- Vitest frontend suite passed: 10 files, 49 tests.
+- The fallback shell now has widget-local responsive CSS for its main/side layout, so isolated Storybook mobile stories do not depend on renderer-level CSS.
+
+### What didn't work
+- Attempting to relate files directly to `reference/01-diary.md` failed because the diary does not have docmgr YAML frontmatter:
+  - `Error: document has invalid frontmatter (fix before relating files): /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/01-diary.md: taxonomy: docmgr.frontmatter.parse/yaml_syntax: /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/01-diary.md frontmatter delimiters '---' not found`
+- I related the files to the frontmatter-valid widget implementation playbook instead.
+
+### What I learned
+- DefaultAdminShell is a cleaner extraction than WorkbenchShell because it has no action slots. The main correctness boundary is ensuring the widget receives already-rendered `main` and `side` React nodes rather than traversing Admin DSL nodes itself.
+
+### What was tricky to build
+- The non-workbench renderer still needs the legacy `responsiveCss` for child widgets that have not been extracted. I passed that style block as part of the rendered main region while moving the fallback shell's own responsive grid/side-column rules into `DefaultAdminShell.tsx`.
+
+### What warrants a second pair of eyes
+- Review whether passing `<style>{responsiveCss}</style>` inside the `main` slot is acceptable during migration, or whether `DefaultAdminShell` should accept a separate `legacyStyles` prop until child widget CSS is fully split.
+- Review whether the default shell should remain long-term or become only a compatibility shell once all admin pages use WorkbenchShell.
+
+### What should be done in the future
+- Start extracting action primitives next: `ActionButton` and `ActionGroup`.
+- Once more widgets own their responsive CSS, reduce `responsiveCss` in `render.tsx`.
+
+### Code review instructions
+- Start with `renderDefaultAdminShell(...)` in `web/src/admin-dsl/render.tsx`.
+- Then inspect `DefaultAdminShell.tsx` and verify it owns shell markup only, not raw Admin DSL parsing.
+- Review `DefaultAdminShell.stories.tsx` to confirm the stories use distinct fixtures.
+- Validate with the three commands listed above.
+
+### Technical details
+- `DefaultAdminShell` uses `shellKind === "calendar"` to preserve the old fallback branch's calendar background behavior.
+- The side region is rendered as an `aside` with `aria-label="Supplementary admin surfaces"`.
