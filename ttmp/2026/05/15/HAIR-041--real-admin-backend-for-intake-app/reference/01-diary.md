@@ -3780,3 +3780,67 @@ The regenerated output is intentionally richer than the previous placeholder sca
 
 ### Technical details
 - Generated files include provenance headers with generator path, generation timestamp, source YAML path, source YAML last commit, target previous commit, and widget id.
+
+## Step 52: Extract WorkbenchShell from the renderer into the generated widget boundary
+
+This step performs the first real renderer-to-widget refactor. The generated `WorkbenchShell` scaffold was not ready to be used directly because it only displayed IR diagnostics. I replaced that scaffold body with the actual workbench shell HTML/styles that previously lived inline in `render.tsx`, then changed `render.tsx` so it acts as an adapter from raw Admin DSL page JSON into typed `WorkbenchShell` props.
+
+The important architectural boundary is now visible in code: `render.tsx` still parses `page.shell.props.sidebar`, normalizes nav items, renders child Admin DSL nodes, and lowers sidebar callbacks back to `dispatchAdminAction`; `WorkbenchShell` owns the shell frame HTML, inline visual styles, sidebar/topbar/user footer, and layout slots.
+
+### Prompt Context
+
+**User prompt (verbatim):** "commit at appropriate intervals. Ok, now, can we refactor render.ts to use these new widgets? What would be necessary? where does the HTML + CSS for say, @hair-booking/web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.tsx come from?"
+
+**Assistant interpretation:** Explain the migration path and start the refactor with `WorkbenchShell` as the first widget, committing at a natural boundary.
+
+**Inferred user intent:** The user wants the generated widget files to become real component boundaries and wants clarity about how existing renderer-owned markup/styles migrate into those components.
+
+**Commit (code):** pending — WorkbenchShell extraction.
+
+### What I did
+- Replaced the generated placeholder body in `web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.tsx` with the real workbench shell markup and inline token styles extracted from `web/src/admin-dsl/render.tsx`.
+- Extended `WorkbenchShellProps` with renderer-adapter fields:
+  - `shellKind`
+  - `schemaVersion`
+  - `productMark`
+  - `contentMaxWidth`
+  - `onSidebarAction`
+  - `WorkbenchSidebarNavContext`
+- Updated `web/src/admin-dsl/render.tsx` to import the widget and normalize raw Admin DSL shell/sidebar props into typed widget props.
+- Preserved backend action trust boundary: `WorkbenchShell` invokes `onSidebarAction`; `render.tsx` lowers that callback to `dispatchAdminAction`.
+- Kept shared responsive CSS injection in `render.tsx` for now because that CSS still covers many non-shell renderer classes.
+
+### Why
+- The generated widgets should not remain disconnected scaffolds. Starting with the shell gives a safe first adapter boundary because it wraps rendered children without needing to rewrite every node kind.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed.
+- The `resourceTable` formatting-only diff that existed before this step was restored to avoid mixing unrelated changes into the shell extraction.
+
+### What didn't work
+- The generated WorkbenchShell scaffold could not be used as-is; it had intentionally diagnostic placeholder UI rather than production shell HTML.
+
+### What I learned
+- For existing widgets, the HTML/CSS source is the current `render.tsx` implementation plus design tokens, not the YAML alone. The YAML describes the contract and intent; the first real component implementation is an extraction/adaptation of already-working renderer code.
+
+### What was tricky to build
+- The widget should receive normalized `SidebarNavItem` values, but `dispatchAdminAction` still expects an Admin DSL action and payload. I preserved the raw sidebar item on the normalized item as `rawItem` and used it only in the adapter callback.
+- Responsive CSS is not fully widget-local yet. `responsiveCss` still includes workbench shell rules and rules for page header, dashboard grid, tables, panels, forms, and calendar widgets.
+
+### What warrants a second pair of eyes
+- Review whether `rawItem` on `SidebarNavItem` is acceptable as a temporary adapter escape hatch or whether render.ts should keep a side map instead.
+- Review whether WorkbenchShell should own a local CSS file/string in a follow-up, with `render.tsx` retaining only cross-node legacy responsive CSS until other widgets are extracted.
+
+### What should be done in the future
+- Extract the next low-risk widgets: `ActionButton`/`ActionGroup`, then `Panel`, then `PageHeader` and `DashboardGrid`.
+- Split `responsiveCss` into widget-local CSS as components are extracted.
+- Add Storybook coverage for the real `WorkbenchShell` implementation rather than just scaffold diagnostics.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/render.tsx`: inspect `renderWorkbenchShell` and confirm it is adapter-only.
+- Then inspect `web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.tsx`: confirm it owns shell HTML/styles but no raw Admin DSL parsing.
+- Validate with `cd web && npx tsc --noEmit`.
+
+### Technical details
+- The shell markup came from the previous inline `WorkbenchShell` function in `render.tsx`.
+- The responsive CSS currently remains in `render.tsx` and is injected as a child style element when rendering the workbench shell.

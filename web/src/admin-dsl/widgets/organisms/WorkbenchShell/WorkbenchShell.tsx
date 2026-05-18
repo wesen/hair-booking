@@ -5,153 +5,151 @@
  * Generated at: 2026-05-18T21:21:08+00:00
  * Source YAML: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/03-shell-widgets.yaml
  * Source YAML last commit: 8042b3e 2026-05-18T16:54:29-04:00 HAIR-041 Step 46: Specify widget IR YAML schema
- * Target file previous commit: dfc6ac6 2026-05-18T16:41:42-04:00 HAIR-041 Step 44: Scaffold Admin DSL widgets from IR
+ * Target file previous commit: baf8866 2026-05-18T17:23:13-04:00 HAIR-041 Step 50: Regenerate widget scaffolds from schema v2
  * Widget ID: admin.shell.workbench
  *
- * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
- * JSON decoding in adapters; generated widgets should receive typed props only.
+ * This file started as generated schema-v2 scaffold output. The visual shell
+ * implementation below was extracted from web/src/admin-dsl/render.tsx so the
+ * renderer can become an adapter instead of owning page-frame HTML.
  */
-import type * as React from "react";
-import type { ReactNode } from "react";
 import type { WorkbenchShellProps } from "./WorkbenchShell.types";
+import { color, font, radius, type } from "../../../../fringe-ui/tokens";
 
-const diagnostics = {
-  "widgetId": "admin.shell.workbench",
-  "purpose": "Render the information-dense admin workbench frame: persistent desktop sidebar, sticky mobile topbar, global admin background, content max width, page body region, and optional user identity footer.",
-  "adapterBoundary": "The Admin DSL adapter translates raw `page.shell.props.sidebar` into `SidebarNavProps`, binds each sidebar item action, and passes already-rendered page body children. WorkbenchShell must not parse raw `AdminPage` objects or inspect `AdminNode` values.",
-  "implementationNotes": [
-    "Desktop layout should show a persistent left sidebar and content region with dense workbench spacing.",
-    "Mobile layout should hide the desktop sidebar and expose a sticky topbar/menu affordance.",
-    "The user footer is optional and must collapse cleanly when absent.",
-    "Navigation actions may be frontend-local or backend-bound, but the widget only invokes `onSidebarAction`."
-  ],
-  "accessibilityNotes": [
-    "Sidebar nav must use a named `nav` region.",
-    "Active item should expose `aria-current=\"page\"`.",
-    "Mobile menu affordance needs keyboard and screen-reader behavior before production use."
-  ],
-  "actionSlots": {
-    "sidebarNav": {
-      "doc": "Navigation action slot for sidebar items. Actions are rendered in the frontend but may dispatch to the backend flow. The context must include both the clicked item and the active item id so handlers can update shell/page state deterministically.",
-      "callback": "onSidebarAction",
-      "action_type": "ActionViewModel",
-      "cardinality": "many",
-      "context_type": "WorkbenchSidebarNavContext",
-      "context": {
-        "item": {
-          "type": "SidebarNavItem",
-          "required": true,
-          "doc": "The clicked navigation item, including its id, label, icon, and normalized action metadata."
-        },
-        "activeItemId": {
-          "type": "string",
-          "required": false,
-          "doc": "The sidebar item id that was active before the click."
-        }
-      },
-      "lowering": {
-        "adapter": "dispatchAdminAction",
-        "note": "The adapter converts this typed callback into the current Admin DSL event dispatch shape. The widget should not call `dispatchAdminAction` directly."
-      }
-    }
-  },
-  "examples": {
-    "BasicWorkbench": {
-      "doc": "Demonstrates the intended adapter boundary. The caller passes normalized sidebar items, optional user identity, a sidebar action callback, and already-rendered child widgets. The example should not be copied into production with raw Admin DSL JSON parsing inside WorkbenchShell.",
-      "demonstrates": [
-        "Normalized sidebar props.",
-        "Optional user footer.",
-        "Child content slot populated by rendered widgets.",
-        "Sidebar action callback boundary."
-      ],
-      "code": "<WorkbenchShell\n  pageId=\"admin-intake\"\n  title=\"Fringe Admin\"\n  sidebar={{ activeItemId: \"requests\", items }}\n  user={{ name: \"Admin User\", role: \"Administrator\", initials: \"AD\" }}\n  onSidebarAction={handleSidebarAction}\n>\n  <PageHeader title=\"Request Triage\" />\n  <DashboardGrid>{/* panels */}</DashboardGrid>\n</WorkbenchShell>"
-    }
-  },
-  "implementationTodos": [
-    {
-      "id": "replace-placeholder",
-      "severity": "required",
-      "doc": "Replace generated scaffold placeholder with final visual implementation."
-    },
-    {
-      "id": "adapter-boundary",
-      "severity": "required",
-      "doc": "Keep raw Admin DSL JSON parsing in adapters, not in this widget."
-    },
-    {
-      "id": "mobile-navigation-a11y",
-      "severity": "required",
-      "doc": "Add keyboard and screen-reader behavior for mobile navigation before production use."
-    }
-  ],
-  "sourceMapping": {
-    "current_constructs": [
-      "shell.kind=admin",
-      "shell.props.variant=workbench"
-    ],
-    "current_files": [
-      {
-        "path": "web/src/admin-dsl/render.tsx",
-        "symbol": "WorkbenchShell",
-        "notes": "Current inline workbench shell implementation with desktop sidebar, mobile topbar, user footer, and content region."
-      },
-      {
-        "path": "web/src/admin-dsl/schema.ts",
-        "symbol": "AdminPage.shell",
-        "notes": "Current transport shape whose shell props must be adapted before reaching this widget."
-      }
-    ]
-  }
-} as const;
-
-/**
- * Scaffold for `WorkbenchShell`.
- *
- * Purpose: Render the information-dense admin workbench frame: persistent desktop sidebar, sticky mobile topbar, global admin background, content max width, page body region, and optional user identity footer.
- *
- * Adapter boundary: The Admin DSL adapter translates raw `page.shell.props.sidebar` into `SidebarNavProps`, binds each sidebar item action, and passes already-rendered page body children. WorkbenchShell must not parse raw `AdminPage` objects or inspect `AdminNode` values.
- */
-export function WorkbenchShell(props: WorkbenchShellProps) {
-  const scaffoldProps = props as WorkbenchShellProps & {
-    id?: string;
-    className?: string;
-    style?: React.CSSProperties;
-    dataAttributes?: Record<string, string | number | boolean>;
-    children?: ReactNode;
-    main?: ReactNode;
-    title?: string;
-    label?: string;
-    name?: string;
-    value?: unknown;
-  };
-  const heading = scaffoldProps.title || scaffoldProps.label || scaffoldProps.name || "WorkbenchShell";
-  const dataAttributes = Object.fromEntries(
-    Object.entries(scaffoldProps.dataAttributes ?? {}).map(([key, value]) => [`data-${key}`, String(value)]),
-  ) as Record<string, string>;
+export function WorkbenchShell({
+  pageId,
+  title,
+  shellKind = "admin",
+  schemaVersion = 2,
+  sidebar,
+  user,
+  children,
+  onSidebarAction,
+  productMark = "S",
+  contentMaxWidth = 1080,
+}: WorkbenchShellProps) {
+  const activeItem = sidebar.items.find((item) => item.id === sidebar.activeItemId);
+  const mobileLabel = activeItem?.label || title;
 
   return (
-    <section
-      id={scaffoldProps.id}
-      className={scaffoldProps.className}
-      data-admin-dsl-widget="WorkbenchShell"
-      data-admin-dsl-widget-id="admin.shell.workbench"
-      data-admin-dsl-widget-level="organism"
-      style={scaffoldProps.style}
-      {...dataAttributes}
+    <main
+      className="adminDslRoot adminDslWorkbenchRoot"
+      style={{ minHeight: "100vh", background: color.creamDeep, color: color.ink, fontFamily: font.sans }}
+      data-admin-dsl-page={pageId}
+      data-admin-dsl-shell={shellKind}
+      data-admin-dsl-schema-version={schemaVersion}
     >
-      <div style={{ border: "1px solid #dfd2bd", borderRadius: 12, padding: 12, background: "#fffaf0" }}>
-        <strong>{heading}</strong>
-        <p style={{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}>{diagnostics.purpose}</p>
-        {diagnostics.adapterBoundary ? (
-          <p style={{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}>Adapter: {diagnostics.adapterBoundary}</p>
-        ) : null}
-        <details style={{ marginTop: 10, fontSize: 12, color: "#6f6254" }}>
-          <summary>Widget IR diagnostics</summary>
-          <pre style={{ whiteSpace: "pre-wrap", margin: "8px 0 0" }}>{JSON.stringify(diagnostics, null, 2)}</pre>
-        </details>
+      <div
+        className="adminDslWorkbenchTopbar"
+        style={{
+          display: "none",
+          position: "sticky",
+          top: 0,
+          zIndex: 10,
+          borderBottom: `1px solid ${color.rule}`,
+          background: color.creamDeep,
+          padding: "10px 14px",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+        }}
+      >
+        <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
+          <span style={{ ...type.h2, fontSize: 24, lineHeight: 1 }}>{productMark}</span>
+          <span style={{ ...type.meta, color: color.softInk }}>{mobileLabel}</span>
+        </div>
+        <button
+          type="button"
+          aria-label="Open navigation"
+          style={{ border: `1px solid ${color.rule}`, background: color.paper, borderRadius: radius.md, padding: "7px 12px", ...type.meta }}
+        >
+          Menu
+        </button>
       </div>
-      {scaffoldProps.children ? <div style={{ marginTop: 12 }}>{scaffoldProps.children}</div> : null}
-      {scaffoldProps.main ? <div style={{ marginTop: 12 }}>{scaffoldProps.main}</div> : null}
-    </section>
+      <aside
+        className="adminDslWorkbenchSidebar"
+        style={{
+          position: "fixed",
+          inset: "0 auto 0 0",
+          width: 190,
+          borderRight: `1px solid ${color.rule}`,
+          background: "rgba(248, 239, 222, 0.72)",
+          padding: 18,
+          display: "grid",
+          gridTemplateRows: "auto 1fr auto",
+          gap: 18,
+        }}
+      >
+        <div style={{ ...type.h2, fontSize: 26, lineHeight: 1 }}>{productMark}</div>
+        <nav aria-label="Admin navigation" style={{ display: "grid", gap: 8, alignContent: "start" }}>
+          {sidebar.items.map((item) => {
+            const selected = item.id === sidebar.activeItemId;
+            return (
+              <button
+                key={item.id}
+                type="button"
+                aria-current={selected ? "page" : undefined}
+                disabled={!item.action}
+                onClick={() => item.action && onSidebarAction?.(item.action, { item, activeItemId: sidebar.activeItemId })}
+                style={{
+                  minHeight: 38,
+                  border: "none",
+                  borderRadius: radius.md,
+                  background: selected ? "rgba(18, 17, 16, 0.07)" : "transparent",
+                  color: color.ink,
+                  display: "grid",
+                  gridTemplateColumns: "22px 1fr",
+                  alignItems: "center",
+                  gap: 10,
+                  padding: "8px 10px",
+                  textAlign: "left",
+                  cursor: item.action ? "pointer" : "default",
+                  ...type.bodySm,
+                  fontWeight: selected ? 800 : 500,
+                }}
+              >
+                <span aria-hidden="true" style={{ color: color.softInk }}>
+                  {String(item.icon || "•").slice(0, 2)}
+                </span>
+                <span>{item.label}</span>
+              </button>
+            );
+          })}
+        </nav>
+        {user ? (
+          <div
+            style={{
+              borderTop: `1px solid ${color.rule}`,
+              paddingTop: 12,
+              display: "grid",
+              gridTemplateColumns: "32px 1fr",
+              gap: 10,
+              alignItems: "center",
+            }}
+          >
+            <div
+              style={{
+                width: 32,
+                height: 32,
+                borderRadius: radius.pill,
+                background: color.ink,
+                color: color.paper,
+                display: "grid",
+                placeItems: "center",
+                ...type.meta,
+              }}
+            >
+              {user.initials || "AD"}
+            </div>
+            <div>
+              <div style={{ ...type.bodySm, fontWeight: 800 }}>{user.name || "Admin User"}</div>
+              <div style={{ ...type.meta, color: color.softInk }}>{user.role || "Administrator"}</div>
+            </div>
+          </div>
+        ) : null}
+      </aside>
+      <section className="adminDslWorkbenchContent" style={{ marginLeft: 190, padding: 28 }}>
+        <div style={{ maxWidth: contentMaxWidth, margin: "0 auto", display: "grid", gap: 4 }}>{children}</div>
+      </section>
+    </main>
   );
 }

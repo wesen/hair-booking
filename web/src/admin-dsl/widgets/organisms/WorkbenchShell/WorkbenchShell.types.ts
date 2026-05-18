@@ -5,68 +5,63 @@
  * Generated at: 2026-05-18T21:21:08+00:00
  * Source YAML: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/03-shell-widgets.yaml
  * Source YAML last commit: 8042b3e 2026-05-18T16:54:29-04:00 HAIR-041 Step 46: Specify widget IR YAML schema
- * Target file previous commit: dfc6ac6 2026-05-18T16:41:42-04:00 HAIR-041 Step 44: Scaffold Admin DSL widgets from IR
+ * Target file previous commit: baf8866 2026-05-18T17:23:13-04:00 HAIR-041 Step 50: Regenerate widget scaffolds from schema v2
  * Widget ID: admin.shell.workbench
  *
- * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
- * JSON decoding in adapters; generated widgets should receive typed props only.
+ * This file started as generated schema-v2 scaffold output. The additional
+ * shell/action props are the renderer-adapter seam used by render.tsx.
  */
 import type * as React from "react";
-import type {
-  ActionViewModel,
-  CalendarCellActionHandler,
-  CommonWidgetProps,
-  FormActionHandler,
-  OverlaySurfaceKind,
-  PageActionHandler,
-  PanelActionHandler,
-  ResourceTableColumnKind,
-  SidebarNavItem,
-  SidebarNavProps,
-  TableBulkActionHandler,
-  TableRowActionHandler,
-} from "../../shared/types";
+import type { ActionViewModel, SidebarNavItem, SidebarNavProps } from "../../shared/types";
 
-/**
- * Props for the workbench shell organism. The shell receives already-normalized navigation, user identity, and page body content; it should not receive raw Admin DSL JSON or parse Admin DSL node props directly.
- */
-export interface WorkbenchShellProps {
-  /**
-   * Stable page identifier used for data attributes, traceability, screenshots, and shell-level action context.
-   */
-  pageId: string;
-  /**
-   * Human-readable page or product title used by shell chrome, mobile topbar labels, and accessibility context.
-   */
-  title: string;
-  /**
-   * Normalized sidebar navigation view model. The adapter should construct this from shell props and bind each nav item action before it reaches the widget.
-   */
-  sidebar: SidebarNavProps;
-  /**
-   * Optional signed-in admin identity shown in the desktop sidebar footer. Absence of this prop must not break layout or mobile chrome.
-   */
-  user?: WorkbenchUser;
-  /**
-   * Already-rendered page body content. WorkbenchShell owns page frame layout, not child node interpretation.
-   */
-  children: React.ReactNode;
+/** Context emitted when a workbench sidebar item is activated. */
+export interface WorkbenchSidebarNavContext {
+  /** The clicked navigation item, including normalized display data and action metadata. */
+  item: SidebarNavItem;
+  /** The active item id before the click. */
+  activeItemId?: string;
 }
 
 /**
- * Minimal display identity for the admin sidebar footer. This is presentation data, not an auth model.
+ * Props for the workbench shell organism. The shell receives already-normalized
+ * navigation, user identity, and page body content; it should not receive raw
+ * Admin DSL JSON or parse Admin DSL node props directly.
  */
+export interface WorkbenchShellProps {
+  /** Stable page identifier used for data attributes, traceability, screenshots, and shell-level action context. */
+  pageId: string;
+  /** Human-readable page or product title used by shell chrome, mobile topbar labels, and accessibility context. */
+  title: string;
+  /** Current Admin DSL shell kind, emitted as a data attribute for tests and screenshots. */
+  shellKind?: string;
+  /** Current Admin DSL schema version, emitted as a data attribute for tests and screenshots. */
+  schemaVersion?: number;
+  /** Compact product mark shown in desktop sidebar and mobile topbar. */
+  productMark?: string;
+  /** Max width for the content column inside the fixed workbench frame. */
+  contentMaxWidth?: number | string;
+  /**
+   * Normalized sidebar navigation view model. The adapter should construct this
+   * from shell props and bind each nav item action before it reaches the widget.
+   */
+  sidebar: SidebarNavProps;
+  /**
+   * Optional signed-in admin identity shown in the desktop sidebar footer.
+   * Absence of this prop must not break layout or mobile chrome.
+   */
+  user?: WorkbenchUser;
+  /** Already-rendered page body content. WorkbenchShell owns page frame layout, not child node interpretation. */
+  children: React.ReactNode;
+  /** Sidebar action callback. The render adapter lowers this to Admin DSL dispatch. */
+  onSidebarAction?: (action: ActionViewModel, context: WorkbenchSidebarNavContext) => void;
+}
+
+/** Minimal display identity for the admin sidebar footer. This is presentation data, not an auth model. */
 export interface WorkbenchUser {
-  /**
-   * Display name for the current admin user.
-   */
+  /** Display name for the current admin user. */
   name: string;
-  /**
-   * Optional role subtitle such as Administrator or Stylist Manager.
-   */
+  /** Optional role subtitle such as Administrator or Stylist Manager. */
   role?: string;
-  /**
-   * Optional compact avatar text. If absent, the implementation should derive or fall back gracefully.
-   */
+  /** Optional compact avatar text. If absent, the implementation should derive or fall back gracefully. */
   initials?: string;
 }

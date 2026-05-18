@@ -2,6 +2,8 @@ import type { CSSProperties, Key, ReactNode } from "react";
 import type { AdminActionRef, AdminJsonObject, AdminNode, AdminPage, AdminRenderContext } from "./schema";
 import { color, font, radius, shadow, type } from "../fringe-ui/tokens";
 import { AdminCalendarWeek } from "./calendar";
+import { WorkbenchShell as WorkbenchShellWidget } from "./widgets/organisms/WorkbenchShell";
+import type { ActionViewModel, SidebarNavItem } from "./widgets/shared";
 
 import { actionIsDanger, actionIsPrimary, actionKey, actionList, dispatchAdminAction, isActionRef } from "./actions";
 import { bool, dataAttrs, jsonArray, jsonObject, nodeKey, str, style, toneColor } from "./renderUtils";
@@ -502,36 +504,49 @@ function FieldPreview({ node }: { node: AdminNode }) {
   );
 }
 
-function WorkbenchShell({ page, context }: { page: AdminPage; context?: AdminRenderContext }) {
+function actionViewModel(action: AdminActionRef): ActionViewModel {
+  return { ...action, label: action.label || action.target } as ActionViewModel;
+}
+
+function renderWorkbenchShell({ page, context }: { page: AdminPage; context?: AdminRenderContext }) {
   const shellProps = page.shell.props || {};
   const sidebar = jsonObject(shellProps, "sidebar");
   const items = jsonArray<AdminJsonObject>(sidebar, "items");
   const active = String(sidebar?.active || "");
   const user = jsonObject(sidebar, "user");
   const navNode: AdminNode = { kind: "toolbar", props: { id: "workbench-sidebar" }, meta: { id: "workbench-sidebar" } };
+  const sidebarItems: SidebarNavItem[] = items.map((item) => {
+    const id = String(item.id || item.label || "");
+    const itemAction = isActionRef(item.action) ? actionViewModel(item.action) : undefined;
+    return {
+      id,
+      label: String(item.label || id),
+      icon: item.icon == null ? undefined : String(item.icon),
+      action: itemAction,
+      rawItem: item,
+    };
+  });
+
   return (
-    <main className="adminDslRoot adminDslWorkbenchRoot" style={{ minHeight: "100vh", background: color.creamDeep, color: color.ink, fontFamily: font.sans }} data-admin-dsl-page={page.id} data-admin-dsl-shell={page.shell.kind} data-admin-dsl-schema-version={page.schemaVersion}>
+    <WorkbenchShellWidget
+      pageId={page.id}
+      title={page.title}
+      shellKind={page.shell.kind}
+      schemaVersion={page.schemaVersion}
+      sidebar={{ activeItemId: active, items: sidebarItems }}
+      user={user ? {
+        name: String(user.name || "Admin User"),
+        role: String(user.role || "Administrator"),
+        initials: String(user.initials || "AD"),
+      } : undefined}
+      onSidebarAction={(action, actionContext) => {
+        const rawItem = (actionContext.item as SidebarNavItem & { rawItem?: unknown }).rawItem;
+        dispatchAdminAction(context, navNode, action as AdminActionRef, rawItem ?? actionContext.item);
+      }}
+    >
       <style>{responsiveCss}</style>
-      <div className="adminDslWorkbenchTopbar" style={{ display: "none", position: "sticky", top: 0, zIndex: 10, borderBottom: `1px solid ${color.rule}`, background: color.creamDeep, padding: "10px 14px", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
-        <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}><span style={{ ...type.h2, fontSize: 24, lineHeight: 1 }}>S</span><span style={{ ...type.meta, color: color.softInk }}>{String(sidebar?.active || page.title)}</span></div>
-        <button type="button" aria-label="Open navigation" style={{ border: `1px solid ${color.rule}`, background: color.paper, borderRadius: radius.md, padding: "7px 12px", ...type.meta }}>Menu</button>
-      </div>
-      <aside className="adminDslWorkbenchSidebar" style={{ position: "fixed", inset: "0 auto 0 0", width: 190, borderRight: `1px solid ${color.rule}`, background: "rgba(248, 239, 222, 0.72)", padding: 18, display: "grid", gridTemplateRows: "auto 1fr auto", gap: 18 }}>
-        <div style={{ ...type.h2, fontSize: 26, lineHeight: 1 }}>S</div>
-        <nav aria-label="Admin navigation" style={{ display: "grid", gap: 8, alignContent: "start" }}>
-          {items.map((item) => {
-            const id = String(item.id || item.label || "");
-            const itemAction = isActionRef(item.action) ? item.action : undefined;
-            const selected = id === active;
-            return <button key={id} type="button" aria-current={selected ? "page" : undefined} disabled={!itemAction} onClick={() => itemAction && dispatchAdminAction(context, navNode, itemAction, item)} style={{ minHeight: 38, border: "none", borderRadius: radius.md, background: selected ? "rgba(18, 17, 16, 0.07)" : "transparent", color: color.ink, display: "grid", gridTemplateColumns: "22px 1fr", alignItems: "center", gap: 10, padding: "8px 10px", textAlign: "left", cursor: itemAction ? "pointer" : "default", ...type.bodySm, fontWeight: selected ? 800 : 500 }}><span aria-hidden="true" style={{ color: color.softInk }}>{String(item.icon || "•").slice(0, 2)}</span><span>{String(item.label || id)}</span></button>;
-          })}
-        </nav>
-        {user && <div style={{ borderTop: `1px solid ${color.rule}`, paddingTop: 12, display: "grid", gridTemplateColumns: "32px 1fr", gap: 10, alignItems: "center" }}><div style={{ width: 32, height: 32, borderRadius: radius.pill, background: color.ink, color: color.paper, display: "grid", placeItems: "center", ...type.meta }}>{String(user.initials || "AD")}</div><div><div style={{ ...type.bodySm, fontWeight: 800 }}>{String(user.name || "Admin User")}</div><div style={{ ...type.meta, color: color.softInk }}>{String(user.role || "Administrator")}</div></div></div>}
-      </aside>
-      <section className="adminDslWorkbenchContent" style={{ marginLeft: 190, padding: 28 }}>
-        <div style={{ maxWidth: 1080, margin: "0 auto", display: "grid", gap: 4 }}>{page.nodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}</div>
-      </section>
-    </main>
+      {page.nodes.map((node, i) => renderAdminNode(node, context, nodeKey(node, i)))}
+    </WorkbenchShellWidget>
   );
 }
 
@@ -592,7 +607,7 @@ export function AdminPageRenderer({ page, context }: { page: AdminPage; context?
   const shell = page.shell.kind;
   const sideNodes = [...(page.drawers || []), ...(page.modals || [])];
   if (shell === "admin" && str(page.shell.props, "variant") === "workbench") {
-    return <WorkbenchShell page={page} context={context} />;
+    return renderWorkbenchShell({ page, context });
   }
 
   return (

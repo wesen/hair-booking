@@ -408,3 +408,9 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Generated TypeScript prop contracts from `contract.props` instead of old raw prop snippets.
 - Generated component scaffolds and Storybook stories from `intent`, `contract.action_slots`, `examples`, `stories`, and `outputs`.
 - Regenerated widget scaffold files under `web/src/admin-dsl/widgets/` and validated them with `cd web && npx tsc --noEmit`.
+
+## 2026-05-18 — Extract WorkbenchShell widget from renderer
+
+- Replaced the generated WorkbenchShell scaffold body with the real shell frame markup/styles extracted from `web/src/admin-dsl/render.tsx`.
+- Updated `render.tsx` so workbench rendering adapts Admin DSL page/sidebar JSON into typed `WorkbenchShell` props and lowers sidebar callbacks back to `dispatchAdminAction`.
+- Validated the extraction with `cd web && npx tsc --noEmit`.
