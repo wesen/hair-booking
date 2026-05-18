@@ -15,7 +15,8 @@
  */
 import { defaultAdminShellWidgetMetadata } from "./DefaultAdminShell.metadata";
 import type { DefaultAdminShellProps } from "./DefaultAdminShell.types";
-import { color, font, type } from "../../../../fringe-ui/tokens";
+import { color, type } from "../../../../fringe-ui/tokens";
+import { adminPageRootStyle, adminShellGridStyle, widgetDataAttributes } from "../../shared";
 
 const defaultAdminShellCss = `
   .adminDslDefaultRoot { box-sizing: border-box; }
@@ -48,27 +49,15 @@ export function DefaultAdminShell({
   return (
     <main
       className="adminDslRoot adminDslDefaultRoot"
-      style={{
-        minHeight: "100vh",
-        background: shellKind === "calendar" ? color.cream : color.creamDeep,
-        color: color.ink,
-        fontFamily: font.sans,
-        padding: 24,
-      }}
+      style={{ ...adminPageRootStyle({ shellKind }), padding: 24 }}
       data-admin-dsl-page={pageId}
       data-admin-dsl-shell={shellKind}
-      data-admin-dsl-widget-id={defaultAdminShellWidgetMetadata.widgetId}
+      {...widgetDataAttributes(defaultAdminShellWidgetMetadata.widgetId)}
     >
       <style>{defaultAdminShellCss}</style>
       <div
         className="adminDslGrid adminDslDefaultGrid"
-        style={{
-          maxWidth: 1180,
-          margin: "0 auto",
-          display: "grid",
-          ["--admin-dsl-grid-columns" as string]: hasSide ? "minmax(0, 1fr) 340px" : "1fr",
-          gap: 20,
-        }}
+        style={adminShellGridStyle({ hasSide })}
       >
         <section style={{ minWidth: 0 }} aria-labelledby={`${pageId}-title`}>
           <header style={{ marginBottom: 24 }}>

@@ -16,23 +16,12 @@ import type { CSSProperties } from "react";
 import { ActionButton } from "../../atoms/ActionButton";
 import { actionGroupWidgetMetadata } from "./ActionGroup.metadata";
 import type { ActionGroupProps } from "./ActionGroup.types";
+import { adminActionRowStyle, actionPlacementDefaults, dataAttrsFromRecord, widgetDataAttributes } from "../../shared";
 
 function justifyForAlign(align: ActionGroupProps["align"]): CSSProperties["justifyContent"] {
   if (align === "end") return "flex-end";
   if (align === "between") return "space-between";
   return "flex-start";
-}
-
-function sizeForSlot(slot: ActionGroupProps["slot"]): "sm" | "md" | "touch" {
-  if (slot === "row" || slot === "rowOverflow" || slot === "panelFooter" || slot === "formFooter") return "sm";
-  if (slot === "sidebarNav" || slot === "bulkToolbar") return "touch";
-  return "md";
-}
-
-function variantForSlot(slot: ActionGroupProps["slot"]): "solid" | "soft" | "subtle" | "danger" | "overflow" | undefined {
-  if (slot === "rowOverflow" || slot === "overflow") return "overflow";
-  if (slot === "row" || slot === "panelFooter" || slot === "detail") return "subtle";
-  return undefined;
 }
 
 export function ActionGroup<C = unknown>({
@@ -47,24 +36,17 @@ export function ActionGroup<C = unknown>({
   onAction,
 }: ActionGroupProps<C>) {
   if (!actions.length) return null;
-  const dataAttrs = Object.fromEntries(
-    Object.entries(dataAttributes ?? {}).map(([key, value]) => [`data-${key}`, String(value)]),
-  ) as Record<string, string>;
-  const variant = variantForSlot(slot);
-  const size = sizeForSlot(slot);
+  const dataAttrs = dataAttrsFromRecord(dataAttributes);
+  const defaults = actionPlacementDefaults[slot] ?? actionPlacementDefaults.toolbar;
 
   return (
     <div
       id={id}
       className={["adminDslActions", className].filter(Boolean).join(" ") || undefined}
-      data-admin-dsl-widget-id={actionGroupWidgetMetadata.widgetId}
+      {...widgetDataAttributes(actionGroupWidgetMetadata.widgetId)}
       data-admin-dsl-action-slot={slot}
       style={{
-        display: "flex",
-        gap: slot === "row" || slot === "rowOverflow" ? 6 : 8,
-        flexWrap: "wrap",
-        alignItems: "center",
-        justifyContent: justifyForAlign(align),
+        ...adminActionRowStyle({ gap: slot === "row" || slot === "rowOverflow" ? 6 : 8, justifyContent: justifyForAlign(align) }),
         ...style,
       }}
       {...dataAttrs}
@@ -74,8 +56,8 @@ export function ActionGroup<C = unknown>({
           key={action.id || `${action.type}:${action.target}:${index}`}
           action={action}
           context={context as C}
-          variant={variant}
-          size={size}
+          variant={defaults.defaultVariant}
+          size={defaults.defaultSize}
           onAction={onAction}
         />
       ))}

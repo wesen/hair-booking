@@ -14,6 +14,8 @@
 import type * as React from "react";
 import type {
   ActionViewModel,
+  AdminActionSize,
+  AdminActionVariant,
   CalendarCellActionHandler,
   CommonWidgetProps,
   FormActionHandler,
@@ -42,11 +44,11 @@ export interface ActionButtonProps<C = unknown> extends CommonWidgetProps {
   /**
    * Visual variant for ActionButton; this should select a design-system treatment without changing action semantics.
    */
-  variant?: "solid" | "soft" | "subtle" | "danger" | "overflow";
+  variant?: AdminActionVariant;
   /**
    * Size/touch-target variant for ActionButton. Mobile stories should verify minimum usable targets.
    */
-  size?: "sm" | "md" | "touch";
+  size?: AdminActionSize;
   /**
    * Callback invoked by ActionButton with action metadata and typed context.
    */

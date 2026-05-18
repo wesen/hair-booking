@@ -15,6 +15,7 @@
 import type { WorkbenchShellProps } from "./WorkbenchShell.types";
 import { workbenchShellWidgetMetadata } from "./WorkbenchShell.metadata";
 import { color, font, radius, type } from "../../../../fringe-ui/tokens";
+import { adminPageRootStyle, shellMenuButtonStyle, sidebarNavButtonStyle, widgetDataAttributes } from "../../shared";
 
 const workbenchShellCss = `
   @media (max-width: 860px) {
@@ -42,11 +43,11 @@ export function WorkbenchShell({
   return (
     <main
       className="adminDslRoot adminDslWorkbenchRoot"
-      style={{ minHeight: "100vh", background: color.creamDeep, color: color.ink, fontFamily: font.sans }}
+      style={adminPageRootStyle({ shellKind: "admin" })}
       data-admin-dsl-page={pageId}
       data-admin-dsl-shell={shellKind}
       data-admin-dsl-schema-version={schemaVersion}
-      data-admin-dsl-widget-id={workbenchShellWidgetMetadata.widgetId}
+      {...widgetDataAttributes(workbenchShellWidgetMetadata.widgetId)}
     >
       <style>{workbenchShellCss}</style>
       <div
@@ -71,7 +72,7 @@ export function WorkbenchShell({
         <button
           type="button"
           aria-label="Open navigation"
-          style={{ border: `1px solid ${color.rule}`, background: color.paper, borderRadius: radius.md, padding: "7px 12px", ...type.meta }}
+          style={shellMenuButtonStyle()}
         >
           Menu
         </button>
@@ -101,22 +102,7 @@ export function WorkbenchShell({
                 aria-current={selected ? "page" : undefined}
                 disabled={!item.action}
                 onClick={() => item.action && onSidebarAction?.(item.action, { item, activeItemId: sidebar.activeItemId })}
-                style={{
-                  minHeight: 38,
-                  border: "none",
-                  borderRadius: radius.md,
-                  background: selected ? "rgba(18, 17, 16, 0.07)" : "transparent",
-                  color: color.ink,
-                  display: "grid",
-                  gridTemplateColumns: "22px 1fr",
-                  alignItems: "center",
-                  gap: 10,
-                  padding: "8px 10px",
-                  textAlign: "left",
-                  cursor: item.action ? "pointer" : "default",
-                  ...type.bodySm,
-                  fontWeight: selected ? 800 : 500,
-                }}
+                style={sidebarNavButtonStyle({ active: selected, disabled: !item.action })}
               >
                 <span aria-hidden="true" style={{ color: color.softInk }}>
                   {String(item.icon || "•").slice(0, 2)}

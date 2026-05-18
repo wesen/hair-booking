@@ -12,62 +12,9 @@
  * implementation below was extracted from renderActions in web/src/admin-dsl/render.tsx
  * so action styling can be shared by renderer adapters and standalone widgets.
  */
-import type { CSSProperties } from "react";
 import { actionButtonWidgetMetadata } from "./ActionButton.metadata";
 import type { ActionButtonProps } from "./ActionButton.types";
-import { color, font, radius, shadow } from "../../../../fringe-ui/tokens";
-
-function actionString(action: { [key: string]: unknown }, key: string): string | undefined {
-  const value = action[key];
-  return typeof value === "string" ? value : undefined;
-}
-
-function actionBool(action: { [key: string]: unknown }, key: string): boolean {
-  return action[key] === true;
-}
-
-function inferVariant(action: { [key: string]: unknown }, explicit: ActionButtonProps["variant"]): NonNullable<ActionButtonProps["variant"]> {
-  if (explicit) return explicit;
-  if (actionString(action, "intent") === "danger") return "danger";
-  if (actionString(action, "priority") === "primary" || actionString(action, "intent") === "primary") return "solid";
-  const placement = actionString(action, "placement");
-  const presentation = actionString(action, "presentation");
-  if (presentation === "overflow" || placement === "rowOverflow") return "overflow";
-  if (presentation === "link" || placement === "row" || placement === "panelFooter" || placement === "formFooter") return "subtle";
-  return "soft";
-}
-
-function buttonStyle(variant: NonNullable<ActionButtonProps["variant"]>, size: ActionButtonProps["size"], disabled: boolean, loading: boolean, placement?: string): CSSProperties {
-  const touch = size === "touch";
-  const compact = size === "sm";
-  const subtle = variant === "subtle" || variant === "overflow";
-  const formPrimary = variant === "solid" && placement === "formFooter";
-  const solid = variant === "solid" && !formPrimary;
-  const danger = variant === "danger";
-
-  return {
-    minHeight: touch ? 44 : subtle ? 32 : compact ? 34 : 38,
-    minWidth: variant === "overflow" ? 32 : undefined,
-    border: subtle ? "1px solid transparent" : `1px solid ${danger ? color.danger : solid ? color.ink : color.rule}`,
-    background: disabled ? color.ruleSoft : subtle ? "transparent" : solid ? color.ink : formPrimary ? color.cream : color.paper,
-    color: disabled ? color.soft : solid ? color.paper : danger ? color.danger : subtle ? color.plum : color.ink,
-    borderRadius: radius.md,
-    padding: variant === "overflow" ? "6px 8px" : subtle ? "6px 8px" : compact ? "7px 10px" : "8px 12px",
-    fontFamily: subtle ? font.sans : font.mono,
-    fontSize: subtle ? 13 : 11,
-    letterSpacing: subtle ? 0 : 0.6,
-    textTransform: subtle ? "none" : "uppercase",
-    cursor: disabled || loading ? "not-allowed" : "pointer",
-    opacity: loading ? 0.72 : 1,
-    boxShadow: solid ? shadow.sm : "none",
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 4,
-    lineHeight: 1.15,
-    fontWeight: subtle ? 500 : 700,
-  };
-}
+import { actionButtonStyle, actionDataAttributes, dataAttrsFromRecord, inferActionSize, inferActionVariant, widgetDataAttributes } from "../../shared";
 
 export function ActionButton<C = unknown>({
   id,
@@ -80,15 +27,13 @@ export function ActionButton<C = unknown>({
   size = "md",
   onAction,
 }: ActionButtonProps<C>) {
-  const actionRecord = action as { [key: string]: unknown };
-  const disabled = Boolean(action.disabled) || actionBool(actionRecord, "disabled");
-  const loading = Boolean(action.loading) || actionBool(actionRecord, "loading");
-  const placement = actionString(actionRecord, "placement");
-  const variant = inferVariant(actionRecord, explicitVariant);
+  const disabled = Boolean(action.disabled);
+  const loading = Boolean(action.loading);
+  const placement = typeof action.placement === "string" ? action.placement : undefined;
+  const variant = inferActionVariant(action, explicitVariant);
+  const actionSize = inferActionSize(action, size);
   const label = loading ? "Working…" : action.label || action.target;
-  const dataAttrs = Object.fromEntries(
-    Object.entries(dataAttributes ?? {}).map(([key, value]) => [`data-${key}`, String(value)]),
-  ) as Record<string, string>;
+  const dataAttrs = dataAttrsFromRecord(dataAttributes);
 
   return (
     <button
@@ -98,17 +43,14 @@ export function ActionButton<C = unknown>({
       disabled={disabled || loading}
       aria-label={action.accessibilityLabel || action.label || action.target}
       aria-busy={loading || undefined}
-      data-admin-dsl-widget-id={actionButtonWidgetMetadata.widgetId}
-      data-admin-dsl-action-intent={actionString(actionRecord, "intent")}
-      data-admin-dsl-action-priority={actionString(actionRecord, "priority")}
-      data-admin-dsl-action-placement={placement}
-      data-admin-dsl-action-confirm={actionBool(actionRecord, "requiresConfirmation") || undefined}
+      {...widgetDataAttributes(actionButtonWidgetMetadata.widgetId)}
+      {...actionDataAttributes(action)}
       onClick={(event) => {
         if (disabled || loading) return;
         const formValues = event.currentTarget.form ? Object.fromEntries(new FormData(event.currentTarget.form).entries()) : undefined;
         onAction?.(action, (formValues ?? context) as C);
       }}
-      style={{ ...buttonStyle(variant, size, disabled, loading, placement), ...style }}
+      style={{ ...actionButtonStyle({ variant, size: actionSize, disabled, loading }), ...style }}
       {...dataAttrs}
     >
       {variant === "overflow" ? <span aria-hidden="true">…</span> : label}
