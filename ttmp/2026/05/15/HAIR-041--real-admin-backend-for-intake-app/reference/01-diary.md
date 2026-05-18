@@ -4436,3 +4436,148 @@ This step promotes the core action widgets from scaffolds into real components a
 
 ### Technical details
 - Storybook build still emits the usual large-chunk warning; it does not fail the build.
+
+## Step 66: Generate Admin DSL design-language helpers from YAML
+
+This step adds the first design-language IR artifact for Admin DSL widgets. The goal is to move shared visual decisions out of individual promoted widgets and into a script-readable YAML source that can generate stable TypeScript helper modules.
+
+The generated helper set now centralizes token aliases, action variant/default mapping, shared layout helpers, typography roles, and data attribute helpers. This creates a narrower place to review visual semantics before future widget extractions reuse them.
+
+### Prompt Context
+
+**User prompt (verbatim):** (compacted prior turn; exact original prompt text is not available in the active context. The compacted summary states the user asked to create a YAML source for design tokens, create a codegen script, update shells/buttons to use generated tokens, and ensure the button types are visually consistent.)
+
+**Assistant interpretation:** Add a design-language YAML source plus a generator that produces shared Admin DSL widget design helpers.
+
+**Inferred user intent:** Prevent extracted widgets from drifting visually by making token/action/layout conventions explicit and generated.
+
+**Commit (code):** 9a1f847 — "HAIR-041 Step 66: Add design language IR generator"
+
+### What I did
+- Added `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/15-design-language.yaml`.
+- Added `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py`.
+- Generated shared Admin DSL widget helper files under `web/src/admin-dsl/widgets/shared/`:
+  - `types.ts`
+  - `designTokens.ts`
+  - `actionStyles.ts`
+  - `layoutStyles.ts`
+  - `typography.ts`
+  - `dataAttributes.ts`
+  - `index.ts`
+- Validated with:
+  - `python3 -m py_compile ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py --dry-run`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py`
+  - `cd web && npx tsc --noEmit`
+
+### Why
+- The widget extraction effort had already moved shell and action styling into separate components. A generated design-language layer gives those components a shared vocabulary before more widgets are promoted.
+
+### What worked
+- The generator produced the expected shared files.
+- TypeScript validation passed after generation.
+- The generated helpers expose action placement defaults, button style inference, shell/nav control helpers, layout helpers, widget data attributes, and action data attributes.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The design-language IR is a better home for semantic choices such as `formFooter` using `formPrimary` and `rowOverflow` using `overflow`; those rules should not be reimplemented inside each widget.
+
+### What was tricky to build
+- The generator had to preserve a plain TypeScript output shape while still letting YAML reference existing `fringe-ui/tokens` symbols like `color.ink`, `font.sans`, `radius.md`, and `type.bodySm`. I handled this by translating known token-reference strings into expressions and ordinary strings/numbers into literals.
+
+### What warrants a second pair of eyes
+- Review whether `formPrimary` should remain a distinct generated action variant or whether form footer primary treatment should be represented as `solid` plus placement-specific styling.
+- Review whether generated shared `types.ts` should be owned by the design-language generator or remain owned by the widget scaffold generator to avoid generator overlap.
+
+### What should be done in the future
+- Add a freshness checker or manifest so generated design-language files can be compared against `15-design-language.yaml`.
+- Expand the design-language IR only when a promoted widget needs a shared convention, not as speculative taxonomy.
+
+### Code review instructions
+- Start with `15-design-language.yaml` to review the semantic contract.
+- Then review `06-generate-admin-dsl-design-language.py` and generated `actionStyles.ts`.
+- Validate by running `python3 .../06-generate-admin-dsl-design-language.py` and `cd web && npx tsc --noEmit`.
+
+### Technical details
+- The generator records provenance headers with generator path, generation time, source YAML path, source YAML last commit, and target previous commit.
+
+## Step 67: Refactor promoted widgets onto generated design helpers
+
+This step wires the generated design-language helpers into the real promoted widgets. `ActionButton`, `ActionGroup`, `WorkbenchShell`, and `DefaultAdminShell` now consume shared action/layout/data-attribute helpers instead of each carrying duplicate local style logic.
+
+This keeps the two button-like surfaces aligned: Admin action buttons use generated action variant/size inference, while shell navigation/menu controls use generated shell/nav helper styles derived from the same token vocabulary.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue, keep a diary as you work."
+
+**Assistant interpretation:** Continue the design-language implementation and update the diary while making code changes.
+
+**Inferred user intent:** Keep implementation and historical documentation synchronized, instead of leaving diary/changelog work until much later.
+
+**User prompt (verbatim):** "read the diary skill lol?"
+
+**Assistant interpretation:** Re-read the diary skill/reference and follow the strict diary format while continuing.
+
+**Inferred user intent:** Ensure diary updates include the required prose, prompt context, failures, review notes, and validation details.
+
+**Commit (code):** 4bf24e9 — "HAIR-041 Step 67: Use design language helpers in widgets"
+
+### What I did
+- Read `/home/manuel/.pi/agent/skills/diary/references/diary.md` after the user called out the diary workflow.
+- Updated `ActionButton.tsx` to use generated helpers:
+  - `inferActionVariant(...)`
+  - `inferActionSize(...)`
+  - `actionButtonStyle(...)`
+  - `actionDataAttributes(...)`
+  - `dataAttrsFromRecord(...)`
+  - `widgetDataAttributes(...)`
+- Updated `ActionButton.types.ts` to use generated `AdminActionVariant` and `AdminActionSize` types.
+- Updated `ActionGroup.tsx` to use generated action placement defaults and shared action-row styling.
+- Updated `WorkbenchShell.tsx` to use generated page-root, menu-button, sidebar-nav-button, and widget data-attribute helpers.
+- Updated `DefaultAdminShell.tsx` to use generated page-root, shell-grid, and widget data-attribute helpers.
+- Validated with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+  - `cd web && npx storybook build --quiet`
+
+### Why
+- The generated design-language files were useful only after promoted widgets consumed them. This refactor removes duplicated style inference and makes future button/shell consistency changes happen in one generated helper layer.
+
+### What worked
+- TypeScript validation passed.
+- Vitest passed: 10 files, 49 tests.
+- Storybook static build passed.
+- The widget diff removed more local styling code than it added.
+
+### What didn't work
+- The first `cd web && npx tsc --noEmit` after wiring `ActionGroup` failed with:
+  - `src/admin-dsl/widgets/molecules/ActionGroup/ActionGroup.tsx(59,11): error TS2322: Type '"overflow" | "formPrimary" | "soft" | "subtle"' is not assignable to type '"danger" | "overflow" | "solid" | "soft" | "subtle" | undefined'.`
+  - `Type '"formPrimary"' is not assignable to type '"danger" | "overflow" | "solid" | "soft" | "subtle" | undefined'.`
+- I fixed this by changing `ActionButtonProps.variant` from a hand-coded union to the generated `AdminActionVariant` type, and `ActionButtonProps.size` to generated `AdminActionSize`.
+
+### What I learned
+- The first consumer of a generated semantic variant is where stale handwritten prop unions show up. Widget prop types should import generated semantic types when the design-language IR owns the vocabulary.
+
+### What was tricky to build
+- `ActionGroup` applies slot defaults, while `ActionButton` also infers action variants from action metadata. The safe handoff is: group supplies placement defaults as props, button still owns final rendering and disabled/loading behavior.
+- Shell controls are button-like but not all are Admin DSL actions. I reused generated shell/nav helpers rather than forcing sidebar navigation through `ActionButton`, preserving the earlier boundary between action controls and structural shell controls.
+
+### What warrants a second pair of eyes
+- Review visual parity between `ActionButton` and shell menu/sidebar buttons, especially hover/focus affordances once those states are added.
+- Review whether `ActionGroup` should pass explicit variants for every slot or allow `ActionButton` to infer from action placement when action metadata already includes placement.
+- Review `dataAttrsFromRecord(...)`; it preserves the previous `data-${key}` behavior, but callers must avoid passing keys already prefixed with `data-`.
+
+### What should be done in the future
+- Add focused unit tests for `inferActionVariant`, `inferActionSize`, and `actionPlacementDefaults` once action styling grows further.
+- Consider adding generated focus/hover state helpers so keyboard-visible affordances are also centralized.
+
+### Code review instructions
+- Review `web/src/admin-dsl/widgets/shared/actionStyles.ts` first, then `ActionButton.tsx` and `ActionGroup.tsx`.
+- Review shell helper usage in `WorkbenchShell.tsx` and `DefaultAdminShell.tsx`.
+- Validate with `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet`.
+
+### Technical details
+- Storybook build still emits the known large-chunk warning; it does not fail the build.

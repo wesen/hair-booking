@@ -457,3 +457,16 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Updated `render.tsx` so `renderActions(...)` delegates visual rendering to `ActionGroup` while keeping backend dispatch in the renderer adapter.
 - Hardened ActionButton and ActionGroup stories with distinct action states, mobile/wrapping scenarios, and callback probes.
 - Validated with `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet`.
+
+## 2026-05-18
+
+Step 66-67: Added Admin DSL design-language IR/generator and refactored promoted shell/action widgets to consume generated helpers (commits 9a1f847, 4bf24e9).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py — Design-language generator
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/15-design-language.yaml — Design-language IR source
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.tsx — Action button design helper consumer
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/ActionGroup/ActionGroup.tsx — Action group design helper consumer
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/shared/actionStyles.ts — Generated action style helpers
+

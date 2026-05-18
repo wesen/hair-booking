@@ -19,8 +19,12 @@ RelatedFiles:
       Note: |-
         Schema-v2 scaffold generator used to create widget files from YAML
         Schema-v2 scaffold generator
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py
+      Note: Generator for Admin DSL design-language helper outputs (commit 9a1f847)
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/03-shell-widgets.yaml
       Note: Rich schema-v2 Widget Definition IR reference file
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/15-design-language.yaml
+      Note: Design-language IR source for generated widget helpers (commit 9a1f847)
     - Path: web/src/admin-dsl/render.tsx
       Note: |-
         Current renderer adapter and source of existing inline widget implementations
@@ -30,29 +34,40 @@ RelatedFiles:
     - Path: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.stories.tsx
       Note: Hardened ActionButton Storybook variants
     - Path: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.tsx
-      Note: Action button implementation promoted from scaffold
+      Note: |-
+        Action button implementation promoted from scaffold
+        Promoted action button now delegates visual semantics to generated design-language helpers (commit 4bf24e9)
     - Path: web/src/admin-dsl/widgets/molecules/ActionGroup/ActionGroup.stories.tsx
       Note: Hardened ActionGroup Storybook variants
     - Path: web/src/admin-dsl/widgets/molecules/ActionGroup/ActionGroup.tsx
-      Note: Action group implementation composing ActionButton
+      Note: |-
+        Action group implementation composing ActionButton
+        Action slot grouping now uses generated placement defaults and layout helper (commit 4bf24e9)
     - Path: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.metadata.ts
       Note: Default shell metadata sidecar preserving IR intent
     - Path: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.stories.tsx
       Note: Hardened default shell Storybook variants
     - Path: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.tsx
-      Note: Default shell implementation promoted from scaffold
+      Note: |-
+        Default shell implementation promoted from scaffold
+        Default shell now uses generated page-root and grid helpers (commit 4bf24e9)
     - Path: web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.metadata.ts
       Note: |-
         First metadata sidecar preserving Widget IR intent beside hand-written implementation
         Metadata sidecar preserving widget IR context
     - Path: web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.tsx
-      Note: First promoted widget implementation extracted from render.tsx
+      Note: |-
+        First promoted widget implementation extracted from render.tsx
+        Workbench shell now uses generated shell/nav button and page-root helpers (commit 4bf24e9)
+    - Path: web/src/admin-dsl/widgets/shared/actionStyles.ts
+      Note: Generated action variant
 ExternalSources: []
 Summary: Playbook for taking an Admin DSL Widget Definition IR YAML entry from structured source artifact to finished React widget, renderer adapter, Storybook coverage, validation, screenshots, and ticket documentation.
 LastUpdated: 2026-05-18T23:20:00-04:00
 WhatFor: Use when promoting generated Admin DSL widget scaffolds into real React components while preserving adapter boundaries and metadata context.
 WhenToUse: Use before implementing ActionButton, ActionGroup, Panel, PageHeader, DashboardGrid, ResourceTable, AdminForm, MonthCalendar, or any other Admin DSL widget from YAML.
 ---
+
 
 
 
