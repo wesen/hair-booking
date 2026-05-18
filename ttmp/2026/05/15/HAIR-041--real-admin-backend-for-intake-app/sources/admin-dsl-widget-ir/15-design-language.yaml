@@ -1,0 +1,300 @@
+schema_version: 1
+artifact_type: admin_dsl_design_language_ir
+category: design_language
+summary: Shared visual language and helper-generation contract for Admin DSL React widgets.
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/03-widget-ir-to-finished-widget-playbook.md
+
+source_tokens:
+  module: web/src/fringe-ui/tokens
+  imports:
+    - color
+    - font
+    - radius
+    - shadow
+    - type
+
+intent:
+  purpose: >-
+    Define the shared Admin DSL widget design language so generated and hand-promoted widgets use the same typography,
+    surfaces, action variants, layout primitives, and data attributes.
+  design_rationale: >-
+    Widget extraction moves HTML and styling out of one renderer file. Without a shared design-language IR, each widget can
+    accidentally recreate button shapes, typography roles, shell surfaces, and data attributes differently. This artifact makes
+    those choices explicit and script-readable.
+  adapter_boundary: >-
+    The design language produces frontend style helpers only. It must not know AdminNode, AdminPage, Goja flows, or backend
+    action execution. Runtime action dispatch remains in renderer adapters.
+
+outputs:
+  shared_types:
+    path: web/src/admin-dsl/widgets/shared/types.ts
+  design_tokens:
+    path: web/src/admin-dsl/widgets/shared/designTokens.ts
+  action_styles:
+    path: web/src/admin-dsl/widgets/shared/actionStyles.ts
+  layout_styles:
+    path: web/src/admin-dsl/widgets/shared/layoutStyles.ts
+  typography:
+    path: web/src/admin-dsl/widgets/shared/typography.ts
+  data_attributes:
+    path: web/src/admin-dsl/widgets/shared/dataAttributes.ts
+  barrel:
+    path: web/src/admin-dsl/widgets/shared/index.ts
+
+token_aliases:
+  surfaces:
+    page:
+      token: color.creamDeep
+      doc: Default admin page background.
+    calendarPage:
+      token: color.cream
+      doc: Softer background for calendar-oriented pages.
+    panel:
+      token: color.paper
+      doc: Default raised content surface.
+    muted:
+      token: color.cream
+      doc: Soft background for empty states, grouped controls, and subdued buttons.
+  text:
+    primary:
+      token: color.ink
+      doc: Main body and heading text.
+    muted:
+      token: color.softInk
+      doc: Secondary explanatory text.
+    danger:
+      token: color.danger
+      doc: Destructive action and error text.
+    accent:
+      token: color.plum
+      doc: Low-emphasis action and navigation accent.
+  borders:
+    default:
+      token: color.rule
+      doc: Standard border color.
+    soft:
+      token: color.ruleSoft
+      doc: Subtle dividing line color.
+    danger:
+      token: color.danger
+      doc: Destructive border color.
+  radii:
+    control:
+      token: radius.md
+      doc: Default rectangular control radius.
+    panel:
+      token: radius.lg
+      doc: Default shell/panel radius.
+    pill:
+      token: radius.pill
+      doc: Fully rounded pill radius.
+
+typography_roles:
+  pageTitle:
+    base: type.display2
+    doc: Large page title used in shells and page headers.
+    overrides:
+      fontSize: 56
+      margin: "6px 0 8px"
+  productMark:
+    base: type.h2
+    doc: Compact product mark used in shell chrome.
+    overrides:
+      fontSize: 26
+      lineHeight: 1
+  panelTitle:
+    base: type.h3
+    doc: Compact title inside panels and cards.
+  eyebrow:
+    base: type.eyebrow
+    color: color.softInk
+    doc: Small uppercase contextual label.
+  body:
+    base: type.body
+    doc: Standard body copy.
+  bodyLarge:
+    base: type.bodyLg
+    doc: Larger descriptive body copy under page titles.
+  bodyMuted:
+    base: type.bodySm
+    color: color.softInk
+    doc: Secondary explanatory text.
+  actionLabel:
+    base:
+      fontFamily: font.mono
+      fontSize: 11
+      letterSpacing: 0.6
+      textTransform: uppercase
+      fontWeight: 700
+    doc: Label style for non-subtle action buttons.
+  subtleActionLabel:
+    base:
+      fontFamily: font.sans
+      fontSize: 13
+      letterSpacing: 0
+      textTransform: none
+      fontWeight: 500
+    doc: Label style for row, panel-footer, and link-like actions.
+  navLabel:
+    base: type.bodySm
+    doc: Sidebar navigation item label.
+
+action_variants:
+  solid:
+    doc: High-emphasis primary action.
+    style:
+      borderColor: color.ink
+      background: color.ink
+      color: color.paper
+      boxShadow: shadow.sm
+  soft:
+    doc: Normal neutral button.
+    style:
+      borderColor: color.rule
+      background: color.paper
+      color: color.ink
+      boxShadow: none
+  formPrimary:
+    doc: Softer primary treatment for form footer actions.
+    style:
+      borderColor: color.rule
+      background: color.cream
+      color: color.ink
+      boxShadow: none
+  subtle:
+    doc: Low-emphasis inline, row, footer, or navigation action.
+    style:
+      borderColor: transparent
+      background: transparent
+      color: color.plum
+      boxShadow: none
+  danger:
+    doc: Destructive action treatment.
+    style:
+      borderColor: color.danger
+      background: color.paper
+      color: color.danger
+      boxShadow: none
+  overflow:
+    doc: Compact ellipsis action for row overflow contexts.
+    extends: subtle
+    label: "…"
+
+button_sizes:
+  sm:
+    minHeight: 34
+    padding: "7px 10px"
+  md:
+    minHeight: 38
+    padding: "8px 12px"
+  touch:
+    minHeight: 44
+    padding: "9px 14px"
+  subtle:
+    minHeight: 32
+    padding: "6px 8px"
+  overflow:
+    minHeight: 32
+    minWidth: 32
+    padding: "6px 8px"
+
+action_placement_defaults:
+  pageHeader:
+    default_variant: soft
+    default_size: md
+  toolbar:
+    default_variant: soft
+    default_size: md
+  panelToolbar:
+    default_variant: soft
+    default_size: sm
+  panelFooter:
+    default_variant: subtle
+    default_size: sm
+  formFooter:
+    default_variant: formPrimary
+    default_size: sm
+  row:
+    default_variant: subtle
+    default_size: sm
+  rowOverflow:
+    default_variant: overflow
+    default_size: sm
+  bulkToolbar:
+    default_variant: soft
+    default_size: touch
+  calendarCell:
+    default_variant: soft
+    default_size: sm
+  sidebarNav:
+    default_variant: subtle
+    default_size: touch
+  footer:
+    default_variant: subtle
+    default_size: sm
+  detail:
+    default_variant: subtle
+    default_size: sm
+  overflow:
+    default_variant: overflow
+    default_size: sm
+
+layout_primitives:
+  surface:
+    doc: Standard bordered admin surface.
+    style:
+      background: color.paper
+      borderColor: color.rule
+      borderRadius: radius.lg
+      boxShadow: shadow.sm
+  pageRoot:
+    doc: Base full-height Admin DSL page root.
+    style:
+      minHeight: "100vh"
+      color: color.ink
+      fontFamily: font.sans
+  shellGrid:
+    doc: Main/side fallback shell grid.
+    cssVariables:
+      columns: --admin-dsl-grid-columns
+    responsive:
+      maxWidth720:
+        gridTemplateColumns: 1fr
+        gap: 16
+  actionRow:
+    doc: Horizontal wrapping action container.
+    style:
+      display: flex
+      gap: 8
+      flexWrap: wrap
+      alignItems: center
+
+data_attributes:
+  widget_id:
+    attr: data-admin-dsl-widget-id
+    doc: Stable widget identity from Widget IR.
+  widget_level:
+    attr: data-admin-dsl-widget-level
+    doc: Widget classification level for debugging and screenshots.
+  action_intent:
+    attr: data-admin-dsl-action-intent
+    source: action.intent
+  action_priority:
+    attr: data-admin-dsl-action-priority
+    source: action.priority
+  action_placement:
+    attr: data-admin-dsl-action-placement
+    source: action.placement
+  action_confirm:
+    attr: data-admin-dsl-action-confirm
+    source: action.requiresConfirmation
+  shell_kind:
+    attr: data-admin-dsl-shell
+    source: shellKind
+
+style_contract:
+  rules:
+    - Widgets should import raw Fringe tokens only through generated shared helpers unless a local exception is documented.
+    - Admin DSL action-like controls should use ActionButton, ActionGroup, or generated action style helpers.
+    - Shell navigation can use a shell-specific element, but it should share action/nav helper styles rather than hardcoded colors.
+    - Storybook stories should include variant matrices whenever a helper maps semantic state to visual state.
