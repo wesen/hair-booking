@@ -10,6 +10,7 @@ of truth and emits deterministic, reviewable React scaffolds:
 - ``<Widget>.types.ts`` generated from ``contract.props``;
 - ``<Widget>.tsx`` generated from ``intent`` and action-slot metadata;
 - ``<Widget>.stories.tsx`` generated from ``stories`` docs, viewports, and assertions;
+- ``<Widget>.metadata.ts`` preserving source intent, examples, action slots, and provenance;
 - ``index.ts`` barrel files.
 
 Generated components are intentionally safe scaffolds, not final visual
@@ -523,6 +524,48 @@ def ts_literal(value: Any) -> str:
     return json.dumps(value, ensure_ascii=False, indent=2)
 
 
+def metadata_const_name(plan: ScaffoldPlan) -> str:
+    return f"{camel_case(plan.name)}WidgetMetadata"
+
+
+def widget_metadata(plan: ScaffoldPlan) -> dict[str, Any]:
+    return {
+        "widgetId": plan.widget_id,
+        "name": plan.name,
+        "category": plan.category,
+        "classification": plan.classification,
+        "purpose": str(plan.intent.get("purpose") or ""),
+        "designRationale": str(plan.intent.get("design_rationale") or ""),
+        "adapterBoundary": str(plan.intent.get("adapter_boundary") or ""),
+        "implementationNotes": plan.intent.get("implementation_notes") if isinstance(plan.intent.get("implementation_notes"), list) else [],
+        "accessibilityNotes": plan.intent.get("accessibility_notes") if isinstance(plan.intent.get("accessibility_notes"), list) else [],
+        "actionSlots": plan.action_slots,
+        "examples": plan.examples,
+        "stories": {story.name: {
+            "doc": story.doc,
+            "viewport": story.viewport,
+            "fixtures": story.fixtures,
+            "asserts": story.asserts,
+        } for story in plan.stories},
+        "implementationTodos": plan.implementation_todos,
+        "sourceMapping": plan.source_mapping,
+    }
+
+
+def render_metadata(plan: ScaffoldPlan, target_file: Path) -> str:
+    const_name = metadata_const_name(plan)
+    return f'''{ts_header(plan, target_file)}/**
+ * Widget IR metadata for {plan.name}.
+ *
+ * Keep this file next to the implementation even after replacing generated
+ * scaffolds with hand-written code. It preserves the source intent, adapter
+ * boundary, action-slot contract, examples, stories, and implementation notes
+ * that explain why the component exists and how render adapters should use it.
+ */
+export const {const_name} = {ts_literal(widget_metadata(plan))} as const;
+'''
+
+
 def render_data_attrs_expr() -> str:
     return '''Object.fromEntries(
     Object.entries(scaffoldProps.dataAttributes ?? {}).map(([key, value]) => [`data-${key}`, String(value)]),
@@ -532,29 +575,16 @@ def render_data_attrs_expr() -> str:
 def render_component(plan: ScaffoldPlan, target_file: Path) -> str:
     purpose = str(plan.intent.get("purpose") or "")
     adapter = str(plan.intent.get("adapter_boundary") or "")
-    implementation_notes = plan.intent.get("implementation_notes") if isinstance(plan.intent.get("implementation_notes"), list) else []
-    accessibility_notes = plan.intent.get("accessibility_notes") if isinstance(plan.intent.get("accessibility_notes"), list) else []
-    diagnostics = {
-        "widgetId": plan.widget_id,
-        "purpose": purpose,
-        "adapterBoundary": adapter,
-        "implementationNotes": implementation_notes,
-        "accessibilityNotes": accessibility_notes,
-        "actionSlots": plan.action_slots,
-        "examples": plan.examples,
-        "implementationTodos": plan.implementation_todos,
-        "sourceMapping": plan.source_mapping,
-    }
+    const_name = metadata_const_name(plan)
     return f'''{ts_header(plan, target_file)}import type * as React from "react";
 import type {{ ReactNode }} from "react";
+import {{ {const_name} }} from "./{plan.name}.metadata";
 import type {{ {plan.props_type} }} from "./{plan.name}.types";
-
-const diagnostics = {ts_literal(diagnostics)} as const;
 
 /**
  * Scaffold for `{plan.name}`.
  *
- * Purpose: {purpose or "See diagnostics."}
+ * Purpose: {purpose or "See metadata."}
  *
  * Adapter boundary: {adapter or "Receive normalized widget props only."}
  */
@@ -579,20 +609,20 @@ export function {plan.name}(props: {plan.props_type}) {{
       id={{scaffoldProps.id}}
       className={{scaffoldProps.className}}
       data-admin-dsl-widget="{plan.name}"
-      data-admin-dsl-widget-id="{plan.widget_id}"
+      data-admin-dsl-widget-id={{{const_name}.widgetId}}
       data-admin-dsl-widget-level="{plan.level}"
       style={{scaffoldProps.style}}
       {{...dataAttributes}}
     >
       <div style={{{{ border: "1px solid #dfd2bd", borderRadius: 12, padding: 12, background: "#fffaf0" }}}}>
         <strong>{{heading}}</strong>
-        <p style={{{{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}}}>{{diagnostics.purpose}}</p>
-        {{diagnostics.adapterBoundary ? (
-          <p style={{{{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}}}>Adapter: {{diagnostics.adapterBoundary}}</p>
+        <p style={{{{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}}}>{{{const_name}.purpose}}</p>
+        {{{const_name}.adapterBoundary ? (
+          <p style={{{{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}}}>Adapter: {{{const_name}.adapterBoundary}}</p>
         ) : null}}
         <details style={{{{ marginTop: 10, fontSize: 12, color: "#6f6254" }}}}>
-          <summary>Widget IR diagnostics</summary>
-          <pre style={{{{ whiteSpace: "pre-wrap", margin: "8px 0 0" }}}}>{{JSON.stringify(diagnostics, null, 2)}}</pre>
+          <summary>Widget IR metadata</summary>
+          <pre style={{{{ whiteSpace: "pre-wrap", margin: "8px 0 0" }}}}>{{JSON.stringify({const_name}, null, 2)}}</pre>
         </details>
       </div>
       {{scaffoldProps.children ? <div style={{{{ marginTop: 12 }}}}>{{scaffoldProps.children}}</div> : null}}
@@ -880,6 +910,7 @@ type Story = StoryObj<typeof meta>;
 
 def render_index(plan: ScaffoldPlan, target_file: Path) -> str:
     return f'''{ts_header(plan, target_file)}export {{ {plan.name} }} from "./{plan.name}";
+export {{ {metadata_const_name(plan)} }} from "./{plan.name}.metadata";
 export type * from "./{plan.name}.types";
 '''
 
@@ -908,6 +939,7 @@ def target_paths(plan: ScaffoldPlan) -> dict[str, Path]:
         "types": plan.output_dir / f"{plan.name}.types.ts",
         "component": plan.output_dir / f"{plan.name}.tsx",
         "stories": plan.output_dir / f"{plan.name}.stories.tsx",
+        "metadata": plan.output_dir / f"{plan.name}.metadata.ts",
         "barrel": plan.output_dir / "index.ts",
     }
     for key, path_text in ((key, output_path({"outputs": plan.outputs}, key)) for key in default):
@@ -953,6 +985,7 @@ def main() -> int:
         paths = target_paths(plan)
         outputs = {
             paths["types"]: render_types(plan, widget_root, paths["types"]),
+            paths["metadata"]: render_metadata(plan, paths["metadata"]),
             paths["component"]: render_component(plan, paths["component"]),
             paths["stories"]: render_stories(plan, paths["stories"]),
             paths["barrel"]: render_index(plan, paths["barrel"]),
