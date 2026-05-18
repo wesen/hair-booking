@@ -420,3 +420,9 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Added a WorkbenchShell metadata sidecar so the real widget implementation keeps its schema-v2 intent, adapter boundary, action-slot contract, examples, todos, and source mapping nearby.
 - Updated the widget scaffold generator to emit `<Widget>.metadata.ts` sidecars and re-export metadata from generated barrels.
 - Validated the generator with `python3 -m py_compile`, a dry run for `ActionButton`, and `cd web && npx tsc --noEmit`.
+
+## 2026-05-18 — Add widget implementation playbook and Obsidian report
+
+- Added `reference/03-widget-ir-to-finished-widget-playbook.md`, a ticket playbook for taking schema-v2 Widget IR YAML to finished React widgets while preserving metadata, adapter boundaries, action contexts, Storybook coverage, validation, and commit hygiene.
+- Added Obsidian article/report `Projects/2026/05/18/ARTICLE - Report - Bottom-Up Admin DSL Widget IR.md` in `/home/manuel/code/wesen/obsidian-vault` and committed it there as `38c4285`.
+- Incorporated the report framing: `compiler`, `ui-dsl`, and “First IR extracted from render.ts to YAML to then codegen to TSX”.

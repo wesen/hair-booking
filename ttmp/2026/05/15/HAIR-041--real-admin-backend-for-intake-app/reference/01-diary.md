@@ -3965,3 +3965,118 @@ The generator now emits `<Widget>.metadata.ts`, imports that metadata from gener
 
 ### Technical details
 - Future generated components will render `Widget IR metadata` details instead of embedding a private `diagnostics` const.
+
+## Step 56: Write the Widget IR to Finished Widget playbook
+
+This step turns the agreed concise workflow into a durable HAIR-041 ticket reference. The playbook explains the full path from schema-v2 Widget Definition IR YAML to a finished React widget, with special attention to preserving metadata, keeping `render.tsx` as an adapter, protecting the backend action trust boundary, moving CSS deliberately, and committing at reviewable boundaries.
+
+The document uses `WorkbenchShell` as the first concrete example because it is already promoted from generated scaffold to real implementation. It also defines a recommended extraction order so the remaining widget work can proceed from action primitives to layout widgets and then to complex resource/form/calendar widgets.
+
+### Prompt Context
+
+**User prompt (verbatim):** "perfect, write a playbook to save in the ticket. Then write a project report abut all the work we did so far working on exploriing this initial IR representation by working bottom up Write a s a project report in our obsidian vault, using a textbook writing style (no analogies, see skill), as a deep dive technical blog post kind."
+
+**Assistant interpretation:** Write a ticket playbook for YAML-to-finished-widget implementation, then write a long-form Obsidian project report about the bottom-up Widget IR exploration in a textbook/deep-dive style.
+
+**Inferred user intent:** The user wants both operational instructions for continuing the widget extraction and durable project-level documentation explaining the architecture and lessons of the IR exploration.
+
+**Commit (code):** f210f84 — "HAIR-041 Step 56: Add widget implementation playbook"
+
+### What I did
+- Created `reference/03-widget-ir-to-finished-widget-playbook.md` in the HAIR-041 ticket.
+- Documented the complete process from widget YAML to finished React widget.
+- Included diagrams, adapter pseudocode, validation commands, commit guidance, Storybook guidance, and a definition of done.
+- Related the playbook to renderer, WorkbenchShell, metadata sidecar, and generator files via docmgr.
+- Validated frontmatter with `docmgr validate frontmatter`.
+
+### Why
+- The work has moved from research into a repeatable implementation process. The next widgets need a consistent playbook so extraction does not reintroduce renderer coupling or lose IR metadata.
+
+### What worked
+- Frontmatter validation passed.
+- `docmgr doc relate` updated related files for the playbook.
+- The playbook committed cleanly without unrelated working tree changes.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The most important rule is simple enough to put at the top of the playbook: YAML describes contract and intent; current renderer code supplies first proven HTML/styles; `render.tsx` remains the JSON adapter and action-dispatch boundary.
+
+### What was tricky to build
+- The playbook needed to be operational without pretending the migration is fully automated. Existing widgets require extraction from working renderer code; generated scaffolds provide structure and metadata, not final HTML.
+
+### What warrants a second pair of eyes
+- Review the recommended extraction order and decide whether `ActionButton`/`ActionGroup` should be implemented before any other renderer cases are touched.
+
+### What should be done in the future
+- Use this playbook for the next widget extraction and update it when a new failure mode appears.
+
+### Code review instructions
+- Read `reference/03-widget-ir-to-finished-widget-playbook.md` end to end.
+- Compare the WorkbenchShell example in the playbook against `renderWorkbenchShell` and `WorkbenchShell.tsx`.
+
+### Technical details
+- The playbook includes concrete validation commands and identifies current unrelated working tree files to avoid accidental commits.
+
+## Step 57: Write Obsidian project report for the bottom-up Widget IR exploration
+
+This step creates a durable Obsidian article/report that explains the bottom-up Admin DSL Widget IR exploration as a technical deep dive. The report is written in a textbook style: it starts from the architectural problem, explains why the renderer became the source of implementation facts, introduces schema-v2 Widget Definition IR, describes the generator and metadata sidecars, and uses WorkbenchShell as the first concrete extraction proof.
+
+The user also provided a compact label for the report — `compiler, ui-dsl` and “First IR extracted from render.ts to YAML to then codegen to TSX” — which was incorporated into the report frontmatter and opening.
+
+### Prompt Context
+
+**User prompt (verbatim):** "🏷️ [compiler, ui-dsl] First IR extracted from render.ts to YAML to then codegen to TSX"
+
+**Assistant interpretation:** Use this as the report's classification/tagline and make sure the Obsidian note captures the compiler/UI-DSL framing.
+
+**Inferred user intent:** The user wants the vault note to be discoverable as a compiler/UI-DSL article and to clearly state the pipeline from renderer code to YAML IR to generated TSX.
+
+**Commit (code):** 38c4285 — "Add Admin DSL widget IR project report" in `/home/manuel/code/wesen/obsidian-vault`
+
+### What I did
+- Created Obsidian note:
+  - `/home/manuel/code/wesen/obsidian-vault/Projects/2026/05/18/ARTICLE - Report - Bottom-Up Admin DSL Widget IR.md`
+- Added frontmatter with article/report/frontend/admin-dsl/ui-dsl/compiler/react/storybook/code-generation tags.
+- Wrote a long-form technical report covering:
+  - why the renderer needed decomposition;
+  - why the IR is bottom-up;
+  - the schema-v2 YAML shape;
+  - why natural language belongs in the IR;
+  - the generator as a projection of the IR;
+  - metadata sidecars;
+  - WorkbenchShell extraction;
+  - action contexts and backend action trust boundary;
+  - current status, commits, risks, next work, and durable engineering pattern.
+- Committed the Obsidian note in the vault as commit `38c4285`.
+
+### Why
+- The HAIR-041 ticket docs are operational and local to the project. The Obsidian report preserves the larger technical narrative and reusable pattern for future projects.
+
+### What worked
+- The note was written under the current vault date folder and committed as a single focused Obsidian-vault commit.
+- The user's requested tag line was incorporated into the note.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The bottom-up IR work can be explained as a compiler pipeline, but it is not a compiler for page programs yet. It is first a compiler-like projection from observed renderer semantics into YAML IR and then into typed TypeScript/TSX scaffolds.
+
+### What was tricky to build
+- The report needed to distinguish between the runtime transport AST and the Widget Definition IR. The transport JSON is what the backend sends; the widget IR is a richer design/generation artifact that contains metadata, source mappings, Storybook scenarios, and implementation todos.
+
+### What warrants a second pair of eyes
+- Review whether the report should be linked from other Obsidian project notes or from the HAIR-041 ticket index.
+
+### What should be done in the future
+- Add a follow-up Obsidian note after ActionButton/ActionGroup and ResourceTable are extracted, because those will test the action-context model more deeply than WorkbenchShell.
+
+### Code review instructions
+- Open the Obsidian note and review the sections on action contexts, metadata sidecars, and current status.
+- Verify paths and commit references are accurate enough for future navigation.
+
+### Technical details
+- Obsidian vault path: `/home/manuel/code/wesen/obsidian-vault`.
+- Vault commit: `38c4285 Add Admin DSL widget IR project report`.
