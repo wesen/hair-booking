@@ -1,0 +1,167 @@
+schema_version: 1
+artifact_type: admin_dsl_react_widget_ir
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+category: resource_widgets
+summary: Resource table widgets extracted from resourceTable, renderTableCell, bulk bar, pagination, and mobile table CSS.
+widgets:
+- name: ResourceTable
+  current_source: case "resourceTable", renderTableCell, bulk bar, pagination, and mobile table CSS in responsiveCss
+  classification:
+    level: organism
+  purpose: Render semantic resource rows as a desktop table and mobile card list. This is the most important information-dense
+    Admin DSL widget.
+  props: |-
+    export type ResourceTableColumnKind =
+      | "text"
+      | "badge"
+      | "boolean"
+      | "dragHandle"
+      | "actions"
+      | "overflowActions"
+      | "money"
+      | "relativeTime";
+
+    export interface ResourceTableColumn<Row = Record<string, unknown>> {
+      id: string;
+      accessor?: keyof Row | string;
+      label?: string;
+      kind?: ResourceTableColumnKind;
+      primary?: boolean;
+      tone?: string;
+      width?: number | string;
+      map?: Record<string, { label: string; tone?: string }>;
+    }
+
+    export interface ResourceTableProps<Row = Record<string, unknown>> extends CommonWidgetProps {
+      tableId: string;
+      columns: ResourceTableColumn<Row>[];
+      rows: Row[];
+      selectable?: boolean;
+      selectedRowIds?: string[];
+      bulkLabel?: string;
+      empty?: React.ReactNode;
+      rowActions?: ActionViewModel[];
+      bulkActions?: ActionViewModel[];
+      pagination?: {
+        page: number;
+        total: number;
+        actions?: ActionViewModel[];
+      };
+      onRowAction?: TableRowActionHandler<Row>;
+      onBulkAction?: TableBulkActionHandler<Row>;
+      onSelectionChange?: (context: { tableId: string; selectedRowIds: string[] }) => void;
+    }
+  action_slots:
+  - name: rowActions
+    context: '{ tableId, row, rowId }'
+  - name: rowOverflow
+    context: '{ tableId, row, rowId }'
+  - name: bulkToolbar
+    context: '{ tableId, scope, rows, selectedRowIds }'
+  - name: pagination
+    context: table/page
+  usage_example: |-
+    <ResourceTable
+      tableId="requests"
+      columns={requestColumns}
+      rows={requestRows}
+      selectable
+      bulkLabel="3 visible requests"
+      bulkActions={[assignAction]}
+      onRowAction={(action, ctx) => dispatch(action, ctx)}
+      onBulkAction={(action, ctx) => dispatch(action, ctx)}
+    />
+  storybook_stories:
+  - DefaultRows
+  - SelectableWithBulkToolbar
+  - RowActions
+  - OverflowActions
+  - EmptyState
+  - Pagination
+  - StatusBadgeCells
+  - DragHandleColumn
+  - MobileCards
+  - LongTextAndDenseRows
+  - ActionDispatchContexts
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/ResourceTable/
+      ResourceTable.tsx
+      ResourceTable.types.ts
+      ResourceTable.stories.tsx
+      ResourceTable.test.tsx
+      ResourceTable.fixtures.ts
+      parts/
+        BulkActionBar.tsx
+        PaginationBar.tsx
+        ResourceTableCell.tsx
+        ResourceTableRow.tsx
+      index.ts
+- name: ResourceTableCell
+  current_source: renderTableCell
+  classification:
+    level: molecule
+  props: |-
+    export interface ResourceTableCellProps<Row = Record<string, unknown>> {
+      column: ResourceTableColumn<Row>;
+      row: Row;
+      tableId: string;
+      onRowAction?: TableRowActionHandler<Row>;
+    }
+  action_slots:
+  - name: rowAction
+    context: table row when column kind is actions/overflowActions
+  storybook_stories:
+  - TextCell
+  - PrimaryTextCell
+  - MutedTextCell
+  - BadgeMappedCell
+  - BooleanCell
+  - DragHandleCell
+  - ActionsCell
+  - OverflowCell
+  file_layout: |-
+    inside ResourceTable/parts/ unless promoted to standalone widget later.
+- name: BulkActionBar
+  current_source: bulk action bar inside resourceTable branch
+  classification:
+    level: molecule
+  props: |-
+    export interface BulkActionBarProps<Row = Record<string, unknown>> {
+      tableId: string;
+      label?: string;
+      rows: Row[];
+      selectedRowIds: string[];
+      actions: ActionViewModel[];
+      onBulkAction?: TableBulkActionHandler<Row>;
+    }
+  action_slots:
+  - name: bulkToolbar
+    context: visible/selected/allMatching rows
+  storybook_stories:
+  - VisibleRowsScope
+  - SelectedRowsScope
+  - PrimaryBulkAction
+  - DangerBulkAction
+  - NoSelectionDisabled
+  file_layout: |-
+    organisms/ResourceTable/parts/BulkActionBar.tsx
+- name: PaginationBar
+  current_source: pagination footer inside resourceTable branch
+  classification:
+    level: molecule
+  props: |-
+    export interface PaginationBarProps {
+      page: number;
+      total: number;
+      actions?: ActionViewModel[];
+      onAction?: (action: ActionViewModel, context: { page: number; total: number }) => void;
+    }
+  action_slots:
+  - name: paginationActions
+    context: '{ page, total }'
+  storybook_stories:
+  - Default
+  - WithNextPrevious
+  - ManyResults
+  file_layout: |-
+    organisms/ResourceTable/parts/PaginationBar.tsx

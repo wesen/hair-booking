@@ -3164,3 +3164,77 @@ Let's work on creating the following document:
 ### Technical details
 - Frontmatter validation command:
   - `docmgr validate frontmatter --doc /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md --suggest-fixes`
+
+## Step 43: Convert the React widget IR catalog into YAML artifacts
+
+This step turns the markdown widget IR catalog into a script-friendly YAML artifact set. The content stays aligned with the markdown structure, but it is now split into category files that downstream scripts can load directly: shell widgets, action widgets, layout widgets, resource widgets, data-display widgets, media widgets, calendar widgets, form widgets, surface widgets, renderer adapter plan, Storybook scenario matrix, pass model, shared types, and unsupported constructs.
+
+The main purpose is to make the next transformation passes easier to write. Instead of scraping Markdown headings and code fences, a script can load the YAML index, pick a category file, iterate over `widgets`, and generate scaffold directories, Storybook skeletons, renderer adapters, implementation prompts, or validation reports.
+
+### Prompt Context
+
+**User prompt (verbatim):** "output the content of the layout widgets / resource widgets / action widgets / shell widgets / ... in yaml files (basically just turning the markdown structure into a yaml file, but the content stays the same. that way we can then write scripts to transform them further."
+
+**Assistant interpretation:** Convert the existing React widget IR markdown sections into structured YAML files by category, preserving the same content but making it machine-readable for later transformation scripts.
+
+**Inferred user intent:** The user wants the widget catalog to become a reusable artifact input for deterministic or LLM-assisted passes rather than only prose documentation.
+
+**Commit (code):** N/A — YAML artifact generation only.
+
+### What I did
+- Created YAML artifacts under:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/`
+- Added category files:
+  - `00-index.yaml`
+  - `01-pass-model.yaml`
+  - `02-shared-types.yaml`
+  - `03-shell-widgets.yaml`
+  - `04-action-widgets.yaml`
+  - `05-layout-widgets.yaml`
+  - `06-resource-widgets.yaml`
+  - `07-data-display-widgets.yaml`
+  - `08-media-widgets.yaml`
+  - `09-calendar-widgets.yaml`
+  - `10-form-widgets.yaml`
+  - `11-surface-widgets.yaml`
+  - `12-renderer-adapter-plan.yaml`
+  - `13-storybook-scenario-matrix.yaml`
+  - `14-unsupported-constructs.yaml`
+- Validated all YAML files with Python/PyYAML.
+
+### Why
+- The markdown catalog is good for human review, but scripts need structured inputs.
+- Category-specific YAML makes it possible to write focused generators: file scaffolds from widget file layouts, Storybook skeletons from story lists, adapters from action slots and props, and prompt generation from widget descriptions.
+
+### What worked
+- PyYAML was available in the environment.
+- All generated YAML files parsed successfully with `yaml.safe_load`.
+- Block scalar formatting preserved TypeScript prop/signature snippets and file layout snippets in readable form.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The widget IR naturally splits into stable machine-readable categories. The index file gives scripts a single discovery entry point, while the category files remain readable enough for manual review.
+
+### What was tricky to build
+- The Markdown contains TypeScript snippets and file tree snippets that should remain readable. I represented those as YAML block scalars instead of trying to over-normalize every prop into individual fields.
+- Some widgets are public top-level widgets and some are internal parts. The YAML keeps both by using regular widget entries with notes/file-layout fields.
+
+### What warrants a second pair of eyes
+- Review whether scripts should consume these Markdown-like block scalars or whether we should normalize props/action slots further into fully structured schemas.
+- Review whether the YAML directory belongs under `sources/` or should move to a dedicated `artifacts/` directory if more generated IR appears.
+
+### What should be done in the future
+- Write a small scaffold script that reads `00-index.yaml` plus category files and emits the initial widget directory tree and Storybook skeletons.
+
+### Code review instructions
+- Start with `sources/admin-dsl-widget-ir/00-index.yaml`.
+- Spot-check `05-layout-widgets.yaml`, `06-resource-widgets.yaml`, `04-action-widgets.yaml`, and `03-shell-widgets.yaml` against the markdown source document.
+- Validate with:
+  - `python3 - <<'PY' ... yaml.safe_load(...) ... PY`
+
+### Technical details
+- YAML generation target directory:
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/`
+- YAML validation used Python `yaml.safe_load` for every `*.yaml` file in that directory.

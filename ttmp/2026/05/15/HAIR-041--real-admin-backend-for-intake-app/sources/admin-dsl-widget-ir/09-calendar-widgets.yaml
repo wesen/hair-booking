@@ -1,0 +1,122 @@
+schema_version: 1
+artifact_type: admin_dsl_react_widget_ir
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+category: calendar_widgets
+summary: Calendar widgets extracted from monthCalendar and calendarWeek/appointment blocks.
+widgets:
+- name: MonthCalendar
+  current_source: case "monthCalendar" and buildMonthCells
+  classification:
+    level: organism
+  props: |-
+    export interface MonthCalendarMarker {
+      date: string;
+      kind: string;
+      tone?: "success" | "warning" | "danger" | "neutral";
+    }
+
+    export interface MonthCalendarLegendItem {
+      kind: string;
+      label: string;
+      tone?: "success" | "warning" | "danger" | "neutral";
+    }
+
+    export interface MonthCalendarProps extends CommonWidgetProps {
+      calendarId: string;
+      month: string; // YYYY-MM
+      label?: string;
+      selectedDate?: string;
+      markers?: MonthCalendarMarker[];
+      legend?: MonthCalendarLegendItem[];
+      previousMonthAction?: ActionViewModel;
+      nextMonthAction?: ActionViewModel;
+      selectDateAction?: ActionViewModel;
+      onMonthAction?: CalendarCellActionHandler;
+      onSelectDate?: CalendarCellActionHandler;
+    }
+  action_slots:
+  - name: previousMonth
+  - name: nextMonth
+  - name: selectDate
+    context: '{ calendarId, date }'
+  storybook_stories:
+  - DefaultMonth
+  - WithPublishedMarkers
+  - WithScheduledMarkers
+  - SelectedDate
+  - NoActionsReadonly
+  - PreviousNextActions
+  - MobileCalendar
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/MonthCalendar/
+      MonthCalendar.tsx
+      MonthCalendar.types.ts
+      MonthCalendar.stories.tsx
+      MonthCalendar.test.tsx
+      parts/CalendarDayButton.tsx
+      parts/CalendarLegend.tsx
+      index.ts
+- name: CalendarWeek
+  current_source: web/src/admin-dsl/calendar.tsx and case "calendarWeek"
+  classification:
+    level: organism
+  props: |-
+    export interface CalendarWeekProps extends CommonWidgetProps {
+      calendarId: string;
+      days: string[];
+      hours: string[];
+      blocks: CalendarEventBlockProps[];
+      onBlockAction?: (action: ActionViewModel, context: { block: CalendarEventBlockProps }) => void;
+    }
+  action_slots:
+  - name: child eventOpen actions
+    context: '{ block }'
+  storybook_stories:
+  - DefaultWeek
+  - AppointmentsAndTimeOff
+  - NoAppointments
+  - MobileAgenda
+  - LongDayLabels
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/CalendarWeek/
+      CalendarWeek.tsx
+      CalendarWeek.types.ts
+      CalendarWeek.stories.tsx
+      parts/CalendarGrid.tsx
+      parts/CalendarAgenda.tsx
+      index.ts
+- name: CalendarEventBlock
+  current_source: appointmentBlock, availabilityBlock, timeOffBlock branches in render.tsx and calendar.tsx
+  classification:
+    level: molecule
+  props: |-
+    export interface CalendarEventBlockProps extends CommonWidgetProps {
+      id: string;
+      kind: "appointment" | "availability" | "timeOff";
+      clientName?: string;
+      title?: string;
+      service?: string;
+      status?: string;
+      startsAt?: string;
+      endsAt?: string;
+      column?: number;
+      row?: number;
+      span?: number;
+      action?: ActionViewModel;
+      onAction?: (action: ActionViewModel, context: { blockId: string }) => void;
+    }
+  action_slots:
+  - name: eventOpen
+    context: '{ blockId }'
+  storybook_stories:
+  - Appointment
+  - Availability
+  - TimeOff
+  - CompactBlock
+  - AgendaItem
+  file_layout: |-
+    web/src/admin-dsl/widgets/molecules/CalendarEventBlock/
+      CalendarEventBlock.tsx
+      CalendarEventBlock.types.ts
+      CalendarEventBlock.stories.tsx
+      index.ts

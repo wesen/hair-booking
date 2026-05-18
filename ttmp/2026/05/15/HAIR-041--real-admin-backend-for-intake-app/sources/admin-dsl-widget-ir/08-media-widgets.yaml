@@ -1,0 +1,107 @@
+schema_version: 1
+artifact_type: admin_dsl_react_widget_ir
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+category: media_widgets
+summary: Media and preview widgets extracted from previewFrame, imageGrid, and imageGallery.
+widgets:
+- name: PreviewFrame
+  current_source: case "previewFrame"
+  classification:
+    level: organism
+  props: |-
+    export interface PreviewFrameProps extends CommonWidgetProps {
+      previewId: string;
+      kicker?: string;
+      title: string;
+      body?: string;
+      url?: string;
+      height?: number;
+      placeholder?: string;
+      actions?: ActionViewModel[];
+      onAction?: PanelActionHandler;
+    }
+  action_slots:
+  - name: previewActions
+  storybook_stories:
+  - IframeConnected
+  - Placeholder
+  - WithBodyAndActions
+  - TallPreview
+  - MobilePreview
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/PreviewFrame/
+      PreviewFrame.tsx
+      PreviewFrame.types.ts
+      PreviewFrame.stories.tsx
+      index.ts
+- name: ImageGrid
+  current_source: case "imageGrid"
+  classification:
+    level: organism
+  props: |-
+    export interface ImageGridItem {
+      id?: string;
+      title: string;
+      subtitle?: string;
+      status?: string;
+      tone?: string;
+      url?: string;
+    }
+
+    export interface ImageGridProps extends CommonWidgetProps {
+      items: ImageGridItem[];
+    }
+  action_slots:
+  - name: cardAction
+    notes: Future slot; no action in current renderer.
+  storybook_stories:
+  - Default
+  - WithStatuses
+  - Empty
+  - ResponsiveGrid
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/ImageGrid/
+      ImageGrid.tsx
+      ImageGrid.types.ts
+      ImageGrid.stories.tsx
+      parts/ImageCard.tsx
+      index.ts
+- name: ImageGallery
+  current_source: case "imageGallery"
+  classification:
+    level: organism
+  props: |-
+    export interface GalleryImage {
+      id?: string;
+      slot?: string;
+      title?: string;
+      subtitle?: string;
+      status?: string;
+      tone?: string;
+      url?: string;
+      alt?: string;
+    }
+
+    export interface ImageGalleryProps extends CommonWidgetProps {
+      galleryId: string;
+      images: GalleryImage[];
+      emptyText?: string;
+      imageAction?: ActionViewModel;
+      onImageAction?: (action: ActionViewModel, context: { galleryId: string; image: GalleryImage }) => void;
+    }
+  action_slots:
+  - name: imageOpen
+    context: '{ galleryId, image }'
+  storybook_stories:
+  - DefaultPhotos
+  - MissingPhoto
+  - EmptyGallery
+  - ClickableImages
+  - MobileGrid
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/ImageGallery/
+      ImageGallery.tsx
+      ImageGallery.types.ts
+      ImageGallery.stories.tsx
+      parts/GalleryImageCard.tsx
+      index.ts

@@ -1,0 +1,222 @@
+schema_version: 1
+artifact_type: admin_dsl_react_widget_ir
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+category: data_display_widgets
+summary: Data display, state, and small content widgets extracted from metricCard, comparisonTable, kvList, markdownBlock,
+  activityFeed, emptyState, loadingState, and inlineError.
+widgets:
+- name: MetricCard
+  current_source: case "metricCard"
+  classification:
+    level: molecule
+  props: |-
+    export interface MetricCardProps extends CommonWidgetProps {
+      label: string;
+      value: string | number;
+      caption?: string;
+    }
+  action_slots: []
+  storybook_stories:
+  - Default
+  - SuccessTone
+  - WarningTone
+  - DangerTone
+  - LongCaption
+  file_layout: |-
+    web/src/admin-dsl/widgets/molecules/MetricCard/
+      MetricCard.tsx
+      MetricCard.types.ts
+      MetricCard.stories.tsx
+      index.ts
+- name: StatusText
+  current_source: renderTableCell badge branch and schema statusBadge
+  classification:
+    level: atom
+  props: |-
+    export interface StatusTextProps extends CommonWidgetProps {
+      label: string;
+      tone?: "neutral" | "success" | "warning" | "danger";
+      variant?: "text" | "pill";
+    }
+  action_slots: []
+  storybook_stories:
+  - NeutralText
+  - SuccessText
+  - WarningText
+  - DangerText
+  - PillVariant
+  - MappedFromTableValue
+  file_layout: |-
+    web/src/admin-dsl/widgets/atoms/StatusText/
+      StatusText.tsx
+      StatusText.types.ts
+      StatusText.stories.tsx
+      index.ts
+- name: ComparisonTable
+  current_source: case "comparisonTable"
+  classification:
+    level: organism
+  props: |-
+    export interface ComparisonTableRow {
+      id?: string;
+      field: string;
+      current?: string;
+      draft?: string;
+      scheduled?: string;
+      actions?: ActionViewModel[];
+    }
+
+    export interface ComparisonTableProps extends CommonWidgetProps {
+      tableId: string;
+      rows: ComparisonTableRow[];
+      empty?: React.ReactNode;
+      onRowAction?: (action: ActionViewModel, context: { tableId: string; row: ComparisonTableRow }) => void;
+    }
+  action_slots:
+  - name: rowActions
+    context: '{ tableId, row }'
+  storybook_stories:
+  - DefaultChanges
+  - NoChangesEmptyState
+  - RowActions
+  - MobileCards
+  - LongValues
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/ComparisonTable/
+      ComparisonTable.tsx
+      ComparisonTable.types.ts
+      ComparisonTable.stories.tsx
+      ComparisonTable.test.tsx
+      index.ts
+- name: KeyValueList
+  current_source: case "kvList"
+  classification:
+    level: molecule
+  props: |-
+    export interface KeyValueListProps extends CommonWidgetProps {
+      items: Array<{ label: string; value: string | number | React.ReactNode }>;
+      labelWidth?: number | string;
+    }
+  action_slots: []
+  storybook_stories:
+  - Default
+  - LongLabels
+  - EmptyItems
+  - AuditDetails
+  file_layout: |-
+    web/src/admin-dsl/widgets/molecules/KeyValueList/
+      KeyValueList.tsx
+      KeyValueList.types.ts
+      KeyValueList.stories.tsx
+      index.ts
+- name: ActivityFeed
+  current_source: case "activityFeed"
+  classification:
+    level: molecule
+  props: |-
+    export interface ActivityFeedItem {
+      time: string;
+      title: string;
+      body?: string;
+      action?: ActionViewModel;
+    }
+
+    export interface ActivityFeedProps extends CommonWidgetProps {
+      items: ActivityFeedItem[];
+      onItemAction?: (action: ActionViewModel, context: { item: ActivityFeedItem }) => void;
+    }
+  action_slots:
+  - name: itemAction
+    notes: Future item-level action slot.
+  storybook_stories:
+  - Default
+  - Empty
+  - LongBody
+  - AuditLog
+  - WithItemActions
+  file_layout: |-
+    web/src/admin-dsl/widgets/molecules/ActivityFeed/
+      ActivityFeed.tsx
+      ActivityFeed.types.ts
+      ActivityFeed.stories.tsx
+      index.ts
+- name: MarkdownBlock
+  current_source: case "markdownBlock"
+  classification:
+    level: molecule
+  props: |-
+    export interface MarkdownBlockProps extends CommonWidgetProps {
+      markdown: string;
+      tone?: "neutral" | "muted";
+    }
+  action_slots: []
+  storybook_stories:
+  - PlainText
+  - Multiline
+  - Muted
+  file_layout: |-
+    web/src/admin-dsl/widgets/molecules/MarkdownBlock/
+      MarkdownBlock.tsx
+      MarkdownBlock.types.ts
+      MarkdownBlock.stories.tsx
+      index.ts
+- name: EmptyState
+  current_source: case "emptyState"
+  classification:
+    level: molecule
+  props: |-
+    export interface EmptyStateProps extends CommonWidgetProps {
+      title: string;
+      body?: string;
+      action?: ActionViewModel;
+      onAction?: PageActionHandler;
+    }
+  action_slots:
+  - name: primaryAction
+  storybook_stories:
+  - Default
+  - WithAction
+  file_layout: |-
+    web/src/admin-dsl/widgets/molecules/EmptyState/
+      EmptyState.tsx
+      EmptyState.types.ts
+      EmptyState.stories.tsx
+      index.ts
+- name: LoadingState
+  current_source: case "loadingState"
+  classification:
+    level: molecule
+  props: |-
+    export interface LoadingStateProps extends CommonWidgetProps {
+      title?: string;
+      body?: string;
+    }
+  action_slots: []
+  storybook_stories:
+  - Default
+  - WithBody
+  file_layout: |-
+    web/src/admin-dsl/widgets/molecules/LoadingState/
+      LoadingState.tsx
+      LoadingState.types.ts
+      LoadingState.stories.tsx
+      index.ts
+- name: InlineError
+  current_source: case "inlineError"
+  classification:
+    level: molecule
+  props: |-
+    export interface InlineErrorProps extends CommonWidgetProps {
+      title: string;
+      body?: string;
+    }
+  action_slots: []
+  storybook_stories:
+  - Default
+  - LongMessage
+  file_layout: |-
+    web/src/admin-dsl/widgets/molecules/InlineError/
+      InlineError.tsx
+      InlineError.types.ts
+      InlineError.stories.tsx
+      index.ts

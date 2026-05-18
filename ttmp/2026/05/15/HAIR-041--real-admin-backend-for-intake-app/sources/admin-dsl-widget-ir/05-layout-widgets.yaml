@@ -1,0 +1,235 @@
+schema_version: 1
+artifact_type: admin_dsl_react_widget_ir
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+category: layout_widgets
+summary: Layout widgets extracted from pageHeader, dashboardGrid, panel, toolbar, splitPane, tabs, filterBar, and searchBox
+  branches.
+widgets:
+- name: PageHeader
+  current_source: case "pageHeader" in renderAdminNode
+  classification:
+    level: organism
+  props: |-
+    export interface PageHeaderProps extends CommonWidgetProps {
+      breadcrumbs?: string[];
+      title: string;
+      description?: string;
+      primaryActions?: ActionViewModel[];
+      onPrimaryAction?: PageActionHandler;
+    }
+  action_slots:
+  - name: primaryActions
+    context: page
+  usage_example: |-
+    <PageHeader
+      breadcrumbs={["Admin DSL", "Workbench v2"]}
+      title="Request Triage"
+      description="Review customer intake requests."
+      primaryActions={[newServiceAction]}
+      onPrimaryAction={handlePageAction}
+    />
+  storybook_stories:
+  - Default
+  - WithBreadcrumbs
+  - WithPrimaryAction
+  - LongTitleMobile
+  - NoDescription
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/PageHeader/
+      PageHeader.tsx
+      PageHeader.types.ts
+      PageHeader.stories.tsx
+      PageHeader.test.tsx
+      index.ts
+- name: DashboardGrid
+  current_source: case "dashboardGrid" and layoutSpan/layoutOrder helpers
+  classification:
+    level: organism
+  props: |-
+    export interface DashboardGridProps extends CommonWidgetProps {
+      columns?: { desktop?: number; tablet?: number; mobile?: number };
+      gap?: "compact" | "normal" | "spacious";
+      children: React.ReactNode;
+    }
+
+    export interface DashboardGridItemProps {
+      span?: { desktop?: number; tablet?: number; mobile?: number };
+      order?: number;
+      children: React.ReactNode;
+    }
+  action_slots: []
+  storybook_stories:
+  - TwelveColumnDesktop
+  - CompactGap
+  - MixedSpanCards
+  - MobileSingleColumn
+  - Ordering
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/DashboardGrid/
+      DashboardGrid.tsx
+      DashboardGrid.types.ts
+      DashboardGrid.stories.tsx
+      index.ts
+- name: Panel
+  current_source: case "panel" in renderAdminNode
+  classification:
+    level: organism
+  props: |-
+    export interface PanelProps extends CommonWidgetProps {
+      title?: string;
+      subtitle?: string;
+      eyebrow?: string;
+      body?: string;
+      padding?: "none" | "normal";
+      toolbarActions?: ActionViewModel[];
+      footerActions?: ActionViewModel[];
+      children?: React.ReactNode;
+      onToolbarAction?: PanelActionHandler;
+      onFooterAction?: PanelActionHandler;
+    }
+  action_slots:
+  - name: toolbarActions
+    context: panel
+  - name: footerActions
+    context: panel
+  usage_example: |-
+    <Panel
+      title="Today’s queue"
+      density="compact"
+      padding="none"
+      footerActions={[assignAction]}
+      onFooterAction={handlePanelFooterAction}
+    >
+      <ResourceTable {...tableProps} />
+    </Panel>
+  storybook_stories:
+  - Default
+  - CompactNoPadding
+  - WithToolbarAction
+  - WithFooterActions
+  - BodyOnly
+  - NestedResourceTable
+  - MobilePanelPadding
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/Panel/
+      Panel.tsx
+      Panel.types.ts
+      Panel.stories.tsx
+      Panel.test.tsx
+      index.ts
+- name: Toolbar
+  current_source: case "toolbar"
+  classification:
+    level: molecule
+  props: |-
+    export interface ToolbarProps extends CommonWidgetProps {
+      actions: ActionViewModel[];
+      onAction?: PageActionHandler;
+    }
+  action_slots:
+  - name: toolbarActions
+  storybook_stories:
+  - Default
+  - ManyActionsWrap
+  - MobileTouchTargets
+  file_layout: |-
+    web/src/admin-dsl/widgets/molecules/Toolbar/
+      Toolbar.tsx
+      Toolbar.types.ts
+      Toolbar.stories.tsx
+      index.ts
+- name: SplitPane
+  current_source: case "splitPane"
+  classification:
+    level: organism
+  props: |-
+    export interface SplitPaneProps extends CommonWidgetProps {
+      leftWidth?: string;
+      rightWidth?: string;
+      gap?: number;
+      children: React.ReactNode;
+    }
+  action_slots: []
+  storybook_stories:
+  - MasterDetail
+  - TwoPanels
+  - MobileStacked
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/SplitPane/
+      SplitPane.tsx
+      SplitPane.types.ts
+      SplitPane.stories.tsx
+      index.ts
+- name: Tabs
+  current_source: case "tabs"
+  classification:
+    level: molecule
+  props: |-
+    export interface TabsProps extends CommonWidgetProps {
+      tabs: Array<{ id: string; label: string }>;
+      value?: string;
+      action?: ActionViewModel;
+      onTabChange?: (action: ActionViewModel | undefined, context: { tab: { id: string; label: string } }) => void;
+    }
+  action_slots:
+  - name: tabChange
+  storybook_stories:
+  - Default
+  - ActiveTab
+  - NoActionReadonly
+  - WrappingMobile
+  file_layout: |-
+    web/src/admin-dsl/widgets/molecules/Tabs/
+      Tabs.tsx
+      Tabs.types.ts
+      Tabs.stories.tsx
+      index.ts
+- name: FilterBar
+  current_source: case "filterBar"
+  classification:
+    level: molecule
+  props: |-
+    export interface FilterBarProps extends CommonWidgetProps {
+      filters: Array<{ id: string; label: string }>;
+      value?: string;
+      action?: ActionViewModel;
+      onFilterChange?: (action: ActionViewModel | undefined, context: { filter: { id: string; label: string } }) => void;
+    }
+  action_slots:
+  - name: filterChange
+  storybook_stories:
+  - Default
+  - ActiveFilter
+  - ManyFiltersWrap
+  - Readonly
+  file_layout: |-
+    web/src/admin-dsl/widgets/molecules/FilterBar/
+      FilterBar.tsx
+      FilterBar.types.ts
+      FilterBar.stories.tsx
+      index.ts
+- name: SearchBox
+  current_source: case "searchBox"
+  classification:
+    level: molecule
+  props: |-
+    export interface SearchBoxProps extends CommonWidgetProps {
+      label?: string;
+      placeholder?: string;
+      value?: string;
+      action?: ActionViewModel;
+      onSearch?: (action: ActionViewModel | undefined, context: { query: string }) => void;
+    }
+  action_slots:
+  - name: searchSubmit
+  storybook_stories:
+  - Default
+  - WithInitialValue
+  - NoAction
+  - SubmitDispatch
+  file_layout: |-
+    web/src/admin-dsl/widgets/molecules/SearchBox/
+      SearchBox.tsx
+      SearchBox.types.ts
+      SearchBox.stories.tsx
+      index.ts

@@ -1,0 +1,35 @@
+schema_version: 1
+artifact_type: admin_dsl_react_widget_ir
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+category: renderer_adapter_plan
+summary: Plan for replacing the giant switch with a small adapter registry that translates Admin DSL nodes into widget props.
+adapter_interface: |-
+  export interface AdminNodeAdapter<N extends AdminNode = AdminNode, P = unknown> {
+    kind: string;
+    toProps(node: N, context: AdminRenderContext): P;
+    render(props: P): React.ReactNode;
+  }
+example_resource_table_adapter: |-
+  export const resourceTableAdapter: AdminNodeAdapter<AdminNode, ResourceTableProps> = {
+    kind: "resourceTable",
+    toProps(node, context) {
+      const props = node.props ?? {};
+      return {
+        tableId: String(props.id ?? node.meta?.id ?? "table"),
+        columns: readColumns(props),
+        rows: readRows(props),
+        selectable: Boolean(props.selectable),
+        bulkActions: readActions(props.bulkActions),
+        rowActions: readActions(props.actions).filter((action) => action.placement === "row"),
+        onRowAction: (action, rowContext) => dispatchAdminAction(context, node, action, rowContext.row),
+        onBulkAction: (action, bulkContext) => dispatchAdminAction(context, node, action, bulkContext),
+      };
+    },
+    render(props) {
+      return <ResourceTable {...props} />;
+    },
+  };
+notes:
+- The adapter owns compatibility with current Admin DSL JSON.
+- The widget owns visual rendering.
+- Widgets should not call str, jsonArray, or jsonObject on raw AdminNode.props.

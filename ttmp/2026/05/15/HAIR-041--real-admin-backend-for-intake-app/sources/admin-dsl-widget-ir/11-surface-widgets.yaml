@@ -1,0 +1,74 @@
+schema_version: 1
+artifact_type: admin_dsl_react_widget_ir
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+category: surface_widgets
+summary: Surface widgets extracted from modal/drawer/sheet/detailPanel/inlinePanel and confirmDialog branches.
+widgets:
+- name: OverlaySurface
+  current_source: shared branch for modal, drawer, sheet, detailPanel, inlinePanel
+  classification:
+    level: organism
+  props: |-
+    export type OverlaySurfaceKind = "modal" | "drawer" | "sheet" | "detailPanel" | "inlinePanel";
+
+    export interface OverlaySurfaceProps extends CommonWidgetProps {
+      surfaceId: string;
+      kind: OverlaySurfaceKind;
+      title: string;
+      open?: boolean;
+      children: React.ReactNode;
+      closeAction?: ActionViewModel;
+      footerActions?: ActionViewModel[];
+      onCloseAction?: (action: ActionViewModel, context: { surfaceId: string; kind: OverlaySurfaceKind }) => void;
+      onFooterAction?: (action: ActionViewModel, context: { surfaceId: string; kind: OverlaySurfaceKind }) => void;
+    }
+  action_slots:
+  - name: close
+  - name: footer
+  storybook_stories:
+  - Modal
+  - Drawer
+  - Sheet
+  - DetailPanel
+  - InlinePanel
+  - ClosedDashedPreview
+  - WithFooterActions
+  - MobileSurface
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/OverlaySurface/
+      OverlaySurface.tsx
+      OverlaySurface.types.ts
+      OverlaySurface.stories.tsx
+      index.ts
+- name: ConfirmDialog
+  current_source: case "confirmDialog"
+  classification:
+    level: organism
+  props: |-
+    export interface ConfirmDialogProps extends CommonWidgetProps {
+      dialogId: string;
+      title: string;
+      body?: string;
+      tone?: "neutral" | "danger";
+      confirmLabel?: string;
+      confirmAction?: ActionViewModel;
+      cancelAction?: ActionViewModel;
+      onConfirm?: (action: ActionViewModel, context: { dialogId: string }) => void;
+      onCancel?: (action: ActionViewModel, context: { dialogId: string }) => void;
+    }
+  action_slots:
+  - name: confirm
+  - name: cancel
+  storybook_stories:
+  - Default
+  - Danger
+  - LongBody
+  - WithCancel
+  - DispatchConfirm
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/ConfirmDialog/
+      ConfirmDialog.tsx
+      ConfirmDialog.types.ts
+      ConfirmDialog.stories.tsx
+      ConfirmDialog.test.tsx
+      index.ts

@@ -1,0 +1,194 @@
+schema_version: 1
+artifact_type: admin_dsl_react_widget_ir
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+category: form_widgets
+summary: Form and field widgets extracted from form, fieldGroup, FieldPreview, and saveBar.
+widgets:
+- name: AdminForm
+  current_source: case "form"
+  classification:
+    level: organism
+  props: |-
+    export interface AdminFormProps<Values = Record<string, unknown>> extends CommonWidgetProps {
+      formId: string;
+      title?: string;
+      dirty?: boolean;
+      pending?: boolean;
+      state?: "idle" | "dirty" | "pending" | "success" | "error";
+      errors?: Record<string, string>;
+      actions?: ActionViewModel[];
+      children: React.ReactNode;
+      onFormAction?: FormActionHandler<Values>;
+    }
+  action_slots:
+  - name: submit
+  - name: cancel
+  - name: formFooter
+  usage_example: |-
+    <AdminForm
+      formId="serviceForm"
+      title="Highlights"
+      dirty
+      actions={[saveAction, cancelAction]}
+      onFormAction={(action, context) => submit(action, context.values)}
+    >
+      <FieldGroup title="Identity">
+        <TextField name="label" label="Label" value="Highlights" />
+      </FieldGroup>
+    </AdminForm>
+  storybook_stories:
+  - Default
+  - DirtyState
+  - PendingState
+  - SuccessState
+  - WithErrors
+  - SubmitActions
+  - NestedFieldGroups
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/AdminForm/
+      AdminForm.tsx
+      AdminForm.types.ts
+      AdminForm.stories.tsx
+      AdminForm.test.tsx
+      parts/FormLifecycleBanner.tsx
+      parts/FormErrorSummary.tsx
+      index.ts
+- name: FieldGroup
+  current_source: case "fieldGroup"
+  classification:
+    level: molecule
+  props: |-
+    export interface FieldGroupProps extends CommonWidgetProps {
+      title: string;
+      children: React.ReactNode;
+    }
+  action_slots: []
+  storybook_stories:
+  - Default
+  - MultipleFields
+  - LongTitle
+  file_layout: |-
+    web/src/admin-dsl/widgets/molecules/FieldGroup/
+      FieldGroup.tsx
+      FieldGroup.types.ts
+      FieldGroup.stories.tsx
+      index.ts
+- name: Field widgets
+  current_source: FieldPreview in render.tsx
+  classification:
+    level: molecule
+    notes: Molecules composed from input atoms.
+  shared_props: |-
+    export interface FieldBaseProps<T = unknown> extends CommonWidgetProps {
+      name: string;
+      label: string;
+      value?: T;
+      required?: boolean;
+      disabled?: boolean;
+      error?: string;
+      helpText?: string;
+      onChange?: (context: { name: string; value: T }) => void;
+    }
+  widgets:
+  - current_construct: textField
+    widget: TextField
+    additional_props: placeholder?
+    stories:
+    - default
+    - empty
+    - disabled
+    - error
+    file_directory: molecules/TextField/
+  - current_construct: textareaField
+    widget: TextareaField
+    additional_props: rows?, placeholder?
+    stories:
+    - default
+    - long text
+    - error
+    file_directory: molecules/TextareaField/
+  - current_construct: moneyField
+    widget: MoneyField
+    additional_props: currency?, min?, max?
+    stories:
+    - cents value
+    - empty
+    - error
+    file_directory: molecules/MoneyField/
+  - current_construct: durationField
+    widget: DurationField
+    additional_props: unit?
+    stories:
+    - minutes
+    - disabled
+    - error
+    file_directory: molecules/DurationField/
+  - current_construct: dateField
+    widget: DateField
+    additional_props: min?, max?
+    stories:
+    - date value
+    - empty
+    - error
+    file_directory: molecules/DateField/
+  - current_construct: timeField
+    widget: TimeField
+    additional_props: step?
+    stories:
+    - time value
+    - empty
+    - error
+    file_directory: molecules/TimeField/
+  - current_construct: selectField
+    widget: SelectField
+    additional_props: options
+    stories:
+    - default
+    - many options
+    - disabled
+    file_directory: molecules/SelectField/
+  - current_construct: switchField
+    widget: SwitchField
+    additional_props: none
+    stories:
+    - 'on'
+    - 'off'
+    - disabled
+    file_directory: molecules/SwitchField/
+  - current_construct: imageField
+    widget: ImageField
+    additional_props: accept?, maxSize?
+    stories:
+    - empty
+    - uploading
+    - with image
+    file_directory: molecules/ImageField/
+  directory_file_pattern:
+  - WidgetName.tsx
+  - WidgetName.types.ts
+  - WidgetName.stories.tsx
+  - index.ts
+- name: SaveBar
+  current_source: case "saveBar"
+  classification:
+    level: molecule
+  props: |-
+    export interface SaveBarProps extends CommonWidgetProps {
+      status: string;
+      primaryAction?: ActionViewModel;
+      onPrimaryAction?: FormActionHandler<Record<string, unknown>>;
+    }
+  action_slots:
+  - name: primary
+  storybook_stories:
+  - Ready
+  - UnsavedChanges
+  - Saving
+  - PrimaryAction
+  - MobileStacked
+  file_layout: |-
+    web/src/admin-dsl/widgets/molecules/SaveBar/
+      SaveBar.tsx
+      SaveBar.types.ts
+      SaveBar.stories.tsx
+      index.ts

@@ -1,0 +1,57 @@
+schema_version: 1
+artifact_type: admin_dsl_react_widget_ir
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+category: storybook_scenario_matrix
+summary: Integration and widget-level Storybook scenario requirements.
+integration_stories_to_keep:
+- name: TargetDesktop
+  purpose: Full workbench dashboard with all major widgets.
+- name: TargetMobile
+  purpose: Full dashboard mobile behavior.
+- name: ServiceOperations
+  purpose: Resource table with row overflow and metrics.
+- name: RequestTriage
+  purpose: Dense request table with bulk actions and queue health panel.
+- name: DraftReviewQueue
+  purpose: Comparison table and publish summary.
+- name: CalendarPublishing
+  purpose: Month calendar plus comparison table.
+- name: TypedFormWorkbench
+  purpose: Form fields inside panels.
+- name: EmptyLoadingErrorStates
+  purpose: State widgets inside panels.
+- name: AuditWorkbench
+  purpose: Activity feed plus key-value detail panel.
+- name: DenseMobileOperations
+  purpose: Resource table mobile card behavior.
+widget_level_story_requirements:
+- 'Default: normal production-like data.'
+- Empty or NoData when applicable.
+- WithActions when the widget exposes an action slot.
+- Loading or Pending when the widget has lifecycle state.
+- Error when the widget can display errors.
+- Mobile when layout changes at mobile breakpoints.
+- LongContent when text wrapping or overflow is important.
+- DispatchContext when the widget has contextual action callbacks.
+example_resource_table_stories: |-
+  export const DefaultRows: Story = {
+    args: { columns: requestColumns, rows: requestRows },
+  };
+
+  export const SelectableWithBulkToolbar: Story = {
+    args: {
+      columns: requestColumns,
+      rows: requestRows,
+      selectable: true,
+      bulkActions: [assignAction],
+    },
+  };
+
+  export const DispatchContext: Story = {
+    args: {
+      columns: requestColumns,
+      rows: requestRows,
+      rowActions: [reviewAction],
+      onRowAction: (action, context) => console.log(action, context),
+    },
+  };

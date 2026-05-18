@@ -361,3 +361,9 @@ Step 36: Removed frontend v1 Admin DSL builders/renderer branches/stories and re
 - Added `design-doc/08-admin-dsl-react-widget-ir-catalog.md`, a widget-level IR catalog for rebuilding the Admin DSL renderer from the current monolithic `render.tsx` into explicit React widgets.
 - The catalog maps current Admin DSL constructs to atom/molecule/organism widgets, props, contextual action slots, usage scenarios, Storybook story plans, and one-directory-per-widget file layouts.
 - The document also captures the artifact-pass model from `meta-dsl-comments.md`: passes are defined by required and produced artifacts rather than one fixed consecutive pipeline.
+
+## 2026-05-18 — React widget IR YAML artifacts
+
+- Added `sources/admin-dsl-widget-ir/*.yaml`, a machine-readable YAML version of the Admin DSL React widget IR catalog.
+- Split the catalog into index, pass model, shared types, shell widgets, action widgets, layout widgets, resource widgets, data-display widgets, media widgets, calendar widgets, form widgets, surface widgets, renderer adapter plan, Storybook scenario matrix, and unsupported constructs.
+- Validated all YAML files with Python/PyYAML so follow-up scripts can load them directly.

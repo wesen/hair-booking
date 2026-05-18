@@ -1,0 +1,87 @@
+schema_version: 1
+artifact_type: admin_dsl_react_widget_ir
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+category: shell_widgets
+summary: Shell widgets extracted from AdminPageRenderer and WorkbenchShell.
+widgets:
+- name: WorkbenchShell
+  current_source: WorkbenchShell in web/src/admin-dsl/render.tsx
+  classification:
+    level: organism
+    role: shell
+  purpose: 'Render the information-dense admin workbench frame: sidebar on desktop, sticky topbar on mobile, global background,
+    content max width, and page body region.'
+  props: |-
+    export interface WorkbenchShellProps extends CommonWidgetProps {
+      pageId: string;
+      title: string;
+      sidebar: SidebarNavProps;
+      user?: WorkbenchUser;
+      children: React.ReactNode;
+    }
+
+    export interface WorkbenchUser {
+      name: string;
+      role?: string;
+      initials?: string;
+    }
+  action_slots:
+  - name: sidebarNav
+    signature: |-
+      onSidebarAction?: (action: ActionViewModel, context: {
+        item: SidebarNavItem;
+        activeItemId?: string;
+      }) => void;
+  usage_example: |-
+    <WorkbenchShell
+      pageId="admin-intake"
+      title="Fringe Admin"
+      sidebar={{ activeItemId: "requests", items }}
+      user={{ name: "Admin User", role: "Administrator", initials: "AD" }}
+      onSidebarAction={handleSidebarAction}
+    >
+      <PageHeader title="Request Triage" />
+      <DashboardGrid>{/* panels */}</DashboardGrid>
+    </WorkbenchShell>
+  storybook_stories:
+  - DefaultDesktop
+  - MobileTopbar
+  - LongNavigation
+  - NoUser
+  - ActionDispatch
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/WorkbenchShell/
+      WorkbenchShell.tsx
+      WorkbenchShell.types.ts
+      WorkbenchShell.stories.tsx
+      WorkbenchShell.test.tsx
+      index.ts
+- name: DefaultAdminShell
+  current_source: fallback branch in AdminPageRenderer in web/src/admin-dsl/render.tsx
+  classification:
+    level: organism
+    role: shell
+  purpose: Render non-workbench Admin DSL pages with optional side surfaces. This keeps the legacy/default page shell separate
+    from workbench chrome.
+  props: |-
+    export interface DefaultAdminShellProps extends CommonWidgetProps {
+      pageId: string;
+      shellKind: "admin" | "dashboard" | "resource" | "calendar" | "settings" | "bare";
+      eyebrow?: string;
+      title: string;
+      description?: string;
+      main: React.ReactNode;
+      side?: React.ReactNode;
+    }
+  action_slots: []
+  storybook_stories:
+  - MainOnly
+  - WithSideSurfaces
+  - CalendarShell
+  - MobileSideColumn
+  file_layout: |-
+    web/src/admin-dsl/widgets/organisms/DefaultAdminShell/
+      DefaultAdminShell.tsx
+      DefaultAdminShell.types.ts
+      DefaultAdminShell.stories.tsx
+      index.ts

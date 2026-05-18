@@ -1,0 +1,92 @@
+schema_version: 1
+artifact_type: admin_dsl_react_widget_ir
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+category: action_widgets
+summary: Action widgets extracted from renderActions, table overflow handling, and special-case action buttons.
+widgets:
+- name: ActionButton
+  current_source: renderActions button branch in web/src/admin-dsl/render.tsx plus row/bulk/search special buttons
+  classification:
+    level: atom
+  purpose: Render one action with consistent disabled, loading, primary, danger, subtle, and placement-aware styling.
+  props: |-
+    export interface ActionButtonProps<C = unknown> extends CommonWidgetProps {
+      action: ActionViewModel;
+      context?: C;
+      variant?: "solid" | "soft" | "subtle" | "danger" | "overflow";
+      size?: "sm" | "md" | "touch";
+      onAction?: (action: ActionViewModel, context: C) => void;
+    }
+  action_slots:
+  - name: self
+    notes: The widget executes the action it receives through onAction.
+  storybook_stories:
+  - Primary
+  - Secondary
+  - Danger
+  - SubtleLink
+  - Loading
+  - Disabled
+  - TouchTargetMobile
+  file_layout: |-
+    web/src/admin-dsl/widgets/atoms/ActionButton/
+      ActionButton.tsx
+      ActionButton.types.ts
+      ActionButton.stories.tsx
+      index.ts
+- name: ActionGroup
+  current_source: renderActions wrapper in web/src/admin-dsl/render.tsx
+  classification:
+    level: molecule
+  purpose: Render a list of actions with consistent spacing, wrapping, and slot-specific visual treatment.
+  props: |-
+    export interface ActionGroupProps<C = unknown> extends CommonWidgetProps {
+      actions: ActionViewModel[];
+      context?: C;
+      slot: "pageHeader" | "toolbar" | "panelToolbar" | "panelFooter" | "row" | "rowOverflow" | "bulkToolbar" | "formFooter" | "calendarCell" | "sidebarNav" | "footer" | "detail" | "overflow";
+      align?: "start" | "end" | "between";
+      onAction?: (action: ActionViewModel, context: C) => void;
+    }
+  action_slots:
+  - name: actions
+    notes: Slot-specific list of actions rendered as ActionButton children.
+  storybook_stories:
+  - PageHeaderActions
+  - PanelFooterActions
+  - RowActions
+  - BulkToolbarActions
+  - FormFooterActions
+  - OverflowActions
+  - WrappingMobile
+  file_layout: |-
+    web/src/admin-dsl/widgets/molecules/ActionGroup/
+      ActionGroup.tsx
+      ActionGroup.types.ts
+      ActionGroup.stories.tsx
+      index.ts
+- name: OverflowActionButton
+  current_source: renderTableCell branch for kind === "overflowActions"
+  classification:
+    level: atom
+  purpose: Render the ellipsis affordance for row overflow menus. First implementation can dispatch the first action, matching
+    current behavior. Later implementation can open a real menu.
+  props: |-
+    export interface OverflowActionButtonProps<C = unknown> {
+      label?: string;
+      actions: ActionViewModel[];
+      context: C;
+      onAction?: (action: ActionViewModel, context: C) => void;
+    }
+  action_slots:
+  - name: overflowActions
+    notes: Uses the provided context and selected action.
+  storybook_stories:
+  - SingleOverflowAction
+  - NoActionsDisabled
+  - FutureMenuPreview
+  file_layout: |-
+    web/src/admin-dsl/widgets/atoms/OverflowActionButton/
+      OverflowActionButton.tsx
+      OverflowActionButton.types.ts
+      OverflowActionButton.stories.tsx
+      index.ts

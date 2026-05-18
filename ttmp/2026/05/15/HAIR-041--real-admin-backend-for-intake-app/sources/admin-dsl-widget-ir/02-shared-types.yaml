@@ -1,0 +1,97 @@
+schema_version: 1
+artifact_type: admin_dsl_react_widget_ir
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+category: shared_widget_types
+summary: Common action and widget prop contracts used by widget YAML artifacts.
+base_action_types: |-
+  export interface ActionViewModel {
+    id?: string;
+    type: "open" | "close" | "navigate" | "mutation" | "confirm" | "refresh" | "upload";
+    target: string;
+    label: string;
+    intent?: "neutral" | "primary" | "danger";
+    priority?: "primary" | "secondary" | "tertiary";
+    presentation?: "button" | "icon" | "menuItem" | "overflow" | "link";
+    disabled?: boolean;
+    loading?: boolean;
+    accessibilityLabel?: string;
+  }
+action_slot_callback_signatures: |-
+  export type PageActionHandler = (action: ActionViewModel, context: {
+    pageId?: string;
+  }) => void;
+
+  export type PanelActionHandler = (action: ActionViewModel, context: {
+    panelId?: string;
+  }) => void;
+
+  export type TableRowActionHandler<Row> = (action: ActionViewModel, context: {
+    tableId: string;
+    row: Row;
+    rowId?: string;
+  }) => void;
+
+  export type TableBulkActionHandler<Row> = (action: ActionViewModel, context: {
+    tableId: string;
+    scope: "visible" | "selected" | "allMatching";
+    rows: Row[];
+    selectedRowIds: string[];
+  }) => void;
+
+  export type FormActionHandler<Values> = (action: ActionViewModel, context: {
+    formId: string;
+    values: Values;
+  }) => void;
+
+  export type CalendarCellActionHandler = (action: ActionViewModel, context: {
+    calendarId: string;
+    date: string;
+  }) => void;
+common_visual_props: |-
+  export interface CommonWidgetProps {
+    id?: string;
+    className?: string;
+    style?: React.CSSProperties;
+    density?: "compact" | "normal" | "spacious";
+    tone?: "neutral" | "success" | "warning" | "danger" | "info";
+    dataAttributes?: Record<string, string | number | boolean>;
+  }
+target_file_layout: |-
+  web/src/admin-dsl/widgets/
+    atoms/
+      ActionButton/
+        ActionButton.tsx
+        ActionButton.stories.tsx
+        ActionButton.types.ts
+        index.ts
+      StatusText/
+        StatusText.tsx
+        StatusText.stories.tsx
+        StatusText.types.ts
+        index.ts
+    molecules/
+      ActionGroup/
+        ActionGroup.tsx
+        ActionGroup.stories.tsx
+        ActionGroup.types.ts
+        index.ts
+    organisms/
+      ResourceTable/
+        ResourceTable.tsx
+        ResourceTable.stories.tsx
+        ResourceTable.types.ts
+        ResourceTable.test.tsx
+        ResourceTable.fixtures.ts
+        index.ts
+renderer_adapter_layout: |-
+  web/src/admin-dsl/rendering/
+    AdminDslRenderer.tsx
+    adapterTypes.ts
+    registry.ts
+    adapters/
+      pageHeaderAdapter.ts
+      panelAdapter.ts
+      resourceTableAdapter.ts
+      comparisonTableAdapter.ts
+      monthCalendarAdapter.ts
+      formAdapter.ts

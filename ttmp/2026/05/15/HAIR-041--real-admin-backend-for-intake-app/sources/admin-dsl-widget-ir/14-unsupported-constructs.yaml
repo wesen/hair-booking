@@ -1,0 +1,23 @@
+schema_version: 1
+artifact_type: admin_dsl_react_widget_ir
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+category: unsupported_or_ambiguous_constructs
+summary: Constructs that exist in schema.ts or builder.ts but are not first-class rendered widgets today.
+constructs:
+- construct: statusBadge
+  current_status: In schema/builder, no explicit render branch in render.tsx.
+  recommendation: Map to StatusText/StatusBadge atom or remove if table badge cells cover use cases.
+- construct: resourcePage
+  current_status: In schema, not rendered as node. resource.page creates an AdminPageBuilder, not a node.
+  recommendation: Treat as shell/page builder concept, not widget.
+- construct: resourceDetail
+  current_status: Builder exists, no explicit render branch.
+  recommendation: Map to OverlaySurface kind=detailPanel or create ResourceDetail organism later.
+- construct: actionMenu
+  current_status: In schema, no explicit render branch.
+  recommendation: Defer until OverflowActionButton grows into a real menu.
+- construct: availabilityBlock
+  current_status: Rendered the same as appointment except not time-off warning.
+  recommendation: Keep as CalendarEventBlock kind="availability".
+policy: The first implementation pass should either remove unsupported constructs from the new vocabulary or create explicit
+  widget targets for them. Do not keep silent fallback behavior for production widgets.
