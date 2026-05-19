@@ -1,41 +1,403 @@
 schema_version: 2
 artifact_type: admin_dsl_widget_support_ir
-source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
 category: storybook_scenario_matrix
-summary: Integration and widget-level Storybook scenario requirements.
-integration_stories_to_keep:
-- name: TargetDesktop
-  purpose: Full workbench dashboard with all major widgets.
-- name: TargetMobile
-  purpose: Full dashboard mobile behavior.
-- name: ServiceOperations
-  purpose: Resource table with row overflow and metrics.
-- name: RequestTriage
-  purpose: Dense request table with bulk actions and queue health panel.
-- name: DraftReviewQueue
-  purpose: Comparison table and publish summary.
-- name: CalendarPublishing
-  purpose: Month calendar plus comparison table.
-- name: TypedFormWorkbench
-  purpose: Form fields inside panels.
-- name: EmptyLoadingErrorStates
-  purpose: State widgets inside panels.
-- name: AuditWorkbench
-  purpose: Activity feed plus key-value detail panel.
-- name: DenseMobileOperations
-  purpose: Resource table mobile card behavior.
-widget_level_story_requirements:
-- 'Default: normal production-like data.'
-- Empty or NoData when applicable.
-- WithActions when the widget exposes an action slot.
-- Loading or Pending when the widget has lifecycle state.
-- Error when the widget can display errors.
-- Mobile when layout changes at mobile breakpoints.
-- LongContent when text wrapping or overflow is important.
-- DispatchContext when the widget has contextual action callbacks.
-example_resource_table_stories: "export const DefaultRows: Story = {\n  args: { columns: requestColumns, rows: requestRows\
-  \ },\n};\n\nexport const SelectableWithBulkToolbar: Story = {\n  args: {\n    columns: requestColumns,\n    rows: requestRows,\n\
-  \    selectable: true,\n    bulkActions: [assignAction],\n  },\n};\n\nexport const DispatchContext: Story = {\n  args: {\n\
-  \    columns: requestColumns,\n    rows: requestRows,\n    rowActions: [reviewAction],\n    onRowAction: (action, context)\
-  \ => console.log(action, context),\n  },\n};"
+status: active_coverage_manifest
+last_reconciled_step: 133
+summary: Current Storybook coverage manifest for Admin DSL integration pages and promoted widget families.
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
 schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md
+
+coverage_policy:
+  purpose: Track real Storybook files/exports and separate current coverage from known gaps.
+  status_values:
+    complete: Story exists with meaningful fixtures and current validation.
+    partial: Some coverage exists but a known scenario is missing.
+    missing: Scenario is planned but no story export exists yet.
+    stale: Story exists but no longer matches current implementation behavior.
+  validation_commands:
+    - cd web && npx tsc --noEmit
+    - cd web && pnpm test -- --runInBand
+    - cd web && npx storybook build --quiet
+    - python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook <widget-dirs>
+
+integration_story_coverage:
+  workbench_v2:
+    file: web/src/admin-dsl/AdminDslWorkbench.stories.tsx
+    status: complete
+    exports:
+      - name: TargetDesktop
+        viewport: desktop
+        purpose: Full workbench dashboard with all major widgets.
+        status: complete
+      - name: TargetMobile
+        viewport: iphone14
+        purpose: Full dashboard mobile behavior.
+        status: complete
+      - name: ServiceOperations
+        viewport: desktop
+        purpose: Resource table with row overflow and metrics.
+        status: complete
+      - name: RequestTriage
+        viewport: desktop
+        purpose: Dense request table with bulk actions and queue health panel.
+        status: complete
+      - name: DraftReviewQueue
+        viewport: desktop
+        purpose: Comparison table and publish summary.
+        status: complete
+      - name: CalendarPublishing
+        viewport: desktop
+        purpose: Month calendar plus comparison table.
+        status: complete
+      - name: TypedFormWorkbench
+        viewport: desktop
+        purpose: Form fields inside panels.
+        status: complete
+      - name: EmptyLoadingErrorStates
+        viewport: desktop
+        purpose: State widgets inside panels.
+        status: complete
+      - name: AuditWorkbench
+        viewport: desktop
+        purpose: Activity feed plus key-value detail panel.
+        status: complete
+      - name: DenseMobileOperations
+        viewport: iphone14
+        purpose: Resource table mobile card behavior.
+        status: complete
+  rendered_pages:
+    file: web/src/admin-dsl/AdminDsl.stories.tsx
+    status: partial
+    exports:
+      - name: ServicesPricing
+        viewport: default
+        purpose: Default shell services page with semantic PageHeader, metrics, table, modal, and confirm side surfaces.
+        status: complete
+      - name: Dashboard
+        viewport: default
+        purpose: Default shell dashboard page with drawer side surface.
+        status: complete
+      - name: Calendar
+        viewport: default
+        purpose: Default shell calendar page with modal side surface.
+        status: complete
+      - name: JsonContract
+        viewport: padded
+        purpose: Human-readable JSON contract dump for example pages.
+        status: complete
+    gaps:
+      - name: ServicesPricingModalOpen
+        status: missing
+        purpose: Dedicated rendered-page story focused on the services modal surface without relying on the broad ServicesPricing story.
+      - name: ServicesPricingConfirmOpen
+        status: missing
+        purpose: Dedicated rendered-page story focused on destructive confirm surface rendering and action affordances.
+      - name: DashboardDrawerOpen
+        status: missing
+        purpose: Dedicated rendered-page story focused on default-shell drawer side surface behavior.
+
+widget_story_requirements:
+  default: Baseline production-like data.
+  empty_or_no_data: Required when the widget can render an empty state.
+  actions: Required when the widget exposes action slots.
+  lifecycle: Required when the widget has loading, pending, dirty, saved, or error state.
+  error: Required when the widget can display validation or runtime errors.
+  mobile: Required when layout changes at mobile breakpoints or touch targets matter.
+  long_content: Required when text wrapping or overflow is important.
+  dispatch_context: Required when the widget emits contextual callbacks.
+
+widget_story_coverage:
+  shells:
+    WorkbenchShell:
+      file: web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.stories.tsx
+      status: partial
+      exports: [DefaultDesktop, MobileTopbar, LongNavigation, NoUser, ActionDispatch]
+      gaps:
+        - MobileMenuToggle
+    DefaultAdminShell:
+      file: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.stories.tsx
+      status: complete
+      exports: [MainOnly, WithSideSurfaces, CalendarShell, MobileSideColumn]
+      gaps: []
+  actions:
+    ActionButton:
+      file: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.stories.tsx
+      status: complete
+      exports: [Primary, Secondary, Danger, SubtleLink, Loading, Disabled, Overflow, TouchTargetMobile, DispatchContext]
+      gaps: []
+    ActionGroup:
+      file: web/src/admin-dsl/widgets/molecules/ActionGroup/ActionGroup.stories.tsx
+      status: complete
+      exports: [PageHeaderActions, PanelFooterActions, RowActions, BulkToolbarActions, FormFooterActions, OverflowActions, WrappingMobile, DispatchContext]
+      gaps: []
+  layout:
+    PageHeader:
+      file: web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.stories.tsx
+      status: complete
+      exports: [Default, WithBreadcrumbs, WithPrimaryAction, LongTitleMobile, NoDescription, ActionDispatch]
+      gaps: []
+    DashboardGrid:
+      file: web/src/admin-dsl/widgets/organisms/DashboardGrid/DashboardGrid.stories.tsx
+      status: complete
+      exports: [TwelveColumnDesktop, CompactGap, MixedSpanCards, MobileSingleColumn, Ordering]
+      gaps: []
+    Panel:
+      file: web/src/admin-dsl/widgets/organisms/Panel/Panel.stories.tsx
+      status: complete
+      exports: [Default, CompactNoPadding, WithToolbarAction, WithFooterActions, BodyOnly, NestedResourceTable, MobilePanelPadding]
+      gaps: []
+    Toolbar:
+      file: web/src/admin-dsl/widgets/molecules/Toolbar/Toolbar.stories.tsx
+      status: complete
+      exports: [Default, ManyActionsWrap, MobileTouchTargets, ActionDispatch]
+      gaps: []
+    SplitPane:
+      file: web/src/admin-dsl/widgets/organisms/SplitPane/SplitPane.stories.tsx
+      status: complete
+      exports: [MasterDetail, TwoPanels, MobileStacked]
+      gaps: []
+    Tabs:
+      file: web/src/admin-dsl/widgets/molecules/Tabs/Tabs.stories.tsx
+      status: complete
+      exports: [Default, ActiveTab, NoActionReadonly, WrappingMobile, TabDispatch]
+      gaps: []
+    FilterBar:
+      file: web/src/admin-dsl/widgets/molecules/FilterBar/FilterBar.stories.tsx
+      status: complete
+      exports: [Default, ActiveFilter, ManyFiltersWrap, Readonly, FilterDispatch]
+      gaps: []
+    SearchBox:
+      file: web/src/admin-dsl/widgets/molecules/SearchBox/SearchBox.stories.tsx
+      status: complete
+      exports: [Default, WithInitialValue, NoAction, MobileSearch, SubmitDispatch]
+      gaps: []
+  resource:
+    ResourceTable:
+      file: web/src/admin-dsl/widgets/organisms/ResourceTable/ResourceTable.stories.tsx
+      status: complete
+      exports: [Default, SelectableWithBulkActions, RowActions, PaginationActions, MobileCards, Empty]
+      gaps: []
+    ResourceTableCell:
+      file: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/ResourceTableCell/ResourceTableCell.stories.tsx
+      status: complete
+      exports_note: Part-widget story coverage is maintained beside ResourceTable parts.
+      gaps: []
+    BulkActionBar:
+      file: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/BulkActionBar/BulkActionBar.stories.tsx
+      status: complete
+      exports_note: Part-widget story coverage is maintained beside ResourceTable parts.
+      gaps: []
+    PaginationBar:
+      file: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/PaginationBar/PaginationBar.stories.tsx
+      status: complete
+      exports_note: Part-widget story coverage is maintained beside ResourceTable parts.
+      gaps: []
+  data_display:
+    MetricCard:
+      file: web/src/admin-dsl/widgets/molecules/MetricCard/MetricCard.stories.tsx
+      status: complete
+      exports: [Default, SuccessTone, WarningTone, DangerTone, LongCaption, Mobile]
+      gaps: []
+    StatusText:
+      file: web/src/admin-dsl/widgets/atoms/StatusText/StatusText.stories.tsx
+      status: partial
+      exports: [NeutralText, SuccessText, WarningText, DangerText, PillVariant, MappedFromTableValue]
+      gaps:
+        - LongLabel
+        - MobileWrap
+    ComparisonTable:
+      file: web/src/admin-dsl/widgets/organisms/ComparisonTable/ComparisonTable.stories.tsx
+      status: complete
+      exports: [Default, WithRowActions, Empty, Mobile]
+      gaps: []
+    KeyValueList:
+      file: web/src/admin-dsl/widgets/molecules/KeyValueList/KeyValueList.stories.tsx
+      status: complete
+      exports: [Default, WideLabels, MixedValues, Mobile]
+      gaps: []
+    ActivityFeed:
+      file: web/src/admin-dsl/widgets/molecules/ActivityFeed/ActivityFeed.stories.tsx
+      status: complete
+      exports: [Default, WithItemAction, LongBody, Mobile]
+      gaps: []
+    MarkdownBlock:
+      file: web/src/admin-dsl/widgets/molecules/MarkdownBlock/MarkdownBlock.stories.tsx
+      status: complete
+      exports: [Default, Muted, Multiline, Mobile]
+      gaps: []
+    EmptyState:
+      file: web/src/admin-dsl/widgets/molecules/EmptyState/EmptyState.stories.tsx
+      status: complete
+      exports: [Default, WithAction, ShortCopy, Mobile]
+      gaps: []
+    LoadingState:
+      file: web/src/admin-dsl/widgets/molecules/LoadingState/LoadingState.stories.tsx
+      status: complete
+      exports: [Default, WithBody, Mobile]
+      gaps: []
+    InlineError:
+      file: web/src/admin-dsl/widgets/molecules/InlineError/InlineError.stories.tsx
+      status: complete
+      exports: [Default, LongMessage, Mobile]
+      gaps: []
+  media:
+    PreviewFrame:
+      file: web/src/admin-dsl/widgets/organisms/PreviewFrame/PreviewFrame.stories.tsx
+      status: complete
+      exports: [IframeConnected, Placeholder, WithBodyAndActions, TallPreview, MobilePreview]
+      gaps: []
+    ImageGrid:
+      file: web/src/admin-dsl/widgets/organisms/ImageGrid/ImageGrid.stories.tsx
+      status: complete
+      exports: [Default, WithStatuses, Empty, CardActionProbe, ResponsiveGrid]
+      gaps: []
+    ImageGallery:
+      file: web/src/admin-dsl/widgets/organisms/ImageGallery/ImageGallery.stories.tsx
+      status: complete
+      exports: [DefaultPhotos, MissingPhoto, EmptyGallery, ClickableImages, MobileGrid]
+      gaps: []
+  calendar:
+    MonthCalendar:
+      file: web/src/admin-dsl/widgets/organisms/MonthCalendar/MonthCalendar.stories.tsx
+      status: complete
+      exports: [DefaultMonth, WithPublishedMarkers, WithScheduledMarkers, SelectedDate, NoActionsReadonly, PreviousNextActions, MobileCalendar]
+      gaps: []
+    CalendarWeek:
+      file: web/src/admin-dsl/widgets/organisms/CalendarWeek/CalendarWeek.stories.tsx
+      status: complete
+      exports: [DefaultWeek, AppointmentsAndTimeOff, NoAppointments, MobileAgenda, LongDayLabels]
+      gaps: []
+    CalendarEventBlock:
+      file: web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.stories.tsx
+      status: partial
+      exports: [Appointment, Availability, TimeOff, CompactBlock, AgendaItem]
+      gaps:
+        - ActionCallbackProbeName
+  form:
+    AdminForm:
+      file: web/src/admin-dsl/widgets/organisms/AdminForm/AdminForm.stories.tsx
+      status: partial
+      exports: [Default, DirtyState, PendingState, SuccessState, WithErrors, SubmitActions, NestedFieldGroups]
+      gaps:
+        - MobileForm
+    FieldGroup:
+      file: web/src/admin-dsl/widgets/molecules/FieldGroup/FieldGroup.stories.tsx
+      status: partial
+      exports: [Default, MultipleFields, LongTitle]
+      gaps:
+        - MobileFieldGroup
+    SaveBar:
+      file: web/src/admin-dsl/widgets/molecules/SaveBar/SaveBar.stories.tsx
+      status: complete
+      exports: [Ready, UnsavedChanges, Saving, PrimaryAction, MobileStacked]
+      gaps: []
+  form_fields:
+    FieldShell:
+      file: web/src/admin-dsl/widgets/atoms/FieldShell/FieldShell.stories.tsx
+      status: complete
+      exports: [Default, WithHelp, WithError, Disabled, ReadOnly, Mobile]
+      gaps: []
+    TextField:
+      file: web/src/admin-dsl/widgets/molecules/TextField/TextField.stories.tsx
+      status: complete
+      exports: [Default, WithHelp, WithError, Disabled, ReadOnly, ChangeCallbackProbe, Mobile]
+      gaps: []
+    TextareaField:
+      file: web/src/admin-dsl/widgets/molecules/TextareaField/TextareaField.stories.tsx
+      status: complete
+      exports: [Default, WithHelp, WithError, Disabled, ReadOnly, ChangeCallbackProbe, Mobile]
+      gaps: []
+    SelectField:
+      file: web/src/admin-dsl/widgets/molecules/SelectField/SelectField.stories.tsx
+      status: complete
+      exports: [Default, WithPlaceholder, WithHelp, WithError, Disabled, ChangeCallbackProbe, Mobile]
+      gaps: []
+    SwitchField:
+      file: web/src/admin-dsl/widgets/molecules/SwitchField/SwitchField.stories.tsx
+      status: complete
+      exports: [On, Off, WithHelp, WithError, Disabled, ReadOnly, ChangeCallbackProbe, Mobile]
+      gaps: []
+    DateField:
+      file: web/src/admin-dsl/widgets/molecules/DateField/DateField.stories.tsx
+      status: complete
+      exports: [Default, WithHelp, WithError, Disabled, ReadOnly, ChangeCallbackProbe, Mobile]
+      gaps: []
+    TimeField:
+      file: web/src/admin-dsl/widgets/molecules/TimeField/TimeField.stories.tsx
+      status: complete
+      exports: [Default, WithHelp, WithError, Disabled, ReadOnly, ChangeCallbackProbe, Mobile]
+      gaps: []
+    MoneyField:
+      file: web/src/admin-dsl/widgets/molecules/MoneyField/MoneyField.stories.tsx
+      status: complete
+      exports: [Default, WithHelp, WithError, Disabled, ReadOnly, ChangeCallbackProbe, Mobile]
+      gaps: []
+    DurationField:
+      file: web/src/admin-dsl/widgets/molecules/DurationField/DurationField.stories.tsx
+      status: complete
+      exports: [Default, WithHelp, WithError, Disabled, ReadOnly, ChangeCallbackProbe, Mobile]
+      gaps: []
+    ImageField:
+      file: web/src/admin-dsl/widgets/molecules/ImageField/ImageField.stories.tsx
+      status: complete
+      exports: [Empty, Filled, WithError, Disabled, ReadOnly, ActionCallbackProbe, Mobile]
+      gaps: []
+  surfaces:
+    OverlaySurface:
+      file: web/src/admin-dsl/widgets/organisms/OverlaySurface/OverlaySurface.stories.tsx
+      status: complete
+      exports: [Modal, Drawer, Sheet, DetailPanel, InlinePanel, ClosedDashedPreview, WithFooterActions, MobileSurface]
+      gaps: []
+    ConfirmDialog:
+      file: web/src/admin-dsl/widgets/organisms/ConfirmDialog/ConfirmDialog.stories.tsx
+      status: partial
+      exports: [Default, Danger, LongBody, WithCancel, DispatchConfirm]
+      gaps:
+        - MobileDialog
+
+prioritized_gaps:
+  high:
+    - id: RenderedPages.ServicesPricingModalOpen
+      reason: Dedicated rendered-page modal story would make default-shell surface behavior easier to review after surface extraction.
+      suggested_file: web/src/admin-dsl/AdminDsl.stories.tsx
+    - id: RenderedPages.ServicesPricingConfirmOpen
+      reason: Dedicated destructive confirm rendered-page story is useful for delete/archive review.
+      suggested_file: web/src/admin-dsl/AdminDsl.stories.tsx
+    - id: RenderedPages.DashboardDrawerOpen
+      reason: Dedicated drawer rendered-page story is useful for side-surface/mobile review.
+      suggested_file: web/src/admin-dsl/AdminDsl.stories.tsx
+    - id: WorkbenchShell.MobileMenuToggle
+      reason: Step 131 added real mobile menu toggle behavior that should be demonstrated in Storybook.
+      suggested_file: web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.stories.tsx
+    - id: ConfirmDialog.MobileDialog
+      reason: Destructive confirmation surfaces are review-critical on mobile.
+      suggested_file: web/src/admin-dsl/widgets/organisms/ConfirmDialog/ConfirmDialog.stories.tsx
+  medium:
+    - id: AdminForm.MobileForm
+      reason: Full form composition should have mobile coverage beyond individual field leaves.
+      suggested_file: web/src/admin-dsl/widgets/organisms/AdminForm/AdminForm.stories.tsx
+    - id: FieldGroup.MobileFieldGroup
+      reason: Field group long-title/mobile composition is lower risk but still layout-sensitive.
+      suggested_file: web/src/admin-dsl/widgets/molecules/FieldGroup/FieldGroup.stories.tsx
+  low:
+    - id: StatusText.LongLabel
+      reason: Status labels can wrap in table/card contexts.
+      suggested_file: web/src/admin-dsl/widgets/atoms/StatusText/StatusText.stories.tsx
+    - id: StatusText.MobileWrap
+      reason: Low-risk atom coverage for mobile wrapping.
+      suggested_file: web/src/admin-dsl/widgets/atoms/StatusText/StatusText.stories.tsx
+    - id: CalendarEventBlock.ActionCallbackProbeName
+      reason: Callback probe exists as AgendaItem, but the story name does not reveal callback coverage.
+      suggested_file: web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.stories.tsx
+
+screenshot_review_status:
+  note: Screenshot capture is separate from story existence. Mark stories stale when layout-affecting implementation changes land.
+  stale_after_recent_changes:
+    - Rendered Pages after Step 129 duplicate-header fix.
+    - WorkbenchShell mobile after Step 131 mobile menu toggle.
+  suggested_next_captures:
+    - Admin DSL/Rendered Pages/Services & Pricing
+    - Admin DSL/Rendered Pages/Dashboard
+    - Admin DSL/Rendered Pages/Calendar
+    - Admin DSL/Workbench v2/TargetMobile
+    - Admin DSL Widgets/Organisms/WorkbenchShell/MobileTopbar

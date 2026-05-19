@@ -303,3 +303,11 @@ updated: 2026-05-15
 - [x] Replace the remaining inline modal/drawer/sheet/detailPanel/inlinePanel and confirmDialog rendering branches in `render.tsx` with typed surface widget adapters.
 - [x] Add or update tests that assert surface rendering and action dispatch contracts survive extraction.
 - [x] Run scoped surface validation (`tsc`, widget promotion validator, Vitest, Storybook build) and record findings in the diary/changelog.
+
+## Phase 24 — Storybook coverage manifest follow-up
+
+- [x] Reconcile `13-storybook-scenario-matrix.yaml` into an active coverage manifest with real files/exports/status and prioritized gaps.
+- [ ] Add dedicated rendered-page surface stories for modal, confirm, and drawer scenarios.
+- [ ] Add a WorkbenchShell mobile menu toggle story after the Step 131 shell toggle behavior change.
+- [ ] Add mobile stories for `ConfirmDialog`, `AdminForm`, and `FieldGroup`.
+- [ ] Add low-priority atom/story naming coverage for `StatusText` long/mobile labels and the `CalendarEventBlock` callback probe name.

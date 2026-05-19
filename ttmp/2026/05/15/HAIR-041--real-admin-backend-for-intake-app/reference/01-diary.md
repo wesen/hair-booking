@@ -7596,3 +7596,66 @@ what gaps do we have for 13?"
 ### Technical details
 - Search command used:
   - `rg -n "12-renderer-adapter-plan|renderer_adapter_plan" ttmp/...`
+
+## Step 133: Reconcile Storybook Scenario Matrix
+
+I converted `13-storybook-scenario-matrix.yaml` from an aspirational scenario list into an active Storybook coverage manifest. The file now maps integration and widget-level coverage to real Storybook files and exports, marks status per area, and records prioritized gaps instead of leaving the gaps implicit.
+
+This keeps the remaining Storybook work actionable: rendered-page surface scenarios, the new workbench mobile menu toggle, and a few mobile/naming coverage gaps are now explicit Phase 24 tasks rather than hidden review notes.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, do it. update your diary as well."
+
+**Assistant interpretation:** Update `13-storybook-scenario-matrix.yaml` as recommended, add tasks for the gaps, and record the work in the diary.
+
+**Inferred user intent:** Make the Storybook scenario matrix useful as an active coverage tracker instead of a stale support artifact.
+
+**Commit (code):** <pending> — "HAIR-041 Step 133: Reconcile Storybook scenario matrix"
+
+### What I did
+- Rewrote `13-storybook-scenario-matrix.yaml` as an `active_coverage_manifest`.
+- Mapped workbench integration stories to actual exports in `AdminDslWorkbench.stories.tsx`.
+- Mapped rendered-page stories to actual exports in `AdminDsl.stories.tsx`.
+- Added widget story coverage sections for shell, action, layout, resource, data-display, media, calendar, form, form-field, and surface widgets.
+- Added prioritized high/medium/low gaps.
+- Added screenshot review status for stories made stale by recent layout changes.
+- Added Phase 24 tasks for reconciling the manifest and implementing the recorded gaps.
+
+### Why
+- The old matrix listed desired scenarios but did not show whether they existed or where to review them.
+- New Phase 22/23 widgets and Step 129/131 visual behavior changes were not represented.
+- A current manifest makes follow-up Storybook work easier to scope and validate.
+
+### What worked
+- Parsed the updated YAML successfully with `yaml.safe_load`.
+- The manifest now reports 5 high-priority, 2 medium-priority, and 3 low-priority gaps.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Most integration coverage already exists. The real gap was traceability: the matrix needed file/export/status mappings and prioritized gaps rather than another broad scenario wishlist.
+
+### What was tricky to build
+- The matrix had to distinguish incomplete coverage from intentionally lower-priority polish. I marked rendered-page surface stories, WorkbenchShell mobile toggle, and ConfirmDialog mobile as high priority because they touch recent behavior or review-critical surfaces.
+
+### What warrants a second pair of eyes
+- Review the prioritized gaps and confirm whether `AdminForm.MobileForm` should be high priority instead of medium.
+- Review whether `StatusText` atom wrapping gaps are worth doing or should remain low priority.
+
+### What should be done in the future
+- Implement the high-priority Phase 24 Storybook gaps first:
+  - rendered-page modal/confirm/drawer stories
+  - WorkbenchShell mobile menu toggle story
+  - ConfirmDialog mobile story
+
+### Code review instructions
+- Review `13-storybook-scenario-matrix.yaml` top to bottom as a coverage manifest.
+- Review the new Phase 24 tasks in `tasks.md`.
+- Validate YAML with:
+  - `python3 - <<'PY' ... yaml.safe_load(...) ... PY`
+
+### Technical details
+- YAML parse result:
+  - `active_coverage_manifest 5 2 3`

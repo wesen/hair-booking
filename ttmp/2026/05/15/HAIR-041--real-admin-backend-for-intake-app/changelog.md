@@ -753,3 +753,7 @@ Step 131: Remediated the remaining shell-widget design lint backlog; design lint
 
 Step 132: Removed the obsolete `12-renderer-adapter-plan.yaml` support IR artifact and dropped it from the Widget IR index because the project now uses an explicit typed adapter switch rather than a generic adapter registry.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/00-index.yaml` — removed support IR entry.
+
+Step 133: Reconciled `13-storybook-scenario-matrix.yaml` into an active Storybook coverage manifest with real files/exports/status, prioritized gaps, screenshot review notes, and Phase 24 follow-up tasks.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/13-storybook-scenario-matrix.yaml` — active Storybook coverage manifest.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md` — Phase 24 Storybook coverage follow-up tasks.
