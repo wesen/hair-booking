@@ -10,7 +10,10 @@
  *
  * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
  * JSON decoding in adapters; generated widgets should receive typed props only.
+ *
+ * Manual edits after generation:
+ * - 2026-05-18 / HAIR-041 Step 76: Export DashboardGridItem alongside DashboardGrid.
  */
-export { DashboardGrid } from "./DashboardGrid";
+export { DashboardGrid, DashboardGridItem } from "./DashboardGrid";
 export { dashboardGridWidgetMetadata } from "./DashboardGrid.metadata";
 export type * from "./DashboardGrid.types";

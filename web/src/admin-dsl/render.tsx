@@ -5,6 +5,7 @@ import { AdminCalendarWeek } from "./calendar";
 import { WorkbenchShell as WorkbenchShellWidget } from "./widgets/organisms/WorkbenchShell";
 import { DefaultAdminShell } from "./widgets/organisms/DefaultAdminShell";
 import { ActionGroup } from "./widgets/molecules/ActionGroup";
+import { DashboardGrid, DashboardGridItem } from "./widgets/organisms/DashboardGrid";
 import { PageHeader } from "./widgets/organisms/PageHeader";
 import type { ActionViewModel, SidebarNavItem } from "./widgets/shared";
 
@@ -136,15 +137,30 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     case "dashboardGrid": {
       const columns = jsonObject(props, "columns");
       const desktopColumns = Number(columns?.desktop || props.columns || 12) || 12;
-      const gap = str(props, "gap", "normal") === "compact" ? 16 : str(props, "gap") === "spacious" ? 28 : 20;
+      const tabletColumns = Number(columns?.tablet || Math.min(desktopColumns, 8)) || Math.min(desktopColumns, 8);
+      const mobileColumns = Number(columns?.mobile || 1) || 1;
       return (
-        <div key={key} {...common} className="adminDslDashboardGrid" style={{ display: "grid", gridTemplateColumns: `repeat(${desktopColumns}, minmax(0, 1fr))`, gap, alignItems: "start", ...style(props) }}>
+        <DashboardGrid
+          key={key}
+          id={node.meta?.id || str(props, "id", undefined as unknown as string)}
+          columns={{ desktop: desktopColumns, tablet: tabletColumns, mobile: mobileColumns }}
+          gap={str(props, "gap", "normal") as "compact" | "normal" | "spacious"}
+          style={style(props)}
+        >
           {(node.children || []).map((child, i) => (
-            <div key={nodeKey(child, i)} className="adminDslDashboardGridItem" style={{ minWidth: 0, gridColumn: `span ${Math.min(desktopColumns, layoutSpan(child, "desktop", desktopColumns))}`, order: layoutOrder(child, i) }}>
+            <DashboardGridItem
+              key={nodeKey(child, i)}
+              span={{
+                desktop: Math.min(desktopColumns, layoutSpan(child, "desktop", desktopColumns)),
+                tablet: Math.min(tabletColumns, layoutSpan(child, "tablet", tabletColumns)),
+                mobile: Math.min(mobileColumns, layoutSpan(child, "mobile", mobileColumns)),
+              }}
+              order={layoutOrder(child, i)}
+            >
               {renderAdminNode(child, ctx)}
-            </div>
+            </DashboardGridItem>
           ))}
-        </div>
+        </DashboardGrid>
       );
     }
 

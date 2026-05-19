@@ -8,62 +8,86 @@
  * Target file previous commit: baf8866 2026-05-18T17:21:36-04:00 HAIR-041 Step 50: Regenerate widget scaffolds from schema v2
  * Widget ID: admin.layout.dashboard-grid
  *
- * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
- * JSON decoding in adapters; generated widgets should receive typed props only.
+ * Manual edits after generation:
+ * - 2026-05-18 / HAIR-041 Step 76: Promoted scaffold to real responsive grid and item components extracted from render.tsx.
+ * - 2026-05-18 / HAIR-041 Step 76: Added generated design-language data attributes and local responsive CSS.
+ *
+ * Keep raw Admin DSL JSON decoding in adapters; this widget receives typed props only.
  */
-import type * as React from "react";
-import type { ReactNode } from "react";
+import { dataAttrsFromRecord, widgetDataAttributes } from "../../shared";
 import { dashboardGridWidgetMetadata } from "./DashboardGrid.metadata";
-import type { DashboardGridProps } from "./DashboardGrid.types";
+import type { DashboardGridItemProps, DashboardGridProps } from "./DashboardGrid.types";
 
-/**
- * Scaffold for `DashboardGrid`.
- *
- * Purpose: Owns responsive dashboard grid layout and item span/order behavior instead of scattering grid styles across Admin DSL render branches.
- *
- * Adapter boundary: Adapter converts node child layout metadata into DashboardGridItem props; the widget should not inspect AdminNode.meta.
- */
-export function DashboardGrid(props: DashboardGridProps) {
-  const scaffoldProps = props as DashboardGridProps & {
-    id?: string;
-    className?: string;
-    style?: React.CSSProperties;
-    dataAttributes?: Record<string, string | number | boolean>;
-    children?: ReactNode;
-    main?: ReactNode;
-    title?: string;
-    label?: string;
-    name?: string;
-    value?: unknown;
-  };
-  const heading = scaffoldProps.title || scaffoldProps.label || scaffoldProps.name || "DashboardGrid";
-  const dataAttributes = Object.fromEntries(
-    Object.entries(scaffoldProps.dataAttributes ?? {}).map(([key, value]) => [`data-${key}`, String(value)]),
-  ) as Record<string, string>;
+const dashboardGridCss = `
+  @media (max-width: 980px) {
+    .adminDslDashboardGrid { grid-template-columns: repeat(var(--admin-dsl-dashboard-grid-tablet-columns, 8), minmax(0, 1fr)) !important; }
+    .adminDslDashboardGridItem { grid-column: span min(var(--admin-dsl-dashboard-grid-tablet-span, var(--admin-dsl-dashboard-grid-desktop-span, 8)), var(--admin-dsl-dashboard-grid-tablet-columns, 8)) !important; }
+  }
+  @media (max-width: 720px) {
+    .adminDslDashboardGrid { grid-template-columns: repeat(var(--admin-dsl-dashboard-grid-mobile-columns, 1), minmax(0, 1fr)) !important; gap: var(--admin-dsl-dashboard-grid-mobile-gap, 16px) !important; }
+    .adminDslDashboardGridItem { grid-column: span min(var(--admin-dsl-dashboard-grid-mobile-span, 1), var(--admin-dsl-dashboard-grid-mobile-columns, 1)) !important; }
+  }
+`;
+
+function clampColumn(value: unknown, fallback: number) {
+  const numeric = Number(value || fallback);
+  return Number.isFinite(numeric) && numeric > 0 ? Math.max(1, Math.min(24, Math.round(numeric))) : fallback;
+}
+
+function gapValue(gap: DashboardGridProps["gap"]) {
+  if (gap === "compact") return 16;
+  if (gap === "spacious") return 28;
+  return 20;
+}
+
+export function DashboardGrid({ id, className, style, dataAttributes, columns, gap = "normal", children }: DashboardGridProps) {
+  const desktopColumns = clampColumn(columns?.desktop, 12);
+  const tabletColumns = clampColumn(columns?.tablet, Math.min(desktopColumns, 8));
+  const mobileColumns = clampColumn(columns?.mobile, 1);
+  const gapPx = gapValue(gap);
+  const dataAttrs = dataAttrsFromRecord(dataAttributes);
 
   return (
-    <section
-      id={scaffoldProps.id}
-      className={scaffoldProps.className}
-      data-admin-dsl-widget="DashboardGrid"
-      data-admin-dsl-widget-id={dashboardGridWidgetMetadata.widgetId}
-      data-admin-dsl-widget-level="organism"
-      style={scaffoldProps.style}
-      {...dataAttributes}
+    <div
+      id={id}
+      className={["adminDslDashboardGrid", className].filter(Boolean).join(" ") || undefined}
+      style={{
+        display: "grid",
+        gridTemplateColumns: `repeat(${desktopColumns}, minmax(0, 1fr))`,
+        gap: gapPx,
+        alignItems: "start",
+        ["--admin-dsl-dashboard-grid-tablet-columns" as string]: tabletColumns,
+        ["--admin-dsl-dashboard-grid-mobile-columns" as string]: mobileColumns,
+        ["--admin-dsl-dashboard-grid-mobile-gap" as string]: `${Math.min(gapPx, 16)}px`,
+        ...style,
+      }}
+      {...widgetDataAttributes(dashboardGridWidgetMetadata.widgetId, dashboardGridWidgetMetadata.classification.level)}
+      {...dataAttrs}
     >
-      <div style={{ border: "1px solid #dfd2bd", borderRadius: 12, padding: 12, background: "#fffaf0" }}>
-        <strong>{heading}</strong>
-        <p style={{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}>{dashboardGridWidgetMetadata.purpose}</p>
-        {dashboardGridWidgetMetadata.adapterBoundary ? (
-          <p style={{ margin: "6px 0 0", fontSize: 12, color: "#6f6254" }}>Adapter: {dashboardGridWidgetMetadata.adapterBoundary}</p>
-        ) : null}
-        <details style={{ marginTop: 10, fontSize: 12, color: "#6f6254" }}>
-          <summary>Widget IR metadata</summary>
-          <pre style={{ whiteSpace: "pre-wrap", margin: "8px 0 0" }}>{JSON.stringify(dashboardGridWidgetMetadata, null, 2)}</pre>
-        </details>
-      </div>
-      {scaffoldProps.children ? <div style={{ marginTop: 12 }}>{scaffoldProps.children}</div> : null}
-      {scaffoldProps.main ? <div style={{ marginTop: 12 }}>{scaffoldProps.main}</div> : null}
-    </section>
+      <style>{dashboardGridCss}</style>
+      {children}
+    </div>
+  );
+}
+
+export function DashboardGridItem({ span, order, children }: DashboardGridItemProps) {
+  const desktopSpan = clampColumn(span?.desktop, 12);
+  const tabletSpan = clampColumn(span?.tablet ?? span?.desktop, Math.min(desktopSpan, 8));
+  const mobileSpan = clampColumn(span?.mobile, 1);
+
+  return (
+    <div
+      className="adminDslDashboardGridItem"
+      style={{
+        minWidth: 0,
+        gridColumn: `span ${desktopSpan}`,
+        order,
+        ["--admin-dsl-dashboard-grid-desktop-span" as string]: desktopSpan,
+        ["--admin-dsl-dashboard-grid-tablet-span" as string]: tabletSpan,
+        ["--admin-dsl-dashboard-grid-mobile-span" as string]: mobileSpan,
+      }}
+    >
+      {children}
+    </div>
   );
 }
