@@ -3,6 +3,7 @@
  *
  * Manual edits after generation:
  * - 2026-05-19 / HAIR-041 Step 128: Added confirm dialog neutral/danger/long-body/cancel/callback stories.
+ * - 2026-05-19 / HAIR-041 Step 134: Added mobile destructive confirm story from the Storybook coverage manifest.
  */
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
@@ -18,3 +19,4 @@ export const Danger: Story = { args: { dialogId: "delete", title: "Delete servic
 export const LongBody: Story = { args: { dialogId: "long", title: "Replace booking rules?", body: "This updates duration, price, visibility, and all downstream booking availability windows. Existing appointments remain unchanged." } };
 export const WithCancel: Story = { args: { dialogId: "cancel", title: "Discard draft?", body: "Unsaved edits will be lost.", cancelAction: cancel } };
 export const DispatchConfirm: Story = { render: () => <Probe /> };
+export const MobileDialog: Story = { parameters: { viewport: { defaultViewport: "mobile1" } }, args: { dialogId: "mobile-delete", title: "Delete service on mobile?", body: "This destructive confirmation must remain readable and easy to cancel on narrow screens.", tone: "danger", confirmAction: remove, cancelAction: cancel } };

@@ -7659,3 +7659,77 @@ This keeps the remaining Storybook work actionable: rendered-page surface scenar
 ### Technical details
 - YAML parse result:
   - `active_coverage_manifest 5 2 3`
+
+## Step 134: Complete Phase 24 Storybook Coverage Gaps
+
+I implemented every gap recorded in the reconciled Storybook coverage manifest. Phase 24 now has dedicated rendered-page surface stories, a WorkbenchShell mobile menu toggle story, mobile stories for the remaining form/surface widgets, and the low-priority atom/naming coverage that was called out in `13-storybook-scenario-matrix.yaml`.
+
+After adding the stories, I updated the manifest so the prioritized gap lists are empty and the resolved gaps are recorded under Step 134. This makes the matrix a current coverage record rather than a backlog list.
+
+### Prompt Context
+
+**User prompt (verbatim):** "do 24"
+
+**Assistant interpretation:** Implement all Phase 24 Storybook coverage follow-up tasks and update documentation/manifest state.
+
+**Inferred user intent:** Close the Storybook coverage gaps that were identified after reconciling the matrix.
+
+**Commit (code):** <pending> — "HAIR-041 Step 134: Complete Phase 24 Storybook gaps"
+
+### What I did
+- Added rendered-page surface stories to `AdminDsl.stories.tsx`:
+  - `ServicesPricingModalOpen`
+  - `ServicesPricingConfirmOpen`
+  - `DashboardDrawerOpen`
+- Added `WorkbenchShell.MobileMenuToggle` with a mobile viewport and play step that opens the structural nav toggle.
+- Added mobile stories for:
+  - `ConfirmDialog.MobileDialog`
+  - `AdminForm.MobileForm`
+  - `FieldGroup.MobileFieldGroup`
+- Added low-priority coverage:
+  - `StatusText.LongLabel`
+  - `StatusText.MobileWrap`
+  - `CalendarEventBlock.ActionCallbackProbe`
+- Updated `13-storybook-scenario-matrix.yaml` to mark all Phase 24 gaps resolved and set `last_reconciled_step: 134`.
+- Checked all Phase 24 tasks in `tasks.md`.
+
+### Why
+- Step 133 made the coverage gaps explicit; this step turns that manifest into completed Storybook coverage.
+- Recent behavior changes, especially the duplicate header fix and WorkbenchShell mobile menu toggle, needed dedicated stories so future visual review has stable targets.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed.
+- `cd web && pnpm test -- --runInBand` passed: 10 files / 52 tests.
+- Scoped widget promotion validation passed for the touched widgets; design lint remained clean with `0 error(s), 0 warning(s)`.
+- `cd web && npx storybook build --quiet` passed with the known large chunk warning.
+- The updated YAML parsed successfully and now reports empty prioritized gap lists.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Most of Phase 24 was not missing core implementation coverage; it was missing named review targets. Adding explicit story exports makes the existing behavior easier to find and screenshot.
+
+### What was tricky to build
+- The WorkbenchShell mobile toggle story needed an interactive `play` step because the open state is internal component state. The story clicks the `Open navigation` button after render so reviewers and screenshot capture can see the open mobile nav state.
+
+### What warrants a second pair of eyes
+- Review whether the rendered-page surface stories should use even narrower fixtures instead of cloning/filtering the existing example pages.
+- Review whether `CalendarEventBlock.ActionCallbackProbe` should replace `AgendaItem` entirely in a later cleanup, or whether keeping both names is useful for backward story links.
+
+### What should be done in the future
+- Capture screenshots for the refreshed rendered-page stories and WorkbenchShell mobile toggle if visual review is requested.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/AdminDsl.stories.tsx` for the rendered-page surface stories.
+- Review `WorkbenchShell.stories.tsx` for the mobile toggle play step.
+- Review `13-storybook-scenario-matrix.yaml` and confirm `prioritized_gaps` is empty and `resolved_gaps_step_134` lists the closed gaps.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook web/src/admin-dsl/widgets/organisms/WorkbenchShell web/src/admin-dsl/widgets/organisms/ConfirmDialog web/src/admin-dsl/widgets/organisms/AdminForm web/src/admin-dsl/widgets/molecules/FieldGroup web/src/admin-dsl/widgets/atoms/StatusText web/src/admin-dsl/widgets/molecules/CalendarEventBlock`
+  - `cd web && npx storybook build --quiet`
+
+### Technical details
+- `13-storybook-scenario-matrix.yaml` parse result after update:
+  - `134 {'high': [], 'medium': [], 'low': []}`

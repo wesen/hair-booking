@@ -3,6 +3,7 @@
  *
  * Manual edits after generation:
  * - 2026-05-19 / HAIR-041 Step 111: Replaced scaffold diagnostics with distinct status tone and pill fixtures.
+ * - 2026-05-19 / HAIR-041 Step 134: Added long-label and mobile-wrap stories from the Storybook coverage manifest.
  */
 import type { Meta, StoryObj } from "@storybook/react";
 import { StatusText } from "./StatusText";
@@ -22,3 +23,5 @@ export const WarningText: Story = { args: { label: "Needs review", tone: "warnin
 export const DangerText: Story = { args: { label: "Failed", tone: "danger" } };
 export const PillVariant: Story = { args: { label: "Booked", tone: "success", variant: "pill" } };
 export const MappedFromTableValue: Story = { args: { label: "New request", tone: "warning", variant: "pill" } };
+export const LongLabel: Story = { args: { label: "Awaiting customer photo upload and stylist review", tone: "warning", variant: "pill" } };
+export const MobileWrap: Story = { parameters: { viewport: { defaultViewport: "mobile1" } }, args: { label: "Needs consultation before booking", tone: "danger", variant: "pill" } };

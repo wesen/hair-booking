@@ -2,7 +2,7 @@ schema_version: 2
 artifact_type: admin_dsl_widget_support_ir
 category: storybook_scenario_matrix
 status: active_coverage_manifest
-last_reconciled_step: 133
+last_reconciled_step: 134
 summary: Current Storybook coverage manifest for Admin DSL integration pages and promoted widget families.
 source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
 schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md
@@ -67,15 +67,27 @@ integration_story_coverage:
         status: complete
   rendered_pages:
     file: web/src/admin-dsl/AdminDsl.stories.tsx
-    status: partial
+    status: complete
     exports:
       - name: ServicesPricing
         viewport: default
         purpose: Default shell services page with semantic PageHeader, metrics, table, modal, and confirm side surfaces.
         status: complete
+      - name: ServicesPricingModalOpen
+        viewport: default
+        purpose: Dedicated rendered-page story focused on the services modal surface without relying on the broad ServicesPricing story.
+        status: complete
+      - name: ServicesPricingConfirmOpen
+        viewport: default
+        purpose: Dedicated rendered-page story focused on destructive confirm surface rendering and action affordances.
+        status: complete
       - name: Dashboard
         viewport: default
         purpose: Default shell dashboard page with drawer side surface.
+        status: complete
+      - name: DashboardDrawerOpen
+        viewport: default
+        purpose: Dedicated rendered-page story focused on default-shell drawer side surface behavior.
         status: complete
       - name: Calendar
         viewport: default
@@ -85,16 +97,7 @@ integration_story_coverage:
         viewport: padded
         purpose: Human-readable JSON contract dump for example pages.
         status: complete
-    gaps:
-      - name: ServicesPricingModalOpen
-        status: missing
-        purpose: Dedicated rendered-page story focused on the services modal surface without relying on the broad ServicesPricing story.
-      - name: ServicesPricingConfirmOpen
-        status: missing
-        purpose: Dedicated rendered-page story focused on destructive confirm surface rendering and action affordances.
-      - name: DashboardDrawerOpen
-        status: missing
-        purpose: Dedicated rendered-page story focused on default-shell drawer side surface behavior.
+    gaps: []
 
 widget_story_requirements:
   default: Baseline production-like data.
@@ -110,10 +113,9 @@ widget_story_coverage:
   shells:
     WorkbenchShell:
       file: web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.stories.tsx
-      status: partial
-      exports: [DefaultDesktop, MobileTopbar, LongNavigation, NoUser, ActionDispatch]
-      gaps:
-        - MobileMenuToggle
+      status: complete
+      exports: [DefaultDesktop, MobileTopbar, MobileMenuToggle, LongNavigation, NoUser, ActionDispatch]
+      gaps: []
     DefaultAdminShell:
       file: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.stories.tsx
       status: complete
@@ -200,11 +202,9 @@ widget_story_coverage:
       gaps: []
     StatusText:
       file: web/src/admin-dsl/widgets/atoms/StatusText/StatusText.stories.tsx
-      status: partial
-      exports: [NeutralText, SuccessText, WarningText, DangerText, PillVariant, MappedFromTableValue]
-      gaps:
-        - LongLabel
-        - MobileWrap
+      status: complete
+      exports: [NeutralText, SuccessText, WarningText, DangerText, PillVariant, MappedFromTableValue, LongLabel, MobileWrap]
+      gaps: []
     ComparisonTable:
       file: web/src/admin-dsl/widgets/organisms/ComparisonTable/ComparisonTable.stories.tsx
       status: complete
@@ -269,23 +269,20 @@ widget_story_coverage:
       gaps: []
     CalendarEventBlock:
       file: web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.stories.tsx
-      status: partial
-      exports: [Appointment, Availability, TimeOff, CompactBlock, AgendaItem]
-      gaps:
-        - ActionCallbackProbeName
+      status: complete
+      exports: [Appointment, Availability, TimeOff, CompactBlock, AgendaItem, ActionCallbackProbe]
+      gaps: []
   form:
     AdminForm:
       file: web/src/admin-dsl/widgets/organisms/AdminForm/AdminForm.stories.tsx
-      status: partial
-      exports: [Default, DirtyState, PendingState, SuccessState, WithErrors, SubmitActions, NestedFieldGroups]
-      gaps:
-        - MobileForm
+      status: complete
+      exports: [Default, DirtyState, PendingState, SuccessState, WithErrors, SubmitActions, NestedFieldGroups, MobileForm]
+      gaps: []
     FieldGroup:
       file: web/src/admin-dsl/widgets/molecules/FieldGroup/FieldGroup.stories.tsx
-      status: partial
-      exports: [Default, MultipleFields, LongTitle]
-      gaps:
-        - MobileFieldGroup
+      status: complete
+      exports: [Default, MultipleFields, LongTitle, MobileFieldGroup]
+      gaps: []
     SaveBar:
       file: web/src/admin-dsl/widgets/molecules/SaveBar/SaveBar.stories.tsx
       status: complete
@@ -350,51 +347,36 @@ widget_story_coverage:
       gaps: []
     ConfirmDialog:
       file: web/src/admin-dsl/widgets/organisms/ConfirmDialog/ConfirmDialog.stories.tsx
-      status: partial
-      exports: [Default, Danger, LongBody, WithCancel, DispatchConfirm]
-      gaps:
-        - MobileDialog
+      status: complete
+      exports: [Default, Danger, LongBody, WithCancel, DispatchConfirm, MobileDialog]
+      gaps: []
 
 prioritized_gaps:
+  high: []
+  medium: []
+  low: []
+
+resolved_gaps_step_134:
   high:
-    - id: RenderedPages.ServicesPricingModalOpen
-      reason: Dedicated rendered-page modal story would make default-shell surface behavior easier to review after surface extraction.
-      suggested_file: web/src/admin-dsl/AdminDsl.stories.tsx
-    - id: RenderedPages.ServicesPricingConfirmOpen
-      reason: Dedicated destructive confirm rendered-page story is useful for delete/archive review.
-      suggested_file: web/src/admin-dsl/AdminDsl.stories.tsx
-    - id: RenderedPages.DashboardDrawerOpen
-      reason: Dedicated drawer rendered-page story is useful for side-surface/mobile review.
-      suggested_file: web/src/admin-dsl/AdminDsl.stories.tsx
-    - id: WorkbenchShell.MobileMenuToggle
-      reason: Step 131 added real mobile menu toggle behavior that should be demonstrated in Storybook.
-      suggested_file: web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.stories.tsx
-    - id: ConfirmDialog.MobileDialog
-      reason: Destructive confirmation surfaces are review-critical on mobile.
-      suggested_file: web/src/admin-dsl/widgets/organisms/ConfirmDialog/ConfirmDialog.stories.tsx
+    - RenderedPages.ServicesPricingModalOpen
+    - RenderedPages.ServicesPricingConfirmOpen
+    - RenderedPages.DashboardDrawerOpen
+    - WorkbenchShell.MobileMenuToggle
+    - ConfirmDialog.MobileDialog
   medium:
-    - id: AdminForm.MobileForm
-      reason: Full form composition should have mobile coverage beyond individual field leaves.
-      suggested_file: web/src/admin-dsl/widgets/organisms/AdminForm/AdminForm.stories.tsx
-    - id: FieldGroup.MobileFieldGroup
-      reason: Field group long-title/mobile composition is lower risk but still layout-sensitive.
-      suggested_file: web/src/admin-dsl/widgets/molecules/FieldGroup/FieldGroup.stories.tsx
+    - AdminForm.MobileForm
+    - FieldGroup.MobileFieldGroup
   low:
-    - id: StatusText.LongLabel
-      reason: Status labels can wrap in table/card contexts.
-      suggested_file: web/src/admin-dsl/widgets/atoms/StatusText/StatusText.stories.tsx
-    - id: StatusText.MobileWrap
-      reason: Low-risk atom coverage for mobile wrapping.
-      suggested_file: web/src/admin-dsl/widgets/atoms/StatusText/StatusText.stories.tsx
-    - id: CalendarEventBlock.ActionCallbackProbeName
-      reason: Callback probe exists as AgendaItem, but the story name does not reveal callback coverage.
-      suggested_file: web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.stories.tsx
+    - StatusText.LongLabel
+    - StatusText.MobileWrap
+    - CalendarEventBlock.ActionCallbackProbeName
 
 screenshot_review_status:
   note: Screenshot capture is separate from story existence. Mark stories stale when layout-affecting implementation changes land.
-  stale_after_recent_changes:
-    - Rendered Pages after Step 129 duplicate-header fix.
-    - WorkbenchShell mobile after Step 131 mobile menu toggle.
+  stale_after_recent_changes: []
+  refreshed_by_step_134:
+    - Rendered Pages stories after Step 129 duplicate-header fix.
+    - WorkbenchShell mobile menu toggle story after Step 131 mobile behavior change.
   suggested_next_captures:
     - Admin DSL/Rendered Pages/Services & Pricing
     - Admin DSL/Rendered Pages/Dashboard

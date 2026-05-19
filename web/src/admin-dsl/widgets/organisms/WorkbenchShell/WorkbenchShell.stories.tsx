@@ -11,6 +11,9 @@
  * This story file started as generated schema-v2 scaffold output. It now uses
  * purpose-built fixtures so WorkbenchShell stories exercise distinct shell
  * states instead of rendering the same default args repeatedly.
+ *
+ * Manual edits after generation:
+ * - 2026-05-19 / HAIR-041 Step 134: Added mobile menu toggle story for the Step 131 shell toggle behavior.
  */
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
@@ -130,6 +133,24 @@ export const MobileTopbar: Story = {
     ...defaultArgs,
     sidebar: { activeItemId: "config", items: normalItems },
     children: <DemoContent title="Config" />,
+  },
+};
+
+export const MobileMenuToggle: Story = {
+  name: "MobileMenuToggle",
+  parameters: {
+    viewport: { defaultViewport: "iphone12" },
+    docs: { description: { story: "Interactive mobile viewport story. The play step opens the structural shell navigation menu added in Step 131." } },
+  },
+  args: {
+    ...defaultArgs,
+    sidebar: { activeItemId: "services", items: manyItems },
+    children: <DemoContent title="Mobile Navigation" />,
+  },
+  play: async ({ canvasElement }) => {
+    const menu = canvasElement.querySelector('button[aria-label="Open navigation"]') as HTMLButtonElement | null;
+    menu?.click();
+    await new Promise((resolve) => setTimeout(resolve, 80));
   },
 };
 

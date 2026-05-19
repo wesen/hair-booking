@@ -307,7 +307,7 @@ updated: 2026-05-15
 ## Phase 24 — Storybook coverage manifest follow-up
 
 - [x] Reconcile `13-storybook-scenario-matrix.yaml` into an active coverage manifest with real files/exports/status and prioritized gaps.
-- [ ] Add dedicated rendered-page surface stories for modal, confirm, and drawer scenarios.
-- [ ] Add a WorkbenchShell mobile menu toggle story after the Step 131 shell toggle behavior change.
-- [ ] Add mobile stories for `ConfirmDialog`, `AdminForm`, and `FieldGroup`.
-- [ ] Add low-priority atom/story naming coverage for `StatusText` long/mobile labels and the `CalendarEventBlock` callback probe name.
+- [x] Add dedicated rendered-page surface stories for modal, confirm, and drawer scenarios.
+- [x] Add a WorkbenchShell mobile menu toggle story after the Step 131 shell toggle behavior change.
+- [x] Add mobile stories for `ConfirmDialog`, `AdminForm`, and `FieldGroup`.
+- [x] Add low-priority atom/story naming coverage for `StatusText` long/mobile labels and the `CalendarEventBlock` callback probe name.

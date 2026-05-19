@@ -3,6 +3,7 @@
  *
  * Manual edits after generation:
  * - 2026-05-19 / HAIR-041 Step 117: Replaced scaffold diagnostics with lifecycle, error, nested, and action-probe stories.
+ * - 2026-05-19 / HAIR-041 Step 134: Added mobile form composition story from the Storybook coverage manifest.
  */
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
@@ -22,3 +23,4 @@ export const SuccessState: Story = { render: () => <AdminForm formId="service-fo
 export const WithErrors: Story = { render: () => <AdminForm formId="service-form" title="Service config" state="error" errors={{ label: "Label is required" }}>{fields}</AdminForm> };
 export const SubmitActions: Story = { render: () => <Probe /> };
 export const NestedFieldGroups: Story = { render: () => <AdminForm formId="nested" title="Nested groups"><FieldGroup title="Identity">{fields}</FieldGroup><FieldGroup title="Publishing"><label><input type="checkbox" name="published" /> Published</label></FieldGroup></AdminForm> };
+export const MobileForm: Story = { parameters: { viewport: { defaultViewport: "mobile1" } }, render: () => <AdminForm formId="mobile-service" title="Mobile service config" dirty actions={actions}><FieldGroup title="Customer-facing details"><label style={{ display: "grid", gap: 6 }}>Long mobile service label<input name="label" defaultValue="Dimensional color refresh" /></label><label style={{ display: "grid", gap: 6 }}>Description<textarea name="description" defaultValue="Balayage consultation and tone refresh." /></label></FieldGroup></AdminForm> };

@@ -16,13 +16,46 @@ const meta: Meta<typeof AdminDslStory> = {
 export default meta;
 type Story = StoryObj<typeof AdminDslStory>;
 
+const servicesPricingModalPage: AdminPage = {
+  ...servicesAdminPage,
+  modals: servicesAdminPage.modals?.filter((node) => node.kind === "modal"),
+  drawers: [],
+};
+
+const servicesPricingConfirmPage: AdminPage = {
+  ...servicesAdminPage,
+  modals: servicesAdminPage.modals?.filter((node) => node.kind === "confirmDialog"),
+  drawers: [],
+};
+
+const dashboardDrawerPage: AdminPage = {
+  ...dashboardAdminPage,
+  modals: [],
+  drawers: dashboardAdminPage.drawers,
+};
+
 export const ServicesPricing: Story = {
   name: "Services & Pricing",
   args: { page: servicesAdminPage },
 };
 
+export const ServicesPricingModalOpen: Story = {
+  name: "Services & Pricing — Modal Open",
+  args: { page: servicesPricingModalPage },
+};
+
+export const ServicesPricingConfirmOpen: Story = {
+  name: "Services & Pricing — Confirm Open",
+  args: { page: servicesPricingConfirmPage },
+};
+
 export const Dashboard: Story = {
   args: { page: dashboardAdminPage },
+};
+
+export const DashboardDrawerOpen: Story = {
+  name: "Dashboard — Drawer Open",
+  args: { page: dashboardDrawerPage },
 };
 
 export const Calendar: Story = {

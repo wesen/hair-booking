@@ -3,6 +3,7 @@
  *
  * Manual edits after generation:
  * - 2026-05-19 / HAIR-041 Step 115: Replaced scaffold diagnostics with appointment/availability/time-off and callback-probe stories.
+ * - 2026-05-19 / HAIR-041 Step 134: Added explicitly named callback-probe story from the Storybook coverage manifest.
  */
 import { useState } from "react";
 import type { Meta, StoryObj } from "@storybook/react";
@@ -19,3 +20,4 @@ export const Availability: Story = { render: () => <CalendarEventBlock id="avail
 export const TimeOff: Story = { render: () => <CalendarEventBlock id="off-1" kind="timeOff" title="Stylist time off" status="Blocked" startsAt="2p" endsAt="5p" /> };
 export const CompactBlock: Story = { render: () => <CalendarEventBlock id="compact" kind="appointment" clientName="Jules" startsAt="9a" endsAt="9:30a" /> };
 export const AgendaItem: Story = { render: () => <Probe /> };
+export const ActionCallbackProbe: Story = { render: () => <Probe /> };

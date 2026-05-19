@@ -757,3 +757,13 @@ Step 132: Removed the obsolete `12-renderer-adapter-plan.yaml` support IR artifa
 Step 133: Reconciled `13-storybook-scenario-matrix.yaml` into an active Storybook coverage manifest with real files/exports/status, prioritized gaps, screenshot review notes, and Phase 24 follow-up tasks.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/13-storybook-scenario-matrix.yaml` — active Storybook coverage manifest.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md` — Phase 24 Storybook coverage follow-up tasks.
+
+Step 134: Completed Phase 24 Storybook coverage gaps by adding rendered-page surface stories, WorkbenchShell mobile toggle coverage, mobile form/dialog/group stories, StatusText long/mobile stories, and an explicitly named CalendarEventBlock callback probe.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.stories.tsx` — rendered-page modal/confirm/drawer stories.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.stories.tsx` — mobile menu toggle story.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ConfirmDialog/ConfirmDialog.stories.tsx` — mobile confirm dialog story.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/AdminForm/AdminForm.stories.tsx` — mobile form story.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/FieldGroup/FieldGroup.stories.tsx` — mobile field group story.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/atoms/StatusText/StatusText.stories.tsx` — long/mobile status stories.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.stories.tsx` — explicitly named callback probe story.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/13-storybook-scenario-matrix.yaml` — resolved coverage manifest gaps.
