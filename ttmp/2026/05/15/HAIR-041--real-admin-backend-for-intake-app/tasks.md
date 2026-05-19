@@ -271,7 +271,7 @@ updated: 2026-05-15
 - [x] Add explicit `density` contract documentation to the Panel YAML and `Panel.types.ts` without force-regenerating the hand-promoted widget implementation.
 - [x] Move Panel density padding into generated shared design-language helpers and refactor both `Panel.tsx` and the `render.tsx` panel adapter to use it or remove duplicated adapter logic.
 - [x] Replace `Panel`'s manual `data-admin-dsl-density` with a generated/shared data-attribute helper or a documented `dataAttrsFromRecord` pattern.
-- [ ] Classify and clean remaining `render.tsx` `as unknown as` casts: replace trivial ID-default casts with a helper and normalize/document action/context casts.
+- [x] Classify and clean remaining `render.tsx` `as unknown as` casts: replace trivial ID-default casts with a helper and normalize/document action/context casts.
 - [ ] Update `scripts/05-scaffold-admin-dsl-widgets.py` to import only shared types actually used by each generated `.types.ts` file.
 - [ ] Re-run the widget playbook compliance audit for `06-resource-widgets.yaml`, `07-data-display-widgets.yaml`, `08-media-widgets.yaml`, and `09-calendar-widgets.yaml` after layout Storybook backfill.
 - [ ] Add a CI/local validation target that runs the Storybook scaffold triage, design-system lint, `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet` for widget-promotion batches.

@@ -20,6 +20,18 @@ import type { ActionViewModel, SidebarNavItem } from "./widgets/shared";
 import { actionIsDanger, actionIsPrimary, actionKey, actionList, dispatchAdminAction, isActionRef } from "./actions";
 import { bool, dataAttrs, jsonArray, jsonObject, nodeKey, str, style, toneColor } from "./renderUtils";
 
+function nodeDomId(node: AdminNode): string | undefined {
+  return node.meta?.id || str(node.props, "id") || undefined;
+}
+
+function dispatchWidgetAction(ctx: AdminRenderContext | undefined, node: AdminNode, action: unknown, value?: unknown) {
+  if (isActionRef(action)) dispatchAdminAction(ctx, node, action, value);
+}
+
+function singleActionArray(action: unknown): AdminActionRef[] {
+  return isActionRef(action) ? [action] : [];
+}
+
 function renderActions(node: AdminNode, ctx: AdminRenderContext | undefined, actions: AdminActionRef[] = actionList(node.props)) {
   if (!actions.length) return null;
   const slot = (actions.find((actionRef) => actionRef.placement)?.placement || "toolbar") as Parameters<typeof ActionGroup>[0]["slot"];
@@ -28,10 +40,7 @@ function renderActions(node: AdminNode, ctx: AdminRenderContext | undefined, act
       actions={actions.map(actionViewModel)}
       slot={slot}
       context={undefined}
-      onAction={(action, value) => {
-        const actionRef = action as AdminActionRef;
-        dispatchAdminAction(ctx, node, actionRef, value);
-      }}
+      onAction={(action, value) => dispatchWidgetAction(ctx, node, action, value)}
     />
   );
 }
@@ -113,7 +122,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     case "pageHeader": {
       const breadcrumbs = jsonArray<string>(props, "breadcrumbs");
       const actions = actionList(props).map(actionViewModel);
-      const pageId = node.meta?.id || str(props, "id", undefined as unknown as string);
+      const pageId = nodeDomId(node);
       return (
         <PageHeader
           key={key}
@@ -136,7 +145,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       return (
         <DashboardGrid
           key={key}
-          id={node.meta?.id || str(props, "id", undefined as unknown as string)}
+          id={nodeDomId(node)}
           columns={{ desktop: desktopColumns, tablet: tabletColumns, mobile: mobileColumns }}
           gap={str(props, "gap", "normal") as "compact" | "normal" | "spacious"}
           style={style(props)}
@@ -223,20 +232,20 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     }
 
     case "toolbar":
-      return <Toolbar key={key} id={node.meta?.id || str(props, "id", undefined as unknown as string)} actions={actionList(props).map(actionViewModel)} style={style(props)} onAction={(action, value) => dispatchAdminAction(ctx, node, action as AdminActionRef, value)} />;
+      return <Toolbar key={key} id={nodeDomId(node)} actions={actionList(props).map(actionViewModel)} style={style(props)} onAction={(action, value) => dispatchWidgetAction(ctx, node, action, value)} />;
 
     case "splitPane":
-      return <SplitPane key={key} id={node.meta?.id || str(props, "id", undefined as unknown as string)} leftWidth={str(props, "leftWidth") || undefined} rightWidth={str(props, "rightWidth") || undefined} gap={Number(props.gap || 16)} style={style(props)}>{renderChildren(node.children, ctx)}</SplitPane>;
+      return <SplitPane key={key} id={nodeDomId(node)} leftWidth={str(props, "leftWidth") || undefined} rightWidth={str(props, "rightWidth") || undefined} gap={Number(props.gap || 16)} style={style(props)}>{renderChildren(node.children, ctx)}</SplitPane>;
 
     case "tabs": {
       const tabs = jsonArray<AdminJsonObject>(props, "tabs").map((tab) => ({ id: String(tab.id), label: String(tab.label || tab.id) }));
       const tabAction = actionList(props)[0];
-      return <Tabs key={key} id={node.meta?.id || str(props, "id", undefined as unknown as string)} tabs={tabs} value={str(props, "value")} action={tabAction ? actionViewModel(tabAction) : undefined} style={style(props)} onTabChange={(action, value) => action && dispatchAdminAction(ctx, node, action as AdminActionRef, value.tab)} />;
+      return <Tabs key={key} id={nodeDomId(node)} tabs={tabs} value={str(props, "value")} action={tabAction ? actionViewModel(tabAction) : undefined} style={style(props)} onTabChange={(action, value) => dispatchWidgetAction(ctx, node, action, value.tab)} />;
     }
 
     case "searchBox": {
       const searchAction = actionList(props)[0];
-      return <SearchBox key={key} id={node.meta?.id || str(props, "id", undefined as unknown as string)} value={str(props, "value")} placeholder={str(props, "placeholder", "Search")} label={str(props, "label", "Search")} action={searchAction ? actionViewModel(searchAction) : undefined} style={style(props)} onSearch={(action, value) => action && dispatchAdminAction(ctx, node, action as AdminActionRef, value)} />;
+      return <SearchBox key={key} id={nodeDomId(node)} value={str(props, "value")} placeholder={str(props, "placeholder", "Search")} label={str(props, "label", "Search")} action={searchAction ? actionViewModel(searchAction) : undefined} style={style(props)} onSearch={(action, value) => dispatchWidgetAction(ctx, node, action, value)} />;
     }
 
     case "previewFrame":
@@ -249,7 +258,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       return (
         <Panel
           key={key}
-          id={node.meta?.id || str(props, "id", undefined as unknown as string)}
+          id={nodeDomId(node)}
           title={str(props, "title") || undefined}
           subtitle={str(props, "subtitle") || undefined}
           eyebrow={str(props, "eyebrow") || undefined}
@@ -259,8 +268,8 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
           toolbarActions={toolbarActions.map(actionViewModel)}
           footerActions={fallbackFooterActions.map(actionViewModel)}
           style={style(props)}
-          onToolbarAction={(action, value) => dispatchAdminAction(ctx, node, action as AdminActionRef, value)}
-          onFooterAction={(action, value) => dispatchAdminAction(ctx, node, action as AdminActionRef, value)}
+          onToolbarAction={(action, value) => dispatchWidgetAction(ctx, node, action, value)}
+          onFooterAction={(action, value) => dispatchWidgetAction(ctx, node, action, value)}
         >
           {renderChildren(node.children, ctx)}
         </Panel>
@@ -280,7 +289,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       const rawFilters = jsonArray<AdminJsonObject>(props, "filters");
       const filters = rawFilters.map((filter) => ({ id: String(filter.id), label: String(filter.label || filter.id) }));
       const filterAction = actionList(props)[0];
-      return <FilterBar key={key} id={node.meta?.id || str(props, "id", undefined as unknown as string)} filters={filters} value={str(props, "value")} action={filterAction ? actionViewModel(filterAction) : undefined} style={style(props)} onFilterChange={(action, value) => action && dispatchAdminAction(ctx, node, action as AdminActionRef, rawFilters.find((filter) => String(filter.id) === value.filter.id) || value.filter)} />;
+      return <FilterBar key={key} id={nodeDomId(node)} filters={filters} value={str(props, "value")} action={filterAction ? actionViewModel(filterAction) : undefined} style={style(props)} onFilterChange={(action, value) => dispatchWidgetAction(ctx, node, action, rawFilters.find((filter) => String(filter.id) === value.filter.id) || value.filter)} />;
     }
 
     case "resourceTable": {
@@ -295,7 +304,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       return (
         <ResourceTable
           key={key}
-          id={node.meta?.id || str(props, "id", undefined as unknown as string)}
+          id={nodeDomId(node)}
           tableId={str(props, "tableId", node.meta?.id || "resource-table")}
           columns={normalizeResourceTableColumns(columns)}
           rows={rows}
@@ -309,9 +318,9 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
           total={Number(pagination?.total || props.total || rows.length)}
           actions={tableActions.filter((a) => a.placement !== "row").map(actionViewModel)}
           style={style(props)}
-          onRowAction={(action, value) => dispatchAdminAction(ctx, node, action as AdminActionRef, value.row)}
-          onBulkAction={(action, value) => dispatchAdminAction(ctx, node, action as AdminActionRef, value)}
-          onPaginationAction={(action, value) => dispatchAdminAction(ctx, node, action as AdminActionRef, value)}
+          onRowAction={(action, value) => dispatchWidgetAction(ctx, node, action, value.row)}
+          onBulkAction={(action, value) => dispatchWidgetAction(ctx, node, action, value)}
+          onPaginationAction={(action, value) => dispatchWidgetAction(ctx, node, action, value)}
         />
       );
     }
@@ -321,7 +330,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
         <div key={key} {...common} style={{ ...surface, padding: 28, textAlign: "center", background: color.cream, ...style(props) }}>
           <h3 style={{ ...type.h2, margin: 0 }}>{str(props, "title", "Nothing here yet")}</h3>
           {str(props, "body") && <p style={{ ...type.body, color: color.softInk, maxWidth: 420, margin: "10px auto 18px" }}>{str(props, "body")}</p>}
-          {jsonObject(props, "action") && renderActions(node, ctx, [jsonObject(props, "action") as unknown as AdminActionRef])}
+          {renderActions(node, ctx, singleActionArray(jsonObject(props, "action")))}
         </div>
       );
 
@@ -420,7 +429,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       return <FieldPreview key={key} node={node} />;
 
     case "saveBar":
-      return <div key={key} {...common} className="adminDslSaveBar" style={{ borderTop: `1px solid ${color.rule}`, paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, ...style(props) }}><span className="adminDslSaveStatus" style={{ ...type.meta, color: color.ink, fontWeight: 800, background: color.cream, border: `1px solid ${color.rule}`, borderRadius: radius.pill, padding: "6px 10px", justifySelf: "start" }}>{str(props, "status", "Ready")}</span>{jsonObject(props, "primary") && renderActions(node, ctx, [jsonObject(props, "primary") as unknown as AdminActionRef])}</div>;
+      return <div key={key} {...common} className="adminDslSaveBar" style={{ borderTop: `1px solid ${color.rule}`, paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, ...style(props) }}><span className="adminDslSaveStatus" style={{ ...type.meta, color: color.ink, fontWeight: 800, background: color.cream, border: `1px solid ${color.rule}`, borderRadius: radius.pill, padding: "6px 10px", justifySelf: "start" }}>{str(props, "status", "Ready")}</span>{renderActions(node, ctx, singleActionArray(jsonObject(props, "primary")))}</div>;
 
     case "calendarWeek":
       return <AdminCalendarWeek key={key} node={node} context={ctx} attrs={common} />;
@@ -446,7 +455,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
 
 function renderInlineNode(node: AdminJsonObject | undefined, ctx?: AdminRenderContext) {
   if (!node || typeof node.kind !== "string") return null;
-  return renderAdminNode(node as unknown as AdminNode, ctx, String(node.kind));
+  return renderAdminNode({ kind: node.kind as AdminNode["kind"], props: jsonObject(node, "props") || {}, children: [], meta: jsonObject(node, "meta") as AdminNode["meta"] }, ctx, String(node.kind));
 }
 
 function FieldPreview({ node }: { node: AdminNode }) {
