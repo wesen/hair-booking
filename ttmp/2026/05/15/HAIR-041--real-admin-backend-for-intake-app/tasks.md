@@ -273,5 +273,9 @@ updated: 2026-05-15
 - [x] Replace `Panel`'s manual `data-admin-dsl-density` with a generated/shared data-attribute helper or a documented `dataAttrsFromRecord` pattern.
 - [x] Classify and clean remaining `render.tsx` `as unknown as` casts: replace trivial ID-default casts with a helper and normalize/document action/context casts.
 - [x] Update `scripts/05-scaffold-admin-dsl-widgets.py` to import only shared types actually used by each generated `.types.ts` file.
-- [ ] Re-run the widget playbook compliance audit for `06-resource-widgets.yaml`, `07-data-display-widgets.yaml`, `08-media-widgets.yaml`, and `09-calendar-widgets.yaml` after layout Storybook backfill.
+- [x] Re-run the widget playbook compliance audit for `06-resource-widgets.yaml`, `07-data-display-widgets.yaml`, `08-media-widgets.yaml`, and `09-calendar-widgets.yaml` after layout Storybook backfill.
 - [x] Add a CI/local validation target that runs the Storybook scaffold triage, design-system lint, `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet` for widget-promotion batches.
+- [ ] Bring `06-resource-widgets.yaml` part-widget stories to full playbook compliance: manual story changelogs, visible callback probes for `BulkActionBar`, `PaginationBar`, and `ResourceTableCell`, and ResourceTable row/bulk/pagination context evidence.
+- [ ] Promote `07-data-display-widgets.yaml` in playbook-complete batches with implementation, renderer adapters, story hardening, callback probes where applicable, validation, diary, and changelog.
+- [ ] Promote `08-media-widgets.yaml` in playbook-complete batches with populated/empty/missing-media/mobile stories and image callback probes.
+- [ ] Promote `09-calendar-widgets.yaml` in playbook-complete batches with marker/selection/navigation/mobile stories and calendar/event callback probes.
