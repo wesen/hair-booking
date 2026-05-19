@@ -6638,3 +6638,68 @@ The implementation preserves existing Admin DSL test contracts, including date-c
 
 ### Technical details
 - The validation target still reports only the known shell-widget design lint backlog in report-only mode.
+
+## Step 117: Promote Form Widgets
+
+I continued the widget-family promotion workflow with `10-form-widgets.yaml`. This extracted form chrome, field grouping, and save-bar rendering into typed widgets while leaving individual field preview widgets in the existing adapter path.
+
+The form widgets now own lifecycle/status/error display and Storybook coverage, while `render.tsx` still owns Admin DSL JSON normalization and backend-bound action dispatch.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Continue to the next widget IR category after completing calendar widgets, which is `10-form-widgets.yaml`.
+
+**Inferred user intent:** Keep progressing Phase 21 category promotion without pausing for additional audit/report work.
+
+**Commit (code):** b0e0252 — "HAIR-041 Step 117: Promote form widgets"
+
+### What I did
+- Read `10-form-widgets.yaml` and the existing `form`, `fieldGroup`, and `saveBar` branches in `render.tsx`.
+- Promoted:
+  - `AdminForm`
+  - `FieldGroup`
+  - `SaveBar`
+- Added manual edit changelogs to component, type, and story files.
+- Replaced scaffold diagnostic stories with lifecycle, error, nested composition, mobile, and callback-probe stories.
+- Updated `render.tsx` adapters for `form`, `fieldGroup`, and `saveBar`.
+- Marked the `10-form-widgets.yaml` widgets as `promoted` and reconciled callback names to `onFormAction` / `onPrimaryAction`.
+- Added a checked Phase 21 task for the form widget promotion.
+
+### Why
+- Form widgets were still scaffold-only and visual form chrome remained inline in `render.tsx`.
+- The next category after calendar was form widgets, and the same playbook boundaries apply: widgets receive typed props, adapters decode raw JSON and dispatch actions.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed.
+- Scoped `scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook` passed for `AdminForm`, `FieldGroup`, and `SaveBar`.
+- Vitest passed through the validation target: 10 files / 49 tests.
+- `cd web && npx storybook build --quiet` passed with the known large chunk warning.
+
+### What didn't work
+- The generated form widget files did not have metadata sidecars like later generated categories. I avoided importing non-existent metadata and used explicit widget ids/classification levels with `widgetDataAttributes`.
+
+### What I learned
+- The older form scaffolds were generated before metadata-sidecar generation was consistently available, so promotion had to preserve intent through changelog/types/stories/YAML rather than sidecar imports.
+
+### What was tricky to build
+- `AdminForm` action callbacks need current form values, but action buttons are rendered by `ActionGroup` rather than native submit buttons. The widget collects `FormData` from its form element when rendering the action context; the adapter still performs backend dispatch.
+
+### What warrants a second pair of eyes
+- Review whether `AdminForm` should collect values lazily at click time rather than during render for dynamic field edits.
+- Review whether individual `FieldPreview` extraction should be added as a follow-up category, since `10-form-widgets.yaml` covers form/group/save chrome but not every concrete field widget.
+
+### What should be done in the future
+- Continue with `11-surface-widgets.yaml` or split out concrete field widgets if desired.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/render.tsx` and review the `form`, `fieldGroup`, and `saveBar` adapters.
+- Review `AdminForm`, `FieldGroup`, and `SaveBar` component/type/story files.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook web/src/admin-dsl/widgets/organisms/AdminForm web/src/admin-dsl/widgets/molecules/FieldGroup web/src/admin-dsl/widgets/molecules/SaveBar`
+  - `cd web && npx storybook build --quiet`
+
+### Technical details
+- The validation target still reports only the known shell-widget design lint backlog in report-only mode.

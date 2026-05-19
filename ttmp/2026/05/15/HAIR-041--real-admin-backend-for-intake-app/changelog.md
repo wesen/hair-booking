@@ -664,3 +664,10 @@ Step 115: Promoted `09-calendar-widgets.yaml` widgets (`MonthCalendar`, `Calenda
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/CalendarWeek/CalendarWeek.tsx` — promoted week calendar.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.tsx` — promoted event block.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/07-lint-admin-dsl-design-system.py` — documented calendar structural button exceptions.
+
+Step 117: Promoted `10-form-widgets.yaml` widgets (`AdminForm`, `FieldGroup`, `SaveBar`), updated form renderer adapters, hardened form stories, validated TypeScript/tests/Storybook, and added the form Phase 21 task as complete (commit b0e0252).
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/10-form-widgets.yaml` — form widget statuses and callback contracts.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — form, field group, and save bar adapters.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/AdminForm/AdminForm.tsx` — promoted admin form widget.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/FieldGroup/FieldGroup.tsx` — promoted field group widget.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/SaveBar/SaveBar.tsx` — promoted save bar widget.
