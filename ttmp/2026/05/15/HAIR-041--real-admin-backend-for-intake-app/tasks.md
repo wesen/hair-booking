@@ -258,6 +258,7 @@ updated: 2026-05-15
 - [x] Remove dead `renderTableCell(...)` from `render.tsx`.
 - [x] Document or replace transitional `as unknown as` casts in the `resourceTable` adapter.
 - [x] Run `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet` after remediation.
+- [x] Remediate remaining shell-widget design lint backlog in `DefaultAdminShell` and `WorkbenchShell`.
 
 ## Phase 21 — Widget playbook compliance audit remediation
 

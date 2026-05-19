@@ -7479,3 +7479,67 @@ This keeps `tasks.md` closer to the current state of the ticket: widget extracti
 
 ### Technical details
 - This step intentionally did not mark final `go test ./...`, reMarkable upload, CSS visual-diff, auth, upload ownership, or audit-wrapper tasks complete.
+
+## Step 131: Remediate Shell Design Lint Backlog
+
+I remediated the remaining Admin DSL design lint backlog in the two shell widgets. After this step, the design-system lint script reports zero errors and zero warnings.
+
+The cleanup replaced raw token imports and manual Admin DSL data attributes with generated/shared helpers, and it made the workbench mobile navigation control a documented structural button exception with a real local toggle behavior rather than a non-functional button.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 130)
+
+**Assistant interpretation:** Complete item 2 from the previous recommendation: fix the shell-widget design lint backlog after task reconciliation.
+
+**Inferred user intent:** Bring the promoted widget set to a lint-clean state before deciding what to do with older renderer/storybook planning artifacts.
+
+**Commit (code):** <pending> — "HAIR-041 Step 131: Remediate shell design lint"
+
+### What I did
+- Updated `DefaultAdminShell` to use shared helpers instead of direct `fringe-ui/tokens` imports.
+- Replaced manual shell data attributes with `dataAttrsFromRecord(...)` plus `widgetDataAttributes(...)`.
+- Updated `WorkbenchShell` to use shared helpers instead of raw token imports.
+- Replaced workbench manual data attributes with `dataAttrsFromRecord(...)`.
+- Replaced the hardcoded translucent sidebar color with generated surface tokens.
+- Added mobile nav open/close state to the workbench shell menu button.
+- Added a documented structural-button allowlist entry for `WorkbenchShell` in the design lint script because the mobile menu toggle is shell chrome, not a backend Admin DSL action.
+- Added a checked Phase 20 task for shell-widget design lint remediation.
+
+### Why
+- The prior lint backlog was real and pre-existing: raw token imports, manual data attributes, one hardcoded color, and an unclassified shell structural button.
+- The promoted widget set should be lint-clean before using the lint as a reliable regression signal for future widgets.
+
+### What worked
+- `python3 ttmp/.../scripts/07-lint-admin-dsl-design-system.py` now reports `0 error(s), 0 warning(s)`.
+- `cd web && npx tsc --noEmit` passed.
+- `cd web && pnpm test -- --runInBand` passed: 10 files / 52 tests.
+- `cd web && npx storybook build --quiet` passed with the known large chunk warning.
+
+### What didn't work
+- N/A
+
+### What I learned
+- The workbench mobile menu button was previously a visual placeholder. It needed either removal, a structural exception, or real structural behavior. I chose real local toggle behavior plus a documented lint exception because it does not dispatch backend actions.
+
+### What was tricky to build
+- The lint script flags manual `data-admin-dsl-*` literals anywhere after the header. For stateful shell-only data, I used `data-mobile-nav-open` rather than inventing another Admin DSL data attribute literal.
+
+### What warrants a second pair of eyes
+- Review the workbench mobile sidebar toggle behavior visually in mobile Storybook; it is intentionally minimal and only toggles the existing sidebar.
+- Review whether shell mobile navigation state should eventually move into a dedicated shell helper or CSS module.
+
+### What should be done in the future
+- Treat design lint as a real regression check now that the promoted widget tree is clean.
+
+### Code review instructions
+- Start with `DefaultAdminShell.tsx` and `WorkbenchShell.tsx`.
+- Review the structural-button allowlist entry in `scripts/07-lint-admin-dsl-design-system.py`.
+- Validate with:
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/07-lint-admin-dsl-design-system.py`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+  - `cd web && npx storybook build --quiet`
+
+### Technical details
+- Final lint output: `Admin DSL design-system lint: 0 error(s), 0 warning(s)`.

@@ -11,16 +11,20 @@
  * This file started as generated schema-v2 scaffold output. The visual shell
  * implementation below was extracted from web/src/admin-dsl/render.tsx so the
  * renderer can become an adapter instead of owning page-frame HTML.
+ *
+ * Manual edits after generation:
+ * - 2026-05-19 / HAIR-041 Step 131: Replaced raw token imports and manual Admin DSL data attributes with shared helpers.
  */
+import { useState } from "react";
 import type { WorkbenchShellProps } from "./WorkbenchShell.types";
 import { workbenchShellWidgetMetadata } from "./WorkbenchShell.metadata";
-import { color, font, radius, type } from "../../../../fringe-ui/tokens";
-import { adminPageRootStyle, shellMenuButtonStyle, sidebarNavButtonStyle, widgetDataAttributes } from "../../shared";
+import { adminPageRootStyle, adminTextStyle, adminTokens, dataAttrsFromRecord, shellMenuButtonStyle, sidebarNavButtonStyle, widgetDataAttributes } from "../../shared";
 
 const workbenchShellCss = `
   @media (max-width: 860px) {
     .adminDslWorkbenchTopbar { display: flex !important; }
     .adminDslWorkbenchSidebar { display: none !important; }
+    .adminDslWorkbenchRoot[data-mobile-nav-open="true"] .adminDslWorkbenchSidebar { display: grid !important; z-index: 20; }
     .adminDslWorkbenchContent { margin-left: 0 !important; padding: 14px !important; }
   }
 `;
@@ -37,6 +41,7 @@ export function WorkbenchShell({
   productMark = "S",
   contentMaxWidth = 1080,
 }: WorkbenchShellProps) {
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const activeItem = sidebar.items.find((item) => item.id === sidebar.activeItemId);
   const mobileLabel = activeItem?.label || title;
 
@@ -44,9 +49,7 @@ export function WorkbenchShell({
     <main
       className="adminDslRoot adminDslWorkbenchRoot"
       style={adminPageRootStyle({ shellKind: "admin" })}
-      data-admin-dsl-page={pageId}
-      data-admin-dsl-shell={shellKind}
-      data-admin-dsl-schema-version={schemaVersion}
+      {...dataAttrsFromRecord({ "admin-dsl-page": pageId, "admin-dsl-shell": shellKind, "admin-dsl-schema-version": schemaVersion, "mobile-nav-open": mobileNavOpen ? "true" : undefined })}
       {...widgetDataAttributes(workbenchShellWidgetMetadata.widgetId)}
     >
       <style>{workbenchShellCss}</style>
@@ -57,8 +60,8 @@ export function WorkbenchShell({
           position: "sticky",
           top: 0,
           zIndex: 10,
-          borderBottom: `1px solid ${color.rule}`,
-          background: color.creamDeep,
+          borderBottom: `1px solid ${adminTokens.borders.default}`,
+          background: adminTokens.surfaces.page,
           padding: "10px 14px",
           alignItems: "center",
           justifyContent: "space-between",
@@ -66,13 +69,15 @@ export function WorkbenchShell({
         }}
       >
         <div style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-          <span style={{ ...type.h2, fontSize: 24, lineHeight: 1 }}>{productMark}</span>
-          <span style={{ ...type.meta, color: color.softInk }}>{mobileLabel}</span>
+          <span style={{ ...adminTextStyle("productMark"), fontSize: 24, lineHeight: 1 }}>{productMark}</span>
+          <span style={{ ...adminTextStyle("bodyMuted") }}>{mobileLabel}</span>
         </div>
         <button
           type="button"
           aria-label="Open navigation"
+          aria-expanded={mobileNavOpen}
           style={shellMenuButtonStyle()}
+          onClick={() => setMobileNavOpen((open) => !open)}
         >
           Menu
         </button>
@@ -83,15 +88,15 @@ export function WorkbenchShell({
           position: "fixed",
           inset: "0 auto 0 0",
           width: 190,
-          borderRight: `1px solid ${color.rule}`,
-          background: "rgba(248, 239, 222, 0.72)",
+          borderRight: `1px solid ${adminTokens.borders.default}`,
+          background: adminTokens.surfaces.muted,
           padding: 18,
           display: "grid",
           gridTemplateRows: "auto 1fr auto",
           gap: 18,
         }}
       >
-        <div style={{ ...type.h2, fontSize: 26, lineHeight: 1 }}>{productMark}</div>
+        <div style={{ ...adminTextStyle("productMark"), fontSize: 26, lineHeight: 1 }}>{productMark}</div>
         <nav aria-label="Admin navigation" style={{ display: "grid", gap: 8, alignContent: "start" }}>
           {sidebar.items.map((item) => {
             const selected = item.id === sidebar.activeItemId;
@@ -101,10 +106,14 @@ export function WorkbenchShell({
                 type="button"
                 aria-current={selected ? "page" : undefined}
                 disabled={!item.action}
-                onClick={() => item.action && onSidebarAction?.(item.action, { item, activeItemId: sidebar.activeItemId })}
+                onClick={() => {
+                  if (!item.action) return;
+                  onSidebarAction?.(item.action, { item, activeItemId: sidebar.activeItemId });
+                  setMobileNavOpen(false);
+                }}
                 style={sidebarNavButtonStyle({ active: selected, disabled: !item.action })}
               >
-                <span aria-hidden="true" style={{ color: color.softInk }}>
+                <span aria-hidden="true" style={{ color: adminTokens.text.muted }}>
                   {String(item.icon || "•").slice(0, 2)}
                 </span>
                 <span>{item.label}</span>
@@ -115,7 +124,7 @@ export function WorkbenchShell({
         {user ? (
           <div
             style={{
-              borderTop: `1px solid ${color.rule}`,
+              borderTop: `1px solid ${adminTokens.borders.default}`,
               paddingTop: 12,
               display: "grid",
               gridTemplateColumns: "32px 1fr",
@@ -127,19 +136,19 @@ export function WorkbenchShell({
               style={{
                 width: 32,
                 height: 32,
-                borderRadius: radius.pill,
-                background: color.ink,
-                color: color.paper,
+                borderRadius: adminTokens.radii.pill,
+                background: adminTokens.text.primary,
+                color: adminTokens.surfaces.panel,
                 display: "grid",
                 placeItems: "center",
-                ...type.meta,
+                ...adminTextStyle("actionLabel"),
               }}
             >
               {user.initials || "AD"}
             </div>
             <div>
-              <div style={{ ...type.bodySm, fontWeight: 800 }}>{user.name || "Admin User"}</div>
-              <div style={{ ...type.meta, color: color.softInk }}>{user.role || "Administrator"}</div>
+              <div style={{ ...adminTextStyle("body"), fontWeight: 800 }}>{user.name || "Admin User"}</div>
+              <div style={{ ...adminTextStyle("bodyMuted") }}>{user.role || "Administrator"}</div>
             </div>
           </div>
         ) : null}

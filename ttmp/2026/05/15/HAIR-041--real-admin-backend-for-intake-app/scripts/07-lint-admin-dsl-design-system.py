@@ -44,6 +44,7 @@ STRUCTURAL_BUTTON_ALLOW = {
     "web/src/admin-dsl/widgets/molecules/Tabs/Tabs.tsx": "selection control uses selectionPillStyle",
     "web/src/admin-dsl/widgets/molecules/SearchBox/SearchBox.tsx": "plain form submit styled with actionButtonStyle",
     "web/src/admin-dsl/widgets/organisms/ResourceTable/parts/ResourceTableCell/ResourceTableCell.tsx": "row overflow structural control",
+    "web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.tsx": "mobile shell navigation toggle uses shellMenuButtonStyle and does not dispatch backend actions",
     "web/src/admin-dsl/widgets/organisms/MonthCalendar/MonthCalendar.tsx": "calendar date/month navigation controls use shared Admin DSL tokens",
     "web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.tsx": "calendar event block is itself the interactive calendar control and uses shared Admin DSL tokens",
 }

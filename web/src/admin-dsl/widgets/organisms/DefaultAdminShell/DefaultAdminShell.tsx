@@ -15,11 +15,11 @@
  *
  * Manual edits after generation:
  * - 2026-05-19 / HAIR-041 Step 129: Added showHeader so pages with a semantic PageHeader node do not render duplicate title chrome.
+ * - 2026-05-19 / HAIR-041 Step 131: Replaced raw token imports and manual Admin DSL data attributes with shared helpers.
  */
 import { defaultAdminShellWidgetMetadata } from "./DefaultAdminShell.metadata";
 import type { DefaultAdminShellProps } from "./DefaultAdminShell.types";
-import { color, type } from "../../../../fringe-ui/tokens";
-import { adminPageRootStyle, adminShellGridStyle, widgetDataAttributes } from "../../shared";
+import { adminPageRootStyle, adminShellGridStyle, adminTextStyle, adminTokens, dataAttrsFromRecord, widgetDataAttributes } from "../../shared";
 
 const defaultAdminShellCss = `
   .adminDslDefaultRoot { box-sizing: border-box; }
@@ -54,8 +54,7 @@ export function DefaultAdminShell({
     <main
       className="adminDslRoot adminDslDefaultRoot"
       style={{ ...adminPageRootStyle({ shellKind }), padding: 24 }}
-      data-admin-dsl-page={pageId}
-      data-admin-dsl-shell={shellKind}
+      {...dataAttrsFromRecord({ "admin-dsl-page": pageId, "admin-dsl-shell": shellKind })}
       {...widgetDataAttributes(defaultAdminShellWidgetMetadata.widgetId)}
     >
       <style>{defaultAdminShellCss}</style>
@@ -66,15 +65,15 @@ export function DefaultAdminShell({
         <section style={{ minWidth: 0 }} aria-labelledby={showHeader ? `${pageId}-title` : undefined}>
           {showHeader ? (
             <header style={{ marginBottom: 24 }}>
-              {eyebrow ? <div style={{ ...type.eyebrow, color: color.plum }}>{eyebrow}</div> : null}
+              {eyebrow ? <div style={{ ...adminTextStyle("eyebrow"), color: adminTokens.text.accent }}>{eyebrow}</div> : null}
               <h1
                 id={`${pageId}-title`}
                 className="adminDslTitle adminDslDefaultTitle"
-                style={{ ...type.display2, fontSize: 56, margin: "6px 0 8px" }}
+                style={{ ...adminTextStyle("pageTitle"), fontSize: 56, margin: "6px 0 8px" }}
               >
                 {title}
               </h1>
-              {description ? <p style={{ ...type.bodyLg, color: color.softInk, maxWidth: 680, margin: 0 }}>{description}</p> : null}
+              {description ? <p style={{ ...adminTextStyle("bodyLarge"), color: adminTokens.text.muted, maxWidth: 680, margin: 0 }}>{description}</p> : null}
             </header>
           ) : null}
           <div style={{ display: "grid", gap: 4 }}>{main}</div>
