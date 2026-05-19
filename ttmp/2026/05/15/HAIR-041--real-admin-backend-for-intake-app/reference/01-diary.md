@@ -6956,3 +6956,62 @@ This proves the Phase 22 extraction pattern: typed leaf widgets own native input
 ### Technical details
 - The renderer adapter currently passes `name`, `label`, `value`, `placeholder`, `helpText`, `error`, `disabled`, `readOnly`, `required`, and style props.
 - Field value-change callbacks are available at the widget level but are not wired to backend dispatch by the current Admin DSL adapter because ordinary `textField` value edits are submitted through `AdminForm` FormData.
+
+## Step 123: Refresh Playbook and Restore Field Metadata Sidecars
+
+I paused the form-field extraction after the user asked whether I was still following the playbook. I re-read the Widget IR to Finished Widget Playbook and found a compliance gap in the previous two commits: `FieldShell` and `TextField` had manual changelogs and typed implementations, but they did not yet have metadata sidecars imported/exported beside the implementation.
+
+I corrected that before continuing with more field leaves. The sidecars were generated with the targeted scaffold generator without overwriting the hand-promoted implementation files, then the promoted components and barrels were updated to consume/export their metadata.
+
+### Prompt Context
+
+**User prompt (verbatim):** "are you still following th eplaybook? read it to refresh your memory"
+
+**Assistant interpretation:** Stop and re-read the widget promotion playbook, then correct any process drift before continuing implementation.
+
+**Inferred user intent:** Ensure the extraction continues with the documented YAML/scaffold/metadata/storybook/validation/diary workflow rather than ad hoc hand-written widgets.
+
+**Commit (code):** <pending> — "HAIR-041 Step 123: Restore form field metadata sidecars"
+
+### What I did
+- Re-read `playbooks/01-widget-ir-to-finished-widget-playbook.md`.
+- Ran targeted scaffold generation for `FieldShell`, `TextField`, and the in-progress `TextareaField` from `10a-form-field-widgets.yaml`.
+- Generated missing metadata sidecars for:
+  - `FieldShell`
+  - `TextField`
+  - `TextareaField`
+- Updated the already-promoted `FieldShell` and `TextField` components to use metadata-backed `widgetDataAttributes(...)`.
+- Updated their barrels to export metadata sidecars.
+
+### Why
+- The playbook Definition of Done says a promoted widget has a `.metadata.ts` sidecar preserving intent and action slots.
+- The practical review checklist asks whether the widget imports metadata or exports it from its barrel.
+- I had intentionally used explicit widget ids for older form chrome widgets, but for the new form-field IR the generator can produce sidecars and should be used.
+
+### What worked
+- The targeted generator wrote only missing metadata files and skipped existing hand-promoted implementation/type/story/barrel files.
+- `cd web && npx tsc --noEmit` passed after wiring metadata imports/exports.
+
+### What didn't work
+- Process drift: Steps 121 and 122 did not fully satisfy the metadata-sidecar portion of the playbook when first committed.
+
+### What I learned
+- For newly added IR artifacts, even when implementing by hand, I should still run the targeted generator early enough to create metadata sidecars before the implementation commit.
+
+### What was tricky to build
+- The remediation had to avoid force-regenerating over hand-promoted `FieldShell` and `TextField` files. The safe command was non-force targeted generation, which skipped existing files and wrote only missing metadata.
+
+### What warrants a second pair of eyes
+- Review whether older promoted form chrome widgets without metadata sidecars (`AdminForm`, `FieldGroup`, `SaveBar`) should get a separate metadata backfill pass, or whether this remediation should apply only to the new Phase 22 form-field IR.
+
+### What should be done in the future
+- For each remaining Phase 22 field, run targeted dry-run/generation before hand promotion and keep metadata sidecars in the same implementation boundary.
+
+### Code review instructions
+- Review the generated metadata sidecars for `FieldShell` and `TextField`.
+- Review component/barrel imports and exports.
+- Validate with `cd web && npx tsc --noEmit`.
+
+### Technical details
+- Command used:
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py --name FieldShell --name TextField --name TextareaField ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml`

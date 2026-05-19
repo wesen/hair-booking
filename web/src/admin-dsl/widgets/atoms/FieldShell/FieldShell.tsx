@@ -5,6 +5,7 @@
  * - 2026-05-19 / HAIR-041 Step 121: Added shared field label/help/error chrome using generated design helpers.
  */
 import { adminTextStyle, adminTokens, dataAttrsFromRecord, widgetDataAttributes } from "../../shared";
+import { fieldShellWidgetMetadata } from "./FieldShell.metadata";
 import type { FieldShellProps } from "./FieldShell.types";
 
 export function fieldDescriptionIds({ controlId, helpText, error }: Pick<FieldShellProps, "controlId" | "helpText" | "error">) {
@@ -26,7 +27,7 @@ export function FieldShell({ id, className, style, dataAttributes, label, name, 
         opacity: disabled ? 0.64 : 1,
         ...style,
       }}
-      {...widgetDataAttributes("admin.form-field.field-shell", "atom")}
+      {...widgetDataAttributes(fieldShellWidgetMetadata.widgetId, fieldShellWidgetMetadata.classification.level)}
       {...dataAttrsFromRecord({ field: name, invalid: error ? "true" : undefined, disabled: disabled ? "true" : undefined, readonly: readOnly ? "true" : undefined, ...dataAttributes })}
     >
       <label htmlFor={resolvedControlId} style={{ ...adminTextStyle("actionLabel"), color: adminTokens.text.primary, display: "flex", gap: 8, alignItems: "center" }}>

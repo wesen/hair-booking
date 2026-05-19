@@ -6,6 +6,7 @@
  */
 import { FieldShell, fieldDescriptionIds } from "../../atoms/FieldShell";
 import { adminTextStyle, adminTokens, dataAttrsFromRecord, widgetDataAttributes } from "../../shared";
+import { textFieldWidgetMetadata } from "./TextField.metadata";
 import type { TextFieldProps } from "./TextField.types";
 
 export function TextField({ id, className, style, dataAttributes, name, label, value, placeholder, helpText, error, disabled = false, readOnly = false, required = false, inputMode = "text", autoComplete, onValueChange }: TextFieldProps) {
@@ -37,7 +38,7 @@ export function TextField({ id, className, style, dataAttributes, name, label, v
           outlineColor: adminTokens.text.accent,
         }}
         onChange={onValueChange ? (event) => onValueChange(event.currentTarget.value, event) : undefined}
-        {...widgetDataAttributes("admin.form-field.text-field", "molecule")}
+        {...widgetDataAttributes(textFieldWidgetMetadata.widgetId, textFieldWidgetMetadata.classification.level)}
         {...dataAttrsFromRecord({ field: name, invalid: error ? "true" : undefined })}
       />
     </FieldShell>
