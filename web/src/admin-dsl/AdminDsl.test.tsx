@@ -138,6 +138,52 @@ describe("admin DSL", () => {
     }));
   });
 
+  it("renders extracted field widgets and dispatches form values", () => {
+    const dispatch = vi.fn();
+    const page = resource.page("field-form", "Field form")
+      .content(
+        admin.form("fieldForm", { title: "Fields", dirty: true },
+          field.textarea("description", { label: "Description", value: "Gloss" }),
+          field.select("serviceType", [{ value: "cut", label: "Cut" }, { value: "color", label: "Color" }], { label: "Service type", value: "cut" }),
+          field.switch("published", { label: "Published", value: true }),
+          field.money("price", { label: "Price", value: "125" }),
+          field.duration("duration", { label: "Duration", value: "45" }),
+          field.date("startsOn", { label: "Starts on", value: "2026-05-19" }),
+          field.time("startsAt", { label: "Starts at", value: "14:30" }),
+          field.image("hero", { label: "Hero image", value: "photo_1" }),
+        ).submit(action.primary("fields.save", "Save")),
+      )
+      .toJSON();
+
+    render(<AdminPageRenderer page={page} context={{ dispatch }} />);
+    expect(screen.getByLabelText("Description")).toBeInTheDocument();
+    expect(screen.getByLabelText("Service type")).toBeInTheDocument();
+    expect(screen.getByLabelText("Published")).toBeInTheDocument();
+    expect(screen.getByLabelText("Price")).toBeInTheDocument();
+    expect(screen.getByLabelText("Duration")).toBeInTheDocument();
+    expect(screen.getByLabelText("Starts on")).toBeInTheDocument();
+    expect(screen.getByLabelText("Starts at")).toBeInTheDocument();
+    expect(screen.getByLabelText("Hero image")).toBeInTheDocument();
+
+    fireEvent.change(screen.getByLabelText("Description"), { target: { value: "Gloss and trim" } });
+    fireEvent.change(screen.getByLabelText("Service type"), { target: { value: "color" } });
+    fireEvent.click(screen.getByRole("button", { name: "Save" }));
+
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      nodeKind: "form",
+      value: expect.objectContaining({
+        description: "Gloss and trim",
+        serviceType: "color",
+        published: "on",
+        price: "125",
+        duration: "45",
+        startsOn: "2026-05-19",
+        startsAt: "14:30",
+        hero: "photo_1",
+      }),
+    }));
+  });
+
   it("renders resource tables and dispatches row values", () => {
     const dispatch = vi.fn();
     const page = admin.page("table", "Table")

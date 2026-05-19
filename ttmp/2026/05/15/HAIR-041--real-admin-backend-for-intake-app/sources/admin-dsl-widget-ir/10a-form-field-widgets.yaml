@@ -4,7 +4,7 @@ category: form_field_widgets
 summary: Concrete form field leaf widgets extracted from the legacy FieldPreview helper in render.tsx.
 source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
 schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md
-status: planned
+status: promoted
 shared_design:
   field_shell:
     widget_id: admin.form-field.field-shell
@@ -713,7 +713,7 @@ widgets:
     doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
 - id: admin.form-field.date-field
   name: DateField
-  status: planned
+  status: promoted
   classification:
     level: molecule
     description: DateField participates in the Admin DSL field system as a molecule; it extracts dateField behavior from FieldPreview.
@@ -859,7 +859,7 @@ widgets:
     doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
 - id: admin.form-field.time-field
   name: TimeField
-  status: planned
+  status: promoted
   classification:
     level: molecule
     description: TimeField participates in the Admin DSL field system as a molecule; it extracts timeField behavior from FieldPreview.
@@ -1001,7 +1001,7 @@ widgets:
     doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
 - id: admin.form-field.money-field
   name: MoneyField
-  status: planned
+  status: promoted
   classification:
     level: molecule
     description: MoneyField participates in the Admin DSL field system as a molecule; it extracts moneyField behavior from
@@ -1156,7 +1156,7 @@ widgets:
     doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
 - id: admin.form-field.duration-field
   name: DurationField
-  status: planned
+  status: promoted
   classification:
     level: molecule
     description: DurationField participates in the Admin DSL field system as a molecule; it extracts durationField behavior
@@ -1312,7 +1312,7 @@ widgets:
     doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
 - id: admin.form-field.image-field
   name: ImageField
-  status: planned
+  status: promoted
   classification:
     level: molecule
     description: ImageField participates in the Admin DSL field system as a molecule; it extracts imageField behavior from

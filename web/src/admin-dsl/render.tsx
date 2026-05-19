@@ -10,18 +10,23 @@ import { ActivityFeed } from "./widgets/molecules/ActivityFeed";
 import type { ActivityFeedItem } from "./widgets/molecules/ActivityFeed/ActivityFeed.types";
 import { CalendarEventBlock } from "./widgets/molecules/CalendarEventBlock";
 import type { CalendarEventBlockProps } from "./widgets/molecules/CalendarEventBlock/CalendarEventBlock.types";
+import { DateField } from "./widgets/molecules/DateField";
+import { DurationField } from "./widgets/molecules/DurationField";
 import { EmptyState } from "./widgets/molecules/EmptyState";
+import { ImageField } from "./widgets/molecules/ImageField";
 import { InlineError } from "./widgets/molecules/InlineError";
 import { KeyValueList } from "./widgets/molecules/KeyValueList";
 import { LoadingState } from "./widgets/molecules/LoadingState";
 import { MarkdownBlock } from "./widgets/molecules/MarkdownBlock";
 import { MetricCard } from "./widgets/molecules/MetricCard";
+import { MoneyField } from "./widgets/molecules/MoneyField";
 import { SaveBar } from "./widgets/molecules/SaveBar";
 import { SearchBox } from "./widgets/molecules/SearchBox";
 import { SelectField } from "./widgets/molecules/SelectField";
 import type { SelectFieldOption } from "./widgets/molecules/SelectField";
 import { SwitchField } from "./widgets/molecules/SwitchField";
 import { Tabs } from "./widgets/molecules/Tabs";
+import { TimeField } from "./widgets/molecules/TimeField";
 import { TextField } from "./widgets/molecules/TextField";
 import { TextareaField } from "./widgets/molecules/TextareaField";
 import { Toolbar } from "./widgets/molecules/Toolbar";
@@ -401,9 +406,17 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       return <TextareaField key={key} id={nodeDomId(node)} name={str(props, "name", node.meta?.id || "textarea-field")} label={str(props, "label", str(props, "name", node.meta?.id || "Textarea field"))} value={props.value == null ? undefined : String(props.value)} placeholder={str(props, "placeholder") || undefined} rows={num(props, "rows", 4)} helpText={str(props, "helpText") || undefined} error={str(props, "error") || undefined} disabled={bool(props, "disabled")} readOnly={bool(props, "readOnly")} required={bool(props, "required")} style={style(props)} />;
 
     case "moneyField":
+      return <MoneyField key={key} id={nodeDomId(node)} name={str(props, "name", node.meta?.id || "money-field")} label={str(props, "label", str(props, "name", node.meta?.id || "Money field"))} value={props.value == null ? undefined : String(props.value)} currency={str(props, "currency", "USD")} min={num(props, "min", undefined as never)} max={num(props, "max", undefined as never)} step={num(props, "step", 1)} helpText={str(props, "helpText") || undefined} error={str(props, "error") || undefined} disabled={bool(props, "disabled")} readOnly={bool(props, "readOnly")} required={bool(props, "required")} style={style(props)} />;
+
     case "durationField":
+      return <DurationField key={key} id={nodeDomId(node)} name={str(props, "name", node.meta?.id || "duration-field")} label={str(props, "label", str(props, "name", node.meta?.id || "Duration field"))} value={props.value == null ? undefined : String(props.value)} unit={str(props, "unit", "minutes")} min={num(props, "min", undefined as never)} max={num(props, "max", undefined as never)} step={num(props, "step", 5)} helpText={str(props, "helpText") || undefined} error={str(props, "error") || undefined} disabled={bool(props, "disabled")} readOnly={bool(props, "readOnly")} required={bool(props, "required")} style={style(props)} />;
+
     case "dateField":
+      return <DateField key={key} id={nodeDomId(node)} name={str(props, "name", node.meta?.id || "date-field")} label={str(props, "label", str(props, "name", node.meta?.id || "Date field"))} value={props.value == null ? undefined : String(props.value)} min={str(props, "min") || undefined} max={str(props, "max") || undefined} helpText={str(props, "helpText") || undefined} error={str(props, "error") || undefined} disabled={bool(props, "disabled")} readOnly={bool(props, "readOnly")} required={bool(props, "required")} style={style(props)} />;
+
     case "timeField":
+      return <TimeField key={key} id={nodeDomId(node)} name={str(props, "name", node.meta?.id || "time-field")} label={str(props, "label", str(props, "name", node.meta?.id || "Time field"))} value={props.value == null ? undefined : String(props.value)} min={str(props, "min") || undefined} max={str(props, "max") || undefined} step={num(props, "step", undefined as never)} helpText={str(props, "helpText") || undefined} error={str(props, "error") || undefined} disabled={bool(props, "disabled")} readOnly={bool(props, "readOnly")} required={bool(props, "required")} style={style(props)} />;
+
     case "selectField": {
       const options = jsonArray<AdminJsonObject>(props, "options").map((option): SelectFieldOption => {
         const value = String(option.value ?? option.id ?? option.label ?? "");
@@ -416,8 +429,10 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     case "switchField":
       return <SwitchField key={key} id={nodeDomId(node)} name={str(props, "name", node.meta?.id || "switch-field")} label={str(props, "label", str(props, "name", node.meta?.id || "Switch field"))} checked={bool(props, "value") || bool(props, "checked")} helpText={str(props, "helpText") || undefined} error={str(props, "error") || undefined} disabled={bool(props, "disabled")} readOnly={bool(props, "readOnly")} required={bool(props, "required")} style={style(props)} />;
 
-    case "imageField":
-      return <FieldPreview key={key} node={node} />;
+    case "imageField": {
+      const action = isActionRef(jsonObject(props, "action")) ? jsonObject(props, "action") as AdminActionRef : actionList(props)[0];
+      return <ImageField key={key} id={nodeDomId(node)} name={str(props, "name", node.meta?.id || "image-field")} label={str(props, "label", str(props, "name", node.meta?.id || "Image field"))} src={str(props, "src") || str(props, "value") || undefined} alt={str(props, "alt") || undefined} placeholder={str(props, "placeholder") || undefined} helpText={str(props, "helpText") || undefined} error={str(props, "error") || undefined} disabled={bool(props, "disabled")} readOnly={bool(props, "readOnly")} required={bool(props, "required")} action={action ? actionViewModel(action) : undefined} style={style(props)} onFieldAction={(clicked, value) => dispatchWidgetAction(ctx, node, clicked, value)} />;
+    }
 
     case "saveBar": {
       const primary = jsonObject(props, "primary");
@@ -468,31 +483,6 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
 function renderInlineNode(node: AdminJsonObject | undefined, ctx?: AdminRenderContext) {
   if (!node || typeof node.kind !== "string") return null;
   return renderAdminNode({ kind: node.kind as AdminNode["kind"], props: jsonObject(node, "props") || {}, children: [], meta: jsonObject(node, "meta") as AdminNode["meta"] }, ctx, String(node.kind));
-}
-
-function FieldPreview({ node }: { node: AdminNode }) {
-  const props = node.props || {};
-  const name = str(props, "name", node.meta?.id || "");
-  const label = str(props, "label", name);
-  const value = props.value;
-  const inputStyle: CSSProperties = { border: `1px solid ${color.rule}`, borderRadius: radius.md, padding: "10px 12px", background: color.paper, ...type.body };
-
-  return (
-    <label {...dataAttrs(node)} style={{ display: "grid", gap: 6 }}>
-      <span style={{ ...type.meta, color: color.softInk }}>{label}</span>
-      {node.kind === "switchField" ? (
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 8, ...type.body }}><span style={{ width: 34, height: 20, borderRadius: radius.pill, background: value ? color.success : color.rule, display: "inline-block" }} />{value ? "On" : "Off"}</span>
-      ) : node.kind === "textareaField" ? (
-        <textarea name={name} defaultValue={typeof value === "string" ? value : ""} style={{ ...inputStyle, minHeight: 76 }} />
-      ) : node.kind === "selectField" ? (
-        <select name={name} defaultValue={String(value || "")} style={inputStyle}><option value={String(value || "")}>{String(value || "Choose...")}</option></select>
-      ) : node.kind === "imageField" ? (
-        <div style={{ ...inputStyle, borderStyle: "dashed", color: color.softInk }}>Image upload field</div>
-      ) : (
-        <input name={name} defaultValue={value == null ? "" : String(value)} style={inputStyle} />
-      )}
-    </label>
-  );
 }
 
 function actionViewModel(action: AdminActionRef): ActionViewModel {

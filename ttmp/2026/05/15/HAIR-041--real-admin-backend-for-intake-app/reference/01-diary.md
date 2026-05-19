@@ -7209,3 +7209,89 @@ The widget keeps the current uncontrolled form behavior through `defaultChecked`
 
 ### Technical details
 - `FieldPreview` still covers `moneyField`, `durationField`, `dateField`, `timeField`, and `imageField` after this step.
+
+## Step 127: Complete Phase 22 Form Field Extraction
+
+I completed the remainder of Phase 22 in one reviewable batch because the remaining field leaves share the same implementation pattern and validation surface. `DateField`, `TimeField`, `MoneyField`, `DurationField`, and `ImageField` now have typed widget files, metadata sidecars, stories, renderer adapter branches, and YAML status updates.
+
+This removes the legacy `FieldPreview` helper from `render.tsx` entirely. The renderer now adapts every concrete Admin DSL field node into a typed widget, while `AdminForm` still owns form-level `FormData` collection and backend action dispatch remains in the adapter layer.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Don't forget to write a diary in case you haven't.
+
+next, do all of phase 22. 
+Then tackle 11-surface-widgets (don't forget the tasks)."
+
+**Assistant interpretation:** Make sure diary coverage stays current, finish all remaining Phase 22 form field tasks, then create/execute tasks for the `11-surface-widgets.yaml` category.
+
+**Inferred user intent:** Close the form-field extraction phase completely before moving to the next widget category, preserving the process evidence needed for review.
+
+**Commit (code):** <pending> — "HAIR-041 Step 127: Complete form field extraction"
+
+### What I did
+- Ran targeted scaffold dry-run and scaffold generation for:
+  - `DateField`
+  - `TimeField`
+  - `MoneyField`
+  - `DurationField`
+  - `ImageField`
+- Promoted the generated scaffolds into typed widgets with manual edit changelogs and metadata sidecars.
+- Updated `render.tsx` adapters for:
+  - `moneyField`
+  - `durationField`
+  - `dateField`
+  - `timeField`
+  - `imageField`
+- Removed the obsolete `FieldPreview` helper from `render.tsx`.
+- Added an Admin DSL test that renders extracted field widgets and verifies submitted form values survive extraction.
+- Marked the remaining Phase 22 tasks complete in `tasks.md`.
+- Marked the form-field IR artifact and remaining field widgets as promoted in `10a-form-field-widgets.yaml`.
+
+### Why
+- The remaining field branches were still handled by renderer-local `FieldPreview` logic.
+- Completing Phase 22 makes all concrete form fields follow the same typed widget boundary and removes duplicated inline field styling from the renderer.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed.
+- `cd web && pnpm test -- --runInBand` passed: 10 files / 50 tests.
+- Scoped widget promotion validation passed for `DateField`, `TimeField`, `MoneyField`, `DurationField`, and `ImageField`; Vitest passed 10 files / 50 tests.
+- `cd web && npx storybook build --quiet` passed with the known large chunk warning.
+- `rg "FieldPreview" web/src/admin-dsl/render.tsx` now has no matches.
+
+### What didn't work
+- The first new field test failed for `ImageField` because `FieldShell` rendered a `<label for="...">` pointing at a `<div>`, which is not a labelable element:
+  - `TestingLibraryElementError: Found a label with the text of: Hero image, however the element associated with this label (<div />) is non-labellable`
+- React also warned about a camel-cased custom data attribute:
+  - `React does not recognize the data-hasImage prop on a DOM element.`
+- I fixed this by giving `ImageField` a visually hidden read-only input with the field id/name/value for label association and form submission, and by changing the data attribute key to lowercase `hasimage`.
+
+### What I learned
+- `FieldShell` assumes the supplied `controlId` points at a labelable control. Composite fields such as `ImageField` must still provide a real form control, not only a visual wrapper.
+- Testing Library caught an accessibility issue that Storybook and TypeScript would not have caught.
+
+### What was tricky to build
+- Numeric/date/time fields share most behavior but have slightly different prop types (`min`/`max` string vs number, `currency` vs `unit`). I kept them as separate leaf widgets because the DSL semantics are separate, while intentionally allowing some implementation similarity.
+- `ImageField` needed to preserve form submission even though its visible UI is a media placeholder. The hidden read-only input keeps the current `AdminForm` FormData model intact.
+
+### What warrants a second pair of eyes
+- Review the renderer numeric adapter defaults: money defaults to step `1`, duration defaults to step `5`, and unset min/max props are omitted through TypeScript-compatible fallbacks.
+- Review whether the visually hidden `ImageField` input should use a shared visually-hidden helper in the design language.
+- Review whether `MoneyField` and `DurationField` should eventually share a lower-level numeric input primitive.
+
+### What should be done in the future
+- Move on to `11-surface-widgets.yaml` with explicit tasks before implementation.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/render.tsx` and confirm there is no `FieldPreview` helper left.
+- Review each new field widget under `web/src/admin-dsl/widgets/molecules/*Field/`.
+- Review `web/src/admin-dsl/AdminDsl.test.tsx` for the extracted field submission coverage.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook web/src/admin-dsl/widgets/molecules/DateField web/src/admin-dsl/widgets/molecules/TimeField web/src/admin-dsl/widgets/molecules/MoneyField web/src/admin-dsl/widgets/molecules/DurationField web/src/admin-dsl/widgets/molecules/ImageField`
+  - `cd web && npx storybook build --quiet`
+
+### Technical details
+- Remaining Phase 22 tasks are checked complete.
+- Known report-only design lint backlog still reports `DefaultAdminShell` and `WorkbenchShell` findings during scoped validation.

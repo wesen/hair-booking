@@ -289,8 +289,8 @@ updated: 2026-05-15
 - [x] Promote `TextareaField` with typed props, Storybook variants, and renderer adapter coverage.
 - [x] Promote `SelectField` with typed props, option fixtures, Storybook variants, and renderer adapter coverage.
 - [x] Promote `SwitchField` with typed props, checked/unchecked/disabled Storybook variants, and renderer adapter coverage.
-- [ ] Promote date/time/numeric field leaves (`DateField`, `TimeField`, `MoneyField`, `DurationField`) with typed props, mobile/error variants, and renderer adapter coverage.
-- [ ] Promote `ImageField` with empty/filled/error/disabled Storybook variants and renderer adapter coverage.
-- [ ] Replace the remaining `FieldPreview` branch in `render.tsx` with typed widget adapters and remove obsolete inline field styling.
-- [ ] Add or update tests that assert existing field rendering/accessibility contracts survive extraction.
-- [ ] Run scoped form-field validation (`tsc`, widget promotion validator, Vitest, Storybook build) and record findings in the diary/changelog.
+- [x] Promote date/time/numeric field leaves (`DateField`, `TimeField`, `MoneyField`, `DurationField`) with typed props, mobile/error variants, and renderer adapter coverage.
+- [x] Promote `ImageField` with empty/filled/error/disabled Storybook variants and renderer adapter coverage.
+- [x] Replace the remaining `FieldPreview` branch in `render.tsx` with typed widget adapters and remove obsolete inline field styling.
+- [x] Add or update tests that assert existing field rendering/accessibility contracts survive extraction.
+- [x] Run scoped form-field validation (`tsc`, widget promotion validator, Vitest, Storybook build) and record findings in the diary/changelog.

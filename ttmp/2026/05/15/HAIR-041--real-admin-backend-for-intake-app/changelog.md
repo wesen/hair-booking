@@ -717,3 +717,13 @@ Step 126: Promoted `SwitchField`, added checked/unchecked/error/disabled/read-on
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/SwitchField/SwitchField.stories.tsx` — switch story coverage.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — `switchField` adapter update.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml` — `SwitchField` status update.
+
+Step 127: Completed Phase 22 form field extraction by promoting `DateField`, `TimeField`, `MoneyField`, `DurationField`, and `ImageField`, removing `FieldPreview`, and adding field-submission test coverage.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — all remaining field adapter branches and `FieldPreview` removal.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx` — extracted field rendering/submission coverage.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/DateField/DateField.tsx` — promoted date field.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/TimeField/TimeField.tsx` — promoted time field.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/MoneyField/MoneyField.tsx` — promoted money field.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/DurationField/DurationField.tsx` — promoted duration field.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/ImageField/ImageField.tsx` — promoted image field.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml` — Phase 22 status update.
