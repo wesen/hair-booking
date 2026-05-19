@@ -6356,3 +6356,64 @@ This step also fixes the MetricCard `tone` contract drift reported by the audit 
 
 ### Technical details
 - The validation target still reports known shell-widget design lint backlog in report-only mode.
+
+## Step 110: Clean Slate After Partial Data-Display Edits
+
+I cleaned the working tree by removing the pre-existing unfinished local edits that were not part of the committed data-display promotion batch. This leaves the repository ready for the next playbook-complete widget batch without carrying broken partial work forward.
+
+The cleanup intentionally preserved the committed `MetricCard`, `LoadingState`, and `InlineError` remediation from Step 108. It reverted only the still-dirty local files and removed two untracked stale audit diary drafts.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, clean it up and commit it . we want a clean slate."
+
+**Assistant interpretation:** Remove the remaining dirty/untracked partial work so the repository is clean, and commit a record of that cleanup.
+
+**Inferred user intent:** Start the next Phase 21/data-display batch from a predictable clean working tree rather than from stale broken local edits.
+
+**Commit (code):** eb4ec41 — "HAIR-041 Step 110: Record clean slate after partial edits"
+
+### What I did
+- Confirmed there were no remaining stashes.
+- Reverted dirty tracked files that were not part of the committed Step 108 batch:
+  - `pkg/admindsl/flows/intake_config.flow.js`
+  - `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/index.md`
+  - `web/src/admin-dsl/AdminDslWorkbench.stories.tsx`
+  - `web/src/admin-dsl/widgets/atoms/StatusText/StatusText.tsx`
+  - `web/src/admin-dsl/widgets/molecules/ActivityFeed/ActivityFeed.tsx`
+  - `web/src/admin-dsl/widgets/molecules/EmptyState/EmptyState.tsx`
+  - `web/src/admin-dsl/widgets/molecules/KeyValueList/KeyValueList.tsx`
+  - `web/src/admin-dsl/widgets/molecules/MarkdownBlock/MarkdownBlock.tsx`
+- Removed untracked stale audit diary drafts:
+  - `reference/10-resource-widget-compliance-audit-diary.md`
+  - `reference/11-data-display-widget-compliance-audit-diary.md`
+
+### Why
+- The dirty data-display edits were incomplete, had stale Step 93 changelog labels, and included known TypeScript breakages.
+- A clean tree is safer before continuing with playbook-complete widget promotion batches.
+
+### What worked
+- `git restore` returned all tracked dirty files to `HEAD`.
+- Removing the two untracked drafts left no dirty working-tree entries before writing this diary/changelog note.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The earlier partial data-display edits were useful as exploration, but keeping them in the working tree made validation ambiguous.
+
+### What was tricky to build
+- There was no code diff to commit after restoring the dirty files, so I recorded the cleanup in the diary/changelog to make the cleanup auditable and to satisfy the requested commit boundary.
+
+### What warrants a second pair of eyes
+- Confirm that no useful local content from the removed untracked draft diaries was needed beyond the committed reports `12` and `13`.
+
+### What should be done in the future
+- Continue `07-data-display-widgets.yaml` from a clean tree, starting with a focused `KeyValueList`/`MarkdownBlock` batch.
+
+### Code review instructions
+- Review this diary entry and changelog entry only; no functional code changed in the cleanup commit.
+- Validate with `git status --short` after commit.
+
+### Technical details
+- Cleanup commands used `git restore -- <paths>` for tracked files and `rm -f` for the two untracked stale drafts.

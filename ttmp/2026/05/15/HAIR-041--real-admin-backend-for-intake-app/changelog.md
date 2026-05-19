@@ -635,3 +635,6 @@ Step 108: Promoted first data-display widgets (`MetricCard`, `LoadingState`, `In
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/InlineError/InlineError.tsx` — promoted inline error.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — thin adapters for promoted data-display widgets.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/13-data-display-widget-compliance-audit-report.md` — updated current status and remaining plan.
+
+Step 110: Cleaned pre-existing dirty partial data-display edits and stale untracked audit diary drafts to restore a clean working tree before the next widget-promotion batch.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/01-diary.md` — cleanup rationale and exact reverted/removed paths.
