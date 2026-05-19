@@ -19,6 +19,7 @@ import { MetricCard } from "./widgets/molecules/MetricCard";
 import { SaveBar } from "./widgets/molecules/SaveBar";
 import { SearchBox } from "./widgets/molecules/SearchBox";
 import { Tabs } from "./widgets/molecules/Tabs";
+import { TextField } from "./widgets/molecules/TextField";
 import { Toolbar } from "./widgets/molecules/Toolbar";
 import { DashboardGrid, DashboardGridItem } from "./widgets/organisms/DashboardGrid";
 import { AdminForm } from "./widgets/organisms/AdminForm";
@@ -390,6 +391,8 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       return <FieldGroup key={key} id={nodeDomId(node)} title={str(props, "title")} style={style(props)}>{renderChildren(node.children, ctx)}</FieldGroup>;
 
     case "textField":
+      return <TextField key={key} id={nodeDomId(node)} name={str(props, "name", node.meta?.id || "text-field")} label={str(props, "label", str(props, "name", node.meta?.id || "Text field"))} value={props.value == null ? undefined : String(props.value)} placeholder={str(props, "placeholder") || undefined} helpText={str(props, "helpText") || undefined} error={str(props, "error") || undefined} disabled={bool(props, "disabled")} readOnly={bool(props, "readOnly")} required={bool(props, "required")} style={style(props)} />;
+
     case "textareaField":
     case "moneyField":
     case "durationField":

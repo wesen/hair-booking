@@ -6894,3 +6894,65 @@ This gives the upcoming field leaves a common accessibility and styling frame, s
 
 ### Technical details
 - Known report-only design lint backlog still reports `DefaultAdminShell` and `WorkbenchShell` findings during scoped validation.
+
+## Step 122: Promote TextField
+
+I completed the first concrete field leaf promotion by adding a typed Admin DSL `TextField` widget and replacing the `textField` branch in `render.tsx`. The widget uses `FieldShell` for shared label/help/error chrome and keeps the current uncontrolled input behavior through `defaultValue`.
+
+This proves the Phase 22 extraction pattern: typed leaf widgets own native input semantics, while the renderer adapter still normalizes raw Admin DSL node props and keeps dispatch/session behavior outside the component.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 119)
+
+**Assistant interpretation:** Continue Phase 22 task execution after `FieldShell`, starting with `TextField`.
+
+**Inferred user intent:** Remove one concrete field kind from the legacy `FieldPreview` helper at a reviewable commit boundary.
+
+**Commit (code):** <pending> — "HAIR-041 Step 122: Promote TextField"
+
+### What I did
+- Added `web/src/admin-dsl/widgets/molecules/TextField/TextField.types.ts`.
+- Added `web/src/admin-dsl/widgets/molecules/TextField/TextField.tsx`.
+- Added `web/src/admin-dsl/widgets/molecules/TextField/TextField.stories.tsx`.
+- Added `web/src/admin-dsl/widgets/molecules/TextField/index.ts`.
+- Updated `render.tsx` to import `TextField` and route `case "textField"` through the typed widget.
+- Marked `TextField` as `promoted` in `10a-form-field-widgets.yaml`.
+- Checked the Phase 22 `TextField` task in `tasks.md`.
+
+### Why
+- `textField` was still rendered by `FieldPreview`, which mixed adapter decoding, visual chrome, and native input rendering.
+- Extracting `TextField` establishes the reusable leaf-widget pattern for the remaining field kinds.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed.
+- Scoped widget promotion validation passed for `TextField`; Vitest passed 10 files / 49 tests.
+- `cd web && npx storybook build --quiet` passed with the known large chunk warning.
+- Storybook now covers default/help/error/disabled/read-only/mobile/change callback probe states.
+
+### What didn't work
+- N/A
+
+### What I learned
+- `FieldShell` works as intended for a concrete uncontrolled input: the field leaf only needs to provide `controlId`, descriptions, and native input props.
+
+### What was tricky to build
+- `TextField` needs both widget-level ids/data attributes and input-level ids/data attributes. I kept the user-supplied `id` as the input id, while `FieldShell` receives a derived shell id (`${id}-shell`) to avoid duplicate DOM ids.
+
+### What warrants a second pair of eyes
+- Review whether using the node DOM id directly as the input id is the right adapter contract, or whether future field widgets should derive a separate control id from `name` and leave node ids for wrappers only.
+
+### What should be done in the future
+- Promote `TextareaField` next using the same `FieldShell` pattern.
+
+### Code review instructions
+- Start with the `textField` adapter branch in `web/src/admin-dsl/render.tsx`.
+- Review `web/src/admin-dsl/widgets/molecules/TextField/TextField.tsx` for `FieldShell` wiring, uncontrolled value handling, and accessibility attributes.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook web/src/admin-dsl/widgets/molecules/TextField`
+  - `cd web && npx storybook build --quiet`
+
+### Technical details
+- The renderer adapter currently passes `name`, `label`, `value`, `placeholder`, `helpText`, `error`, `disabled`, `readOnly`, `required`, and style props.
+- Field value-change callbacks are available at the widget level but are not wired to backend dispatch by the current Admin DSL adapter because ordinary `textField` value edits are submitted through `AdminForm` FormData.

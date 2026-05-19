@@ -137,7 +137,7 @@ widgets:
     doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
 - id: admin.form-field.text-field
   name: TextField
-  status: planned
+  status: promoted
   classification:
     level: molecule
     description: TextField participates in the Admin DSL field system as a molecule; it extracts textField behavior from FieldPreview.

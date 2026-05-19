@@ -682,3 +682,9 @@ Step 121: Added promoted `FieldShell` shared form-field chrome with default/help
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/atoms/FieldShell/FieldShell.types.ts` — typed shell contract.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/atoms/FieldShell/FieldShell.stories.tsx` — field shell story coverage.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml` — `FieldShell` status update.
+
+Step 122: Promoted `TextField`, added typed stories, and moved the `textField` renderer branch from `FieldPreview` to the typed widget.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/TextField/TextField.tsx` — typed text field implementation.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/TextField/TextField.stories.tsx` — text field story coverage.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — `textField` adapter update.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml` — `TextField` status update.
