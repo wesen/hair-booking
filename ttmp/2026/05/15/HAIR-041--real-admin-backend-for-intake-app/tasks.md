@@ -221,9 +221,9 @@ updated: 2026-05-15
 - [x] Promote `ActionGroup` from `04-action-widgets.yaml` with generated design helper usage and hardened Storybook stories.
 - [x] Promote `PageHeader` from `05-layout-widgets.yaml` with metadata, renderer adapter, and hardened Storybook stories.
 - [x] Promote `DashboardGrid` from `05-layout-widgets.yaml` with metadata, renderer adapter, and hardened Storybook stories.
-- [ ] Promote `Panel` from `05-layout-widgets.yaml` with metadata, renderer adapter, and hardened Storybook stories.
-- [ ] Promote `Toolbar`, `SplitPane`, `Tabs`, `FilterBar`, and `SearchBox` from `05-layout-widgets.yaml` or explicitly defer them with rationale.
-- [ ] Promote `ResourceTable` and related resource widgets from `06-resource-widgets.yaml`.
+- [x] Promote `Panel` from `05-layout-widgets.yaml` with metadata, renderer adapter, and Storybook coverage.
+- [x] Promote `Toolbar`, `SplitPane`, `Tabs`, `FilterBar`, and `SearchBox` from `05-layout-widgets.yaml` with metadata, renderer adapters, and Storybook coverage.
+- [x] Promote `ResourceTable` and related resource widgets from `06-resource-widgets.yaml`.
 - [ ] Promote data-display widgets from `07-data-display-widgets.yaml` after layout/resource boundaries stabilize.
 
 ## Phase 18 — Renderer adapter shrink-down
@@ -232,7 +232,7 @@ updated: 2026-05-15
 - [x] Move action button/group rendering out of `render.tsx` into typed widgets.
 - [x] Move `pageHeader` rendering out of the main renderer switch into `PageHeader` plus adapter mapping.
 - [x] Move `dashboardGrid` rendering out of the main renderer switch into `DashboardGrid` plus adapter mapping.
-- [ ] Move `panel` rendering out of the main renderer switch into `Panel` plus adapter mapping.
+- [x] Move `panel` rendering out of the main renderer switch into `Panel` plus adapter mapping.
 - [ ] Keep raw Admin DSL JSON parsing, action dispatch, and child rendering in adapter code only.
 - [ ] Remove duplicated inline action/layout styling from `render.tsx` as each widget is promoted.
 
