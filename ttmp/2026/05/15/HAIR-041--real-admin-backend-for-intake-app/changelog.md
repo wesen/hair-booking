@@ -505,3 +505,16 @@ Step 74-76: Removed widget-generator shared fallback, refreshed DashboardGrid sc
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/DashboardGrid/DashboardGrid.metadata.ts — Generated DashboardGrid metadata sidecar
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/DashboardGrid/DashboardGrid.tsx — Promoted responsive DashboardGrid implementation
 
+
+## 2026-05-18
+
+Step 78-81: Refreshed and promoted all 05 layout widgets plus 06 resource widgets, moved renderer branches to typed adapters, and validated tsc/vitest/storybook (commits 7cf391a, a9fb46d, 755dd72, 7139dc6).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md — Task completion for 05/06 widgets
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Renderer adapters for promoted layout/resource widgets
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/Panel/Panel.tsx — Promoted panel widget
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ResourceTable/ResourceTable.tsx — Promoted resource table widget
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ResourceTable/parts/ResourceTableCell/ResourceTableCell.tsx — Promoted resource table cell widget
+

@@ -233,14 +233,16 @@ updated: 2026-05-15
 - [x] Move `pageHeader` rendering out of the main renderer switch into `PageHeader` plus adapter mapping.
 - [x] Move `dashboardGrid` rendering out of the main renderer switch into `DashboardGrid` plus adapter mapping.
 - [x] Move `panel` rendering out of the main renderer switch into `Panel` plus adapter mapping.
-- [ ] Keep raw Admin DSL JSON parsing, action dispatch, and child rendering in adapter code only.
-- [ ] Remove duplicated inline action/layout styling from `render.tsx` as each widget is promoted.
+- [x] Move `toolbar`, `splitPane`, `tabs`, `filterBar`, and `searchBox` rendering out of the main renderer switch into typed widgets plus adapter mappings.
+- [x] Move `resourceTable` rendering out of the main renderer switch into `ResourceTable` plus part widgets and adapter mapping.
+- [x] Keep raw Admin DSL JSON parsing, action dispatch, and child rendering in adapter code for promoted 05/06 widgets.
+- [ ] Remove remaining duplicated inline action/layout styling from `render.tsx` as later widget families are promoted.
 
 ## Phase 19 — Widget validation, screenshots, and documentation cadence
 
 - [ ] For every promoted widget, add or harden desktop/mobile Storybook scenarios with visibly distinct fixtures and callback probes.
-- [ ] For every promoted widget, run `cd web && npx tsc --noEmit`.
-- [ ] For every promoted widget family, run `cd web && pnpm test -- --runInBand` and `cd web && npx storybook build --quiet`.
+- [x] For 05/06 promoted widgets, run `cd web && npx tsc --noEmit`.
+- [x] For 05/06 promoted widget families, run `cd web && pnpm test -- --runInBand` and `cd web && npx storybook build --quiet`.
 - [ ] Capture Storybook iframe screenshots for promoted widget families when visual behavior changes materially.
 - [ ] Update the diary, changelog, related files, and tasks after each reviewable widget family boundary.
 - [ ] Upload or locally render final widget extraction docs once reMarkable sync works again.

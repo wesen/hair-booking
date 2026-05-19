@@ -4968,3 +4968,240 @@ The widget owns responsive CSS, desktop/tablet/mobile column variables, gap beha
 
 ### Technical details
 - Storybook build still emits the known large-chunk warning; it does not fail the build.
+
+## Step 78: Refresh remaining layout and resource scaffolds
+
+This step generated current schema-v2 scaffold output for every remaining widget in `05-layout-widgets.yaml` and `06-resource-widgets.yaml` that had not already been promoted. The generated refresh was committed separately so later implementation diffs are reviewable as manual work rather than mixed generator noise.
+
+The scaffold generator no longer writes shared design-language files, so this refresh only touched widget-local files and metadata sidecars.
+
+### Prompt Context
+
+**User prompt (verbatim):** "do all of @hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/05-layout-widgets.yaml and @hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/06-resource-widgets.yaml .
+
+commit at appropriate intervals, keep a diary as you work"
+
+**Assistant interpretation:** Finish promotion work for all widgets in the layout and resource widget YAML files, committing at generated/implementation/doc boundaries and keeping the diary current.
+
+**Inferred user intent:** Move from selective widget extraction to completing entire YAML categories with an auditable workflow.
+
+**Commit (code):** 7cf391a — "HAIR-041 Step 78: Refresh layout and resource scaffolds"
+
+### What I did
+- Ran targeted force generation for remaining layout widgets:
+  - `Panel`
+  - `Toolbar`
+  - `SplitPane`
+  - `Tabs`
+  - `FilterBar`
+  - `SearchBox`
+- Ran force generation for resource widgets:
+  - `ResourceTable`
+  - `ResourceTableCell`
+  - `BulkActionBar`
+  - `PaginationBar`
+- Validated with `cd web && npx tsc --noEmit`.
+- Committed generated refresh output separately.
+
+### Why
+- The corrected playbook requires current generated files before hand promotion.
+
+### What worked
+- The generator wrote widget-local files and metadata sidecars only.
+- Shared design-language files were not touched.
+- TypeScript validation passed after generation.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Removing the shared-file generator path made category-wide refreshes safer and less noisy.
+
+### What was tricky to build
+- The resource widget outputs are nested under `ResourceTable/parts`, so review needs to include both the organism and the part widgets.
+
+### What warrants a second pair of eyes
+- Review generated resource type contracts before depending on them for advanced table behaviors.
+
+### What should be done in the future
+- Add generated freshness/manifest checks so category-wide refreshes can be validated automatically.
+
+### Code review instructions
+- Review commit 7cf391a as generated output only.
+
+### Technical details
+- No manual widget implementation happened in this step.
+
+## Step 79: Promote remaining layout widgets from 05-layout-widgets.yaml
+
+This step promotes the rest of the layout widget YAML category. `Panel`, `Toolbar`, `SplitPane`, `Tabs`, `FilterBar`, and `SearchBox` now have real typed implementations, and `render.tsx` maps raw Admin DSL nodes into those components.
+
+The renderer still owns JSON parsing, child rendering, and backend action dispatch. The widgets own the visual component boundaries and callback shapes.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 78)
+
+**Assistant interpretation:** Implement the remaining layout widgets after the generated refresh boundary.
+
+**Inferred user intent:** Finish the `05-layout-widgets.yaml` category, not just one widget at a time.
+
+**Commit (code):** a9fb46d — "HAIR-041 Step 79: Promote remaining layout widgets"
+
+### What I did
+- Promoted `Panel` with header/body/footer chrome, density padding, toolbar actions, footer actions, and shared surface/text helpers.
+- Promoted `Toolbar` as a thin `ActionGroup` wrapper.
+- Promoted `SplitPane` with responsive two-column layout.
+- Promoted `Tabs` and `FilterBar` as semantic pill controls with adapter-owned action callbacks.
+- Promoted `SearchBox` as a search form with shared action button styling.
+- Updated `render.tsx` branches for:
+  - `panel`
+  - `toolbar`
+  - `splitPane`
+  - `tabs`
+  - `filterBar`
+  - `searchBox`
+- Validated initially with `cd web && npx tsc --noEmit`.
+
+### Why
+- These layout widgets are used around most Admin DSL screens. Moving them out of the renderer shrinks the switch and makes later data/resource widgets easier to compose.
+
+### What worked
+- TypeScript validation passed after the layout extraction.
+- The renderer branches became adapters instead of owning DOM and inline styling.
+
+### What didn't work
+- N/A for layout widgets.
+
+### What I learned
+- Small control widgets like `Toolbar`, `Tabs`, and `FilterBar` can be extracted quickly once `ActionGroup` exists.
+
+### What was tricky to build
+- `Tabs` and `FilterBar` need to pass the original selected item payload back to the adapter. The widget emits normalized IDs/labels; the adapter maps that back to the raw JSON item where needed.
+
+### What warrants a second pair of eyes
+- Review `Panel` footer fallback behavior where ordinary `props.actions` become footer actions if `footerActions` is absent.
+- Review whether `Tabs` and `FilterBar` should use `ActionButton` in a future pass or keep pill-specific controls.
+
+### What should be done in the future
+- Harden the generated Storybook stories for all layout widgets to the same level as PageHeader/DashboardGrid.
+
+### Code review instructions
+- Start with `Panel.tsx`, then review the smaller controls and corresponding `render.tsx` cases.
+- Validate with `cd web && npx tsc --noEmit`.
+
+### Technical details
+- This step changed visual ownership only; action dispatch remains in `render.tsx`.
+
+## Step 80: Promote ResourceTable and resource part widgets
+
+This step promotes the resource widget YAML category. `ResourceTable` now composes `ResourceTableCell`, `BulkActionBar`, and `PaginationBar`, while the renderer adapts raw table props, rows, columns, row actions, bulk actions, and pagination data into typed props.
+
+The table visual structure moved out of `render.tsx`, including selection column rendering, cell dispatch, bulk toolbar rendering, and pagination footer rendering.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 78)
+
+**Assistant interpretation:** Implement all resource widgets from `06-resource-widgets.yaml` and wire the live renderer to use them.
+
+**Inferred user intent:** Complete the table/resource extraction after layout extraction.
+
+**Commit (code):** 755dd72 — "HAIR-041 Step 80: Promote resource table widgets"
+
+### What I did
+- Promoted `ResourceTableCell` with text, badge/status, boolean, actions, overflow actions, and drag-handle rendering.
+- Promoted `BulkActionBar` with visible/selected scopes and `ActionGroup` delegation.
+- Promoted `PaginationBar` with footer action delegation.
+- Promoted `ResourceTable` as the composed table organism.
+- Updated `render.tsx` so `resourceTable` maps raw Admin DSL columns/rows/actions/pagination to `ResourceTable` props.
+- Replaced generated resource stories with smaller focused fixtures after TypeScript exposed generic inference issues.
+- Validated with `cd web && npx tsc --noEmit` after fixes.
+
+### Why
+- Resource tables are central to request triage and config editing. Extracting the table gives later alignment/accessibility work a proper component boundary.
+
+### What worked
+- TypeScript validation passed after simplifying story typing and fixing nested import paths.
+- Renderer table branch is now an adapter.
+
+### What didn't work
+- First TypeScript validation failed with generic Storybook inference errors in generated resource stories, for example:
+  - `Type 'ResourceTableProps<Record<string, unknown>>' is not assignable to type 'Partial<ResourceTableProps<unknown>>'.`
+- First TypeScript validation also failed for nested part imports:
+  - `Cannot find module '../../../../../molecules/ActionGroup' or its corresponding type declarations.`
+- Fixed by writing focused stories using direct `render` functions and correcting nested imports to `../../../../molecules/ActionGroup` / `../../../../shared`.
+
+### What I learned
+- Generic table widgets need hand-authored stories; generated generic stories are too easy to over-constrain with `unknown` inference.
+
+### What was tricky to build
+- Row actions can arrive as table-level `rowActions` or row-local `row.actions`. The component normalizes table-level row actions into a per-row action payload without mutating the original row object.
+- Pagination actions are table-level actions with non-row context, so they are lowered through `onBulkAction` with a visible-row context for now.
+
+### What warrants a second pair of eyes
+- Review pagination action lowering; a distinct `onPaginationAction` would be cleaner than reusing bulk action context.
+- Review controlled selection behavior: selected IDs are controlled props, but the renderer currently does not persist selection state.
+- Review whether `ResourceTableCell` badge color choices should move into the generated design-language helper layer.
+
+### What should be done in the future
+- Add dedicated `onPaginationAction` to the resource YAML contract if pagination semantics become richer.
+- Add visual screenshots for table alignment and mobile/card behavior after the next responsive pass.
+
+### Code review instructions
+- Review `ResourceTable.tsx`, then part widgets under `ResourceTable/parts`, then the `resourceTable` adapter branch in `render.tsx`.
+- Validate with `cd web && npx tsc --noEmit`.
+
+### Technical details
+- Table cell vertical alignment now uses `middle`, consistent with the earlier resource-table alignment guide.
+
+## Step 81: Validate and mark 05/06 widget category completion
+
+This step records the validation and task-state update for completing the layout and resource widget categories. After implementing the widgets, I ran the frontend test and Storybook build suite and marked the corresponding HAIR-041 tasks complete.
+
+The category is functionally extracted, though some stories remain lighter than the hand-hardened PageHeader/DashboardGrid/Action stories and should be improved if those widgets become visually sensitive.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 78)
+
+**Assistant interpretation:** Keep the diary/tasks current after completing the requested YAML categories.
+
+**Inferred user intent:** Maintain the ticket trail while doing a multi-commit implementation burst.
+
+**Commit (code):** 7139dc6 — "HAIR-041 Step 81: Stabilize resource widget stories"
+
+### What I did
+- Ran `cd web && pnpm test -- --runInBand`.
+- Ran `cd web && npx storybook build --quiet`.
+- Marked 05/06 widget promotion and renderer-adapter tasks complete in `tasks.md`.
+
+### Why
+- The user explicitly asked to keep a diary and commit at appropriate intervals. This step closes the loop for validation and task bookkeeping.
+
+### What worked
+- Vitest passed: 10 files, 49 tests.
+- Storybook build passed with the known large-chunk warning.
+
+### What didn't work
+- Storybook still emits the known large chunk warning; it does not fail the build.
+
+### What I learned
+- Completing a full YAML category requires separating generated refresh, implementation, validation, and docs commits to keep review manageable.
+
+### What was tricky to build
+- The resource widget stories needed to be simplified before Storybook/TypeScript validation would pass, due to generic prop inference.
+
+### What warrants a second pair of eyes
+- Review whether the lighter layout/resource stories are sufficient or should be promoted to richer callback-probe/mobile scenarios immediately.
+
+### What should be done in the future
+- Capture iframe screenshots for the newly promoted layout/resource widgets if visual review is needed.
+- Add lint/freshness checks before starting `07-data-display-widgets.yaml`.
+
+### Code review instructions
+- Review commits in order: generated refresh, layout promotion, resource promotion, task validation.
+- Validate with `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet`.
+
+### Technical details
+- The Storybook build warning is the same chunk-size warning observed in earlier steps.

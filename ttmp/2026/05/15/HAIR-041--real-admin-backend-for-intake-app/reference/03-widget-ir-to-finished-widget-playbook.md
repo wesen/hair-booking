@@ -49,6 +49,12 @@ RelatedFiles:
       Note: |-
         Action group implementation composing ActionButton
         Action slot grouping now uses generated placement defaults and layout helper (commit 4bf24e9)
+    - Path: web/src/admin-dsl/widgets/molecules/FilterBar/FilterBar.tsx
+      Note: Promoted filter bar control from 05-layout-widgets.yaml (commit a9fb46d)
+    - Path: web/src/admin-dsl/widgets/molecules/SearchBox/SearchBox.tsx
+      Note: Promoted search box control from 05-layout-widgets.yaml (commit a9fb46d)
+    - Path: web/src/admin-dsl/widgets/molecules/Tabs/Tabs.tsx
+      Note: Promoted tabs control from 05-layout-widgets.yaml (commit a9fb46d)
     - Path: web/src/admin-dsl/widgets/organisms/DashboardGrid/DashboardGrid.metadata.ts
       Note: Generated metadata sidecar from 05-layout-widgets.yaml (commit 37ab6a1)
     - Path: web/src/admin-dsl/widgets/organisms/DashboardGrid/DashboardGrid.stories.tsx
@@ -69,6 +75,14 @@ RelatedFiles:
       Note: Hardened PageHeader desktop/mobile/action Storybook coverage (commit bf3305e)
     - Path: web/src/admin-dsl/widgets/organisms/PageHeader/PageHeader.tsx
       Note: PageHeader promoted after generated scaffold refresh with manual edit changelog (commit bf3305e)
+    - Path: web/src/admin-dsl/widgets/organisms/Panel/Panel.tsx
+      Note: Promoted layout panel widget from 05-layout-widgets.yaml (commit a9fb46d)
+    - Path: web/src/admin-dsl/widgets/organisms/ResourceTable/ResourceTable.tsx
+      Note: Promoted resource table organism from 06-resource-widgets.yaml (commit 755dd72)
+    - Path: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/BulkActionBar/BulkActionBar.tsx
+      Note: Promoted resource table bulk action part (commit 755dd72)
+    - Path: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/PaginationBar/PaginationBar.tsx
+      Note: Promoted resource table pagination part (commit 755dd72)
     - Path: web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.metadata.ts
       Note: |-
         First metadata sidecar preserving Widget IR intent beside hand-written implementation
@@ -85,6 +99,7 @@ LastUpdated: 2026-05-18T23:20:00-04:00
 WhatFor: Use when promoting generated Admin DSL widget scaffolds into real React components while preserving adapter boundaries and metadata context.
 WhenToUse: Use before implementing ActionButton, ActionGroup, Panel, PageHeader, DashboardGrid, ResourceTable, AdminForm, MonthCalendar, or any other Admin DSL widget from YAML.
 ---
+
 
 
 
