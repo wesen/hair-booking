@@ -572,3 +572,8 @@ Step 84: Folded intern review feedback into widget implementation/review playboo
   - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/01-widget-ir-to-finished-widget-playbook.md` — moved implementation playbook and changed DocType.
   - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/02-admin-dsl-widget-design-system-review-playbook.md` — moved design-system review playbook and changed DocType.
   - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/03-widget-playbook-compliance-audit-guide.md` — new intern audit guide for verifying end-to-end playbook compliance.
+
+## 2026-05-18
+
+Step 84b: Playbook compliance audit for 05-layout-widgets.yaml. 2 pass (PageHeader, DashboardGrid), 6 fail (scaffold-only stories). Found Panel density prop YAML drift. Report at reference/08-widget-playbook-compliance-audit-report.md.
+

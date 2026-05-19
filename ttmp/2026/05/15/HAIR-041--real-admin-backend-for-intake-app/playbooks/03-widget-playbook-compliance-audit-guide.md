@@ -69,9 +69,15 @@ For each widget family, collect these inputs before judging anything:
 
 ## Quick Triage: Find Likely Process Misses
 
-Run these commands from the repository root:
+Run these commands from the repository root.
+
+Start by recording the exact tree state being audited. If the tree is dirty, split findings into **committed HEAD findings** and **dirty working-tree findings**. Do not report a dirty-file issue as a committed regression unless you verified it with `git show HEAD:<path>` or after stashing unrelated work.
 
 ```bash
+# Record audit scope and dirty state first.
+git status --short
+git rev-parse --short HEAD
+
 # Find generated-looking stories that may not have been hand-promoted.
 python3 - <<'PY'
 from pathlib import Path
@@ -104,6 +110,16 @@ cd web && npx tsc --noEmit
 ```
 
 These commands do not replace the full audit. They identify files that deserve immediate human inspection.
+
+### Triage Output Rules
+
+Treat triage output as a lead, not a verdict.
+
+- Re-open the file and verify the finding against current source before putting it in the report.
+- If a linter finding is from an uncommitted file, label it as working-tree-only.
+- If a finding was already fixed by a later commit, move it to an "already fixed / not current" section instead of the critical findings list.
+- If a prop is inherited from `CommonWidgetProps`, do not automatically fail it. Fail it only when the widget YAML intent/examples/adapter treat that prop as widget-specific but the explicit widget contract omits it.
+- Separate trivial TypeScript casts from real adapter type holes. `undefined as unknown as string` default-value workarounds are cleanup items; casts that bypass action, row, column, form, or calendar context normalization are correctness risks.
 
 ## Audit Checklist
 
@@ -257,6 +273,16 @@ Fail conditions:
 - Callback-heavy widget has no visible callback output or play assertion.
 - Mobile story relies on app-level renderer CSS instead of widget-local behavior.
 - Storybook build was not run after story changes.
+
+### 6.5. Storybook Backfill Must Update Task State
+
+If an audit finds scaffold-only stories for a widget that a task already marks as having "Storybook coverage," do not leave the task as-is. Add explicit remediation tasks or reopen/annotate the earlier task so the tracker does not claim completed coverage while the story file remains generated.
+
+Evidence to look for:
+
+- A task exists for the Storybook backfill, not only for implementation promotion.
+- The task names the concrete story files to harden.
+- The task is checked only after the story file has a manual edit changelog, distinct fixtures, callback probes where needed, and validation output.
 
 ### 7. Design-System Review Was Invoked
 
