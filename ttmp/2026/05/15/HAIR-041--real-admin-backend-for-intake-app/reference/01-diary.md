@@ -7426,3 +7426,56 @@ I fixed this at the shell adapter boundary instead of deleting `pageHeader` node
 ### Technical details
 - The semantic `PageHeader` still renders breadcrumbs and page actions such as `Add service` / `Refresh`.
 - Pages without a `pageHeader` node still get fallback shell title/description chrome.
+
+## Step 130: Reconcile Stale Task State
+
+I did the requested task hygiene pass before making more code changes. The goal was not to close every open HAIR-041 item, but to remove stale unchecked entries that had clearly been completed by later phases and repeated validation.
+
+This keeps `tasks.md` closer to the current state of the ticket: widget extraction and frontend validation have progressed beyond several older planning/checklist items, while backend hardening, visual-diff automation, final Go validation, and reMarkable delivery remain open.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, do 1 and 2. Then I'd like you to go over @hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/12-renderer-adapter-plan.yaml and @hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/13-storybook-scenario-matrix.yaml and tell me what you suggest doing with those"
+
+**Assistant interpretation:** First reconcile stale task state, then remediate shell design lint, then review the renderer-adapter and Storybook matrix YAML artifacts and recommend what to do with them.
+
+**Inferred user intent:** Keep the HAIR-041 ticket accurate and reduce known frontend cleanup backlog before deciding whether older planning YAML should be retained, regenerated, archived, or turned into actionable checks.
+
+**Commit (code):** <pending> — "HAIR-041 Step 130: Reconcile stale task state"
+
+### What I did
+- Checked clearly completed stale items in `tasks.md`:
+  - Phase 14 v1 flow helper usage removal.
+  - Phase 15 frontend TypeScript and Vitest validation after renderer cutover.
+  - Phase 16 design-system lint script creation.
+  - Phase 17 data-display widget promotion.
+  - Phase 19 diary/changelog/task cadence for reviewable widget family boundaries.
+
+### Why
+- Those unchecked tasks duplicated later completed work or no longer represented the current state after Phases 21–23.
+- Leaving them open made HAIR-041 look less complete than it is and obscured the genuinely remaining hardening work.
+
+### What worked
+- The edits were limited to task bookkeeping; no code changed in this step.
+
+### What didn't work
+- N/A
+
+### What I learned
+- HAIR-041 has several early planning/checklist phases that were superseded by later implementation phases. A narrow reconciliation pass is safer than marking all old planning tasks complete without evidence.
+
+### What was tricky to build
+- Some tasks are semantically close to complete but still represent broader hardening work. I only checked items with direct evidence from later phases and left backend/security/visual-diff/final-delivery tasks open.
+
+### What warrants a second pair of eyes
+- Review whether Phase 11 planning tasks should be converted into a short final Admin DSL v2 vocabulary reference instead of individually checked.
+
+### What should be done in the future
+- Continue periodic task reconciliation after each major validation or hardening pass.
+
+### Code review instructions
+- Review `tasks.md` for the checked items listed above.
+- Confirm no backend hardening, security, visual-diff, or final-delivery tasks were accidentally closed.
+
+### Technical details
+- This step intentionally did not mark final `go test ./...`, reMarkable upload, CSS visual-diff, auth, upload ownership, or audit-wrapper tasks complete.

@@ -741,3 +741,6 @@ Step 129: Fixed duplicate headers in rendered Admin DSL examples by suppressing 
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.tsx` — optional fallback header rendering.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.types.ts` — `showHeader` prop contract.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx` — duplicate-header regression coverage.
+
+Step 130: Reconciled stale HAIR-041 task state by checking completed v1 flow-helper cleanup, frontend validation, design lint script creation, data-display promotion, and widget diary/changelog cadence tasks.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md` — task-state cleanup.

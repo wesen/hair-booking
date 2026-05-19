@@ -182,14 +182,14 @@ updated: 2026-05-15
 - [x] Migrate `pkg/admindsl/flows/intake_requests.flow.js` from resource list/card patterns to v2 resource table/detail patterns.
 - [x] Migrate `pkg/admindsl/flows/intake_config.flow.js` from editable lists and diff views to v2 resource tables, typed forms, and comparison tables.
 - [x] Migrate `pkg/admindsl/flows/intake_ops.flow.js` audit/health/preview screens to v2 page/header/panel conventions.
-- [ ] Remove v1 flow helper usages: `section`, `cardGrid`, `summaryCard`, `resourceList`, `resourceRow`, `editableList`, `monthAvailabilityGrid`, and broad `diffView`.
+- [x] Remove v1 flow helper usages: `section`, `cardGrid`, `summaryCard`, `resourceList`, `resourceRow`, `editableList`, `monthAvailabilityGrid`, and broad `diffView`.
 - [x] Run `go test ./pkg/admindsl ./pkg/server -count=1`.
 - [x] Run `go test ./... -count=1`.
 
 ## Phase 15 — Admin DSL v2 live validation, visual review, and cleanup
 
-- [ ] Run `cd web && npx tsc --noEmit` after flow/renderer cutover.
-- [ ] Run `cd web && pnpm test -- --runInBand` after flow/renderer cutover.
+- [x] Run `cd web && npx tsc --noEmit` after flow/renderer cutover.
+- [x] Run `cd web && pnpm test -- --runInBand` after flow/renderer cutover.
 - [ ] Run submit-customer-request -> admin-review smoke script after `/admin/intake` migration.
 - [x] Capture desktop/mobile screenshots for the v2 Storybook workbench fixture.
 - [x] Capture desktop/mobile screenshots for live `/admin/intake` v2 dashboard.
@@ -207,7 +207,7 @@ updated: 2026-05-15
 - [x] Add Admin DSL design-language IR YAML for shared token/action/layout/typography/data-attribute helpers.
 - [x] Add design-language generator and generated shared helper outputs.
 - [x] Refactor promoted shell/action widgets to consume generated design-language helpers.
-- [ ] Add a design-system lint script that flags raw token imports, hardcoded colors, duplicated action styling helpers, and manual Admin DSL data attributes.
+- [x] Add a design-system lint script that flags raw token imports, hardcoded colors, duplicated action styling helpers, and manual Admin DSL data attributes.
 - [x] Decide/enforce ownership boundary: design-language generator owns `widgets/shared/*`; widget scaffold generator never writes shared files.
 - [ ] Add generated-output freshness checks or manifest for widget/design-language generators.
 - [x] Update the widget playbook to require generated-version validation before hand implementation.
@@ -224,7 +224,7 @@ updated: 2026-05-15
 - [x] Promote `Panel` from `05-layout-widgets.yaml` with metadata, renderer adapter, and Storybook coverage.
 - [x] Promote `Toolbar`, `SplitPane`, `Tabs`, `FilterBar`, and `SearchBox` from `05-layout-widgets.yaml` with metadata, renderer adapters, and Storybook coverage.
 - [x] Promote `ResourceTable` and related resource widgets from `06-resource-widgets.yaml`.
-- [ ] Promote data-display widgets from `07-data-display-widgets.yaml` after layout/resource boundaries stabilize.
+- [x] Promote data-display widgets from `07-data-display-widgets.yaml` after layout/resource boundaries stabilize.
 
 ## Phase 18 — Renderer adapter shrink-down
 
@@ -244,7 +244,7 @@ updated: 2026-05-15
 - [x] For 05/06 promoted widgets, run `cd web && npx tsc --noEmit`.
 - [x] For 05/06 promoted widget families, run `cd web && pnpm test -- --runInBand` and `cd web && npx storybook build --quiet`.
 - [ ] Capture Storybook iframe screenshots for promoted widget families when visual behavior changes materially.
-- [ ] Update the diary, changelog, related files, and tasks after each reviewable widget family boundary.
+- [x] Update the diary, changelog, related files, and tasks after each reviewable widget family boundary.
 - [ ] Upload or locally render final widget extraction docs once reMarkable sync works again.
 
 ## Phase 20 — Design-system remediation from intern review
