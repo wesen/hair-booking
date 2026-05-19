@@ -567,3 +567,8 @@ Step 84: Folded intern review feedback into widget implementation/review playboo
   - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ResourceTable/parts/ResourceTableCell/ResourceTableCell.tsx` — shared badge tone helper.
 - Step 88: Validated the remediation with Python compile, TypeScript, Vitest, and Storybook build; marked the validation task complete (commit 9646410).
 - Step 89: Recorded the detailed design remediation diary (commit eabf888).
+
+- Step 93: Added a separate Widget Playbook Compliance Audit Guide and moved widget playbooks into `playbooks/` with `DocType=playbook`.
+  - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/01-widget-ir-to-finished-widget-playbook.md` — moved implementation playbook and changed DocType.
+  - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/02-admin-dsl-widget-design-system-review-playbook.md` — moved design-system review playbook and changed DocType.
+  - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/03-widget-playbook-compliance-audit-guide.md` — new intern audit guide for verifying end-to-end playbook compliance.

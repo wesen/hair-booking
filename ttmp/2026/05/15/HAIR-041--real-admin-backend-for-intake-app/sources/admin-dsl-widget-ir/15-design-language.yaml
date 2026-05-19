@@ -2,7 +2,7 @@ schema_version: 1
 artifact_type: admin_dsl_design_language_ir
 category: design_language
 summary: Shared visual language and helper-generation contract for Admin DSL React widgets.
-source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/03-widget-ir-to-finished-widget-playbook.md
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/01-widget-ir-to-finished-widget-playbook.md
 
 source_tokens:
   module: web/src/fringe-ui/tokens

@@ -11,9 +11,9 @@ DocType: reference
 Intent: long-term
 Owners: []
 RelatedFiles:
-    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/03-widget-ir-to-finished-widget-playbook.md
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/01-widget-ir-to-finished-widget-playbook.md
       Note: Implementation playbook under review
-    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/04-admin-dsl-widget-design-system-review-playbook.md
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/02-admin-dsl-widget-design-system-review-playbook.md
       Note: Design system review playbook under review
     - Path: web/src/admin-dsl/widgets/molecules/Tabs/Tabs.tsx
       Note: Duplicates pill styling with FilterBar

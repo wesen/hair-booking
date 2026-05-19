@@ -8,11 +8,11 @@ Topics:
     - design-system
     - react
     - code-review
-DocType: reference
+DocType: playbook
 Intent: long-term
 Owners: []
 RelatedFiles:
-    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/03-widget-ir-to-finished-widget-playbook.md
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/01-widget-ir-to-finished-widget-playbook.md
       Note: Implementation workflow companion for promoting widgets from IR
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/05-admin-dsl-widget-ir-review.md
       Note: Intern review that identified design-system and adapter review gaps

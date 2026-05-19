@@ -9,7 +9,7 @@ Topics:
     - react
     - storybook
     - code-generation
-DocType: reference
+DocType: playbook
 Intent: long-term
 Owners: []
 RelatedFiles:

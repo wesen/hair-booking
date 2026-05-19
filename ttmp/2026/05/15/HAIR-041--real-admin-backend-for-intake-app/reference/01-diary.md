@@ -5586,3 +5586,86 @@ The Storybook build still reports the known Vite/Rollup large chunk warning, whi
 
 ### Technical details
 - Storybook warning observed: `Some chunks are larger than 500 kB after minification`.
+
+## Step 93: Add Widget Playbook Compliance Audit Guide
+
+We paused widget promotion after realizing that some promoted widgets had implementation work without equally meaningful Storybook story promotion. This step creates a separate intern-facing compliance guide that audits whether the implementation playbook was followed end to end, rather than only checking design-system style details.
+
+I also moved the existing playbooks out of `reference/` into the ticket `playbooks/` directory and changed their `DocType` to `playbook`, so future agents and interns can find the workflow material by location and metadata.
+
+### Prompt Context
+
+**User prompt (verbatim):** "write an intern guide to do a thorough check to see if the playbook was properly followed in all its steps, so that we can make sure something like this doesn't happen in the future. This is a separate to the system review playbook. Also, move playbooks to the doctype playbook in playbooks/ to make it easier to find"
+
+**Assistant interpretation:** Create a new audit playbook for checking process compliance across all widget-promotion steps, and reorganize existing playbooks into the ticket playbooks directory with the correct doc type.
+
+**Inferred user intent:** Prevent future partial widget promotions where implementation is treated as done before Storybook, adapter, validation, diary, and commit-boundary requirements are checked.
+
+**Commit (code):** pending — "HAIR-041 Step 93: Add widget playbook compliance audit guide"
+
+### What I did
+- Moved `reference/03-widget-ir-to-finished-widget-playbook.md` to `playbooks/01-widget-ir-to-finished-widget-playbook.md`.
+- Moved `reference/04-admin-dsl-widget-design-system-review-playbook.md` to `playbooks/02-admin-dsl-widget-design-system-review-playbook.md`.
+- Changed both moved documents from `DocType: reference` to `DocType: playbook`.
+- Added `playbooks/03-widget-playbook-compliance-audit-guide.md`.
+- Updated active cross-references in the moved playbooks, `reference/05-admin-dsl-widget-ir-review.md`, `reference/06-widget-ir-review-diary.md`, and `sources/admin-dsl-widget-ir/15-design-language.yaml`.
+- Validated frontmatter for all three playbooks with `docmgr validate frontmatter` using absolute paths.
+
+### Why
+- The implementation playbook already said generated Storybook stories are only scenario plans, but we did not have a separate audit procedure to catch when that step was skipped.
+- The design-system review playbook checks visual/style consistency; it does not fully audit scaffold freshness, commit boundaries, story hardening, adapter cleanup, validation, diary, and changelog evidence.
+- Moving playbooks into `playbooks/` makes them easier to discover and aligns metadata with their actual use.
+
+### What worked
+- `git mv` preserved history for the two existing playbooks.
+- The new audit guide now includes quick triage scripts, a per-widget checklist, a widget audit matrix, a report template, stop conditions, and a strict definition of “done.”
+- Frontmatter validation passed for all three playbooks.
+
+### What didn't work
+- My first `docmgr validate frontmatter` attempt used repository-relative paths and hit the existing docmgr path-resolution issue:
+  - `Error: open /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/01-widget-ir-to-finished-widget-playbook.md: no such file or directory`
+- I reran validation with absolute paths, and all three playbooks passed.
+
+### What I learned
+- The missing safeguard was not another design rule; it was a process audit that asks for evidence at every playbook step.
+- Storybook compliance needs explicit checks for manual story changelogs, distinct fixtures, callback probes, and mobile isolation rather than assuming story names imply coverage.
+
+### What was tricky to build
+- The guide needed to be separate from the design-system review while still referencing it as evidence. I handled this by making the new guide audit whether the design-system review was invoked, while leaving detailed token/button/style judgment in the existing design-system playbook.
+- Historical diary/changelog references still mention the old `reference/03...` and `reference/04...` paths as facts from earlier steps. I updated active frontmatter/source links, but did not rewrite historical diary prose.
+
+### What warrants a second pair of eyes
+- Review whether the audit guide’s quick triage scripts are too strict or too lenient for generated scaffold files and already-promoted shell widgets.
+- Review whether all active cross-references should be migrated, or whether historical changelog mentions should remain untouched.
+
+### What should be done in the future
+- Run the new compliance guide against widgets from `05-layout-widgets.yaml` onward and create a remediation matrix for Storybook backfill.
+- Add the audit guide’s quick checks to CI or a local validation target once the current backlog is remediated.
+
+### Code review instructions
+- Start with `playbooks/03-widget-playbook-compliance-audit-guide.md`.
+- Then review the moved playbook frontmatter:
+  - `playbooks/01-widget-ir-to-finished-widget-playbook.md`
+  - `playbooks/02-admin-dsl-widget-design-system-review-playbook.md`
+- Verify the active reference updates in:
+  - `reference/05-admin-dsl-widget-ir-review.md`
+  - `reference/06-widget-ir-review-diary.md`
+  - `sources/admin-dsl-widget-ir/15-design-language.yaml`
+- Validate with absolute paths:
+  - `docmgr validate frontmatter --doc /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/01-widget-ir-to-finished-widget-playbook.md --suggest-fixes`
+  - `docmgr validate frontmatter --doc /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/02-admin-dsl-widget-design-system-review-playbook.md --suggest-fixes`
+  - `docmgr validate frontmatter --doc /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/03-widget-playbook-compliance-audit-guide.md --suggest-fixes`
+
+### Technical details
+- New guide sections include:
+  - Quick triage commands
+  - YAML/scaffold/manual-changelog checks
+  - Storybook compliance checks
+  - Adapter cleanup checks
+  - Design-system review invocation checks
+  - Validation/screenshot expectations
+  - Diary/changelog expectations
+  - Commit-boundary checks
+  - Widget audit matrix template
+  - Audit report template
+  - Stop conditions
