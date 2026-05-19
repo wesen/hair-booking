@@ -279,3 +279,4 @@ updated: 2026-05-15
 - [x] Promote `07-data-display-widgets.yaml` in playbook-complete batches with implementation, renderer adapters, story hardening, callback probes where applicable, validation, diary, and changelog.
 - [x] Promote `08-media-widgets.yaml` in playbook-complete batches with populated/empty/missing-media/mobile stories and image callback probes.
 - [x] Promote `09-calendar-widgets.yaml` in playbook-complete batches with marker/selection/navigation/mobile stories and calendar/event callback probes.
+- [x] Promote `10-form-widgets.yaml` in playbook-complete batches with form lifecycle/error/action stories and form/save callback probes.

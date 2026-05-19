@@ -7,7 +7,7 @@ schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/des
 widgets:
 - id: admin.form.admin-form
   name: AdminForm
-  status: scaffolded
+  status: promoted
   classification:
     level: organism
     description: AdminForm participates in the Admin DSL component system as a organism; its level controls scaffold location
@@ -77,7 +77,7 @@ widgets:
       submit:
         doc: submit action slot for AdminForm. The widget emits the declared context through onAction and adapters lower it
           to runtime dispatch.
-        callback: onAction
+        callback: onFormAction
         action_type: ActionViewModel
         cardinality: many
         context_type: SubmitContext
@@ -92,7 +92,7 @@ widgets:
       cancel:
         doc: cancel action slot for AdminForm. The widget emits the declared context through onAction and adapters lower it
           to runtime dispatch.
-        callback: onAction
+        callback: onFormAction
         action_type: ActionViewModel
         cardinality: many
         context_type: CancelContext
@@ -107,7 +107,7 @@ widgets:
       formFooter:
         doc: formFooter action slot for AdminForm. The widget emits the declared context through onAction and adapters lower
           it to runtime dispatch.
-        callback: onAction
+        callback: onFormAction
         action_type: ActionViewModel
         cardinality: many
         context_type: FormfooterContext
@@ -202,7 +202,7 @@ widgets:
     doc: Replace generated scaffold placeholder with final implementation.
 - id: admin.form.field-group
   name: FieldGroup
-  status: scaffolded
+  status: promoted
   classification:
     level: molecule
     description: FieldGroup participates in the Admin DSL component system as a molecule; its level controls scaffold location
@@ -288,7 +288,7 @@ widgets:
     doc: Replace generated scaffold placeholder with final implementation.
 - id: admin.form.save-bar
   name: SaveBar
-  status: scaffolded
+  status: promoted
   classification:
     level: molecule
     description: SaveBar participates in the Admin DSL component system as a molecule; its level controls scaffold location
@@ -333,7 +333,7 @@ widgets:
       primary:
         doc: primary action slot for SaveBar. The widget emits the declared context through onAction and adapters lower it
           to runtime dispatch.
-        callback: onAction
+        callback: onPrimaryAction
         action_type: ActionViewModel
         cardinality: many
         context_type: PrimaryContext

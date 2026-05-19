@@ -4,6 +4,7 @@ import { color, font, radius, shadow, type } from "../fringe-ui/tokens";
 import { WorkbenchShell as WorkbenchShellWidget } from "./widgets/organisms/WorkbenchShell";
 import { DefaultAdminShell } from "./widgets/organisms/DefaultAdminShell";
 import { ActionGroup } from "./widgets/molecules/ActionGroup";
+import { FieldGroup } from "./widgets/molecules/FieldGroup";
 import { FilterBar } from "./widgets/molecules/FilterBar";
 import { ActivityFeed } from "./widgets/molecules/ActivityFeed";
 import type { ActivityFeedItem } from "./widgets/molecules/ActivityFeed/ActivityFeed.types";
@@ -15,10 +16,12 @@ import { KeyValueList } from "./widgets/molecules/KeyValueList";
 import { LoadingState } from "./widgets/molecules/LoadingState";
 import { MarkdownBlock } from "./widgets/molecules/MarkdownBlock";
 import { MetricCard } from "./widgets/molecules/MetricCard";
+import { SaveBar } from "./widgets/molecules/SaveBar";
 import { SearchBox } from "./widgets/molecules/SearchBox";
 import { Tabs } from "./widgets/molecules/Tabs";
 import { Toolbar } from "./widgets/molecules/Toolbar";
 import { DashboardGrid, DashboardGridItem } from "./widgets/organisms/DashboardGrid";
+import { AdminForm } from "./widgets/organisms/AdminForm";
 import { ComparisonTable } from "./widgets/organisms/ComparisonTable";
 import type { ComparisonTableRow } from "./widgets/organisms/ComparisonTable/ComparisonTable.types";
 import { ImageGallery } from "./widgets/organisms/ImageGallery";
@@ -379,21 +382,12 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
 
     case "form": {
       const errors = jsonObject(props, "errors");
-      const errorEntries = errors ? Object.entries(errors) : [];
-      const pending = bool(props, "pending") || str(props, "state") === "pending";
-      return (
-        <form key={key} {...common} aria-busy={pending || undefined} style={{ display: "grid", gap: 16, opacity: pending ? 0.76 : 1, ...style(props) }} onSubmit={(event) => event.preventDefault()}>
-          {str(props, "title") && <h3 style={{ ...type.h2, margin: 0 }}>{str(props, "title")}</h3>}
-          {(bool(props, "dirty") || pending || str(props, "state") === "success") && <div className="adminDslFormLifecycle" style={{ ...type.meta, border: `1px solid ${pending ? color.warn : str(props, "state") === "success" ? color.success : color.rule}`, borderRadius: radius.pill, padding: "6px 10px", width: "fit-content", background: color.paper }}>{pending ? "Saving…" : str(props, "state") === "success" ? "Saved" : "Unsaved changes"}</div>}
-          {errorEntries.length > 0 && <div className="adminDslFormErrors" style={{ border: `1px solid ${color.danger}`, borderRadius: radius.md, padding: 10, color: color.danger, display: "grid", gap: 4 }}>{errorEntries.map(([name, message]) => <div key={name} style={{ ...type.bodySm }}><strong>{name}</strong>: {String(message)}</div>)}</div>}
-          {renderChildren(node.children, ctx)}
-          {renderActions(node, ctx)}
-        </form>
-      );
+      const normalizedErrors = errors ? Object.fromEntries(Object.entries(errors).map(([name, message]) => [name, String(message)])) : undefined;
+      return <AdminForm key={key} id={nodeDomId(node)} formId={str(props, "formId", node.meta?.id || "admin-form")} title={str(props, "title") || undefined} dirty={bool(props, "dirty")} pending={bool(props, "pending")} state={str(props, "state", "idle") as "idle" | "dirty" | "pending" | "success" | "error"} errors={normalizedErrors} actions={actionList(props).map(actionViewModel)} style={style(props)} onFormAction={(action, value) => dispatchWidgetAction(ctx, node, action, value)}>{renderChildren(node.children, ctx)}</AdminForm>;
     }
 
     case "fieldGroup":
-      return <fieldset key={key} {...common} style={{ border: `1px solid ${color.rule}`, borderRadius: radius.md, padding: 14, display: "grid", gap: 12, ...style(props) }}><legend style={{ ...type.eyebrow }}>{str(props, "title")}</legend>{renderChildren(node.children, ctx)}</fieldset>;
+      return <FieldGroup key={key} id={nodeDomId(node)} title={str(props, "title")} style={style(props)}>{renderChildren(node.children, ctx)}</FieldGroup>;
 
     case "textField":
     case "textareaField":
@@ -406,8 +400,11 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     case "imageField":
       return <FieldPreview key={key} node={node} />;
 
-    case "saveBar":
-      return <div key={key} {...common} className="adminDslSaveBar" style={{ borderTop: `1px solid ${color.rule}`, paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, ...style(props) }}><span className="adminDslSaveStatus" style={{ ...type.meta, color: color.ink, fontWeight: 800, background: color.cream, border: `1px solid ${color.rule}`, borderRadius: radius.pill, padding: "6px 10px", justifySelf: "start" }}>{str(props, "status", "Ready")}</span>{renderActions(node, ctx, singleActionArray(jsonObject(props, "primary")))}</div>;
+    case "saveBar": {
+      const primary = jsonObject(props, "primary");
+      const primaryAction = isActionRef(primary) ? actionViewModel(primary) : undefined;
+      return <SaveBar key={key} id={nodeDomId(node)} status={str(props, "status", "Ready")} primaryAction={primaryAction} style={style(props)} onPrimaryAction={(action, value) => dispatchWidgetAction(ctx, node, action, value)} />;
+    }
 
     case "calendarWeek": {
       const days = jsonArray<string>(props, "days");
