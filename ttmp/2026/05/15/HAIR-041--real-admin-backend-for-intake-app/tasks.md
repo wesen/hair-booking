@@ -257,4 +257,4 @@ updated: 2026-05-15
 - [x] Fix `ResourceTable` pagination action semantics so pagination actions are not routed through bulk action callbacks.
 - [x] Remove dead `renderTableCell(...)` from `render.tsx`.
 - [x] Document or replace transitional `as unknown as` casts in the `resourceTable` adapter.
-- [ ] Run `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet` after remediation.
+- [x] Run `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet` after remediation.
