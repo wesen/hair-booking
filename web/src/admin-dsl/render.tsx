@@ -20,8 +20,13 @@ import { Toolbar } from "./widgets/molecules/Toolbar";
 import { DashboardGrid, DashboardGridItem } from "./widgets/organisms/DashboardGrid";
 import { ComparisonTable } from "./widgets/organisms/ComparisonTable";
 import type { ComparisonTableRow } from "./widgets/organisms/ComparisonTable/ComparisonTable.types";
+import { ImageGallery } from "./widgets/organisms/ImageGallery";
+import type { GalleryImage } from "./widgets/organisms/ImageGallery/ImageGallery.types";
+import { ImageGrid } from "./widgets/organisms/ImageGrid";
+import type { ImageGridItem } from "./widgets/organisms/ImageGrid/ImageGrid.types";
 import { PageHeader } from "./widgets/organisms/PageHeader";
 import { Panel } from "./widgets/organisms/Panel";
+import { PreviewFrame } from "./widgets/organisms/PreviewFrame";
 import { ResourceTable } from "./widgets/organisms/ResourceTable";
 import type { ResourceTableColumn } from "./widgets/organisms/ResourceTable/ResourceTable.types";
 import { SplitPane } from "./widgets/organisms/SplitPane";
@@ -242,7 +247,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     }
 
     case "previewFrame":
-      return <div key={key} {...common} className="adminDslPreviewFrame" style={{ ...surface, padding: 14, display: "grid", gap: 12, ...style(props) }}><div><div style={{ ...type.eyebrow, color: color.softInk }}>{str(props, "kicker", "Preview")}</div><h3 style={{ ...type.h2, margin: "4px 0 0" }}>{str(props, "title", "Customer preview")}</h3>{str(props, "body") && <p style={{ ...type.bodySm, color: color.softInk, margin: "8px 0 0" }}>{str(props, "body")}</p>}</div>{str(props, "url") ? <iframe title={str(props, "title", "Preview")} src={str(props, "url")} style={{ width: "100%", minHeight: Number(props.height || 420), border: `1px solid ${color.rule}`, borderRadius: radius.md, background: color.paper }} /> : <div style={{ minHeight: Number(props.height || 260), border: `1px dashed ${color.rule}`, borderRadius: radius.md, display: "grid", placeItems: "center", color: color.softInk, ...type.bodySm }}>{str(props, "placeholder", "Preview route not connected yet")}</div>}{renderActions(node, ctx)}</div>;
+      return <PreviewFrame key={key} id={nodeDomId(node)} previewId={str(props, "previewId", node.meta?.id || "preview")} kicker={str(props, "kicker", "Preview")} title={str(props, "title", "Customer preview")} body={str(props, "body") || undefined} url={str(props, "url") || undefined} height={Number(props.height || 420)} placeholder={str(props, "placeholder", "Preview route not connected yet")} actions={actionList(props).map(actionViewModel)} style={style(props)} onAction={(action, value) => dispatchWidgetAction(ctx, node, action, value)} />;
 
     case "panel": {
       const footerActions = actionArray(props, "footerActions");
@@ -337,18 +342,31 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     }
 
     case "imageGrid": {
-      const items = jsonArray<AdminJsonObject>(props, "items");
-      return <div key={key} {...common} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, ...style(props) }}>{items.map((item) => <article key={String(item.id || item.title)} style={{ ...surface, overflow: "hidden" }}><div style={{ aspectRatio: "4 / 3", background: `linear-gradient(135deg, ${color.peachSoft}, ${color.creamDeep})`, borderBottom: `1px solid ${color.rule}` }} /><div style={{ padding: 12 }}><div style={{ ...type.h3, fontSize: 18 }}>{String(item.title || "Asset")}</div><div style={{ ...type.bodySm, color: color.softInk, marginTop: 4 }}>{String(item.subtitle || "")}</div>{item.status && <span style={{ display: "inline-flex", marginTop: 8, borderRadius: radius.pill, padding: "4px 8px", background: color.paper, border: `1px solid ${color.rule}`, color: toneColor(String(item.tone || "")), fontWeight: 700, ...type.meta }}>{String(item.status)}</span>}</div></article>)}</div>;
+      const items = jsonArray<AdminJsonObject>(props, "items").map((item): ImageGridItem => ({
+        id: item.id == null ? undefined : String(item.id),
+        title: String(item.title || "Asset"),
+        subtitle: item.subtitle == null ? undefined : String(item.subtitle),
+        status: item.status == null ? undefined : String(item.status),
+        tone: item.tone == null ? undefined : String(item.tone),
+        url: item.url == null ? undefined : String(item.url),
+      }));
+      const gridActions = actionList(props).map(actionViewModel);
+      return <ImageGrid key={key} id={nodeDomId(node)} items={items} actions={gridActions} style={style(props)} onAction={(action, value) => dispatchWidgetAction(ctx, node, action, value.item)} />;
     }
 
     case "imageGallery": {
-      const images = jsonArray<AdminJsonObject>(props, "images");
+      const images = jsonArray<AdminJsonObject>(props, "images").map((image): GalleryImage => ({
+        id: image.id == null ? undefined : String(image.id),
+        slot: image.slot == null ? undefined : String(image.slot),
+        title: image.title == null ? undefined : String(image.title),
+        subtitle: image.subtitle == null ? undefined : String(image.subtitle),
+        status: image.status == null ? undefined : String(image.status),
+        tone: image.tone == null ? undefined : String(image.tone),
+        url: image.url == null ? undefined : String(image.url),
+        alt: image.alt == null ? undefined : String(image.alt),
+      }));
       const imageAction = actionList(props)[0];
-      if (!images.length) return <div key={key} {...common} style={{ ...surface, padding: 18, color: color.softInk, ...type.bodySm, ...style(props) }}>{str(props, "emptyText", "No photos uploaded yet.")}</div>;
-      return <div key={key} {...common} className="adminDslImageGallery" style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, ...style(props) }}>{images.map((image) => {
-        const body = <>{image.url ? <img src={String(image.url)} alt={String(image.alt || image.title || "Uploaded image")} style={{ width: "100%", aspectRatio: "4 / 3", objectFit: "cover", display: "block", borderBottom: `1px solid ${color.rule}` }} /> : <div style={{ aspectRatio: "4 / 3", display: "grid", placeItems: "center", background: color.cream, borderBottom: `1px solid ${color.rule}`, color: color.danger, ...type.meta }}>Missing photo</div>}<div style={{ padding: 12 }}><div style={{ ...type.h3, fontSize: 18 }}>{String(image.title || image.slot || "Photo")}</div>{image.subtitle && <div style={{ ...type.bodySm, color: color.softInk, marginTop: 4 }}>{String(image.subtitle)}</div>}{image.status && <span style={{ display: "inline-flex", marginTop: 8, borderRadius: radius.pill, padding: "4px 8px", background: color.paper, border: `1px solid ${color.rule}`, color: toneColor(String(image.tone || "")), fontWeight: 700, ...type.meta }}>{String(image.status)}</span>}</div></>;
-        return imageAction ? <button key={String(image.id || image.slot || image.title)} type="button" aria-label={`Open ${String(image.title || image.slot || "photo")}`} onClick={() => dispatchAdminAction(ctx, node, imageAction, image)} style={{ ...surface, overflow: "hidden", padding: 0, textAlign: "left", cursor: "pointer", font: "inherit" }}>{body}</button> : <article key={String(image.id || image.slot || image.title)} style={{ ...surface, overflow: "hidden" }}>{body}</article>;
-      })}</div>;
+      return <ImageGallery key={key} id={nodeDomId(node)} galleryId={str(props, "galleryId", node.meta?.id || "image-gallery")} images={images} emptyText={str(props, "emptyText", "No photos uploaded yet.")} imageAction={imageAction ? actionViewModel(imageAction) : undefined} style={style(props)} onImageAction={(action, value) => dispatchWidgetAction(ctx, node, action, value.image)} />;
     }
 
     case "loadingState":

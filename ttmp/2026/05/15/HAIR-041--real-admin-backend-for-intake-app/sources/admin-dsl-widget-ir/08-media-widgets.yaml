@@ -7,7 +7,7 @@ schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/des
 widgets:
 - id: admin.media.preview-frame
   name: PreviewFrame
-  status: scaffolded
+  status: promoted
   classification:
     level: organism
     description: PreviewFrame participates in the Admin DSL component system as a organism; its level controls scaffold location
@@ -70,9 +70,9 @@ widgets:
             doc: Ordered action list for the PreviewFrame slot. Presentation should be derived from semantic slot and action
               intent.
           onAction:
-            type: PanelActionHandler
+            type: '(action: ActionViewModel, context: { previewId: string; url?: string }) => void'
             required: false
-            doc: Callback invoked by PreviewFrame with action metadata and typed context.
+            doc: Callback invoked by PreviewFrame with preview id and optional URL context.
         extends: CommonWidgetProps
     action_slots:
       previewActions:
@@ -156,7 +156,7 @@ widgets:
     doc: Replace generated scaffold placeholder with final implementation.
 - id: admin.media.image-grid
   name: ImageGrid
-  status: scaffolded
+  status: promoted
   classification:
     level: organism
     description: ImageGrid participates in the Admin DSL component system as a organism; its level controls scaffold location
@@ -215,10 +215,18 @@ widgets:
             type: ImageGridItem[]
             required: true
             doc: Items rendered by ImageGrid.
+          actions:
+            type: ActionViewModel[]
+            required: false
+            doc: Optional card-level actions rendered for each ImageGrid item.
+          onAction:
+            type: '(action: ActionViewModel, context: { item: ImageGridItem }) => void'
+            required: false
+            doc: Callback invoked by ImageGrid with card action metadata and item context.
         extends: CommonWidgetProps
     action_slots:
       cardAction:
-        doc: Future slot; no action in current renderer.
+        doc: Optional card-level actions receive item context when supplied by an adapter or caller.
         callback: onAction
         action_type: ActionViewModel
         cardinality: many
@@ -289,7 +297,7 @@ widgets:
     doc: Replace generated scaffold placeholder with final implementation.
 - id: admin.media.image-gallery
   name: ImageGallery
-  status: scaffolded
+  status: promoted
   classification:
     level: organism
     description: ImageGallery participates in the Admin DSL component system as a organism; its level controls scaffold location
@@ -380,7 +388,7 @@ widgets:
       imageOpen:
         doc: imageOpen action slot for ImageGallery. The widget emits the declared context through onAction and adapters lower
           it to runtime dispatch.
-        callback: onAction
+        callback: onImageAction
         action_type: ActionViewModel
         cardinality: many
         context_type: ImageopenContext

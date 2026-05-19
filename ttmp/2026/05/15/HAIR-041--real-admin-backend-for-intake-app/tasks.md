@@ -277,5 +277,5 @@ updated: 2026-05-15
 - [x] Add a CI/local validation target that runs the Storybook scaffold triage, design-system lint, `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet` for widget-promotion batches.
 - [x] Bring `06-resource-widgets.yaml` part-widget stories to full playbook compliance: manual story changelogs, visible callback probes for `BulkActionBar`, `PaginationBar`, and `ResourceTableCell`, and ResourceTable row/bulk/pagination context evidence.
 - [x] Promote `07-data-display-widgets.yaml` in playbook-complete batches with implementation, renderer adapters, story hardening, callback probes where applicable, validation, diary, and changelog.
-- [ ] Promote `08-media-widgets.yaml` in playbook-complete batches with populated/empty/missing-media/mobile stories and image callback probes.
+- [x] Promote `08-media-widgets.yaml` in playbook-complete batches with populated/empty/missing-media/mobile stories and image callback probes.
 - [ ] Promote `09-calendar-widgets.yaml` in playbook-complete batches with marker/selection/navigation/mobile stories and calendar/event callback probes.
