@@ -306,6 +306,12 @@ layout_primitives:
       gap: 8
       flexWrap: wrap
       alignItems: center
+  densityPadding:
+    doc: Shared spacing adjustment for compact/normal/spacious admin surfaces.
+    defaults:
+      compact_delta: -4
+      spacious_delta: 6
+      min_compact: 12
 
 data_attributes:
   widget_id:

@@ -4,17 +4,12 @@
  * Manual edits after generation:
  * - 2026-05-18 / HAIR-041 Step 79: Promoted scaffold to the real Panel chrome extracted from render.tsx.
  * - 2026-05-18 / HAIR-041 Step 79: Delegated toolbar/footer actions to ActionGroup and reused shared design helpers.
+ * - 2026-05-19 / HAIR-041 Step 97: Replaced local density padding and manual density data attribute with shared helpers/patterns.
  */
 import { ActionGroup } from "../../molecules/ActionGroup";
-import { adminSurfaceStyle, adminTextStyle, adminTokens, dataAttrsFromRecord, widgetDataAttributes } from "../../shared";
+import { adminDensityPadding, adminSurfaceStyle, adminTextStyle, adminTokens, dataAttrsFromRecord, widgetDataAttributes } from "../../shared";
 import { panelWidgetMetadata } from "./Panel.metadata";
 import type { PanelProps } from "./Panel.types";
-
-function densityPadding(density: PanelProps["density"], normal = 18) {
-  if (density === "compact") return Math.max(12, normal - 4);
-  if (density === "spacious") return normal + 6;
-  return normal;
-}
 
 export function Panel({
   id,
@@ -33,16 +28,15 @@ export function Panel({
   onToolbarAction,
   onFooterAction,
 }: PanelProps) {
-  const panelPadding = padding === "none" ? 0 : densityPadding(density, 18);
+  const panelPadding = padding === "none" ? 0 : adminDensityPadding(density, 18);
   const hasHeader = Boolean(title || subtitle || eyebrow || toolbarActions.length);
   const hasFooter = footerActions.length > 0;
-  const dataAttrs = dataAttrsFromRecord(dataAttributes);
+  const dataAttrs = dataAttrsFromRecord({ "admin-dsl-density": density, ...dataAttributes });
 
   return (
     <article
       id={id}
       className={["adminDslPanel", className].filter(Boolean).join(" ") || undefined}
-      data-admin-dsl-density={density}
       style={{ ...adminSurfaceStyle, overflow: "hidden", ...style }}
       {...widgetDataAttributes(panelWidgetMetadata.widgetId, panelWidgetMetadata.classification.level)}
       {...dataAttrs}
@@ -55,7 +49,7 @@ export function Panel({
             gridTemplateColumns: toolbarActions.length ? "minmax(0, 1fr) auto" : "1fr",
             gap: 12,
             alignItems: "start",
-            padding: densityPadding(density, 16),
+            padding: adminDensityPadding(density, 16),
             borderBottom: `1px solid ${adminTokens.borders.soft}`,
           }}
         >
@@ -74,7 +68,7 @@ export function Panel({
         </div>
       ) : null}
       {hasFooter ? (
-        <div className="adminDslPanelFooter" style={{ borderTop: `1px solid ${adminTokens.borders.soft}`, padding: densityPadding(density, 14) }}>
+        <div className="adminDslPanelFooter" style={{ borderTop: `1px solid ${adminTokens.borders.soft}`, padding: adminDensityPadding(density, 14) }}>
           <ActionGroup actions={footerActions} slot="panelFooter" context={{ panelId: id }} onAction={onFooterAction} />
         </div>
       ) : null}

@@ -66,12 +66,6 @@ function actionArray(props: AdminJsonObject | undefined, keyName: string) {
   return jsonArray<AdminActionRef>(props, keyName).filter(isActionRef);
 }
 
-function densityPadding(density: string, normal = 18) {
-  if (density === "compact") return Math.max(12, normal - 4);
-  if (density === "spacious") return normal + 8;
-  return normal;
-}
-
 function normalizeResourceTableColumns(columns: AdminJsonObject[]): ResourceTableColumn<AdminJsonObject>[] {
   return columns.map((column) => {
     const mapValue = jsonObject(column, "map");

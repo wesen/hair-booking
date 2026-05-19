@@ -415,6 +415,12 @@ export function adminShellGridStyle(options: { hasSide?: boolean; maxWidth?: num
     gap: 20,
   };
 }
+
+export function adminDensityPadding(density: "compact" | "normal" | "spacious" | string | undefined, normal = 18): number {
+  if (density === "compact") return Math.max(12, normal - 4);
+  if (density === "spacious") return normal + 6;
+  return normal;
+}
 '''
 
 
