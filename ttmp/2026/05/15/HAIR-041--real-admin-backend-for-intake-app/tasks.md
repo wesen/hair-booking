@@ -274,4 +274,4 @@ updated: 2026-05-15
 - [x] Classify and clean remaining `render.tsx` `as unknown as` casts: replace trivial ID-default casts with a helper and normalize/document action/context casts.
 - [x] Update `scripts/05-scaffold-admin-dsl-widgets.py` to import only shared types actually used by each generated `.types.ts` file.
 - [ ] Re-run the widget playbook compliance audit for `06-resource-widgets.yaml`, `07-data-display-widgets.yaml`, `08-media-widgets.yaml`, and `09-calendar-widgets.yaml` after layout Storybook backfill.
-- [ ] Add a CI/local validation target that runs the Storybook scaffold triage, design-system lint, `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet` for widget-promotion batches.
+- [x] Add a CI/local validation target that runs the Storybook scaffold triage, design-system lint, `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet` for widget-promotion batches.
