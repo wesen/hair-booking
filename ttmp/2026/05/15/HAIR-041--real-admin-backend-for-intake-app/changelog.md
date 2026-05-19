@@ -577,3 +577,9 @@ Step 84: Folded intern review feedback into widget implementation/review playboo
 
 Step 84b: Playbook compliance audit for 05-layout-widgets.yaml. 2 pass (PageHeader, DashboardGrid), 6 fail (scaffold-only stories). Found Panel density prop YAML drift. Report at reference/08-widget-playbook-compliance-audit-report.md.
 
+
+Step 95: Verified the layout widget compliance audit, added a current-source verification addendum, tightened the compliance audit playbook, and added Phase 21 remediation tasks.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/07-widget-playbook-compliance-audit-diary.md` — intern audit diary reviewed.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/08-widget-playbook-compliance-audit-report.md` — report now has frontmatter and verification addendum.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/03-widget-playbook-compliance-audit-guide.md` — audit guide now requires dirty-tree scoping, current-source verification, and task-state backfill.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md` — Phase 21 remediation tasks added.

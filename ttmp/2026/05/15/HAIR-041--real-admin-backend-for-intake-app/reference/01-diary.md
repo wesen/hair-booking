@@ -5669,3 +5669,87 @@ I also moved the existing playbooks out of `reference/` into the ticket `playboo
   - Widget audit matrix template
   - Audit report template
   - Stop conditions
+
+## Step 95: Verify Compliance Audit Findings and Add Remediation Tasks
+
+After the intern completed the first compliance audit, I checked the report against the current working tree instead of accepting every finding at face value. The core Storybook finding is confirmed: six layout widgets from `05-layout-widgets.yaml` have promoted implementations but scaffold-level stories.
+
+I also found that a few design-system findings needed narrower wording because later work had already fixed them or because they came from dirty working-tree files outside the committed layout scope. I updated the audit playbook to require tree-state recording and current-source verification, added a verification addendum to the report, and created explicit remediation tasks.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Ok, they are done, and wrote their results in @hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/07-widget-playbook-compliance-audit-diary.md and @hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/08-widget-playbook-compliance-audit-report.md .
+
+Analyze, double check the issues found, updat eth eplaybook if necessary, and add tasks to address the issues found and improve them."
+
+**Assistant interpretation:** Review the intern audit documents, verify their claims against current source, update the compliance playbook where the audit process needs sharpening, and add concrete ticket tasks for remediation.
+
+**Inferred user intent:** Turn the intern audit into an actionable, corrected remediation plan and improve the playbook so future audits distinguish current facts from stale or dirty-tree findings.
+
+**Commit (code):** N/A — documentation and task planning only.
+
+### What I did
+- Read `reference/07-widget-playbook-compliance-audit-diary.md`.
+- Read `reference/08-widget-playbook-compliance-audit-report.md`.
+- Ran the design-system linter and verified its output against current source.
+- Ran a targeted story triage check for `Panel`, `Toolbar`, `SplitPane`, `Tabs`, `FilterBar`, and `SearchBox`.
+- Verified `Panel.tsx`, `Panel.types.ts`, `Tabs.tsx`, `FilterBar.tsx`, `SearchBox.tsx`, `render.tsx`, and the Panel section of `05-layout-widgets.yaml`.
+- Added a `Follow-up Verification Addendum` to `reference/08-widget-playbook-compliance-audit-report.md`.
+- Added frontmatter to `reference/08-widget-playbook-compliance-audit-report.md` so docmgr can validate and index it.
+- Updated `playbooks/03-widget-playbook-compliance-audit-guide.md` to require recording dirty tree state, separating committed-vs-working-tree findings, verifying triage output before reporting, distinguishing inherited common props from omitted widget-specific contract fields, and adding task-state backfill when story coverage was falsely implied.
+- Added Phase 21 remediation tasks to `tasks.md`.
+- Validated frontmatter for the audit diary, audit report, and updated compliance playbook.
+
+### Why
+- The audit correctly identified the critical Storybook gap, but some secondary findings were stale or mixed with unrelated dirty work.
+- The compliance playbook needed a guardrail requiring auditors to record `git status` and classify findings by scope.
+- The task tracker still implied some layout Storybook work was complete, so explicit remediation tasks were needed.
+
+### What worked
+- The six scaffold-story failures were easy to reproduce:
+  - no `Manual edits after generation`
+  - generated `Story fixture and assertions` blocks still present
+  - repeated `...defaultArgs`
+  - no mobile viewport parameters
+- The current source confirms Panel density contract/data-attribute/density-padding issues.
+- The current source also confirms that `Tabs`, `FilterBar`, and `SearchBox` raw-token findings are no longer current after Step 87.
+- The resource-table pagination and column-cast issues are already fixed in current source.
+
+### What didn't work
+- `reference/08-widget-playbook-compliance-audit-report.md` initially had no YAML frontmatter, so `docmgr validate frontmatter` failed with:
+  - `Problem: frontmatter delimiters '---' not found`
+- I added frontmatter and reran validation successfully.
+
+### What I learned
+- The audit guide needs to distinguish triage scripts from verdicts. A script can find likely issues, but the report must say whether the issue is in committed HEAD, in the dirty working tree, already fixed, or out of scope.
+- The main process miss remains Storybook hardening. Design-system cleanup matters, but it should not obscure the immediate playbook failure.
+
+### What was tricky to build
+- The working tree contains unrelated dirty files and partial data-display widget edits. That means design-system linter output includes findings that should not be attributed to the committed layout-widget promotion history.
+- Panel density is subtle because `density` is technically inherited from `CommonWidgetProps`, but it is also central to Panel intent/examples and adapter behavior, so it should be explicit in the Panel YAML contract.
+
+### What warrants a second pair of eyes
+- Review whether the Phase 21 tasks are granular enough or should be split into separate tickets once layout Storybook backfill begins.
+- Review how strict the `as unknown as` cleanup should be for trivial `str(..., undefined as unknown as string)` defaults compared with action/context casts.
+
+### What should be done in the future
+- Start remediation with the six failing layout story files before continuing data/media/calendar widget promotion.
+- Then rerun the compliance audit for `06-resource`, `07-data-display`, `08-media`, and `09-calendar`.
+
+### Code review instructions
+- Start with `reference/08-widget-playbook-compliance-audit-report.md` and read the new verification addendum.
+- Then review `playbooks/03-widget-playbook-compliance-audit-guide.md` for the new triage-output rules and task-state backfill requirement.
+- Finally review Phase 21 in `tasks.md`.
+- Validate with:
+  - `docmgr validate frontmatter --doc /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/03-widget-playbook-compliance-audit-guide.md --suggest-fixes`
+  - `docmgr validate frontmatter --doc /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/07-widget-playbook-compliance-audit-diary.md --suggest-fixes`
+  - `docmgr validate frontmatter --doc /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/08-widget-playbook-compliance-audit-report.md --suggest-fixes`
+
+### Technical details
+- Confirmed scaffold-story files:
+  - `web/src/admin-dsl/widgets/organisms/Panel/Panel.stories.tsx`
+  - `web/src/admin-dsl/widgets/molecules/Toolbar/Toolbar.stories.tsx`
+  - `web/src/admin-dsl/widgets/organisms/SplitPane/SplitPane.stories.tsx`
+  - `web/src/admin-dsl/widgets/molecules/Tabs/Tabs.stories.tsx`
+  - `web/src/admin-dsl/widgets/molecules/FilterBar/FilterBar.stories.tsx`
+  - `web/src/admin-dsl/widgets/molecules/SearchBox/SearchBox.stories.tsx`
