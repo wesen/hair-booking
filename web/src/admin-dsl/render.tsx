@@ -18,6 +18,8 @@ import { MarkdownBlock } from "./widgets/molecules/MarkdownBlock";
 import { MetricCard } from "./widgets/molecules/MetricCard";
 import { SaveBar } from "./widgets/molecules/SaveBar";
 import { SearchBox } from "./widgets/molecules/SearchBox";
+import { SelectField } from "./widgets/molecules/SelectField";
+import type { SelectFieldOption } from "./widgets/molecules/SelectField";
 import { Tabs } from "./widgets/molecules/Tabs";
 import { TextField } from "./widgets/molecules/TextField";
 import { TextareaField } from "./widgets/molecules/TextareaField";
@@ -401,7 +403,15 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     case "durationField":
     case "dateField":
     case "timeField":
-    case "selectField":
+    case "selectField": {
+      const options = jsonArray<AdminJsonObject>(props, "options").map((option): SelectFieldOption => {
+        const value = String(option.value ?? option.id ?? option.label ?? "");
+        return { value, label: String(option.label ?? value), disabled: Boolean(option.disabled) };
+      });
+      const value = props.value == null ? "" : String(props.value);
+      const fallbackOptions = options.length > 0 ? options : value ? [{ value, label: value }] : [];
+      return <SelectField key={key} id={nodeDomId(node)} name={str(props, "name", node.meta?.id || "select-field")} label={str(props, "label", str(props, "name", node.meta?.id || "Select field"))} value={value} options={fallbackOptions} placeholder={str(props, "placeholder") || undefined} helpText={str(props, "helpText") || undefined} error={str(props, "error") || undefined} disabled={bool(props, "disabled")} readOnly={bool(props, "readOnly")} required={bool(props, "required")} style={style(props)} />;
+    }
     case "switchField":
     case "imageField":
       return <FieldPreview key={key} node={node} />;

@@ -287,7 +287,7 @@ updated: 2026-05-15
 - [x] Define and scaffold shared field chrome (`FieldShell`) so label/help/error/disabled/read-only styling is not duplicated across field widgets.
 - [x] Promote `TextField` with typed props, Storybook variants, and renderer adapter coverage.
 - [x] Promote `TextareaField` with typed props, Storybook variants, and renderer adapter coverage.
-- [ ] Promote `SelectField` with typed props, option fixtures, Storybook variants, and renderer adapter coverage.
+- [x] Promote `SelectField` with typed props, option fixtures, Storybook variants, and renderer adapter coverage.
 - [ ] Promote `SwitchField` with typed props, checked/unchecked/disabled Storybook variants, and renderer adapter coverage.
 - [ ] Promote date/time/numeric field leaves (`DateField`, `TimeField`, `MoneyField`, `DurationField`) with typed props, mobile/error variants, and renderer adapter coverage.
 - [ ] Promote `ImageField` with empty/filled/error/disabled Storybook variants and renderer adapter coverage.

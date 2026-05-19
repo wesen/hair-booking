@@ -7079,3 +7079,71 @@ After refreshing the playbook and restoring metadata-sidecar compliance, I promo
 
 ### Technical details
 - `render.tsx` still retains `FieldPreview` for the remaining unpromoted field leaves: `moneyField`, `durationField`, `dateField`, `timeField`, `selectField`, `switchField`, and `imageField`.
+
+## Step 125: Promote SelectField
+
+I continued Phase 22 with `SelectField`, this time following the refreshed playbook sequence explicitly. I started with a targeted scaffold dry-run, generated the new scaffold and metadata, discovered that the raw generated scaffold did not compile because the new IR references field-specific types the generator does not yet import, then promoted the widget by hand with explicit option and callback types.
+
+`selectField` now has a typed component, metadata sidecar, meaningful option-focused stories, and a renderer adapter branch. The old `FieldPreview` helper remains only for the unpromoted money, duration, date, time, switch, and image fields.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Continue the Phase 22 field extraction after `TextareaField`, using the playbook-correct process.
+
+**Inferred user intent:** Keep moving through the remaining field widgets while preserving validation, commits, and diary detail.
+
+**Commit (code):** <pending> — "HAIR-041 Step 125: Promote SelectField"
+
+### What I did
+- Ran targeted scaffold dry-run for `SelectField`.
+- Generated `SelectField` scaffold and metadata from `10a-form-field-widgets.yaml`.
+- Replaced scaffold diagnostics with a typed `SelectField` implementation using `FieldShell`.
+- Added `SelectFieldOption` and `onValueChange` types.
+- Added Storybook coverage for default, placeholder, help, error, disabled, mobile, and callback-probe states.
+- Updated `render.tsx` to normalize raw Admin DSL `props.options` into typed `SelectFieldOption[]` and route `case "selectField"` through the widget.
+- Marked `SelectField` as promoted in `10a-form-field-widgets.yaml`.
+- Checked the Phase 22 `SelectField` task in `tasks.md`.
+
+### Why
+- `selectField` was still rendered through the old `FieldPreview` helper.
+- Select fields need a distinct typed option contract so adapter code, Storybook fixtures, and future validation can agree on option shape.
+
+### What worked
+- Targeted scaffold dry-run showed the expected output paths.
+- The metadata sidecar was generated and retained beside the promoted component.
+- `cd web && npx tsc --noEmit` passed after promotion.
+- Scoped widget promotion validation passed for `SelectField`; Vitest passed 10 files / 49 tests.
+- `cd web && npx storybook build --quiet` passed with the known large chunk warning.
+
+### What didn't work
+- The raw generated scaffold did not compile before manual promotion:
+  - `src/admin-dsl/widgets/molecules/SelectField/SelectField.types.ts(19,43): error TS2304: Cannot find name 'CommonWidgetProps'.`
+  - `src/admin-dsl/widgets/molecules/SelectField/SelectField.types.ts(55,12): error TS2304: Cannot find name 'SelectFieldOption'.`
+- I fixed this in the promoted type file by importing `CommonWidgetProps` and declaring `SelectFieldOption` explicitly.
+
+### What I learned
+- The scaffold generator still struggles with custom contract types such as `SelectFieldOption[]`; for now, those must be made explicit during promotion and recorded in the diary.
+
+### What was tricky to build
+- The existing renderer fallback for `selectField` only rendered the current value as a single option. The adapter now accepts a real `props.options` array when present, while preserving compatibility by synthesizing a single fallback option from `props.value` when no options are provided.
+
+### What warrants a second pair of eyes
+- Review the raw option normalization in `render.tsx`: it accepts `value`, `id`, or `label` as the option value fallback.
+- Review whether `readOnly` should disable the native `<select>` as implemented, or whether a non-disabled read-only presentation should be added later so values still submit with `FormData`.
+
+### What should be done in the future
+- Promote `SwitchField` next, then the date/time/numeric group.
+
+### Code review instructions
+- Start with the `selectField` branch in `web/src/admin-dsl/render.tsx`.
+- Review `web/src/admin-dsl/widgets/molecules/SelectField/SelectField.types.ts` for the option contract.
+- Review `SelectField.stories.tsx` for option fixtures and callback probe coverage.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook web/src/admin-dsl/widgets/molecules/SelectField`
+  - `cd web && npx storybook build --quiet`
+
+### Technical details
+- `FieldPreview` still covers `moneyField`, `durationField`, `dateField`, `timeField`, `switchField`, and `imageField` after this step.
