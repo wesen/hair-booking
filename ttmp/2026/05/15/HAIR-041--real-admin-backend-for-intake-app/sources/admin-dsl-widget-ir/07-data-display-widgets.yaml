@@ -48,6 +48,10 @@ widgets:
             type: string
             required: false
             doc: 'caption configures metric card. Type: string.'
+          tone:
+            type: '"neutral" | "success" | "warning" | "danger" | string'
+            required: false
+            doc: Semantic tone used for MetricCard value emphasis and top accent styling.
         extends: CommonWidgetProps
     action_slots: {}
   examples:

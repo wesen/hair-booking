@@ -6,6 +6,9 @@ import { WorkbenchShell as WorkbenchShellWidget } from "./widgets/organisms/Work
 import { DefaultAdminShell } from "./widgets/organisms/DefaultAdminShell";
 import { ActionGroup } from "./widgets/molecules/ActionGroup";
 import { FilterBar } from "./widgets/molecules/FilterBar";
+import { InlineError } from "./widgets/molecules/InlineError";
+import { LoadingState } from "./widgets/molecules/LoadingState";
+import { MetricCard } from "./widgets/molecules/MetricCard";
 import { SearchBox } from "./widgets/molecules/SearchBox";
 import { Tabs } from "./widgets/molecules/Tabs";
 import { Toolbar } from "./widgets/molecules/Toolbar";
@@ -277,13 +280,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     }
 
     case "metricCard":
-      return (
-        <article key={key} {...common} style={{ ...surface, padding: 18, borderTop: `4px solid ${toneColor(str(props, "tone"))}`, ...style(props) }}>
-          <div style={{ ...type.eyebrow, color: color.softInk }}>{str(props, "label")}</div>
-          <div style={{ ...type.display3, marginTop: 10, color: toneColor(str(props, "tone")) }}>{String(props.value || "—")}</div>
-          {str(props, "caption") && <div style={{ ...type.bodySm, color: color.softInk, marginTop: 8 }}>{str(props, "caption")}</div>}
-        </article>
-      );
+      return <MetricCard key={key} id={nodeDomId(node)} label={str(props, "label")} value={String(props.value || "—")} caption={str(props, "caption") || undefined} tone={str(props, "tone", "neutral")} style={style(props)} />;
 
     case "filterBar": {
       const rawFilters = jsonArray<AdminJsonObject>(props, "filters");
@@ -372,7 +369,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     }
 
     case "loadingState":
-      return <div key={key} {...common} style={{ ...surface, padding: 16, display: "grid", gap: 8, ...style(props) }}><div style={{ ...type.h3 }}>{str(props, "title", "Loading")}</div>{str(props, "body") && <p style={{ ...type.bodySm, color: color.softInk, margin: 0 }}>{str(props, "body")}</p>}<div style={{ height: 8, borderRadius: radius.pill, background: `linear-gradient(90deg, ${color.rule}, ${color.cream}, ${color.rule})` }} /></div>;
+      return <LoadingState key={key} id={nodeDomId(node)} title={str(props, "title", "Loading")} body={str(props, "body") || undefined} style={style(props)} />;
 
     case "modal":
     case "drawer":
@@ -446,7 +443,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       );
 
     case "inlineError":
-      return <div key={key} {...common} style={{ border: `1px solid ${color.danger}`, color: color.danger, padding: 12, borderRadius: radius.md, ...type.body }}>{str(props, "title", "Something went wrong")}</div>;
+      return <InlineError key={key} id={nodeDomId(node)} title={str(props, "title", "Something went wrong")} body={str(props, "body") || undefined} style={style(props)} />;
 
     default:
       return <pre key={key} {...common} style={{ padding: 12, background: color.cream, overflow: "auto" }}>{JSON.stringify(node, null, 2)}</pre>;
