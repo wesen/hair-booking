@@ -574,7 +574,7 @@ widgets:
     doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
 - id: admin.form-field.switch-field
   name: SwitchField
-  status: planned
+  status: promoted
   classification:
     level: molecule
     description: SwitchField participates in the Admin DSL field system as a molecule; it extracts switchField behavior from

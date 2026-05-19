@@ -7147,3 +7147,65 @@ I continued Phase 22 with `SelectField`, this time following the refreshed playb
 
 ### Technical details
 - `FieldPreview` still covers `moneyField`, `durationField`, `dateField`, `timeField`, `switchField`, and `imageField` after this step.
+
+## Step 126: Promote SwitchField
+
+I continued Phase 22 with `SwitchField` using the same playbook-correct path as `SelectField`: targeted dry-run, scaffold generation, hand promotion with metadata retained, renderer adapter update, validation, and ticket documentation. `switchField` now renders through a typed field leaf instead of the legacy `FieldPreview` helper.
+
+The widget keeps the current uncontrolled form behavior through `defaultChecked`, while exposing an optional typed `onValueChange` callback for Storybook and future adapter work. In the live Admin DSL adapter, ordinary switch edits still flow through form submission rather than immediate backend dispatch.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Continue the Phase 22 field extraction after `SelectField`, with `SwitchField` as the next task.
+
+**Inferred user intent:** Keep removing concrete field branches from `FieldPreview` while preserving the documented playbook cadence.
+
+**Commit (code):** <pending> — "HAIR-041 Step 126: Promote SwitchField"
+
+### What I did
+- Ran targeted scaffold dry-run for `SwitchField`.
+- Generated the `SwitchField` scaffold and metadata from `10a-form-field-widgets.yaml`.
+- Replaced scaffold diagnostics with a typed checkbox-backed switch widget using `FieldShell`.
+- Added Storybook coverage for on, off, help, error, disabled, read-only, mobile, and callback-probe states.
+- Updated `render.tsx` to route `case "switchField"` through `SwitchField`.
+- Marked `SwitchField` as promoted in `10a-form-field-widgets.yaml`.
+- Checked the Phase 22 `SwitchField` task in `tasks.md`.
+
+### Why
+- `switchField` was still in the shared legacy `FieldPreview` helper.
+- Boolean controls need explicit checked/unchecked stories and should share the same label/help/error chrome as text/select fields.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed.
+- Scoped widget promotion validation passed for `SwitchField`; Vitest passed 10 files / 49 tests.
+- `cd web && npx storybook build --quiet` passed with the known large chunk warning.
+
+### What didn't work
+- N/A for this step.
+
+### What I learned
+- The `FieldShell` pattern works for composite controls, not just native text/select controls, as long as the field leaf owns the actual input id and aria wiring.
+
+### What was tricky to build
+- The switch has both a hidden native checkbox and a visible visual track. The native checkbox keeps form submission and keyboard semantics, while the visual track is `aria-hidden` to avoid double-announcing the control.
+
+### What warrants a second pair of eyes
+- Review whether `readOnly` should disable the checkbox, as implemented, or use a read-only visual state that still submits the checked value.
+- Review whether the hidden input styling is sufficient for focus visibility; a future pass may need explicit focus-ring styling on the visual track.
+
+### What should be done in the future
+- Promote the date/time/numeric field group next (`DateField`, `TimeField`, `MoneyField`, `DurationField`) or split it if the diff grows too large.
+
+### Code review instructions
+- Start with the `switchField` branch in `web/src/admin-dsl/render.tsx`.
+- Review `web/src/admin-dsl/widgets/molecules/SwitchField/SwitchField.tsx` for native checkbox semantics and visual track rendering.
+- Review `SwitchField.stories.tsx` for checked/unchecked/disabled/read-only/callback variants.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook web/src/admin-dsl/widgets/molecules/SwitchField`
+  - `cd web && npx storybook build --quiet`
+
+### Technical details
+- `FieldPreview` still covers `moneyField`, `durationField`, `dateField`, `timeField`, and `imageField` after this step.

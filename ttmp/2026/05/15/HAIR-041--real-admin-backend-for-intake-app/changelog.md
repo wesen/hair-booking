@@ -709,3 +709,11 @@ Step 125: Promoted `SelectField`, added option/callback types and metadata/story
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/SelectField/SelectField.stories.tsx` — select story coverage.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — `selectField` adapter update.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml` — `SelectField` status update.
+
+Step 126: Promoted `SwitchField`, added checked/unchecked/error/disabled/read-only/mobile/callback stories, and moved the `switchField` renderer branch from `FieldPreview` to the typed widget.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/SwitchField/SwitchField.tsx` — typed switch implementation.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/SwitchField/SwitchField.types.ts` — switch callback contract.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/SwitchField/SwitchField.metadata.ts` — generated metadata sidecar.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/SwitchField/SwitchField.stories.tsx` — switch story coverage.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — `switchField` adapter update.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml` — `SwitchField` status update.
