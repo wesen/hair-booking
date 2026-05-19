@@ -373,22 +373,41 @@ def extra_type_imports(plan: ScaffoldPlan, widget_root: Path) -> list[str]:
     return imports
 
 
+SHARED_TYPE_NAMES = [
+    "ActionViewModel",
+    "CalendarCellActionHandler",
+    "CommonWidgetProps",
+    "FormActionHandler",
+    "OverlaySurfaceKind",
+    "PageActionHandler",
+    "PanelActionHandler",
+    "ResourceTableColumnKind",
+    "SidebarNavItem",
+    "SidebarNavProps",
+    "TableBulkActionHandler",
+    "TableRowActionHandler",
+]
+
+
+def used_shared_type_imports(plan: ScaffoldPlan) -> list[str]:
+    haystacks: list[str] = []
+    for contract in plan.contracts:
+        if contract.extends:
+            haystacks.append(contract.extends)
+        for field in contract.fields:
+            haystacks.append(field.ts_type)
+    used = [name for name in SHARED_TYPE_NAMES if any(re.search(rf"\\b{re.escape(name)}\\b", text) for text in haystacks)]
+    return used
+
+
 def render_types(plan: ScaffoldPlan, widget_root: Path, target_file: Path) -> str:
     shared = shared_import_path(plan.output_dir, widget_root)
-    imports = f'''import type * as React from "react";
-import type {{
-  ActionViewModel,
-  CalendarCellActionHandler,
-  CommonWidgetProps,
-  FormActionHandler,
-  OverlaySurfaceKind,
-  PageActionHandler,
-  PanelActionHandler,
-  ResourceTableColumnKind,
-  SidebarNavItem,
-  SidebarNavProps,
-  TableBulkActionHandler,
-  TableRowActionHandler,
+    imports = 'import type * as React from "react";\n'
+    used_shared = used_shared_type_imports(plan)
+    if used_shared:
+        joined = ",\n  ".join(used_shared)
+        imports += f'''import type {{
+  {joined},
 }} from "{shared}";
 '''
     extra = "\n".join(extra_type_imports(plan, widget_root))
