@@ -5885,3 +5885,297 @@ This step keeps the visual rule reproducible through `15-design-language.yaml` a
 
 ### Technical details
 - Design-system lint after isolated Step 97 validation: 18 errors, 3 warnings. Remaining findings are outside the completed Panel density cleanup.
+
+## Step 99: Harden Layout Widget Stories
+
+I remediated the core playbook-compliance issue from the layout audit: six promoted layout widgets had implementation code but scaffold-level Storybook files. The story files now have manual edit changelogs, distinct fixtures, mobile viewport coverage where relevant, and visible callback probes for callback-heavy widgets.
+
+This was intentionally done before continuing 07/08/09 promotion work because the audit showed we should not claim a widget is finished until implementation and Storybook coverage are both meaningful.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue with all the tasks addressing the review (phase 21)"
+
+**Assistant interpretation:** Continue executing the Phase 21 remediation backlog, starting with the high-priority Storybook backfill found by the compliance audit.
+
+**Inferred user intent:** Bring previously promoted widgets into actual playbook compliance before moving on to new widget categories.
+
+**Commit (code):** e87a813 — "HAIR-041 Step 99: Harden layout widget stories"
+
+### What I did
+- Temporarily stashed unrelated dirty files and partial data-display edits to get a clean worktree.
+- Rewrote scaffold stories for:
+  - `Panel.stories.tsx`
+  - `Toolbar.stories.tsx`
+  - `SplitPane.stories.tsx`
+  - `Tabs.stories.tsx`
+  - `FilterBar.stories.tsx`
+  - `SearchBox.stories.tsx`
+- Added top-of-file `Manual edits after generation` changelogs to each story file.
+- Removed generated `Story fixture and assertions` diagnostic blocks.
+- Replaced repeated `...defaultArgs` stories with distinct fixtures.
+- Added visible `<output>` callback probes for Panel, Toolbar, Tabs, FilterBar, and SearchBox.
+- Added mobile viewport parameters to mobile/narrow stories.
+- Ran story triage and confirmed the six remediated story files are no longer scaffold-like.
+- Ran `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet` successfully.
+- Marked the six layout-story Phase 21 tasks complete.
+
+### Why
+- The playbook says generated stories are a scenario plan, not finished coverage.
+- The audit proved these six widgets were promoted without meaningful Storybook evidence.
+
+### What worked
+- TypeScript passed.
+- Vitest passed: 10 files / 49 tests.
+- Storybook build passed with the known large chunk warning.
+- The triage script showed all six story files now have manual changelogs, no generated diagnostics block, no repeated `...defaultArgs`, and mobile viewport coverage.
+
+### What didn't work
+- N/A for the story hardening itself.
+
+### What I learned
+- Storybook hardening is easiest to review as a batch when the files share the same failure mode: generated stories with repeated default args.
+- Callback probes are a lightweight way to prove typed callback contexts without wiring backend dispatch in Storybook.
+
+### What was tricky to build
+- The story fixtures needed to remain visual-only and not import renderer or backend dispatch behavior. Each probe records the widget callback output locally with `useState`, preserving the adapter boundary.
+
+### What warrants a second pair of eyes
+- Review whether the new stories are visually rich enough for design review, or whether screenshots should be captured as a follow-up.
+- Review whether `Panel.NestedResourceTable` should eventually use the real `ResourceTable` component once resource story compliance is revisited.
+
+### What should be done in the future
+- Use the new validation target for scoped story triage on future widget batches.
+
+### Code review instructions
+- Compare each updated story file with the previous generated version.
+- Verify the mobile stories include `parameters.viewport.defaultViewport`.
+- Click the callback-probe stories in Storybook and confirm visible output changes.
+
+### Technical details
+- Validation commands:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+  - `cd web && npx storybook build --quiet`
+
+## Step 100: Clean Renderer Adapter Casts
+
+I cleaned the remaining `as unknown as` casts in `render.tsx` by adding small adapter helpers for DOM IDs and widget action dispatch. This turns the renderer callbacks into explicit runtime-narrowing points rather than scattered type assertions.
+
+The resource-table column cast had already been removed in an earlier step, so this pass focused on the remaining trivial ID defaults, callback action casts, single-action object casts, and inline-node conversion.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 99)
+
+**Assistant interpretation:** Continue Phase 21 by addressing the renderer adapter cast cleanup task after the Storybook backfill.
+
+**Inferred user intent:** Reduce adapter type holes and make callback lowering safer and easier to audit.
+
+**Commit (code):** cb245e8 — "HAIR-041 Step 100: Clean renderer adapter casts"
+
+### What I did
+- Added `nodeDomId(node)` to replace repeated `str(props, "id", undefined as unknown as string)` defaults.
+- Added `dispatchWidgetAction(...)` to runtime-narrow callback actions through `isActionRef(...)` before dispatching.
+- Added `singleActionArray(...)` for optional single-action props.
+- Replaced callback casts in toolbar, tabs, search, panel, filter, resource table, empty state, and save bar paths.
+- Replaced `renderInlineNode(...)`'s `as unknown as AdminNode` with explicit object construction and a narrower `kind` cast.
+- Confirmed `rg "as unknown as" web/src/admin-dsl/render.tsx` returns no matches.
+- Ran `cd web && npx tsc --noEmit` successfully.
+- Ran the design-system linter and confirmed `render.tsx` cast findings are gone.
+- Marked the Phase 21 renderer-cast cleanup task complete.
+
+### Why
+- The compliance audit identified renderer casts as adapter-boundary review noise.
+- Runtime action narrowing better documents the trust boundary than casting every callback action.
+
+### What worked
+- TypeScript passed after adding `singleActionArray(...)` for optional object actions.
+- Design-system lint dropped from 18 errors / 3 warnings to 6 errors / 3 warnings; remaining findings are shell-specific follow-ups.
+
+### What didn't work
+- My first broad replacement produced JSX syntax errors because `{renderActions(...)` expressions were missing a closing brace. I fixed those and reran TypeScript.
+
+### What I learned
+- Most remaining casts were not deep type holes; they were repetitive adapter convenience casts. Small helpers make the code easier to audit.
+
+### What was tricky to build
+- TypeScript does not preserve narrowing across repeated `jsonObject(...)` calls inside JSX. `singleActionArray(...)` centralizes that narrowing and keeps JSX compact.
+
+### What warrants a second pair of eyes
+- Review whether silently ignoring non-`AdminActionRef` callback actions in `dispatchWidgetAction(...)` is the right behavior, or whether development builds should warn.
+
+### What should be done in the future
+- Address the remaining shell design-system lint findings separately.
+
+### Code review instructions
+- Start in `web/src/admin-dsl/render.tsx` at `nodeDomId`, `dispatchWidgetAction`, and `singleActionArray`.
+- Then inspect widget callback branches to verify value/context payloads are unchanged.
+- Validate with `rg "as unknown as" web/src/admin-dsl/render.tsx` and `cd web && npx tsc --noEmit`.
+
+### Technical details
+- Design-system lint after this step: 6 errors, 3 warnings, all outside renderer casts.
+
+## Step 101: Trim Generated Type Imports
+
+I updated the widget scaffold generator so future generated `.types.ts` files import only the shared types they actually reference. This addresses the audit's generator-quality finding that every type file imported many irrelevant shared types.
+
+I did not force-regenerate hand-promoted widgets. This change improves future scaffold output and should be applied to untouched scaffold-only widgets when they are refreshed under the playbook workflow.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 99)
+
+**Assistant interpretation:** Continue Phase 21 by addressing the scaffold generator import-noise task.
+
+**Inferred user intent:** Make future generated files easier to review and reduce noise that can hide real contract drift.
+
+**Commit (code):** 56cf926 — "HAIR-041 Step 101: Trim generated type imports"
+
+### What I did
+- Updated `scripts/05-scaffold-admin-dsl-widgets.py` with `SHARED_TYPE_NAMES` and `used_shared_type_imports(...)`.
+- Changed `render_types(...)` to emit only shared imports referenced by contract fields or extends clauses.
+- Preserved special extra imports such as `ResourceTableColumn` and `CalendarEventBlockProps`.
+- Ran `python3 -m py_compile` for the generator.
+- Ran a targeted dry run for `SplitPane` from `05-layout-widgets.yaml`.
+- Marked the generator import cleanup task complete.
+
+### Why
+- The audit correctly noted noisy generated types files made reviews harder.
+- The generator should not import calendar/resource/form types into widgets that do not mention them.
+
+### What worked
+- The generator compiles and dry-run still plans the expected target files.
+
+### What didn't work
+- The dry-run does not show generated content, only planned writes/skips. A future generator test could snapshot content.
+
+### What I learned
+- The generator already had contract-level metadata available; the import cleanup only needed to scan field type strings and extends clauses.
+
+### What was tricky to build
+- The scan must be textual because Widget IR type strings are TypeScript snippets, not parsed TypeScript AST. Regex word-boundary matching is sufficient for the current generated type names.
+
+### What warrants a second pair of eyes
+- Review whether always importing `React` is still too broad for widgets that do not mention `React.ReactNode`. That can be a future refinement.
+
+### What should be done in the future
+- Add generator snapshot tests once the scaffold workflow stabilizes.
+
+### Code review instructions
+- Review `used_shared_type_imports(...)` and `render_types(...)` in the generator.
+- Validate with `python3 -m py_compile .../scripts/05-scaffold-admin-dsl-widgets.py`.
+
+### Technical details
+- Dry-run command:
+  - `python3 ttmp/.../scripts/05-scaffold-admin-dsl-widgets.py --dry-run --name SplitPane ttmp/.../sources/admin-dsl-widget-ir/05-layout-widgets.yaml`
+
+## Step 102: Add Widget Promotion Validation Target
+
+I added a local validation target script that bundles the repeatable checks from the compliance guide: scoped Storybook scaffold triage, design-system lint, TypeScript, Vitest, and optional Storybook production build.
+
+The script is intentionally configurable because the repository still has known design-system lint backlog. It can report lint findings without failing by default, and strict modes can be enabled for cleaned-up scopes.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 99)
+
+**Assistant interpretation:** Continue Phase 21 by turning the compliance audit checks into a reusable local validation command.
+
+**Inferred user intent:** Prevent the same Storybook/playbook drift from recurring by giving future widget batches an easy validation entry point.
+
+**Commit (code):** 30ff8cc — "HAIR-041 Step 102: Add widget promotion validation target"
+
+### What I did
+- Added `scripts/08-validate-widget-promotion.py`.
+- The script runs scoped Storybook scaffold triage, design-system lint, `npx tsc --noEmit`, `pnpm test -- --runInBand`, and optionally `npx storybook build --quiet`.
+- Added `--strict-triage`, `--strict-design`, and `--skip-storybook` flags.
+- Ran `python3 -m py_compile` on the new script.
+- Ran the script with `--strict-triage --skip-storybook` scoped to the six remediated layout story directories; it passed the scoped triage and web checks.
+- Marked the validation target task complete.
+
+### Why
+- The compliance playbook had commands, but a script makes them easier to run consistently.
+- Strict scoped triage is useful for newly remediated widgets even while global Storybook backlog remains.
+
+### What worked
+- The script correctly reported no scaffold-like stories in the six remediated layout directories.
+- TypeScript and Vitest passed through the script.
+
+### What didn't work
+- The design-system lint output still reports known shell backlog. This is expected because strict design lint is opt-in.
+
+### What I learned
+- A validation target should support scoped strictness during incremental cleanup; requiring global perfection would block useful local validation.
+
+### What was tricky to build
+- The script needs to distinguish story triage scope from web package validation scope. Story triage can be scoped to widget directories, but TypeScript/tests/Storybook still validate the whole web package.
+
+### What warrants a second pair of eyes
+- Review whether this should become a Makefile target after the current ticket stabilizes.
+
+### What should be done in the future
+- Run the validation target for every future widget promotion batch before committing.
+
+### Code review instructions
+- Review `scripts/08-validate-widget-promotion.py`.
+- Validate with:
+  - `python3 -m py_compile ttmp/.../scripts/08-validate-widget-promotion.py`
+  - `python3 ttmp/.../scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook <widget dirs>`
+
+### Technical details
+- The script's default design lint mode is report-only; use `--strict-design` once the known shell findings are remediated.
+
+## Step 103: Record Widget Compliance Follow-up Audit
+
+After the layout story backfill, I reran compliance triage for `06-resource`, `07-data-display`, `08-media`, and `09-calendar`. The follow-up report records that resources are partially compliant, while data-display/media/calendar remain scaffold-only or draft and should be promoted only in playbook-complete batches.
+
+This step closes the Phase 21 audit rerun task and adds concrete follow-up tasks for the categories that still need compliance work.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 99)
+
+**Assistant interpretation:** Continue Phase 21 by rerunning the compliance audit beyond layout widgets and turning the findings into explicit follow-up tasks.
+
+**Inferred user intent:** Keep the cleanup comprehensive and avoid letting 07/08/09 partial work become implicitly accepted.
+
+**Commit (code):** 4c3c42b — "HAIR-041 Step 103: Record widget compliance follow-up audit"
+
+### What I did
+- Ran a follow-up triage over widgets from `06-resource-widgets.yaml`, `07-data-display-widgets.yaml`, `08-media-widgets.yaml`, and `09-calendar-widgets.yaml`.
+- Added `reference/09-widget-playbook-compliance-audit-followup-report.md`.
+- Recorded that `ResourceTable` is mostly compliant but part widgets need story changelog/probe review.
+- Recorded that all 07/08/09 widget stories remain scaffold-like and need playbook-complete promotion batches.
+- Added follow-up tasks for resource part story compliance and 07/08/09 promotion batches.
+- Marked the audit rerun task complete.
+- Validated the new report frontmatter with docmgr.
+
+### Why
+- The user asked to address all Phase 21 tasks, including rerunning compliance audit for later widget categories.
+- The dirty working tree contains partial data-display edits, so the report explicitly treats them as draft and not promoted.
+
+### What worked
+- The follow-up report gives a clear boundary: layout is remediated, resource needs part-story cleanup, and 07/08/09 need real promotion work.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The follow-up audit reinforces that 07/08/09 should not be committed piecemeal; they need implementation and Storybook promotion together.
+
+### What was tricky to build
+- Some resource part stories are not scaffold-like but still lack manual story changelogs. The report classifies them as partial compliance rather than outright scaffold failure.
+
+### What warrants a second pair of eyes
+- Review whether `BulkActionBar` and `PaginationBar` should be considered hand-promoted even though their implementation/story headers do not include manual edit changelogs.
+
+### What should be done in the future
+- Bring resource part stories to full compliance, then resume 07/08/09 promotion in smaller playbook-complete batches.
+
+### Code review instructions
+- Start with `reference/09-widget-playbook-compliance-audit-followup-report.md`.
+- Review new Phase 21 tasks in `tasks.md`.
+
+### Technical details
+- The follow-up report lists every audited widget and its manual/scaffold status.

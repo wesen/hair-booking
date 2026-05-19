@@ -261,7 +261,7 @@ updated: 2026-05-15
 
 ## Phase 21 — Widget playbook compliance audit remediation
 
-- [ ] Record and review the layout-widget compliance audit diary/report (`reference/07...`, `reference/08...`) and keep the verification addendum with current-source corrections.
+- [x] Record and review the layout-widget compliance audit diary/report (`reference/07...`, `reference/08...`) and keep the verification addendum with current-source corrections.
 - [x] Harden `Panel.stories.tsx` with distinct default/compact/no-padding/toolbar/footer/body-only/nested/mobile fixtures, visible callback probe output, manual edit changelog, and Storybook validation.
 - [x] Harden `Toolbar.stories.tsx` with distinct default/many-actions/mobile-touch/callback-probe fixtures, manual edit changelog, and Storybook validation.
 - [x] Harden `SplitPane.stories.tsx` with distinct master-detail/two-panel/mobile-stacked fixtures, manual edit changelog, and Storybook validation.

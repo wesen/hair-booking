@@ -593,3 +593,23 @@ Step 97: Added generated shared Panel density padding helper, refactored Panel d
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py` — emits `adminDensityPadding(...)`.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/Panel/Panel.tsx` — consumes shared density helper and dataAttrsFromRecord density pattern.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — removed unused duplicate density helper.
+
+Step 99: Hardened scaffold-level Storybook stories for six promoted layout widgets with distinct fixtures, mobile viewport coverage, and callback probes (commit e87a813).
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/Panel/Panel.stories.tsx` — Panel story hardening.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/Toolbar/Toolbar.stories.tsx` — Toolbar story hardening.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/SplitPane/SplitPane.stories.tsx` — SplitPane story hardening.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/Tabs/Tabs.stories.tsx` — Tabs story hardening.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/FilterBar/FilterBar.stories.tsx` — FilterBar story hardening.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/SearchBox/SearchBox.stories.tsx` — SearchBox story hardening.
+
+Step 100: Removed remaining `as unknown as` casts from `render.tsx` by adding DOM-id, action-dispatch, and single-action adapter helpers (commit cb245e8).
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — renderer adapter cast cleanup.
+
+Step 101: Updated the widget scaffold generator to import only shared types referenced by generated `.types.ts` contracts (commit 56cf926).
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py` — generator import cleanup.
+
+Step 102: Added `scripts/08-validate-widget-promotion.py`, a local validation target for widget promotion batches (commit 30ff8cc).
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/08-validate-widget-promotion.py` — scoped Storybook triage plus web validation.
+
+Step 103: Re-ran compliance triage for resource, data-display, media, and calendar widgets and recorded follow-up remediation tasks (commit 4c3c42b).
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/09-widget-playbook-compliance-audit-followup-report.md` — follow-up audit report.
