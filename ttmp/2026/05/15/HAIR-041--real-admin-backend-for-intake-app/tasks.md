@@ -262,12 +262,12 @@ updated: 2026-05-15
 ## Phase 21 — Widget playbook compliance audit remediation
 
 - [ ] Record and review the layout-widget compliance audit diary/report (`reference/07...`, `reference/08...`) and keep the verification addendum with current-source corrections.
-- [ ] Harden `Panel.stories.tsx` with distinct default/compact/no-padding/toolbar/footer/body-only/nested/mobile fixtures, visible callback probe output, manual edit changelog, and Storybook validation.
-- [ ] Harden `Toolbar.stories.tsx` with distinct default/many-actions/mobile-touch/callback-probe fixtures, manual edit changelog, and Storybook validation.
-- [ ] Harden `SplitPane.stories.tsx` with distinct master-detail/two-panel/mobile-stacked fixtures, manual edit changelog, and Storybook validation.
-- [ ] Harden `Tabs.stories.tsx` with distinct active/read-only/wrapping-mobile/callback-probe fixtures, manual edit changelog, and Storybook validation.
-- [ ] Harden `FilterBar.stories.tsx` with distinct active/many-filters/read-only/callback-probe fixtures, manual edit changelog, and Storybook validation.
-- [ ] Harden `SearchBox.stories.tsx` with initial-value/no-action/submit-callback-probe fixtures, manual edit changelog, and Storybook validation.
+- [x] Harden `Panel.stories.tsx` with distinct default/compact/no-padding/toolbar/footer/body-only/nested/mobile fixtures, visible callback probe output, manual edit changelog, and Storybook validation.
+- [x] Harden `Toolbar.stories.tsx` with distinct default/many-actions/mobile-touch/callback-probe fixtures, manual edit changelog, and Storybook validation.
+- [x] Harden `SplitPane.stories.tsx` with distinct master-detail/two-panel/mobile-stacked fixtures, manual edit changelog, and Storybook validation.
+- [x] Harden `Tabs.stories.tsx` with distinct active/read-only/wrapping-mobile/callback-probe fixtures, manual edit changelog, and Storybook validation.
+- [x] Harden `FilterBar.stories.tsx` with distinct active/many-filters/read-only/callback-probe fixtures, manual edit changelog, and Storybook validation.
+- [x] Harden `SearchBox.stories.tsx` with initial-value/no-action/submit-callback-probe fixtures, manual edit changelog, and Storybook validation.
 - [x] Add explicit `density` contract documentation to the Panel YAML and `Panel.types.ts` without force-regenerating the hand-promoted widget implementation.
 - [x] Move Panel density padding into generated shared design-language helpers and refactor both `Panel.tsx` and the `render.tsx` panel adapter to use it or remove duplicated adapter logic.
 - [x] Replace `Panel`'s manual `data-admin-dsl-density` with a generated/shared data-attribute helper or a documented `dataAttrsFromRecord` pattern.
