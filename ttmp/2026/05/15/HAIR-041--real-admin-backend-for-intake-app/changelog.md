@@ -694,3 +694,10 @@ Step 123: Re-read the widget promotion playbook and restored missing metadata si
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/TextField/TextField.metadata.ts` — generated metadata sidecar.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/atoms/FieldShell/FieldShell.tsx` — metadata-backed widget attributes.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/TextField/TextField.tsx` — metadata-backed widget attributes.
+
+Step 124: Promoted `TextareaField`, added metadata/story coverage, and moved the `textareaField` renderer branch from `FieldPreview` to the typed widget.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/TextareaField/TextareaField.tsx` — typed textarea implementation.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/TextareaField/TextareaField.metadata.ts` — generated metadata sidecar.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/TextareaField/TextareaField.stories.tsx` — textarea story coverage.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — `textareaField` adapter update.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml` — `TextareaField` status update.

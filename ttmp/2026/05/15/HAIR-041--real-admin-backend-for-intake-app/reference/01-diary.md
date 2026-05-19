@@ -7015,3 +7015,67 @@ I corrected that before continuing with more field leaves. The sidecars were gen
 ### Technical details
 - Command used:
   - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py --name FieldShell --name TextField --name TextareaField ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml`
+
+## Step 124: Promote TextareaField
+
+After refreshing the playbook and restoring metadata-sidecar compliance, I promoted the next concrete field leaf: `TextareaField`. This follows the corrected workflow: read the IR/renderer branch, generate the missing metadata sidecar without overwriting hand-written files, implement the typed widget with a manual changelog, update the renderer adapter, harden stories, validate, and record the result.
+
+`textareaField` no longer depends on the old `FieldPreview` branch for live rendering. The widget uses `FieldShell` for shared chrome and keeps native uncontrolled textarea behavior via `defaultValue`, preserving the current form submission model.
+
+### Prompt Context
+
+**User prompt (verbatim):** "make sure to follow the playbook, keep a diary, etc..."
+
+**Assistant interpretation:** Continue implementation, but explicitly obey the widget playbook and maintain ticket documentation as part of each step.
+
+**Inferred user intent:** Ensure the remaining Phase 22 work is reviewable, validated, and documented rather than a fast ad hoc extraction.
+
+**Commit (code):** <pending> — "HAIR-041 Step 124: Promote TextareaField"
+
+### What I did
+- Added `web/src/admin-dsl/widgets/molecules/TextareaField/TextareaField.types.ts`.
+- Added generated `TextareaField.metadata.ts` using targeted scaffold generation from `10a-form-field-widgets.yaml`.
+- Added `TextareaField.tsx` using `FieldShell`, metadata-backed widget attributes, generated design helpers, and native textarea semantics.
+- Added `TextareaField.stories.tsx` with default/help/error/disabled/read-only/mobile/change-probe variants.
+- Added the `TextareaField` barrel export with metadata.
+- Updated `render.tsx` to route `case "textareaField"` through the typed widget.
+- Marked `TextareaField` promoted in `10a-form-field-widgets.yaml`.
+- Checked the Phase 22 `TextareaField` task in `tasks.md`.
+
+### Why
+- `textareaField` was still part of the old `FieldPreview` helper, mixing adapter decoding and native control rendering.
+- Promoting it removes one more concrete field branch while preserving form-level uncontrolled submission behavior.
+
+### What worked
+- Targeted scaffold generation created the metadata sidecar and skipped existing hand-authored files.
+- `cd web && npx tsc --noEmit` passed.
+- Scoped widget promotion validation passed for `TextareaField`; Vitest passed 10 files / 49 tests.
+- `cd web && npx storybook build --quiet` passed with the known large chunk warning.
+
+### What didn't work
+- N/A for the final TextareaField pass after the playbook refresh; the earlier metadata omission was corrected in Step 123 before this commit.
+
+### What I learned
+- The corrected promotion sequence is reliable for new Phase 22 leaves: generate metadata first, then wire implementation and adapter, then validate and document.
+
+### What was tricky to build
+- The textarea control needed its own height behavior while staying visually aligned with `TextField`. I used `rows` plus a `minHeight` derived from rows, while preserving browser-native vertical resizing.
+
+### What warrants a second pair of eyes
+- Review whether `rows` should be constrained by the adapter or by the widget to avoid very tall textareas from backend-provided props.
+- Review whether the wrapper/input id split used by `TextField` and `TextareaField` is the desired stable convention for all field leaves.
+
+### What should be done in the future
+- Promote `SelectField` next with typed options and option fixtures.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/render.tsx` and inspect the `textareaField` branch.
+- Review `web/src/admin-dsl/widgets/molecules/TextareaField/TextareaField.tsx` for `FieldShell` accessibility wiring and uncontrolled behavior.
+- Review `TextareaField.stories.tsx` for distinct states and callback probe coverage.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook web/src/admin-dsl/widgets/molecules/TextareaField`
+  - `cd web && npx storybook build --quiet`
+
+### Technical details
+- `render.tsx` still retains `FieldPreview` for the remaining unpromoted field leaves: `moneyField`, `durationField`, `dateField`, `timeField`, `selectField`, `switchField`, and `imageField`.
