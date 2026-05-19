@@ -624,3 +624,14 @@ Step 105: Hardened ResourceTable and part-widget Storybook stories with manual c
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ResourceTable/parts/BulkActionBar/BulkActionBar.stories.tsx` — bulk callback probe.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ResourceTable/parts/PaginationBar/PaginationBar.stories.tsx` — pagination callback probe.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ResourceTable/parts/ResourceTableCell/ResourceTableCell.stories.tsx` — cell variants and row-action probe.
+
+Step 107: Reconciled resource-widget audit report findings and synced ResourceTable pagination callback naming in YAML (commit c5751a1).
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/12-resource-widget-compliance-audit-report.md` — current resource-widget compliance status.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/06-resource-widgets.yaml` — `onPaginationAction` contract and action-slot callback.
+
+Step 108: Promoted first data-display widgets (`MetricCard`, `LoadingState`, `InlineError`) and updated the data-display compliance report (commit bebbba6).
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/MetricCard/MetricCard.tsx` — promoted metric card.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/LoadingState/LoadingState.tsx` — promoted loading state.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/InlineError/InlineError.tsx` — promoted inline error.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — thin adapters for promoted data-display widgets.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/13-data-display-widget-compliance-audit-report.md` — updated current status and remaining plan.

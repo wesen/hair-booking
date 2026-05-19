@@ -6238,3 +6238,121 @@ This step adds those missing probes and story headers without changing widget im
 
 ### Technical details
 - Validation target output still reports known shell design-system lint backlog in report-only mode.
+
+## Step 107: Reconcile Resource Audit Findings
+
+I reviewed the resource-widget compliance report against the current code after the recent Phase 21 remediation commits. Several findings in the report were valid when captured, but had already been fixed by the design-helper, renderer-cast, and resource-story hardening work.
+
+This step converted the resource report from a stale finding list into a current verification record, and fixed the remaining YAML/type drift for pagination callbacks.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, let's continue with @hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/12-resource-widget-compliance-audit-report.md and @hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/13-data-display-widget-compliance-audit-report.md"
+
+**Assistant interpretation:** Continue addressing the two audit reports by reconciling stale findings, fixing remaining concrete gaps, and carrying remediation forward into data-display widgets.
+
+**Inferred user intent:** Use the audit reports as the active checklist for finishing Phase 21 remediation and keeping the reports accurate.
+
+**Commit (code):** c5751a1 — "HAIR-041 Step 107: Reconcile resource audit findings"
+
+### What I did
+- Updated `reference/12-resource-widget-compliance-audit-report.md` with frontmatter and a verification addendum.
+- Marked stale resource findings as fixed by existing commits where applicable.
+- Added `ResourceTableProps.fields.onPaginationAction` to `06-resource-widgets.yaml`.
+- Changed the ResourceTable `pagination` action slot callback from `onAction` to `onPaginationAction`.
+- Validated report frontmatter with `docmgr validate frontmatter` using an absolute path.
+
+### Why
+- The audit report still claimed ResourceTable failed for pagination routing, raw tokens, part story changelogs, and callback probes even though those items had been fixed.
+- The one live issue was a YAML/type naming mismatch: types and renderer used `onPaginationAction`, while YAML still said `onAction`.
+
+### What worked
+- ResourceTable family now has aligned YAML/types/renderer semantics for pagination callbacks.
+- The report now distinguishes original findings from current status.
+
+### What didn't work
+- A relative `docmgr validate frontmatter --doc ttmp/...` command failed with `ttmp/ttmp/...`; using the absolute path worked.
+
+### What I learned
+- Audit reports need a verification addendum rather than silent edits when findings become stale during the same remediation phase.
+
+### What was tricky to build
+- The resource audit mixed truly current findings with stale findings fixed by earlier commits. I handled this by preserving the historical context but rewriting the report around current verification status.
+
+### What warrants a second pair of eyes
+- Confirm that `onPaginationAction` is the intended canonical ResourceTable callback name rather than making the ResourceTable component reuse the nested `PaginationBar` `onAction` name.
+
+### What should be done in the future
+- Keep pagination actions separate from bulk actions in all future resource-table adapters.
+
+### Code review instructions
+- Review `06-resource-widgets.yaml` around `ResourceTableProps` and the `pagination` action slot.
+- Review `reference/12-resource-widget-compliance-audit-report.md` for current-state accuracy.
+
+### Technical details
+- Validation command that worked:
+  - `docmgr validate frontmatter --doc /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/12-resource-widget-compliance-audit-report.md --suggest-fixes`
+
+## Step 108: Promote First Data Display Widgets
+
+I started the data-display audit remediation with the smallest no-callback widgets: `MetricCard`, `LoadingState`, and `InlineError`. This deliberately avoids the still-dirty callback-heavy data-display files and establishes the first clean adapter/story pattern for category 07.
+
+This step also fixes the MetricCard `tone` contract drift reported by the audit and updates the data-display report to reflect partial remediation instead of treating the entire category as untouched scaffold code.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 107)
+
+**Assistant interpretation:** Continue from the data-display audit report by fixing concrete findings and beginning playbook-complete promotion.
+
+**Inferred user intent:** Move from report-writing into actual remediation for `07-data-display-widgets.yaml` while preserving process discipline.
+
+**Commit (code):** bebbba6 — "HAIR-041 Step 108: Promote first data display widgets"
+
+### What I did
+- Promoted `MetricCard`, `LoadingState`, and `InlineError` implementations from scaffold diagnostics to typed widgets.
+- Added manual edit changelogs to their `.tsx`, `.types.ts`, and `.stories.tsx` files.
+- Replaced generated diagnostic stories with distinct production-like fixtures and mobile stories.
+- Added `MetricCardProps.tone` to `07-data-display-widgets.yaml` and `MetricCard.types.ts`.
+- Converted `render.tsx` branches for `metricCard`, `loadingState`, and `inlineError` to thin adapters that delegate to typed widgets.
+- Rewrote `reference/13-data-display-widget-compliance-audit-report.md` with frontmatter, current status, and remaining promotion plan.
+- Isolated unrelated dirty files with `git stash push --keep-index -u` while validating and committing this batch, then popped the stash afterward.
+
+### Why
+- The audit identified MetricCard tone drift and scaffold-only data-display widgets as the next concrete Phase 21 work.
+- Starting with no-callback widgets reduces risk before addressing `EmptyState`, `ActivityFeed`, and `ComparisonTable` callback semantics.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed with unrelated dirty data-display files stashed.
+- `scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook` passed for the three promoted widget directories.
+- Vitest passed through the validation target: 10 files / 49 tests.
+- `docmgr validate frontmatter` passed for the updated data-display report.
+
+### What didn't work
+- Full-tree TypeScript still fails when the pre-existing dirty `ActivityFeed` and `EmptyState` partial edits are present:
+  - `ActivityFeed.tsx`: bad `../ActionButton` import and implicit `any`.
+  - `EmptyState.tsx`: `align="center"` is not valid for current `ActionGroup` alignment type.
+
+### What I learned
+- The first data-display batch can be validated cleanly if unrelated partial edits are stashed; this is safer than either committing broken partial work or reverting work that may still be useful.
+
+### What was tricky to build
+- The dirty worktree contained earlier partial data-display edits. I staged only the intended batch, used `--keep-index -u` to isolate validation, committed just the staged files, and restored the remaining dirty files after the commit.
+
+### What warrants a second pair of eyes
+- Review `MetricCard` tone styling to confirm `badgeToneStyle(tone).color` is appropriate for KPI value/accent styling, not only badge text.
+- Confirm that `InlineError` should remain a simple alert block rather than sharing future form-error widgets.
+
+### What should be done in the future
+- Complete or revert the remaining dirty partial data-display edits before promoting the next batch.
+- Promote `KeyValueList` and `MarkdownBlock` next as no-callback widgets, then `EmptyState`, `ActivityFeed`, `StatusText`, and `ComparisonTable`.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/render.tsx` and confirm the three data-display branches are now thin adapters.
+- Review the three promoted widget directories and their Storybook stories.
+- Validate with:
+  - `cd web && npx tsc --noEmit` after stashing unrelated dirty files, or after completing the remaining partial data-display files.
+  - `python3 ttmp/.../scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook web/src/admin-dsl/widgets/molecules/MetricCard web/src/admin-dsl/widgets/molecules/LoadingState web/src/admin-dsl/widgets/molecules/InlineError`
+
+### Technical details
+- The validation target still reports known shell-widget design lint backlog in report-only mode.
