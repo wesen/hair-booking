@@ -6417,3 +6417,84 @@ The cleanup intentionally preserved the committed `MetricCard`, `LoadingState`, 
 
 ### Technical details
 - Cleanup commands used `git restore -- <paths>` for tracked files and `rm -f` for the two untracked stale drafts.
+
+## Step 111: Complete Data Display Widget Promotion Cleanly
+
+I did a clean playbook pass over `07-data-display-widgets.yaml` from a clean working tree. The goal was to finish the category without carrying forward the earlier partial edits that had stale changelog labels and TypeScript issues.
+
+This completed the remaining six data-display widgets and updated the renderer so all data-display branches now delegate to typed React widgets where a renderer branch exists.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, so now let's do a clean pass on @hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/07-data-display-widgets.yaml , using the playbook, making sure we follow everything correctly so we don't need to double check thingsin the future"
+
+**Assistant interpretation:** Promote the remaining data-display widgets from the YAML using the widget playbook end-to-end, with proper implementation, renderer adapters, Storybook stories, validation, report/task updates, and commit hygiene.
+
+**Inferred user intent:** Avoid another partial/ambiguous promotion by finishing category 07 in a reviewable, validated state.
+
+**Commit (code):** 9f1c656 — "HAIR-041 Step 111: Complete data display widget promotion"
+
+### What I did
+- Read the data-display YAML and current renderer branches for the remaining widgets.
+- Promoted the remaining data-display widgets:
+  - `StatusText`
+  - `KeyValueList`
+  - `MarkdownBlock`
+  - `EmptyState`
+  - `ActivityFeed`
+  - `ComparisonTable`
+- Added manual edit changelogs to promoted `.tsx`, `.types.ts`, and `.stories.tsx` files.
+- Trimmed generated type imports to only the types each file needs.
+- Replaced scaffold diagnostic stories with distinct fixtures, mobile stories, and callback probes for callback-capable widgets.
+- Updated `render.tsx` adapters for:
+  - `comparisonTable`
+  - `emptyState`
+  - `kvList`
+  - `markdownBlock`
+  - `activityFeed`
+- Marked data-display YAML widget statuses as `promoted`.
+- Updated `reference/13-data-display-widget-compliance-audit-report.md` to show all 9 data-display widgets passing.
+- Checked the Phase 21 task for `07-data-display-widgets.yaml`.
+
+### Why
+- The previous dirty partial edits were intentionally removed in Step 110; this step rebuilds the work correctly from a clean slate.
+- Data-display widgets are the next category after resource widgets and provide the baseline for upcoming media/calendar promotion.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed.
+- `scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook ...` passed for the six promoted directories.
+- Vitest passed through the validation target: 10 files / 49 tests.
+- `cd web && npx storybook build --quiet` passed with the known large chunk warning.
+- `docmgr validate frontmatter` passed for the updated data-display report.
+
+### What didn't work
+- The first MarkdownBlock story wrote literal newlines into a quoted string, causing TypeScript parse errors. I changed that fixture to use escaped `\n` sequences.
+- Storybook `StoryObj<typeof meta>` required `args` even for probe-only `render` stories in a few files. I switched those files to a looser `StoryObj` alias for callback probe stories.
+- `EmptyState` action context widened `source` to `string`; I fixed it with `source: "emptyState" as const`.
+
+### What I learned
+- The clean-tree reset made it much easier to distinguish current implementation mistakes from old dirty-worktree residue.
+- Callback probe stories need both visual output and compatible Storybook typing; using the simple `StoryObj` alias is acceptable for explicit render probes.
+
+### What was tricky to build
+- The main sharp edge was keeping action trust boundaries intact: `EmptyState`, `ActivityFeed`, and `ComparisonTable` emit typed callbacks, while `render.tsx` remains the only layer that calls `dispatchWidgetAction`.
+- ComparisonTable had the most adapter work because raw Admin DSL rows can use aliases like `label`/`before`/`after`; the adapter normalizes those into typed `ComparisonTableRow` props.
+
+### What warrants a second pair of eyes
+- Review whether `StatusText` should be reused by `ResourceTableCell` in a later small cleanup, or whether keeping ResourceTableCell's direct `badgeToneStyle` usage is clearer.
+- Review whether `MarkdownBlock` should remain plain pre-wrapped text or eventually support a constrained markdown renderer.
+
+### What should be done in the future
+- Continue Phase 21 with `08-media-widgets.yaml` using the same clean workflow.
+- Optionally capture fresh Storybook iframe screenshots for the completed data-display widget family.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/render.tsx` and inspect the five updated data-display adapters.
+- Then review each promoted widget directory's `.tsx`, `.types.ts`, and `.stories.tsx` files.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook web/src/admin-dsl/widgets/atoms/StatusText web/src/admin-dsl/widgets/molecules/KeyValueList web/src/admin-dsl/widgets/molecules/MarkdownBlock web/src/admin-dsl/widgets/molecules/EmptyState web/src/admin-dsl/widgets/molecules/ActivityFeed web/src/admin-dsl/widgets/organisms/ComparisonTable`
+  - `cd web && npx storybook build --quiet`
+
+### Technical details
+- Design-system lint still reports only the known shell-widget backlog in report-only mode.

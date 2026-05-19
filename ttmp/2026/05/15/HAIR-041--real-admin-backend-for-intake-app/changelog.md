@@ -638,3 +638,14 @@ Step 108: Promoted first data-display widgets (`MetricCard`, `LoadingState`, `In
 
 Step 110: Cleaned pre-existing dirty partial data-display edits and stale untracked audit diary drafts to restore a clean working tree before the next widget-promotion batch.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/01-diary.md` — cleanup rationale and exact reverted/removed paths.
+
+Step 111: Completed a clean playbook pass over `07-data-display-widgets.yaml`, promoting the remaining data-display widgets, updating renderer adapters, hardening stories, validating Storybook, and marking the Phase 21 data-display task complete (commit 9f1c656).
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/07-data-display-widgets.yaml` — data-display widget statuses marked promoted.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — data-display renderer branches converted to typed widget adapters.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/atoms/StatusText/StatusText.tsx` — promoted status text widget.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/KeyValueList/KeyValueList.tsx` — promoted key/value list widget.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/MarkdownBlock/MarkdownBlock.tsx` — promoted markdown/text block widget.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/EmptyState/EmptyState.tsx` — promoted action-capable empty state widget.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/ActivityFeed/ActivityFeed.tsx` — promoted activity feed widget.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ComparisonTable/ComparisonTable.tsx` — promoted comparison table widget.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/13-data-display-widget-compliance-audit-report.md` — updated pass matrix and validation notes.
