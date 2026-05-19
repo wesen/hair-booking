@@ -493,3 +493,15 @@ Step 72: Split generator ownership so widget scaffolding skips shared design-lan
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py — Widget generator now skips shared files unless --write-shared is explicit
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md — Task list records ownership boundary decision
 
+
+## 2026-05-18
+
+Step 74-76: Removed widget-generator shared fallback, refreshed DashboardGrid scaffold, and promoted DashboardGrid into a typed responsive widget with renderer adapter (commits 19efb3b, 37ab6a1, ed8ec9a).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py — Widget generator now never writes shared design-language files
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — dashboardGrid branch now adapts raw Admin DSL JSON to typed DashboardGrid props
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/DashboardGrid/DashboardGrid.metadata.ts — Generated DashboardGrid metadata sidecar
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/DashboardGrid/DashboardGrid.tsx — Promoted responsive DashboardGrid implementation
+

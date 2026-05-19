@@ -4788,3 +4788,183 @@ The scaffold generator now skips shared files by default. It can still write the
 
 ### Technical details
 - Normal targeted widget generation no longer needs to rerun `06-generate-admin-dsl-design-language.py` unless the design-language YAML changed or `--write-shared` was intentionally used.
+
+## Step 74: Remove the shared-file legacy escape hatch from the widget scaffold generator
+
+This step completes the generator ownership split by removing the legacy shared-file write path from the widget scaffold generator. The widget generator now has one job: produce widget-local scaffold files. The design-language generator has one job: produce shared design helpers under `web/src/admin-dsl/widgets/shared/`.
+
+This makes the safer behavior structural rather than optional. Future widget `--force` runs cannot accidentally overwrite shared design-language files because the scaffold generator no longer contains a shared-file writing path.
+
+### Prompt Context
+
+**User prompt (verbatim):** "remove legacy escape hatch if possible. Update the playbook if you haven't yet / if it's necessary. Then move on with DashboardGrid"
+
+**Assistant interpretation:** Remove `--write-shared` if it is not needed, update documentation to match, and proceed to DashboardGrid with the corrected workflow.
+
+**Inferred user intent:** Avoid keeping an unnecessary footgun in the generator and make the new ownership rule simpler.
+
+**Commit (code):** 19efb3b — "HAIR-041 Step 74: Remove shared scaffold fallback"
+
+### What I did
+- Removed the legacy `SHARED_TYPES` fallback from `05-scaffold-admin-dsl-widgets.py`.
+- Removed `generated_shared_header(...)`, `ensure_shared(...)`, and the `--write-shared` CLI flag.
+- Updated the script docstring to state that shared design-language files are owned by `06-generate-admin-dsl-design-language.py`.
+- Updated the playbook to say widget scaffold generation must not touch `widgets/shared/*`.
+- Updated HAIR-041 tasks to record that the widget generator never writes shared files.
+- Validated with:
+  - `python3 -m py_compile .../05-scaffold-admin-dsl-widgets.py`
+  - targeted DashboardGrid dry run
+  - `git diff -- web/src/admin-dsl/widgets/shared`
+  - `cd web && npx tsc --noEmit`
+
+### Why
+- A legacy fallback is still a footgun if someone can pass the wrong flag. Removing it makes generator ownership clear and enforceable.
+
+### What worked
+- The DashboardGrid dry run now only reports DashboardGrid files; it no longer reports shared-file skip/write lines.
+- Shared files had no diff after the dry run.
+- TypeScript validation passed.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The cleanest generator contract is file ownership by directory: widget generator owns widget-local files; design-language generator owns `widgets/shared/*`.
+
+### What was tricky to build
+- The generator still needs imports from `widgets/shared/types`, but that does not require owning or writing the shared module. The existing `shared_import_path(...)` behavior remains enough.
+
+### What warrants a second pair of eyes
+- Review any documentation or scripts that still expect `05-scaffold-admin-dsl-widgets.py` to bootstrap shared files in a brand-new repo.
+
+### What should be done in the future
+- If bootstrap support is needed, add a separate explicit bootstrap command rather than reintroducing shared writes into widget scaffolding.
+
+### Code review instructions
+- Review the removed fallback in `05-scaffold-admin-dsl-widgets.py`.
+- Validate by running a targeted widget dry run and confirming `git diff -- web/src/admin-dsl/widgets/shared` is empty.
+
+### Technical details
+- This step changes generator behavior only; no widget files were regenerated in this commit.
+
+## Step 75: Refresh DashboardGrid scaffold from schema-v2 YAML
+
+This step starts the next layout widget using the corrected workflow. I ran targeted force generation for `DashboardGrid`, confirmed shared files were not touched, validated TypeScript, and committed the generated refresh before hand implementation.
+
+This gives reviewers the same clean boundary used for PageHeader: generated scaffold first, implementation second.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 74)
+
+**Assistant interpretation:** After removing the shared fallback, proceed with DashboardGrid by regenerating its scaffold cleanly.
+
+**Inferred user intent:** Continue layout widget extraction while following the updated playbook.
+
+**Commit (code):** 37ab6a1 — "HAIR-041 Step 75: Refresh DashboardGrid scaffold"
+
+### What I did
+- Ran targeted force generation:
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py --force --name DashboardGrid ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/05-layout-widgets.yaml`
+- Confirmed `web/src/admin-dsl/widgets/shared/*` was not touched.
+- Validated with `cd web && npx tsc --noEmit`.
+- Committed generated DashboardGrid scaffold output and metadata sidecar.
+
+### Why
+- DashboardGrid was still scaffold-only and generated before metadata sidecars/design-language workflow hardening. Refreshing first makes the implementation commit reviewable.
+
+### What worked
+- The generator wrote only DashboardGrid-local files.
+- `DashboardGrid.metadata.ts` was generated from YAML.
+- TypeScript validation passed.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Removing shared writes made the DashboardGrid refresh simpler: no design-language regeneration was required.
+
+### What was tricky to build
+- N/A for this generated-refresh step.
+
+### What warrants a second pair of eyes
+- Review the generated `DashboardGrid.types.ts` shape before relying on it for the implementation, especially the `columns` and `span` contracts.
+
+### What should be done in the future
+- Continue using generated-refresh commits for scaffold-only widgets before promotion.
+
+### Code review instructions
+- Review commit 37ab6a1 as generated output only.
+
+### Technical details
+- This step intentionally contains no hand implementation logic.
+
+## Step 76: Promote DashboardGrid to a responsive layout widget
+
+This step promotes `DashboardGrid` from scaffold to real layout widget. The renderer no longer owns the dashboard grid DOM; it now adapts raw Admin DSL child layout metadata into typed `DashboardGrid` and `DashboardGridItem` props.
+
+The widget owns responsive CSS, desktop/tablet/mobile column variables, gap behavior, and item span/order rendering. This keeps child rendering and raw `AdminNode` metadata in `render.tsx`, while the visual grid behavior moves into the typed component.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 74)
+
+**Assistant interpretation:** Implement DashboardGrid after the clean generated refresh and update validation/task state.
+
+**Inferred user intent:** Continue shrinking the renderer switch by extracting the next foundational layout primitive.
+
+**Commit (code):** ed8ec9a — "HAIR-041 Step 76: Promote DashboardGrid widget"
+
+### What I did
+- Replaced generated `DashboardGrid.tsx` placeholder with real components:
+  - `DashboardGrid`
+  - `DashboardGridItem`
+- Added top-of-file manual-edit changelog entries to generated files edited by hand.
+- Added responsive CSS for tablet/mobile column behavior.
+- Added typed span/order handling for grid items.
+- Replaced generated DashboardGrid stories with hardened scenarios:
+  - `TwelveColumnDesktop`
+  - `CompactGap`
+  - `MixedSpanCards`
+  - `MobileSingleColumn`
+  - `Ordering`
+- Updated `render.tsx` so `case "dashboardGrid"` maps raw Admin DSL columns and child layout metadata to `DashboardGrid`/`DashboardGridItem` props.
+- Marked DashboardGrid promotion and renderer adapter tasks complete.
+- Validated with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+  - `cd web && npx storybook build --quiet`
+
+### Why
+- DashboardGrid is a small foundational layout primitive. Extracting it before Panel and ResourceTable reduces renderer-owned layout code and proves child metadata can stay in the adapter while layout rendering moves to typed widgets.
+
+### What worked
+- TypeScript validation passed.
+- Vitest passed: 10 files, 49 tests.
+- Storybook build passed with the known large-chunk warning.
+- The renderer branch is now an adapter rather than inline visual layout code.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Child layout metadata is a clean adapter responsibility: the widget does not need to know `AdminNode.meta` or call `renderAdminNode`; it only needs typed `span`, `order`, and rendered children.
+
+### What was tricky to build
+- CSS custom properties are used to let each `DashboardGridItem` carry tablet/mobile spans while the parent owns column counts. This avoids generating per-item CSS classes while keeping responsive behavior local to the widget.
+
+### What warrants a second pair of eyes
+- Review the CSS `min(...)` expressions for cross-browser behavior in supported targets.
+- Review whether mobile `span` should always clamp to one column or respect `columns.mobile > 1` for tablet-like mobile layouts.
+
+### What should be done in the future
+- Promote `Panel` next, using the same generated-refresh/manual-edit workflow.
+- Consider adding visual screenshots for DashboardGrid story variants if layout regressions become likely.
+
+### Code review instructions
+- Review generated refresh commit 37ab6a1 first.
+- Then review `DashboardGrid.tsx`, `DashboardGrid.stories.tsx`, and the `dashboardGrid` branch in `render.tsx` in commit ed8ec9a.
+- Validate with `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet`.
+
+### Technical details
+- Storybook build still emits the known large-chunk warning; it does not fail the build.

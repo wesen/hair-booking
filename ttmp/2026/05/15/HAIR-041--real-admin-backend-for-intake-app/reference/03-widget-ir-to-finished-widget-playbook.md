@@ -20,6 +20,7 @@ RelatedFiles:
         Schema-v2 scaffold generator used to create widget files from YAML
         Schema-v2 scaffold generator
         Generator that must be run before widget promotion
+        Widget generator now has no shared-file write path (commit 19efb3b)
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py
       Note: |-
         Generator for Admin DSL design-language helper outputs (commit 9a1f847)
@@ -35,6 +36,7 @@ RelatedFiles:
         DefaultAdminShell renderer adapter after Step 60
         ActionGroup renderer adapter after Step 64
         Renderer pageHeader branch now adapts raw Admin DSL JSON to PageHeader props (commit bf3305e)
+        DashboardGrid renderer adapter maps raw child layout metadata to typed item props (commit ed8ec9a)
     - Path: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.stories.tsx
       Note: Hardened ActionButton Storybook variants
     - Path: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.tsx
@@ -47,6 +49,12 @@ RelatedFiles:
       Note: |-
         Action group implementation composing ActionButton
         Action slot grouping now uses generated placement defaults and layout helper (commit 4bf24e9)
+    - Path: web/src/admin-dsl/widgets/organisms/DashboardGrid/DashboardGrid.metadata.ts
+      Note: Generated metadata sidecar from 05-layout-widgets.yaml (commit 37ab6a1)
+    - Path: web/src/admin-dsl/widgets/organisms/DashboardGrid/DashboardGrid.stories.tsx
+      Note: Hardened DashboardGrid Storybook layout variants (commit ed8ec9a)
+    - Path: web/src/admin-dsl/widgets/organisms/DashboardGrid/DashboardGrid.tsx
+      Note: Promoted DashboardGrid implementation with responsive item span/order behavior (commit ed8ec9a)
     - Path: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.metadata.ts
       Note: Default shell metadata sidecar preserving IR intent
     - Path: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.stories.tsx
@@ -77,6 +85,7 @@ LastUpdated: 2026-05-18T23:20:00-04:00
 WhatFor: Use when promoting generated Admin DSL widget scaffolds into real React components while preserving adapter boundaries and metadata context.
 WhenToUse: Use before implementing ActionButton, ActionGroup, Panel, PageHeader, DashboardGrid, ResourceTable, AdminForm, MonthCalendar, or any other Admin DSL widget from YAML.
 ---
+
 
 
 
