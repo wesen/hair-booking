@@ -134,6 +134,10 @@ widgets:
             type: TableBulkActionHandler<Row>
             required: false
             doc: Callback invoked by ResourceTable with table id, selected ids, scope, and row data.
+          onPaginationAction:
+            type: '(action: ActionViewModel, context: { tableId: string; page: number; total: number }) => void'
+            required: false
+            doc: Callback invoked by ResourceTable pagination controls with table id and page/total context.
           onSelectionChange:
             type: '(context: { tableId: string; selectedRowIds: string[] }) => void'
             required: false
@@ -187,7 +191,7 @@ widgets:
             or backend action transport.
       pagination:
         doc: Pagination actions receive page/total context.
-        callback: onAction
+        callback: onPaginationAction
         action_type: ActionViewModel
         cardinality: many
         context_type: PaginationContext
