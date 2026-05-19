@@ -6498,3 +6498,73 @@ This completed the remaining six data-display widgets and updated the renderer s
 
 ### Technical details
 - Design-system lint still reports only the known shell-widget backlog in report-only mode.
+
+## Step 113: Promote Media Widgets
+
+I promoted the `08-media-widgets.yaml` category from generated scaffold placeholders to typed React widgets. This followed the same clean workflow used for data-display: read YAML and renderer behavior, preserve typed widget boundaries, move visual rendering into widgets, keep backend dispatch in `render.tsx`, harden stories, validate, and commit as a single reviewable category boundary.
+
+The media pass covers preview embeds, media summary cards, and clickable image galleries. It also preserves an existing regression-test expectation that gallery image actions remain findable as `Open Front`-style accessible buttons.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Now 08-media-widgets"
+
+**Assistant interpretation:** Promote and validate the media widget category using the established widget playbook workflow.
+
+**Inferred user intent:** Continue Phase 21 category-by-category remediation after completing data-display widgets.
+
+**Commit (code):** 1a0e392 — "HAIR-041 Step 113: Promote media widgets"
+
+### What I did
+- Read `08-media-widgets.yaml` and the current `previewFrame`, `imageGrid`, and `imageGallery` renderer branches.
+- Promoted:
+  - `PreviewFrame`
+  - `ImageGrid`
+  - `ImageGallery`
+- Replaced scaffold diagnostics with typed component implementations using shared Admin DSL helpers.
+- Added/updated manual edit changelogs in `.tsx`, `.types.ts`, and `.stories.tsx` files.
+- Hardened Storybook stories with populated, placeholder/empty, missing-media, callback-probe, tall, and mobile variants.
+- Updated `render.tsx` to normalize raw Admin DSL JSON and delegate to the typed media widgets.
+- Updated `08-media-widgets.yaml` statuses to `promoted` and reconciled action callback names/context contracts.
+- Marked the Phase 21 media promotion task complete.
+
+### Why
+- Media widgets were still scaffold-only and `render.tsx` still owned their visual JSX.
+- The audit plan requires every promoted widget family to have typed props, adapter-owned dispatch, distinct stories, callback probes where applicable, and validation evidence.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed.
+- Scoped `scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook` passed for the three media widget directories.
+- Vitest passed through the validation target: 10 files / 49 tests.
+- `cd web && npx storybook build --quiet` passed with the known large chunk warning.
+
+### What didn't work
+- The first validation run failed one existing Admin DSL test: it expected a gallery image button named `Open Front`, but the new `ImageGallery` action label rendered `Open photo` / `Open photo Front`.
+- I fixed this by deriving per-image action labels from the base action label and image title, while preserving the original action target/context for dispatch.
+
+### What I learned
+- Existing accessibility names are part of the renderer contract. When extracting a widget, matching visible semantics is not enough; tests and users rely on button names too.
+- Future/action slots in YAML should be reconciled with props before marking a widget promoted, even when current renderer behavior did not use the slot.
+
+### What was tricky to build
+- `ImageGallery` needed to avoid arbitrary card-level button styling while still preserving image action semantics. I used `ActionGroup` inside each image card so action styling and backend trust boundaries stay consistent.
+- `ImageGrid` originally had only a future action slot in YAML. I made that optional typed behavior real by adding `actions` and `onAction`, plus a callback probe story.
+
+### What warrants a second pair of eyes
+- Review whether deriving gallery button labels by removing a trailing `photo` from the base action label is the right compatibility rule, or whether the adapter should provide per-image action labels explicitly.
+- Review whether media thumbnails should eventually render real uploaded images for `ImageGrid`; currently no URL is required and placeholder gradients remain valid.
+
+### What should be done in the future
+- Continue Phase 21 with `09-calendar-widgets.yaml` using the same workflow.
+- Optionally capture Storybook iframe screenshots for media widgets before/after calendar work.
+
+### Code review instructions
+- Start in `web/src/admin-dsl/render.tsx` and review the three media adapters.
+- Then review `PreviewFrame`, `ImageGrid`, and `ImageGallery` component/types/story files.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook web/src/admin-dsl/widgets/organisms/PreviewFrame web/src/admin-dsl/widgets/organisms/ImageGrid web/src/admin-dsl/widgets/organisms/ImageGallery`
+  - `cd web && npx storybook build --quiet`
+
+### Technical details
+- The validation target still reports only the known shell-widget design lint backlog in report-only mode.

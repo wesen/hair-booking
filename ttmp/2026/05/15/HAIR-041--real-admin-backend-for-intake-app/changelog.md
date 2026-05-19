@@ -649,3 +649,10 @@ Step 111: Completed a clean playbook pass over `07-data-display-widgets.yaml`, p
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/ActivityFeed/ActivityFeed.tsx` — promoted activity feed widget.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ComparisonTable/ComparisonTable.tsx` — promoted comparison table widget.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/13-data-display-widget-compliance-audit-report.md` — updated pass matrix and validation notes.
+
+Step 113: Promoted `08-media-widgets.yaml` widgets (`PreviewFrame`, `ImageGrid`, `ImageGallery`), updated renderer adapters, hardened media stories, validated TypeScript/tests/Storybook, and marked the media Phase 21 task complete (commit 1a0e392).
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/08-media-widgets.yaml` — media widget statuses and callback contracts.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — media renderer adapters.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/PreviewFrame/PreviewFrame.tsx` — promoted preview frame.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ImageGrid/ImageGrid.tsx` — promoted image grid.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ImageGallery/ImageGallery.tsx` — promoted image gallery and image action context.
