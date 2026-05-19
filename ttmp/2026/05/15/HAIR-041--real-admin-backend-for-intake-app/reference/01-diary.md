@@ -6703,3 +6703,56 @@ The form widgets now own lifecycle/status/error display and Storybook coverage, 
 
 ### Technical details
 - The validation target still reports only the known shell-widget design lint backlog in report-only mode.
+
+## Step 119: Add Form Field Extraction Phase
+
+I split concrete form field extraction into its own ticket phase instead of hiding it inside the already-completed form chrome promotion. The new phase names the still-inline `FieldPreview` work explicitly and gives it a reviewable sequence from IR definition through shared field chrome, typed leaf widgets, renderer adapter removal, tests, and validation.
+
+This keeps the ticket honest: `10-form-widgets.yaml` promoted `AdminForm`, `FieldGroup`, and `SaveBar`, but the actual field leaves still need their own contracts, Storybook fixtures, and adapter cleanup.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Ok, add all the tasks in a separate phase in the ticket, then work on them one by one , committing at appropriate intervals, and keeping a detailed diary as you go."
+
+**Assistant interpretation:** Add a dedicated ticket phase for form field extraction, then proceed task-by-task with commits and diary entries.
+
+**Inferred user intent:** Make the form field work explicit and traceable instead of letting it blur into the prior form widget promotion.
+
+### What I did
+- Added `Phase 22 — Form field widget extraction` to `tasks.md`.
+- Listed tasks for:
+  - dedicated form-field Widget IR
+  - shared `FieldShell`
+  - typed field leaves
+  - `FieldPreview` removal
+  - tests
+  - validation and diary/changelog updates
+
+### Why
+- Concrete field rendering remains in `render.tsx` even after `AdminForm`, `FieldGroup`, and `SaveBar` were promoted.
+- The field leaves need separate contracts and review checkpoints because they touch value rendering, labels, accessibility, and eventual form submission behavior.
+
+### What worked
+- The new phase cleanly separates form chrome promotion from concrete form control extraction.
+
+### What didn't work
+- N/A
+
+### What I learned
+- The ticket needed a finer-grained phase because `10-form-widgets.yaml` currently describes form structure more than leaf input semantics.
+
+### What was tricky to build
+- The phase has to preserve the current uncontrolled input behavior while leaving room for future typed value-change callbacks. The task order therefore starts with IR and shared shell work before removing the adapter helper.
+
+### What warrants a second pair of eyes
+- Review whether the phase should include one generic `FormField` widget in addition to typed field leaves, or whether `FieldShell` plus typed leaves is enough.
+
+### What should be done in the future
+- Work Phase 22 tasks one by one, starting with the form-field Widget IR source.
+
+### Code review instructions
+- Review `tasks.md` under `Phase 22 — Form field widget extraction`.
+- Confirm the phase includes all field kinds currently handled by `FieldPreview`.
+
+### Technical details
+- Current inline field kinds are `textField`, `textareaField`, `moneyField`, `durationField`, `dateField`, `timeField`, `selectField`, `switchField`, and `imageField`.

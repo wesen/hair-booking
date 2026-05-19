@@ -280,3 +280,17 @@ updated: 2026-05-15
 - [x] Promote `08-media-widgets.yaml` in playbook-complete batches with populated/empty/missing-media/mobile stories and image callback probes.
 - [x] Promote `09-calendar-widgets.yaml` in playbook-complete batches with marker/selection/navigation/mobile stories and calendar/event callback probes.
 - [x] Promote `10-form-widgets.yaml` in playbook-complete batches with form lifecycle/error/action stories and form/save callback probes.
+
+## Phase 22 — Form field widget extraction
+
+- [ ] Add a dedicated form-field Widget IR source for concrete field widgets that are still rendered by `FieldPreview` in `render.tsx`.
+- [ ] Define and scaffold shared field chrome (`FieldShell`) so label/help/error/disabled/read-only styling is not duplicated across field widgets.
+- [ ] Promote `TextField` with typed props, Storybook variants, and renderer adapter coverage.
+- [ ] Promote `TextareaField` with typed props, Storybook variants, and renderer adapter coverage.
+- [ ] Promote `SelectField` with typed props, option fixtures, Storybook variants, and renderer adapter coverage.
+- [ ] Promote `SwitchField` with typed props, checked/unchecked/disabled Storybook variants, and renderer adapter coverage.
+- [ ] Promote date/time/numeric field leaves (`DateField`, `TimeField`, `MoneyField`, `DurationField`) with typed props, mobile/error variants, and renderer adapter coverage.
+- [ ] Promote `ImageField` with empty/filled/error/disabled Storybook variants and renderer adapter coverage.
+- [ ] Replace the remaining `FieldPreview` branch in `render.tsx` with typed widget adapters and remove obsolete inline field styling.
+- [ ] Add or update tests that assert existing field rendering/accessibility contracts survive extraction.
+- [ ] Run scoped form-field validation (`tsc`, widget promotion validator, Vitest, Storybook build) and record findings in the diary/changelog.
