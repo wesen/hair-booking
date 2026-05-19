@@ -14,10 +14,16 @@ Owners: []
 RelatedFiles:
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/03-widget-ir-to-finished-widget-playbook.md
       Note: Implementation workflow companion for promoting widgets from IR
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/05-admin-dsl-widget-ir-review.md
+      Note: Intern review that identified design-system and adapter review gaps
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/06-widget-ir-review-diary.md
+      Note: Intern review diary that motivated playbook hardening
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/15-design-language.yaml
       Note: |-
         Design-language IR source for shared helper generation
         Design-language IR to extend for missing shared visual primitives
+    - Path: web/src/admin-dsl/render.tsx
+      Note: Adapter dead-code and pagination callback checks added from review feedback
     - Path: web/src/admin-dsl/widgets/molecules/FilterBar/FilterBar.tsx
       Note: Example of duplicated pill styling that should move to shared design helpers
     - Path: web/src/admin-dsl/widgets/molecules/Tabs/Tabs.tsx
@@ -42,6 +48,7 @@ LastUpdated: 2026-05-19T00:00:00-04:00
 WhatFor: Use when reviewing promoted Admin DSL widgets for hardcoded CSS, duplicated button styles, raw token drift, local one-off controls, and inconsistent use of generated shared design helpers.
 WhenToUse: Use before merging a widget promotion, after scaffolding/implementation, during visual cleanup, and whenever a component contains inline styles, raw token imports, button-like controls, pills, surfaces, or typography decisions.
 ---
+
 
 
 # Admin DSL Widget Design System Review Playbook
@@ -75,6 +82,14 @@ Review in this order:
 5. `render.tsx` adapter code
 
 The source YAML defines intent. The generated shared helpers define the current implementation API. Widgets should not invent new visual grammar without first checking these sources.
+
+Before relying on a helper name mentioned in prose, verify the actual generated exports:
+
+```bash
+rg "^export" web/src/admin-dsl/widgets/shared
+```
+
+The playbook may describe the intended helper category before the exact generated API exists. If a helper is missing, do not copy local CSS into the widget; add the missing concept to `15-design-language.yaml`, regenerate shared helpers, and then refactor the widget.
 
 ## Hard Rule
 
@@ -280,6 +295,7 @@ Review questions:
 - Is this an action row? Use `adminActionRowStyle(...)`.
 - Is this a page/shell/grid/surface pattern? Use existing layout helpers.
 - Are responsive rules local to the widget and named with the widget class?
+- Did the component add a local helper such as `densityPadding(...)`, `gapValue(...)`, or `pillStyle(...)` that is duplicated in another widget or in `render.tsx`?
 
 ### 6. Data Attributes
 
@@ -327,7 +343,34 @@ Review questions:
 - Does it dispatch backend actions directly?
 - Does it receive typed props and emit typed callbacks instead?
 
-### 8. Manual Edit Changelog
+### 8. Adapter Correctness, Dead Code, and Type Escape Hatches
+
+A design-system review also checks that extraction did not leave stale renderer code or semantically wrong callback paths behind.
+
+Review `render.tsx` after every widget promotion:
+
+- Is the old inline renderer/helper still present even though the widget owns that behavior now?
+- Is any helper now dead code? Search for its call sites before approving.
+- Does the adapter lower each widget callback to the correct backend action context?
+- Are pagination, row, bulk, form, and page actions kept semantically distinct?
+- Did the adapter add `as unknown as` casts? If yes, is there a comment explaining why the cast is transitional and what normalized mapping should replace it?
+- Is any local helper duplicated between a widget and `render.tsx`?
+
+Concrete checks:
+
+```bash
+rg "function renderTableCell|renderTableCell\(" web/src/admin-dsl/render.tsx
+rg "as unknown as" web/src/admin-dsl/render.tsx web/src/admin-dsl/widgets
+rg "densityPadding|pillStyle|sharedStyle" web/src/admin-dsl/render.tsx web/src/admin-dsl/widgets
+```
+
+Known issue patterns:
+
+- A promoted `ResourceTableCell` means old `renderTableCell(...)` in `render.tsx` should be removed or explicitly justified.
+- Pagination actions should not be routed through `onBulkAction`; they need their own pagination callback or a direct adapter dispatch path.
+- `as unknown as Parameters<typeof ResourceTable<AdminJsonObject>>...` is a transitional type hole and should be documented or replaced with proper normalization.
+
+### 9. Manual Edit Changelog
 
 Every generated file that is hand-promoted must explain its manual changes near the top.
 
@@ -403,6 +446,9 @@ Review priorities:
 - Row actions should use `ActionGroup` or `ActionButton`.
 - Badge/status colors should move to shared tone helpers if reused by `StatusText` or data-display widgets.
 - Cell vertical alignment must be consistent and intentional.
+- Pagination actions must not be lowered through bulk-action callbacks.
+- Old renderer helpers such as `renderTableCell(...)` must be removed once the table widget owns cell rendering.
+- Any `as unknown as` adapter cast must be documented as a transitional normalization gap.
 
 ### Panel
 
@@ -446,7 +492,9 @@ For each component:
    - needs new design-language helper;
    - truly local exception.
 6. Check Storybook stories for active/inactive/disabled/mobile/callback states.
-7. Record required remediation before approving.
+7. Search `render.tsx` for stale helpers and semantically wrong callback routing left behind by the extraction.
+8. Search for `as unknown as` casts and require an explanatory comment or a follow-up task.
+9. Record required remediation before approving.
 
 ## Suggested Scriptable Checks
 
@@ -460,11 +508,14 @@ Warnings:
 
 - raw `fringe-ui/tokens` import in promoted widgets;
 - hex colors or `rgba(...)` in widget files;
-- local functions named `buttonStyle`, `variantForSlot`, `sizeForSlot`, `pillStyle`, `sharedStyle`;
+- local functions named `buttonStyle`, `variantForSlot`, `sizeForSlot`, `pillStyle`, `sharedStyle`, `densityPadding`;
 - manual `data-admin-dsl-widget-id` outside shared helpers;
 - `<button` without `ActionButton`, `ActionGroup`, or documented structural-control exception;
 - `borderRadius`, `boxShadow`, `fontFamily`, `textTransform`, `letterSpacing` in inline styles;
-- `dispatchAdminAction` imported outside renderer adapters.
+- `dispatchAdminAction` imported outside renderer adapters;
+- `as unknown as` casts in adapters without an explanatory comment;
+- stale renderer helpers such as `renderTableCell` after the corresponding widget has been promoted;
+- pagination callbacks routed through bulk-action handlers.
 
 Allowlist examples:
 
@@ -481,6 +532,9 @@ A widget passes review when:
 - action-like controls use `ActionButton`/`ActionGroup` or a shared structural-control helper;
 - selection/filter controls do not duplicate pill styling locally;
 - raw Admin DSL parsing remains in the adapter;
+- callback contexts remain semantically correct for page, panel, row, bulk, form, and pagination actions;
+- old inline renderer helpers are removed or explicitly justified after extraction;
+- any adapter type escape hatch is documented as transitional;
 - generated files with manual edits include a top-of-file manual edit changelog;
 - Storybook demonstrates the visual states that the component owns;
 - validation passes:
@@ -499,3 +553,6 @@ The following should be reviewed soon:
 - `ResourceTableCell.tsx` duplicates badge/status color recipes. Move tone badge styling into a shared helper if `StatusText` or other data-display widgets need it.
 - `SearchBox.tsx` uses a local input style and should be revisited when form widgets are promoted.
 - `Panel.tsx` has local density padding logic. Keep it for now, but move it to layout helpers if another widget needs the same density scale.
+- `render.tsx` still contains dead `renderTableCell(...)` after `ResourceTableCell` promotion. Remove it or document why it remains.
+- `render.tsx` routes pagination actions through the resource table bulk callback. Add a proper pagination callback or direct dispatch path.
+- The `resourceTable` adapter uses an `as unknown as` cast for columns. Add a normalization helper/comment or replace the cast with a typed mapping.

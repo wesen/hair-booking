@@ -529,3 +529,26 @@ Step 83: Added Admin DSL widget design-system review playbook with strict token/
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/FilterBar/FilterBar.tsx — Current duplicated pill styling example
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/Tabs/Tabs.tsx — Current duplicated pill styling example
 
+
+## 2026-05-18
+
+Step 84: Comprehensive review of widget IR playbooks, generator workflow, promoted widgets, and adapter boundary. Report at reference/05-admin-dsl-widget-ir-review.md. Diary at reference/06-widget-ir-review-diary.md.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Dead renderTableCell and pagination wiring issue found
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/FilterBar/FilterBar.tsx — Pill duplication identified
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/Tabs/Tabs.tsx — Pill duplication identified
+
+
+## 2026-05-18
+
+Step 84: Folded intern review feedback into widget implementation/review playbooks: added STOP regeneration warning, dead renderer cleanup, adapter semantic checks, type escape-hatch review, and helper export verification.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/03-widget-ir-to-finished-widget-playbook.md — Implementation playbook hardened from intern feedback
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/04-admin-dsl-widget-design-system-review-playbook.md — Design-system review playbook hardened from intern feedback
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/05-admin-dsl-widget-ir-review.md — Intern review input
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/06-widget-ir-review-diary.md — Intern review diary input
+

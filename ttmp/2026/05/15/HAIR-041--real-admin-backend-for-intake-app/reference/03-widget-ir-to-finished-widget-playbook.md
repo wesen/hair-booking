@@ -15,6 +15,10 @@ Owners: []
 RelatedFiles:
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md
       Note: Format specification for schema-v2 widget YAML
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/05-admin-dsl-widget-ir-review.md
+      Note: Intern review feedback folded into implementation workflow
+    - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/06-widget-ir-review-diary.md
+      Note: Intern diary feedback folded into implementation workflow
     - Path: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/05-scaffold-admin-dsl-widgets.py
       Note: |-
         Schema-v2 scaffold generator used to create widget files from YAML
@@ -99,6 +103,7 @@ LastUpdated: 2026-05-18T23:20:00-04:00
 WhatFor: Use when promoting generated Admin DSL widget scaffolds into real React components while preserving adapter boundaries and metadata context.
 WhenToUse: Use before implementing ActionButton, ActionGroup, Panel, PageHeader, DashboardGrid, ResourceTable, AdminForm, MonthCalendar, or any other Admin DSL widget from YAML.
 ---
+
 
 
 
@@ -229,6 +234,8 @@ This keeps the renderer adapter focused on raw Admin DSL JSON, child rendering, 
 ## Step 2.75: Validate That the Generated Version Is Current
 
 Before hand-editing a widget, prove that the checked-in scaffold is current for the target YAML and generator. This is mandatory even when files already exist.
+
+> **STOP: never force-regenerate over a hand-promoted widget unless rebuilding it is the explicit task.** If a file has a `Manual edits after generation` section or contains real implementation code, treat it as hand-promoted. Do not run `--force` over it as a cleanup shortcut.
 
 Run a targeted dry run:
 
@@ -437,6 +444,28 @@ function renderWorkbenchShell({ page, context }) {
 
 The adapter may keep temporary escape hatches while the migration is underway, but those escape hatches should be explicit. For example, WorkbenchShell currently preserves the raw sidebar item as `rawItem` so the adapter can pass the same payload that the old renderer used. That is acceptable as a transitional adapter detail; it should not become a widget concern.
 
+If an adapter needs an `as unknown as` cast, add a comment explaining why the raw Admin DSL shape cannot yet be normalized more precisely and what cleanup would remove the cast.
+
+## Step 6.5: Remove or Justify Dead Renderer Code
+
+After a widget takes over rendering behavior, search `render.tsx` for old helper functions and inline rendering branches that no longer have callers. Remove them in the same implementation commit, or add a short comment explaining why they remain.
+
+Use concrete checks:
+
+```bash
+rg "renderTableCell|densityPadding|function render[A-Z]" web/src/admin-dsl/render.tsx
+rg "as unknown as" web/src/admin-dsl/render.tsx web/src/admin-dsl/widgets
+```
+
+Review questions:
+
+- Did the extracted widget replace an old helper such as `renderTableCell(...)`?
+- Does that helper still have call sites?
+- Is the remaining helper still an adapter concern, or did it become widget/design-language logic?
+- Did callback wiring preserve the correct action context, or was one callback reused for a different semantic action type?
+
+For example, a pagination action should not be routed through a bulk-action callback just because both are table-level controls. Add a dedicated pagination callback or dispatch it directly from the adapter.
+
 ## Step 7: Preserve the Backend Action Trust Boundary
 
 Widgets should never call `dispatchAdminAction` directly. They should emit typed callbacks. The adapter owns backend-bound dispatch.
@@ -447,6 +476,7 @@ Widgets should never call `dispatchAdminAction` directly. They should emit typed
 | Panel toolbar action | `onToolbarAction(action, { panelId })` | `dispatchAdminAction(ctx, node, action)` |
 | Table row action | `onRowAction(action, { tableId, row, rowId })` | `dispatchAdminAction(ctx, node, action, row)` |
 | Bulk table action | `onBulkAction(action, { tableId, scope, rows, selectedRowIds })` | `dispatchAdminAction(ctx, node, action, payload)` |
+| Pagination action | `onPaginationAction(action, { tableId, page, total })` or adapter-local dispatch | `dispatchAdminAction(ctx, node, action, { page, total })` |
 | Form action | `onFormAction(action, { formId, values })` | `dispatchAdminAction(ctx, node, action, values)` |
 | Sidebar nav action | `onSidebarAction(action, { item, activeItemId })` | `dispatchAdminAction(ctx, navNode, action, item)` |
 

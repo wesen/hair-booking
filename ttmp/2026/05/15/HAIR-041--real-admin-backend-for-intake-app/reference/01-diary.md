@@ -5275,3 +5275,69 @@ The playbook calls out `FilterBar` and `Tabs` as immediate examples: they curren
 
 ### Technical details
 - This step is documentation only.
+
+## Step 84: Fold intern review feedback back into the widget playbooks
+
+This step read the intern review report and review diary, then updated the playbooks where the diary showed the instructions were not yet sharp enough. The review confirmed that the core workflow is understandable, but it also found several instruction gaps that could let future reviewers miss dead renderer code, semantic callback mistakes, type escape hatches, and buried regeneration warnings.
+
+I updated the design-system review playbook to include adapter correctness, dead-code cleanup, helper export verification, type-cast review, and concrete ResourceTable findings. I also updated the implementation playbook with a prominent stop warning about force-regenerating hand-promoted widgets and a new cleanup step for stale renderer code after extraction.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, the review is back at @hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/05-admin-dsl-widget-ir-review.md , and their diary is at @hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/06-widget-ir-review-diary.md .
+
+See if the diary gives you feedback on how to make the review playbook better."
+
+**Assistant interpretation:** Read the returned review and diary, identify actionable feedback about the playbooks, and improve the review/playbook instructions accordingly.
+
+**Inferred user intent:** Validate the instructions themselves, not only the component code, by using intern feedback as a quality loop.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Read `reference/05-admin-dsl-widget-ir-review.md`.
+- Read `reference/06-widget-ir-review-diary.md`.
+- Updated `reference/04-admin-dsl-widget-design-system-review-playbook.md` to add:
+  - a check for actual generated shared exports before trusting prose helper names;
+  - local-helper duplication checks such as `densityPadding`, `pillStyle`, and `sharedStyle`;
+  - an adapter correctness/dead-code/type-escape-hatch review section;
+  - ResourceTable-specific checks for pagination callback semantics, dead `renderTableCell`, and transitional casts;
+  - scriptable checks for `as unknown as`, stale renderer helpers, and pagination-through-bulk callback routing;
+  - immediate findings copied from the intern review.
+- Updated `reference/03-widget-ir-to-finished-widget-playbook.md` to add:
+  - a prominent STOP callout against force-regenerating hand-promoted widgets;
+  - a requirement to comment `as unknown as` adapter escape hatches;
+  - a new Step 6.5 for removing or justifying dead renderer code;
+  - a pagination action row in the backend action trust-boundary table.
+
+### Why
+- The diary surfaced that the review checklist was good but not complete enough. In particular, it did not force reviewers to check stale renderer helpers, semantic callback routing, or adapter type holes.
+
+### What worked
+- The intern review gave concrete, actionable feedback with exact files and failure modes.
+- The playbooks could absorb the feedback without changing the overall workflow.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- A design-system review has to include adapter semantics, not just visual tokens. A visually correct table can still have wrong pagination callback semantics.
+- Prominent callouts matter: a warning buried in a paragraph is not enough for a high-risk generator command.
+
+### What was tricky to build
+- Some feedback belongs in the design-system review playbook, while other feedback belongs in the implementation playbook. I updated both because the intern diary pointed at instruction quality across the full workflow.
+
+### What warrants a second pair of eyes
+- Review whether the new `Step 6.5` in the implementation playbook is placed at the right point, or whether it should become a mandatory checklist near commit time.
+- Review whether the design-system playbook should become a linter-backed checklist next.
+
+### What should be done in the future
+- Implement the actual fixes identified by the intern review: `selectionPillStyle`, ResourceTable raw token cleanup, pagination callback correction, dead `renderTableCell` removal, and adapter cast cleanup.
+
+### Code review instructions
+- Review the changes in `reference/04-admin-dsl-widget-design-system-review-playbook.md` first.
+- Then review the smaller workflow hardening changes in `reference/03-widget-ir-to-finished-widget-playbook.md`.
+- Compare against the findings in `reference/05-admin-dsl-widget-ir-review.md` and `reference/06-widget-ir-review-diary.md`.
+
+### Technical details
+- This step updates documentation only.
