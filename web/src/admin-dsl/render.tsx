@@ -5,8 +5,14 @@ import { AdminCalendarWeek } from "./calendar";
 import { WorkbenchShell as WorkbenchShellWidget } from "./widgets/organisms/WorkbenchShell";
 import { DefaultAdminShell } from "./widgets/organisms/DefaultAdminShell";
 import { ActionGroup } from "./widgets/molecules/ActionGroup";
+import { FilterBar } from "./widgets/molecules/FilterBar";
+import { SearchBox } from "./widgets/molecules/SearchBox";
+import { Tabs } from "./widgets/molecules/Tabs";
+import { Toolbar } from "./widgets/molecules/Toolbar";
 import { DashboardGrid, DashboardGridItem } from "./widgets/organisms/DashboardGrid";
 import { PageHeader } from "./widgets/organisms/PageHeader";
+import { Panel } from "./widgets/organisms/Panel";
+import { SplitPane } from "./widgets/organisms/SplitPane";
 import type { ActionViewModel, SidebarNavItem } from "./widgets/shared";
 
 import { actionIsDanger, actionIsPrimary, actionKey, actionList, dispatchAdminAction, isActionRef } from "./actions";
@@ -229,46 +235,47 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     }
 
     case "toolbar":
-      return <div key={key} {...common} style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 22, ...style(props) }}>{renderActions(node, ctx)}</div>;
+      return <Toolbar key={key} id={node.meta?.id || str(props, "id", undefined as unknown as string)} actions={actionList(props).map(actionViewModel)} style={style(props)} onAction={(action, value) => dispatchAdminAction(ctx, node, action as AdminActionRef, value)} />;
 
     case "splitPane":
-      return <div key={key} {...common} className="adminDslSplitPane" style={{ display: "grid", gridTemplateColumns: "minmax(260px, 0.85fr) minmax(320px, 1.15fr)", gap: 16, alignItems: "start", ...style(props) }}>{renderChildren(node.children, ctx)}</div>;
+      return <SplitPane key={key} id={node.meta?.id || str(props, "id", undefined as unknown as string)} leftWidth={str(props, "leftWidth") || undefined} rightWidth={str(props, "rightWidth") || undefined} gap={Number(props.gap || 16)} style={style(props)}>{renderChildren(node.children, ctx)}</SplitPane>;
 
     case "tabs": {
-      const tabs = jsonArray<AdminJsonObject>(props, "tabs");
-      const value = str(props, "value");
+      const tabs = jsonArray<AdminJsonObject>(props, "tabs").map((tab) => ({ id: String(tab.id), label: String(tab.label || tab.id) }));
       const tabAction = actionList(props)[0];
-      return <div key={key} {...common} role="tablist" style={{ display: "flex", gap: 8, flexWrap: "wrap", ...style(props) }}>{tabs.map((tab) => { const id = String(tab.id); const active = id === value; const content = String(tab.label || tab.id); const sharedStyle: CSSProperties = { minHeight: 38, display: "inline-flex", alignItems: "center", borderRadius: radius.pill, padding: "8px 12px", border: `1px solid ${active ? color.ink : color.rule}`, background: active ? color.ink : color.paper, color: active ? color.paper : color.ink, ...type.meta }; return tabAction ? <button key={id} type="button" role="tab" aria-selected={active} className="adminDslFilterPill" onClick={() => dispatchAdminAction(ctx, node, tabAction, tab)} style={{ ...sharedStyle, cursor: "pointer" }}>{content}</button> : <span key={id} role="tab" aria-selected={active} className="adminDslFilterPill" style={sharedStyle}>{content}</span>; })}</div>;
+      return <Tabs key={key} id={node.meta?.id || str(props, "id", undefined as unknown as string)} tabs={tabs} value={str(props, "value")} action={tabAction ? actionViewModel(tabAction) : undefined} style={style(props)} onTabChange={(action, value) => action && dispatchAdminAction(ctx, node, action as AdminActionRef, value.tab)} />;
     }
 
     case "searchBox": {
       const searchAction = actionList(props)[0];
-      return <form key={key} {...common} role="search" onSubmit={(event) => { event.preventDefault(); const value = String(new FormData(event.currentTarget).get("search") || ""); if (searchAction) dispatchAdminAction(ctx, node, searchAction, { query: value }); }} style={{ ...surface, padding: 12, display: "flex", alignItems: "center", gap: 10, color: color.softInk, ...style(props) }}><input name="search" defaultValue={str(props, "value")} placeholder={str(props, "placeholder", "Search")} aria-label={str(props, "label", "Search")} style={{ flex: 1, minHeight: 38, border: "none", outline: "none", background: "transparent", ...type.body }} />{searchAction && <button type="submit" className="adminDslActionButton" style={{ minHeight: 34, border: `1px solid ${color.ink}`, background: color.ink, color: color.paper, borderRadius: radius.pill, padding: "7px 11px", fontFamily: font.mono, fontSize: 10, letterSpacing: 0.5, textTransform: "uppercase", cursor: "pointer" }}>{searchAction.label || "Search"}</button>}</form>;
+      return <SearchBox key={key} id={node.meta?.id || str(props, "id", undefined as unknown as string)} value={str(props, "value")} placeholder={str(props, "placeholder", "Search")} label={str(props, "label", "Search")} action={searchAction ? actionViewModel(searchAction) : undefined} style={style(props)} onSearch={(action, value) => action && dispatchAdminAction(ctx, node, action as AdminActionRef, value)} />;
     }
 
     case "previewFrame":
       return <div key={key} {...common} className="adminDslPreviewFrame" style={{ ...surface, padding: 14, display: "grid", gap: 12, ...style(props) }}><div><div style={{ ...type.eyebrow, color: color.softInk }}>{str(props, "kicker", "Preview")}</div><h3 style={{ ...type.h2, margin: "4px 0 0" }}>{str(props, "title", "Customer preview")}</h3>{str(props, "body") && <p style={{ ...type.bodySm, color: color.softInk, margin: "8px 0 0" }}>{str(props, "body")}</p>}</div>{str(props, "url") ? <iframe title={str(props, "title", "Preview")} src={str(props, "url")} style={{ width: "100%", minHeight: Number(props.height || 420), border: `1px solid ${color.rule}`, borderRadius: radius.md, background: color.paper }} /> : <div style={{ minHeight: Number(props.height || 260), border: `1px dashed ${color.rule}`, borderRadius: radius.md, display: "grid", placeItems: "center", color: color.softInk, ...type.bodySm }}>{str(props, "placeholder", "Preview route not connected yet")}</div>}{renderActions(node, ctx)}</div>;
 
     case "panel": {
-      const density = str(props, "density", "normal");
-      const paddingMode = str(props, "padding", "normal");
       const footerActions = actionArray(props, "footerActions");
       const toolbarActions = actionArray(props, "toolbarActions");
-      const panelPadding = paddingMode === "none" ? 0 : densityPadding(density, 18);
+      const fallbackFooterActions = footerActions.length ? footerActions : actionList(props);
       return (
-        <article key={key} {...common} className="adminDslPanel" data-admin-dsl-density={density} style={{ ...surface, overflow: "hidden", ...style(props) }}>
-          {(str(props, "title") || str(props, "subtitle") || toolbarActions.length > 0) && <div className="adminDslPanelHeader" style={{ display: "grid", gridTemplateColumns: toolbarActions.length ? "minmax(0, 1fr) auto" : "1fr", gap: 12, alignItems: "start", padding: densityPadding(density, 16), borderBottom: `1px solid ${color.ruleSoft}` }}>
-            <div>
-              {str(props, "eyebrow") && <div style={{ ...type.eyebrow, color: color.softInk, marginBottom: 4 }}>{str(props, "eyebrow")}</div>}
-              {str(props, "title") && <h3 style={{ ...type.h3, margin: 0 }}>{str(props, "title")}</h3>}
-              {str(props, "subtitle") && <p style={{ ...type.bodySm, color: color.softInk, margin: "6px 0 0" }}>{str(props, "subtitle")}</p>}
-            </div>
-            {toolbarActions.length > 0 && renderActions(node, ctx, toolbarActions)}
-          </div>}
-          {str(props, "body") && <p style={{ ...type.body, color: color.softInk, margin: 0, padding: panelPadding }}>{str(props, "body")}</p>}
-          {node.children?.length ? <div className="adminDslPanelBody" style={{ padding: panelPadding, display: "grid", gap: density === "compact" ? 10 : 14 }}>{renderChildren(node.children, ctx)}</div> : null}
-          {(footerActions.length > 0 || actionList(props).length > 0) && <div className="adminDslPanelFooter" style={{ borderTop: `1px solid ${color.ruleSoft}`, padding: densityPadding(density, 14) }}>{renderActions(node, ctx, footerActions.length ? footerActions : actionList(props))}</div>}
-        </article>
+        <Panel
+          key={key}
+          id={node.meta?.id || str(props, "id", undefined as unknown as string)}
+          title={str(props, "title") || undefined}
+          subtitle={str(props, "subtitle") || undefined}
+          eyebrow={str(props, "eyebrow") || undefined}
+          body={str(props, "body") || undefined}
+          density={str(props, "density", "normal") as "compact" | "normal" | "spacious"}
+          padding={str(props, "padding", "normal") as "none" | "normal"}
+          toolbarActions={toolbarActions.map(actionViewModel)}
+          footerActions={fallbackFooterActions.map(actionViewModel)}
+          style={style(props)}
+          onToolbarAction={(action, value) => dispatchAdminAction(ctx, node, action as AdminActionRef, value)}
+          onFooterAction={(action, value) => dispatchAdminAction(ctx, node, action as AdminActionRef, value)}
+        >
+          {renderChildren(node.children, ctx)}
+        </Panel>
       );
     }
 
@@ -282,19 +289,10 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       );
 
     case "filterBar": {
-      const filters = jsonArray<AdminJsonObject>(props, "filters");
-      const value = str(props, "value");
+      const rawFilters = jsonArray<AdminJsonObject>(props, "filters");
+      const filters = rawFilters.map((filter) => ({ id: String(filter.id), label: String(filter.label || filter.id) }));
       const filterAction = actionList(props)[0];
-      return (
-        <div key={key} {...common} style={{ display: "flex", gap: 8, flexWrap: "wrap", ...style(props) }}>
-          {filters.map((filter) => {
-            const id = String(filter.id);
-            const active = id === value;
-            const sharedStyle: CSSProperties = { minHeight: 38, display: "inline-flex", alignItems: "center", borderRadius: radius.pill, padding: "8px 12px", border: `1px solid ${active ? color.ink : color.rule}`, background: active ? color.ink : color.paper, color: active ? color.paper : color.ink, ...type.meta };
-            return filterAction ? <button key={id} type="button" className="adminDslFilterPill" aria-pressed={active} onClick={() => dispatchAdminAction(ctx, node, filterAction, filter)} style={{ ...sharedStyle, cursor: "pointer" }}>{String(filter.label || filter.id)}</button> : <span key={id} className="adminDslFilterPill" style={sharedStyle}>{String(filter.label || filter.id)}</span>;
-          })}
-        </div>
-      );
+      return <FilterBar key={key} id={node.meta?.id || str(props, "id", undefined as unknown as string)} filters={filters} value={str(props, "value")} action={filterAction ? actionViewModel(filterAction) : undefined} style={style(props)} onFilterChange={(action, value) => action && dispatchAdminAction(ctx, node, action as AdminActionRef, rawFilters.find((filter) => String(filter.id) === value.filter.id) || value.filter)} />;
     }
 
     case "resourceTable": {
