@@ -5205,3 +5205,73 @@ The category is functionally extracted, though some stories remain lighter than 
 
 ### Technical details
 - The Storybook build warning is the same chunk-size warning observed in earlier steps.
+
+## Step 83: Add Admin DSL widget design-system review playbook
+
+This step adds a dedicated review checklist for keeping promoted Admin DSL widgets aligned with the shared graphic system. The motivation is that widget extraction can accidentally create many small local CSS systems unless reviewers have a precise checklist for imports, buttons, typography, surfaces, layout, data attributes, and adapter boundaries.
+
+The playbook calls out `FilterBar` and `Tabs` as immediate examples: they currently duplicate pill button styling locally and should move that visual grammar into the generated design-language layer.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Ok, we want to haev a playbook/review checklist to go over components and make sure they use the proper tokens and design system concepts to ensure consistency.  We have a graphic system and it needs to be followed precisely, we already have too much css and style overrides and such. See for example the FilterBar, those buttons should just reuse tokens or shared widgets. Create a precise detailed review playbook next to the other playbook"
+
+**Assistant interpretation:** Create a new detailed reference playbook beside the widget implementation playbook that reviewers can use to enforce design-system/token consistency across Admin DSL widgets.
+
+**Inferred user intent:** Stop local CSS/style drift by making design-system compliance an explicit review gate, especially for duplicated button/pill patterns.
+
+**Commit (code):** Pending in this step.
+
+### What I did
+- Created `reference/04-admin-dsl-widget-design-system-review-playbook.md`.
+- Added frontmatter and related-file metadata.
+- Included detailed review sections for:
+  - imports;
+  - buttons/clickable controls;
+  - typography;
+  - surfaces and borders;
+  - layout and spacing;
+  - data attributes;
+  - renderer adapter boundaries;
+  - generated-file manual edit changelogs.
+- Added component-specific review guidance for:
+  - `FilterBar` and `Tabs`;
+  - `ResourceTable`;
+  - `Panel`;
+  - `SearchBox`.
+- Added immediate findings and remediation guidance for duplicated pill styling.
+- Validated frontmatter with `docmgr validate frontmatter`.
+- Related the playbook to relevant source and generated helper files with `docmgr doc relate`.
+
+### Why
+- The project now has many promoted widgets. Without a strict design-system review checklist, local inline style decisions will drift from the intended graphic system.
+
+### What worked
+- Frontmatter validation passed.
+- Related file metadata was added successfully after rerunning commands with an absolute document path.
+
+### What didn't work
+- The first `docmgr validate frontmatter` command used a relative path from the repo root and docmgr resolved it as `ttmp/ttmp/...`, failing with:
+  - `Error: open /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/04-admin-dsl-widget-design-system-review-playbook.md: no such file or directory`
+- I fixed it by rerunning validation and relation with an absolute doc path.
+
+### What I learned
+- The design-system review needs to classify controls before prescribing implementation. Backend actions should use `ActionButton`/`ActionGroup`; selection pills need their own shared helper rather than being forced into action semantics.
+
+### What was tricky to build
+- The playbook must be strict without pretending every raw token import is automatically wrong. Some widget-specific visual structure is legitimate, but repeated button, pill, surface, typography, and layout recipes should move to generated shared helpers.
+
+### What warrants a second pair of eyes
+- Review whether the proposed `selectionPillStyle(...)` helper should live in `actionStyles.ts`, a new generated `selectionStyles.ts`, or another design-language output.
+- Review whether the linter allowlist should require explicit comments for raw token imports in promoted widgets.
+
+### What should be done in the future
+- Add the design-system linter described in the playbook.
+- Add selection/pill styling to `15-design-language.yaml` and refactor `FilterBar`/`Tabs`.
+
+### Code review instructions
+- Review `reference/04-admin-dsl-widget-design-system-review-playbook.md` for clarity and enforceability.
+- Start with the `FilterBar and Tabs` section because it maps directly to a current code smell.
+
+### Technical details
+- This step is documentation only.

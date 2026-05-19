@@ -518,3 +518,14 @@ Step 78-81: Refreshed and promoted all 05 layout widgets plus 06 resource widget
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ResourceTable/ResourceTable.tsx — Promoted resource table widget
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ResourceTable/parts/ResourceTableCell/ResourceTableCell.tsx — Promoted resource table cell widget
 
+
+## 2026-05-18
+
+Step 83: Added Admin DSL widget design-system review playbook with strict token/helper/style review checklist and FilterBar/Tabs remediation guidance.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/04-admin-dsl-widget-design-system-review-playbook.md — New design-system review playbook
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/FilterBar/FilterBar.tsx — Current duplicated pill styling example
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/Tabs/Tabs.tsx — Current duplicated pill styling example
+
