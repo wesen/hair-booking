@@ -7365,3 +7365,64 @@ The renderer now treats surfaces like the other promoted families: it decodes ra
 ### Technical details
 - Phase 23 is now checked complete in `tasks.md`.
 - Known report-only design lint backlog remains the pre-existing `DefaultAdminShell` and `WorkbenchShell` findings.
+
+## Step 129: Remove Duplicate Rendered Page Headers
+
+I investigated the Storybook screenshot showing the `Rendered Pages / Services & Pricing` example with two page headers: one from `DefaultAdminShell` and one from the semantic `pageHeader` node in `examples.ts`. The same duplication can show up in modal/drawer/confirm scenarios because the rendered page examples intentionally include a `PageHeader` node for actions and breadcrumbs.
+
+I fixed this at the shell adapter boundary instead of deleting `pageHeader` nodes from examples. When a default-shell page already contains a `pageHeader` node, the adapter now tells `DefaultAdminShell` not to render its fallback shell title/description header, leaving the semantic `PageHeader` as the single visible page header.
+
+### Prompt Context
+
+**User prompt (verbatim):** "alright so /tmp/pi-clipboard-a3846843-fd0a-44a0-8eaa-b2c540fc2cb6.png in Rendered Pages in @hair-booking/web/src/admin-dsl/examples.ts  it has this double header (in the other scenarios too, like Drawer Open / Confirm Open etc..."
+
+**Assistant interpretation:** The rendered Admin DSL examples show duplicate top headers because both shell chrome and a pageHeader node render the page title/description; fix the examples/rendering so rendered pages only show one header.
+
+**Inferred user intent:** Preserve the intended page header/actions while removing visual duplication in Storybook rendered-page scenarios.
+
+**Commit (code):** <pending> — "HAIR-041 Step 129: Avoid duplicate rendered page headers"
+
+### What I did
+- Read the screenshot and confirmed the duplicated `Services & pricing` title/description.
+- Read `web/src/admin-dsl/examples.ts` and confirmed the examples include explicit `admin.pageHeader(...)` nodes.
+- Added `showHeader?: boolean` to `DefaultAdminShellProps`.
+- Updated `DefaultAdminShell` to render its fallback header only when `showHeader` is true.
+- Updated `renderDefaultAdminShell(...)` to set `showHeader={!page.nodes.some(node => node.kind === "pageHeader")}`.
+- Added a regression test that renders `servicesAdminPage` and asserts there is exactly one level-1 `Services & pricing` heading while preserving the `Add service` page-header action.
+
+### Why
+- Removing `pageHeader` from examples would also remove breadcrumbs and page actions, which are the semantic content the examples are meant to exercise.
+- The fallback shell header is only needed when a page does not provide its own semantic `PageHeader` node.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed.
+- `cd web && pnpm test -- --runInBand` passed: 10 files / 52 tests.
+- `cd web && npx storybook build --quiet` passed with the known large chunk warning.
+
+### What didn't work
+- N/A
+
+### What I learned
+- `DefaultAdminShell` needs to distinguish fallback page chrome from semantic page content. Once `PageHeader` became a first-class node, always rendering shell title chrome became incorrect for page examples.
+
+### What was tricky to build
+- The shell component should not inspect rendered React children to decide whether a page header exists. That detection belongs in `render.tsx`, where the raw Admin DSL node list is still available. The component receives only the boolean outcome.
+
+### What warrants a second pair of eyes
+- Review whether `hasPageHeaderNode` should only consider the first visible node or any body node. I used `some(...)` to avoid duplicate shell chrome whenever the page provides any semantic page header.
+
+### What should be done in the future
+- Consider documenting this shell/page-header relationship in the Admin DSL examples or widget playbook.
+
+### Code review instructions
+- Start with `renderDefaultAdminShell(...)` in `web/src/admin-dsl/render.tsx`.
+- Review `DefaultAdminShell.tsx` and `DefaultAdminShell.types.ts` for the new `showHeader` prop.
+- Review the regression test in `AdminDsl.test.tsx`.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+  - `cd web && npx storybook build --quiet`
+
+### Technical details
+- The semantic `PageHeader` still renders breadcrumbs and page actions such as `Add service` / `Refresh`.
+- Pages without a `pageHeader` node still get fallback shell title/description chrome.

@@ -12,6 +12,9 @@
  * implementation below was extracted from the AdminPageRenderer fallback branch
  * in web/src/admin-dsl/render.tsx so the renderer can become an adapter instead
  * of owning default page-frame HTML.
+ *
+ * Manual edits after generation:
+ * - 2026-05-19 / HAIR-041 Step 129: Added showHeader so pages with a semantic PageHeader node do not render duplicate title chrome.
  */
 import { defaultAdminShellWidgetMetadata } from "./DefaultAdminShell.metadata";
 import type { DefaultAdminShellProps } from "./DefaultAdminShell.types";
@@ -41,6 +44,7 @@ export function DefaultAdminShell({
   eyebrow = "Admin DSL",
   title,
   description,
+  showHeader = true,
   main,
   side,
 }: DefaultAdminShellProps) {
@@ -59,18 +63,20 @@ export function DefaultAdminShell({
         className="adminDslGrid adminDslDefaultGrid"
         style={adminShellGridStyle({ hasSide })}
       >
-        <section style={{ minWidth: 0 }} aria-labelledby={`${pageId}-title`}>
-          <header style={{ marginBottom: 24 }}>
-            {eyebrow ? <div style={{ ...type.eyebrow, color: color.plum }}>{eyebrow}</div> : null}
-            <h1
-              id={`${pageId}-title`}
-              className="adminDslTitle adminDslDefaultTitle"
-              style={{ ...type.display2, fontSize: 56, margin: "6px 0 8px" }}
-            >
-              {title}
-            </h1>
-            {description ? <p style={{ ...type.bodyLg, color: color.softInk, maxWidth: 680, margin: 0 }}>{description}</p> : null}
-          </header>
+        <section style={{ minWidth: 0 }} aria-labelledby={showHeader ? `${pageId}-title` : undefined}>
+          {showHeader ? (
+            <header style={{ marginBottom: 24 }}>
+              {eyebrow ? <div style={{ ...type.eyebrow, color: color.plum }}>{eyebrow}</div> : null}
+              <h1
+                id={`${pageId}-title`}
+                className="adminDslTitle adminDslDefaultTitle"
+                style={{ ...type.display2, fontSize: 56, margin: "6px 0 8px" }}
+              >
+                {title}
+              </h1>
+              {description ? <p style={{ ...type.bodyLg, color: color.softInk, maxWidth: 680, margin: 0 }}>{description}</p> : null}
+            </header>
+          ) : null}
           <div style={{ display: "grid", gap: 4 }}>{main}</div>
         </section>
         {hasSide ? (

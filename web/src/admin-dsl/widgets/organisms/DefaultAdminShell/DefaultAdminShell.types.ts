@@ -48,6 +48,10 @@ export interface DefaultAdminShellProps {
    */
   title: string;
   /**
+   * Whether the shell should render its own title/description header. Adapters disable this when the page body already starts with a semantic PageHeader node.
+   */
+  showHeader?: boolean;
+  /**
    * Optional page description under the title. Long descriptions should wrap without breaking side layout.
    */
   description?: string;

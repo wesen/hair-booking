@@ -524,6 +524,7 @@ function renderWorkbenchShell({ page, context }: { page: AdminPage; context?: Ad
 }
 
 function renderDefaultAdminShell({ page, context, sideNodes }: { page: AdminPage; context?: AdminRenderContext; sideNodes: AdminNode[] }) {
+  const hasPageHeaderNode = page.nodes.some((node) => node.kind === "pageHeader");
   const main = (
     <>
       <style>{responsiveCss}</style>
@@ -539,6 +540,7 @@ function renderDefaultAdminShell({ page, context, sideNodes }: { page: AdminPage
       eyebrow={str(page.shell.props, "eyebrow", "Admin DSL")}
       title={page.title}
       description={page.description}
+      showHeader={!hasPageHeaderNode}
       main={main}
       side={side}
     />

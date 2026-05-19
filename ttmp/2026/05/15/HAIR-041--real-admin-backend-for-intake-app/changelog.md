@@ -735,3 +735,9 @@ Step 128: Added Phase 23 surface tasks and promoted `OverlaySurface` and `Confir
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx` — surface rendering/action dispatch coverage.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/11-surface-widgets.yaml` — surface widget status update.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md` — Phase 23 task list and completion state.
+
+Step 129: Fixed duplicate headers in rendered Admin DSL examples by suppressing `DefaultAdminShell` fallback title chrome when the page already contains a semantic `pageHeader` node.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — adapter detection for semantic page header nodes.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.tsx` — optional fallback header rendering.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.types.ts` — `showHeader` prop contract.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx` — duplicate-header regression coverage.

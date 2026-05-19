@@ -92,6 +92,12 @@ describe("admin DSL", () => {
     expect(JSON.parse(JSON.stringify(page))).toEqual(page);
   });
 
+  it("renders examples without duplicate shell and page headers", () => {
+    render(<AdminPageRenderer page={servicesAdminPage} />);
+    expect(screen.getAllByRole("heading", { name: "Services & pricing", level: 1 })).toHaveLength(1);
+    expect(screen.getByRole("button", { name: "Add service" })).toBeInTheDocument();
+  });
+
   it("renders resource lifecycle empty and form validation states", () => {
     const page = resource.page("render-lifecycle", "Render lifecycle")
       .content(
