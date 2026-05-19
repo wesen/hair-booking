@@ -268,7 +268,7 @@ updated: 2026-05-15
 - [ ] Harden `Tabs.stories.tsx` with distinct active/read-only/wrapping-mobile/callback-probe fixtures, manual edit changelog, and Storybook validation.
 - [ ] Harden `FilterBar.stories.tsx` with distinct active/many-filters/read-only/callback-probe fixtures, manual edit changelog, and Storybook validation.
 - [ ] Harden `SearchBox.stories.tsx` with initial-value/no-action/submit-callback-probe fixtures, manual edit changelog, and Storybook validation.
-- [ ] Add explicit `density` contract documentation to the Panel YAML and `Panel.types.ts` without force-regenerating the hand-promoted widget implementation.
+- [x] Add explicit `density` contract documentation to the Panel YAML and `Panel.types.ts` without force-regenerating the hand-promoted widget implementation.
 - [ ] Move Panel density padding into generated shared design-language helpers and refactor both `Panel.tsx` and the `render.tsx` panel adapter to use it or remove duplicated adapter logic.
 - [ ] Replace `Panel`'s manual `data-admin-dsl-density` with a generated/shared data-attribute helper or a documented `dataAttrsFromRecord` pattern.
 - [ ] Classify and clean remaining `render.tsx` `as unknown as` casts: replace trivial ID-default casts with a helper and normalize/document action/context casts.

@@ -10,6 +10,9 @@
  *
  * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
  * JSON decoding in adapters; generated widgets should receive typed props only.
+ *
+ * Manual edits after generation:
+ * - 2026-05-19 / HAIR-041 Step 96: Added explicit Panel density contract after compliance audit found YAML/types drift.
  */
 import type * as React from "react";
 import type {
@@ -51,6 +54,10 @@ export interface PanelProps extends CommonWidgetProps {
    * Padding policy for Panel; dense table panels often use none.
    */
   padding?: "none" | "normal";
+  /**
+   * Density policy for Panel spacing and chrome. Compact panels reduce header/body/footer padding for dense admin tables; spacious panels increase breathing room for summary or review surfaces.
+   */
+  density?: "compact" | "normal" | "spacious";
   /**
    * Panel-local actions rendered in the header area of Panel.
    */

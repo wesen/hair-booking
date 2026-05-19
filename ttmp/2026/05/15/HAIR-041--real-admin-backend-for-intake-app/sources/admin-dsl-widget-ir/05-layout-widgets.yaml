@@ -321,6 +321,10 @@ widgets:
             type: '"none" | "normal"'
             required: false
             doc: Padding policy for Panel; dense table panels often use none.
+          density:
+            type: '"compact" | "normal" | "spacious"'
+            required: false
+            doc: Density policy for Panel spacing and chrome. Compact panels reduce header/body/footer padding for dense admin tables; spacious panels increase breathing room for summary or review surfaces.
           toolbarActions:
             type: ActionViewModel[]
             required: false
