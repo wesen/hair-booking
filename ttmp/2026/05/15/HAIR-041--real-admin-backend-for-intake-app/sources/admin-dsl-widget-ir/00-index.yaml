@@ -56,10 +56,6 @@ files:
   category: surface_widgets
   artifact_type: admin_dsl_widget_definition_ir
   schema_version: 2
-- path: 12-renderer-adapter-plan.yaml
-  category: renderer_adapter_plan
-  artifact_type: admin_dsl_widget_support_ir
-  schema_version: 2
 - path: 13-storybook-scenario-matrix.yaml
   category: storybook_scenario_matrix
   artifact_type: admin_dsl_widget_support_ir

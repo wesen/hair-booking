@@ -7543,3 +7543,56 @@ The cleanup replaced raw token imports and manual Admin DSL data attributes with
 
 ### Technical details
 - Final lint output: `Admin DSL design-system lint: 0 error(s), 0 warning(s)`.
+
+## Step 132: Remove Renderer Adapter Plan Support IR
+
+I removed `12-renderer-adapter-plan.yaml` because it had become a distraction. The current implementation intentionally keeps an explicit renderer switch with typed adapter branches rather than introducing a generic adapter registry, so retaining a support IR file that recommends a registry would keep pointing future work in the wrong direction.
+
+The important architectural boundary from that file is already enforced elsewhere: widgets receive typed props, `render.tsx` owns raw Admin DSL JSON decoding, and backend-bound action dispatch stays in the adapter layer.
+
+### Prompt Context
+
+**User prompt (verbatim):** "remove 12-renderer-adapter-plan.yaml entirely, it's distraction.
+
+what gaps do we have for 13?"
+
+**Assistant interpretation:** Delete the stale renderer-adapter plan support artifact and report the remaining Storybook scenario matrix gaps.
+
+**Inferred user intent:** Avoid preserving obsolete planning files that suggest unwanted abstractions, while still deciding how to use the Storybook scenario matrix.
+
+**Commit (code):** <pending> — "HAIR-041 Step 132: Remove renderer adapter plan"
+
+### What I did
+- Deleted `sources/admin-dsl-widget-ir/12-renderer-adapter-plan.yaml`.
+- Removed its entry from `sources/admin-dsl-widget-ir/00-index.yaml`.
+- Searched for remaining references; historical diary mentions remain as past context only.
+
+### Why
+- The project preference is an explicit, controlled renderer adapter switch, not a generic dynamic adapter registry.
+- The file was no longer an actionable source artifact and risked confusing future implementation work.
+
+### What worked
+- The support IR index now no longer advertises `12-renderer-adapter-plan.yaml`.
+
+### What didn't work
+- N/A
+
+### What I learned
+- Support IR files need active ownership. If they no longer reflect the chosen architecture, deleting them is clearer than annotating them indefinitely.
+
+### What was tricky to build
+- The only question was whether to remove historical references from the diary. I left them because they document past work and user prompts rather than active artifact inventory.
+
+### What warrants a second pair of eyes
+- Review whether any external docs link directly to the removed file. Repository search only found historical diary references.
+
+### What should be done in the future
+- Treat `13-storybook-scenario-matrix.yaml` differently: it still maps to real coverage and should be reconciled rather than deleted.
+
+### Code review instructions
+- Review the deletion and `00-index.yaml` update.
+- Confirm no active scripts expect the removed support IR file.
+
+### Technical details
+- Search command used:
+  - `rg -n "12-renderer-adapter-plan|renderer_adapter_plan" ttmp/...`

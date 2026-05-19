@@ -750,3 +750,6 @@ Step 131: Remediated the remaining shell-widget design lint backlog; design lint
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.tsx` — shared helper/data-attribute cleanup and mobile nav structural toggle.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/07-lint-admin-dsl-design-system.py` — documented WorkbenchShell structural-button exception.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md` — Phase 20 shell-lint task checked.
+
+Step 132: Removed the obsolete `12-renderer-adapter-plan.yaml` support IR artifact and dropped it from the Widget IR index because the project now uses an explicit typed adapter switch rather than a generic adapter registry.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/00-index.yaml` — removed support IR entry.
