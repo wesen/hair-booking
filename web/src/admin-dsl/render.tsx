@@ -34,6 +34,7 @@ import { DashboardGrid, DashboardGridItem } from "./widgets/organisms/DashboardG
 import { AdminForm } from "./widgets/organisms/AdminForm";
 import { ComparisonTable } from "./widgets/organisms/ComparisonTable";
 import type { ComparisonTableRow } from "./widgets/organisms/ComparisonTable/ComparisonTable.types";
+import { ConfirmDialog } from "./widgets/organisms/ConfirmDialog";
 import { ImageGallery } from "./widgets/organisms/ImageGallery";
 import type { GalleryImage } from "./widgets/organisms/ImageGallery/ImageGallery.types";
 import { ImageGrid } from "./widgets/organisms/ImageGrid";
@@ -41,6 +42,7 @@ import type { ImageGridItem } from "./widgets/organisms/ImageGrid/ImageGrid.type
 import { CalendarWeek } from "./widgets/organisms/CalendarWeek";
 import { MonthCalendar } from "./widgets/organisms/MonthCalendar";
 import type { MonthCalendarLegendItem, MonthCalendarMarker } from "./widgets/organisms/MonthCalendar/MonthCalendar.types";
+import { OverlaySurface } from "./widgets/organisms/OverlaySurface";
 import { PageHeader } from "./widgets/organisms/PageHeader";
 import { Panel } from "./widgets/organisms/Panel";
 import { PreviewFrame } from "./widgets/organisms/PreviewFrame";
@@ -370,25 +372,15 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     case "sheet":
     case "detailPanel":
     case "inlinePanel": {
-      const isDrawerLike = node.kind === "drawer" || node.kind === "sheet" || node.kind === "detailPanel";
-      const label = node.kind === "sheet" ? "Sheet" : node.kind === "detailPanel" ? "Detail" : node.kind === "inlinePanel" ? "Inline" : node.kind === "drawer" ? "Drawer" : "Modal";
-      return (
-        <aside key={key} {...common} className={`adminDslOverlaySurface adminDslSurface-${node.kind} ${isDrawerLike ? "adminDslDrawerSurface" : "adminDslModalSurface"}`} style={{ ...surface, padding: 18, background: isDrawerLike ? color.cream : color.paper, borderStyle: bool(props, "open", false) ? "solid" : "dashed", ...style(props) }}>
-          <div className="adminDslSurfaceKicker" style={{ ...type.eyebrow, color: color.softInk }}>{label}</div>
-          <h3 style={{ ...type.h2, margin: "8px 0 16px" }}>{str(props, "title", str(props, "id"))}</h3>
-          <div style={{ display: "grid", gap: 14 }}>{renderChildren(node.children, ctx)}</div>
-        </aside>
-      );
+      const closeAction = isActionRef(jsonObject(props, "closeAction")) ? actionViewModel(jsonObject(props, "closeAction") as AdminActionRef) : undefined;
+      return <OverlaySurface key={key} id={nodeDomId(node)} surfaceId={str(props, "id", node.meta?.id || String(key || node.kind))} kind={node.kind} title={str(props, "title", str(props, "id", node.kind))} open={bool(props, "open", false)} closeAction={closeAction} footerActions={actionList(props).map(actionViewModel)} style={style(props)} onCloseAction={(action, value) => dispatchWidgetAction(ctx, node, action, value)} onFooterAction={(action, value) => dispatchWidgetAction(ctx, node, action, value)}>{renderChildren(node.children, ctx)}</OverlaySurface>;
     }
 
-    case "confirmDialog":
-      return (
-        <aside key={key} {...common} style={{ ...surface, padding: 18, borderColor: str(props, "tone") === "danger" ? color.danger : color.rule, ...style(props) }}>
-          <h3 style={{ ...type.h2, margin: 0 }}>{str(props, "title", "Are you sure?")}</h3>
-          {str(props, "body") && <p style={{ ...type.body, color: color.softInk }}>{str(props, "body")}</p>}
-          {renderActions(node, ctx, [{ type: "confirm", target: str(props, "id"), label: str(props, "confirmLabel", "Confirm") }])}
-        </aside>
-      );
+    case "confirmDialog": {
+      const confirmAction = isActionRef(jsonObject(props, "confirmAction")) ? actionViewModel(jsonObject(props, "confirmAction") as AdminActionRef) : actionViewModel({ type: "confirm", target: str(props, "id"), label: str(props, "confirmLabel", "Confirm"), intent: str(props, "tone") === "danger" ? "danger" : "primary", placement: "formFooter" });
+      const cancelAction = isActionRef(jsonObject(props, "cancelAction")) ? actionViewModel(jsonObject(props, "cancelAction") as AdminActionRef) : undefined;
+      return <ConfirmDialog key={key} id={nodeDomId(node)} dialogId={str(props, "id", node.meta?.id || "confirm-dialog")} title={str(props, "title", "Are you sure?")} body={str(props, "body") || undefined} tone={str(props, "tone") === "danger" ? "danger" : "neutral"} confirmLabel={str(props, "confirmLabel", "Confirm")} confirmAction={confirmAction} cancelAction={cancelAction} style={style(props)} onConfirm={(action, value) => dispatchWidgetAction(ctx, node, action, value)} onCancel={(action, value) => dispatchWidgetAction(ctx, node, action, value)} />;
+    }
 
     case "form": {
       const errors = jsonObject(props, "errors");

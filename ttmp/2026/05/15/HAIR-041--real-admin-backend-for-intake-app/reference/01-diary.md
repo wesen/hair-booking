@@ -7295,3 +7295,73 @@ Then tackle 11-surface-widgets (don't forget the tasks)."
 ### Technical details
 - Remaining Phase 22 tasks are checked complete.
 - Known report-only design lint backlog still reports `DefaultAdminShell` and `WorkbenchShell` findings during scoped validation.
+
+## Step 128: Promote Surface Widgets
+
+I moved on to `11-surface-widgets.yaml` after completing Phase 22 and first added a dedicated Phase 23 task list for the surface extraction work. Then I promoted both surface widgets in the category: `OverlaySurface` for modal/drawer/sheet/detail/inline panel branches, and `ConfirmDialog` for confirmation surfaces.
+
+The renderer now treats surfaces like the other promoted families: it decodes raw Admin DSL JSON into typed props, renders children in the adapter, and lowers typed callbacks back to `dispatchAdminAction`. The visual surface and dialog markup now lives in widget files with metadata sidecars and Storybook coverage.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 127)
+
+**Assistant interpretation:** After finishing Phase 22, add tasks for `11-surface-widgets.yaml` and complete that widget category using the playbook.
+
+**Inferred user intent:** Continue the category-by-category widget extraction while keeping ticket task structure and diary evidence current.
+
+**Commit (code):** <pending> — "HAIR-041 Step 128: Promote surface widgets"
+
+### What I did
+- Added `Phase 23 — Surface widget extraction` to `tasks.md`.
+- Ran targeted scaffold dry-run and generation for:
+  - `OverlaySurface`
+  - `ConfirmDialog`
+- Generated missing metadata sidecars for both widgets without force-overwriting existing files.
+- Promoted `OverlaySurface` with typed props, modal/drawer/sheet/detail/inline/closed/footer/mobile/callback stories, and renderer adapter coverage.
+- Promoted `ConfirmDialog` with typed props, neutral/danger/long-body/cancel/callback stories, and renderer adapter coverage.
+- Updated `render.tsx` to route modal/drawer/sheet/detailPanel/inlinePanel and confirmDialog branches through typed widgets.
+- Added Admin DSL test coverage for extracted surface rendering and confirm action dispatch.
+- Marked both widgets as promoted in `11-surface-widgets.yaml` and checked Phase 23 tasks complete.
+
+### Why
+- Surface branches were one of the last widget families still rendered inline in `render.tsx`.
+- Confirm/delete surfaces are review-critical because they combine accessibility roles, destructive action styling, and backend action dispatch.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed.
+- Scoped surface validation passed for `OverlaySurface` and `ConfirmDialog`; Vitest passed 10 files / 51 tests.
+- `cd web && npx storybook build --quiet` passed with the known large chunk warning.
+- Storybook scaffold triage reported no scaffold-like stories in the scoped surface widgets.
+
+### What didn't work
+- The first scoped design lint run reported a new `hardcoded-color` finding for an `rgba(...)` box shadow in `OverlaySurface`.
+- I replaced it with a `color-mix(... currentColor ...)` expression so the lint returned to the known pre-existing shell-widget backlog only.
+
+### What I learned
+- The design lint catches local visual shortcuts even when they are small. Surface shadows should eventually come from the design-language IR if multiple surface widgets need them.
+
+### What was tricky to build
+- `OverlaySurface` has to support several semantic surface kinds without becoming a raw visual switchboard. I kept the kind-to-label/layout mapping local and small, while leaving raw Admin DSL parsing and action lowering in `render.tsx`.
+- `ConfirmDialog` needs a default confirm action for compatibility with the previous renderer branch, which synthesized one from `id` and `confirmLabel`.
+
+### What warrants a second pair of eyes
+- Review whether `OverlaySurface` should distinguish `detailPanel` and `inlinePanel` in `OverlaySurfaceKind` instead of relying on the shared string-compatible type.
+- Review whether surface shadow/elevation should become a generated design-language helper.
+- Review whether confirm/cancel action identity comparison in `ConfirmDialog` should use target/type rather than object identity if callers transform actions.
+
+### What should be done in the future
+- Continue with any remaining renderer shrink-down cleanup or surface-specific accessibility review, especially focus management for true modal behavior.
+
+### Code review instructions
+- Start with the modal/drawer/sheet/detail/inline and confirm branches in `web/src/admin-dsl/render.tsx`.
+- Review `OverlaySurface.tsx` and `ConfirmDialog.tsx` for roles, labels, metadata attributes, and callback boundaries.
+- Review `AdminDsl.test.tsx` for surface rendering/action dispatch coverage.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook web/src/admin-dsl/widgets/organisms/OverlaySurface web/src/admin-dsl/widgets/organisms/ConfirmDialog`
+  - `cd web && npx storybook build --quiet`
+
+### Technical details
+- Phase 23 is now checked complete in `tasks.md`.
+- Known report-only design lint backlog remains the pre-existing `DefaultAdminShell` and `WorkbenchShell` findings.

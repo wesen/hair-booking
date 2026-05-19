@@ -7,7 +7,7 @@ schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/des
 widgets:
 - id: admin.surface.overlay-surface
   name: OverlaySurface
-  status: scaffolded
+  status: promoted
   classification:
     level: organism
     description: OverlaySurface participates in the Admin DSL component system as a organism; its level controls scaffold
@@ -196,7 +196,7 @@ widgets:
     doc: Replace generated scaffold placeholder with final implementation.
 - id: admin.surface.confirm-dialog
   name: ConfirmDialog
-  status: scaffolded
+  status: promoted
   classification:
     level: organism
     description: ConfirmDialog participates in the Admin DSL component system as a organism; its level controls scaffold location

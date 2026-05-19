@@ -294,3 +294,11 @@ updated: 2026-05-15
 - [x] Replace the remaining `FieldPreview` branch in `render.tsx` with typed widget adapters and remove obsolete inline field styling.
 - [x] Add or update tests that assert existing field rendering/accessibility contracts survive extraction.
 - [x] Run scoped form-field validation (`tsc`, widget promotion validator, Vitest, Storybook build) and record findings in the diary/changelog.
+
+## Phase 23 — Surface widget extraction
+
+- [x] Promote `OverlaySurface` from `11-surface-widgets.yaml` with typed props, metadata sidecar, modal/drawer/sheet/detail/inline/mobile/footer-action stories, and renderer adapter coverage.
+- [x] Promote `ConfirmDialog` from `11-surface-widgets.yaml` with typed props, metadata sidecar, neutral/danger/long-body/cancel/callback stories, and renderer adapter coverage.
+- [x] Replace the remaining inline modal/drawer/sheet/detailPanel/inlinePanel and confirmDialog rendering branches in `render.tsx` with typed surface widget adapters.
+- [x] Add or update tests that assert surface rendering and action dispatch contracts survive extraction.
+- [x] Run scoped surface validation (`tsc`, widget promotion validator, Vitest, Storybook build) and record findings in the diary/changelog.

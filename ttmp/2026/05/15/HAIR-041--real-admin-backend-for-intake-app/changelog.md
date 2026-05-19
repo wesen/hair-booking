@@ -727,3 +727,11 @@ Step 127: Completed Phase 22 form field extraction by promoting `DateField`, `Ti
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/DurationField/DurationField.tsx` — promoted duration field.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/ImageField/ImageField.tsx` — promoted image field.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml` — Phase 22 status update.
+
+Step 128: Added Phase 23 surface tasks and promoted `OverlaySurface` and `ConfirmDialog` from `11-surface-widgets.yaml`, with renderer adapters, stories, tests, validation, and task updates.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/OverlaySurface/OverlaySurface.tsx` — promoted overlay surface implementation.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ConfirmDialog/ConfirmDialog.tsx` — promoted confirm dialog implementation.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — surface renderer adapters.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx` — surface rendering/action dispatch coverage.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/11-surface-widgets.yaml` — surface widget status update.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md` — Phase 23 task list and completion state.

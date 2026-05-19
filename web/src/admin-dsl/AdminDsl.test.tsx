@@ -184,6 +184,27 @@ describe("admin DSL", () => {
     }));
   });
 
+  it("renders extracted surface widgets and dispatches confirm actions", () => {
+    const dispatch = vi.fn();
+    const page = admin.page("surfaces", "Surfaces")
+      .content(
+        { kind: "drawer", props: { id: "edit", title: "Edit request", open: true }, children: [field.text("name", { label: "Name", value: "Maya" }).toJSON()] },
+        { kind: "confirmDialog", props: { id: "delete", title: "Delete request?", body: "This cannot be undone.", tone: "danger", confirmLabel: "Delete" } },
+      )
+      .toJSON();
+
+    render(<AdminPageRenderer page={page} context={{ dispatch }} />);
+    expect(screen.getByRole("dialog", { name: "Edit request" })).toBeInTheDocument();
+    expect(screen.getByLabelText("Name")).toBeInTheDocument();
+    expect(screen.getByRole("alertdialog", { name: "Delete request?" })).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Delete" }));
+    expect(dispatch).toHaveBeenCalledWith(expect.objectContaining({
+      nodeKind: "confirmDialog",
+      action: expect.objectContaining({ target: "delete" }),
+      value: { dialogId: "delete" },
+    }));
+  });
+
   it("renders resource tables and dispatches row values", () => {
     const dispatch = vi.fn();
     const page = admin.page("table", "Table")
