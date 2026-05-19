@@ -6179,3 +6179,62 @@ This step closes the Phase 21 audit rerun task and adds concrete follow-up tasks
 
 ### Technical details
 - The follow-up report lists every audited widget and its manual/scaffold status.
+
+## Step 105: Harden Resource Widget Stories
+
+I followed the Phase 21 follow-up audit and brought the `06-resource-widgets.yaml` ResourceTable story set closer to full playbook compliance. ResourceTable already had meaningful stories, but the part widgets lacked manual story changelogs and visible callback probes.
+
+This step adds those missing probes and story headers without changing widget implementation behavior.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 99)
+
+**Assistant interpretation:** Continue Phase 21 by addressing the resource-widget story compliance follow-up found after the layout audit.
+
+**Inferred user intent:** Close the resource-widget compliance gap before continuing data-display/media/calendar promotion work.
+
+**Commit (code):** 3d449e5 — "HAIR-041 Step 105: Harden resource widget stories"
+
+### What I did
+- Temporarily stashed dirty partial data-display edits and untracked audit files to isolate resource story changes.
+- Added manual edit changelogs and callback probes to:
+  - `BulkActionBar.stories.tsx`
+  - `PaginationBar.stories.tsx`
+  - `ResourceTableCell.stories.tsx`
+- Updated `ResourceTable.stories.tsx` with row/bulk/pagination callback probes and a mobile card viewport story.
+- Ran `cd web && npx tsc --noEmit` successfully.
+- Ran `scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook web/src/admin-dsl/widgets/organisms/ResourceTable` successfully.
+- Marked the resource-widget story compliance task complete.
+
+### Why
+- The follow-up audit classified ResourceTable as mostly compliant but found the part-widget story headers/probes incomplete.
+- Callback-heavy resource widgets need visible callback context evidence in Storybook.
+
+### What worked
+- Scoped story triage reports no scaffold-like stories in the ResourceTable directory.
+- TypeScript and Vitest passed via the validation target.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- Part widgets can look hand-written and still fail the playbook if they lack manual changelog headers and callback evidence.
+
+### What was tricky to build
+- The import path from deeply nested ResourceTable part stories to shared types is easy to get wrong. My first attempt used one too many `../` segments, which TypeScript caught. I fixed the import path to `../../../../shared`.
+
+### What warrants a second pair of eyes
+- Review whether the ResourceTable mobile story is sufficient without screenshots, since actual mobile card adaptation is driven by CSS outside the component story's inline markup.
+
+### What should be done in the future
+- Continue with 07 data-display widgets in playbook-complete batches.
+
+### Code review instructions
+- Review the four ResourceTable story files and click callback-probe stories in Storybook.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `python3 ttmp/.../scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook web/src/admin-dsl/widgets/organisms/ResourceTable`
+
+### Technical details
+- Validation target output still reports known shell design-system lint backlog in report-only mode.

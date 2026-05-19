@@ -613,3 +613,14 @@ Step 102: Added `scripts/08-validate-widget-promotion.py`, a local validation ta
 
 Step 103: Re-ran compliance triage for resource, data-display, media, and calendar widgets and recorded follow-up remediation tasks (commit 4c3c42b).
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/09-widget-playbook-compliance-audit-followup-report.md` — follow-up audit report.
+
+## 2026-05-18
+
+Step 84c: Playbook compliance audit for 06-resource-widgets.yaml and 07-data-display-widgets.yaml. Resource: 1 fail (pagination callback bug, missing stories), 3 need follow-up (no story changelogs). Data-display: 8/8 unpromoted (scaffold). Diaries at ref 10-11, reports at ref 12-13.
+
+
+Step 105: Hardened ResourceTable and part-widget Storybook stories with manual changelogs, callback probes, pagination context evidence, and mobile viewport coverage (commit 3d449e5).
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ResourceTable/ResourceTable.stories.tsx` — row/bulk/pagination probes and mobile story.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ResourceTable/parts/BulkActionBar/BulkActionBar.stories.tsx` — bulk callback probe.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ResourceTable/parts/PaginationBar/PaginationBar.stories.tsx` — pagination callback probe.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ResourceTable/parts/ResourceTableCell/ResourceTableCell.stories.tsx` — cell variants and row-action probe.
