@@ -247,7 +247,7 @@ export function adminTextStyle(role: AdminTypographyRole): CSSProperties {{
 
 def render_action_styles(data: dict[str, Any], h: str) -> str:
     return h + '''import type { CSSProperties } from "react";
-import { color, font, radius, shadow } from "../../../fringe-ui/tokens";
+import { color, font, radius, shadow, type } from "../../../fringe-ui/tokens";
 import type { ActionViewModel, AdminActionPlacement, AdminActionSize, AdminActionVariant } from "./types";
 
 export const actionPlacementDefaults = {
@@ -343,6 +343,35 @@ export function shellMenuButtonStyle(): CSSProperties {
     ...actionButtonStyle({ variant: "soft", size: "sm" }),
     minHeight: 34,
   };
+}
+
+export function selectionPillStyle(options: { active?: boolean; disabled?: boolean } = {}): CSSProperties {
+  const { active, disabled } = options;
+  return {
+    minHeight: 38,
+    display: "inline-flex",
+    alignItems: "center",
+    borderRadius: radius.pill,
+    padding: "8px 12px",
+    border: `1px solid ${disabled ? color.ruleSoft : active ? color.ink : color.rule}`,
+    background: disabled ? color.ruleSoft : active ? color.ink : color.paper,
+    color: disabled ? color.soft : active ? color.paper : color.ink,
+    cursor: disabled ? "default" : "pointer",
+    ...type.meta,
+  };
+}
+
+export function badgeToneStyle(tone: string = "neutral"): CSSProperties {
+  switch (tone) {
+    case "warning":
+      return { background: "#fff0c2", color: "#674000", borderColor: "#e0a52a" };
+    case "success":
+      return { background: "#e6f0df", color: "#345627", borderColor: "#8baa7a" };
+    case "danger":
+      return { background: "#fff1ed", color: "#b3261e", borderColor: "#e15a4f" };
+    default:
+      return { background: color.paper, color: color.ink, borderColor: color.rule };
+  }
 }
 '''
 

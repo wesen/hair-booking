@@ -198,6 +198,44 @@ button_sizes:
     minWidth: 32
     padding: "6px 8px"
 
+selection_controls:
+  pill:
+    doc: Shared active/inactive pill treatment for tabs and filter bars. These are selection controls, not backend action buttons.
+    size:
+      minHeight: 38
+      padding: "8px 12px"
+      borderRadius: radius.pill
+    inactive:
+      borderColor: color.rule
+      background: color.paper
+      color: color.ink
+    active:
+      borderColor: color.ink
+      background: color.ink
+      color: color.paper
+    disabled:
+      borderColor: color.ruleSoft
+      background: color.ruleSoft
+      color: color.soft
+
+badge_tones:
+  neutral:
+    background: color.paper
+    color: color.ink
+    border: color.rule
+  warning:
+    background: "#fff0c2"
+    color: "#674000"
+    border: "#e0a52a"
+  success:
+    background: "#e6f0df"
+    color: "#345627"
+    border: "#8baa7a"
+  danger:
+    background: "#fff1ed"
+    color: "#b3261e"
+    border: "#e15a4f"
+
 action_placement_defaults:
   pageHeader:
     default_variant: soft
