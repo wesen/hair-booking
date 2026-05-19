@@ -5753,3 +5753,135 @@ Analyze, double check the issues found, updat eth eplaybook if necessary, and ad
   - `web/src/admin-dsl/widgets/molecules/Tabs/Tabs.stories.tsx`
   - `web/src/admin-dsl/widgets/molecules/FilterBar/FilterBar.stories.tsx`
   - `web/src/admin-dsl/widgets/molecules/SearchBox/SearchBox.stories.tsx`
+
+## Step 96: Sync Panel Density Contract
+
+I started the density cleanup by fixing the source contract before changing behavior. The compliance audit was right that `Panel` treated density as a first-class Panel concern in prose, examples, implementation, and the renderer adapter, but the Panel-specific YAML fields and generated type file did not name it explicitly.
+
+Because `Panel` is already hand-promoted, I did not force-regenerate the widget. I made a narrow YAML/type sync instead and committed it separately from shared-helper/refactor work.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, add the tasks if necessary for density cleanup to the ticket, commit everything that hasn't been committed so far, and work on the tasks one by one, commit at appropriate intervals, keeping a detailed diary as you work."
+
+**Assistant interpretation:** Ensure density cleanup is tracked, preserve commit hygiene, then implement the density-related Phase 21 tasks incrementally with validation and diary notes.
+
+**Inferred user intent:** Resolve the concrete Panel density drift found by the compliance audit without repeating the earlier mistake of skipping workflow evidence.
+
+**Commit (code):** 4cec4bc — "HAIR-041 Step 96: Sync Panel density contract"
+
+### What I did
+- Confirmed Phase 21 already contained the density cleanup tasks added by the audit remediation pass.
+- Updated `sources/admin-dsl-widget-ir/05-layout-widgets.yaml` to add explicit `PanelProps.fields.density`.
+- Updated `web/src/admin-dsl/widgets/organisms/Panel/Panel.types.ts` to add explicit `density?: "compact" | "normal" | "spacious"` and a manual edit changelog.
+- Marked the Panel density contract task complete in `tasks.md`.
+- Staged only the density contract files and used a temporary stash for unrelated/partial dirty files while validating.
+- Ran `cd web && npx tsc --noEmit` successfully against the staged density-contract changes.
+
+### Why
+- The YAML is the durable widget contract; `density` was already part of Panel semantics and should not be implicit through `CommonWidgetProps` alone.
+- A separate contract commit makes review straightforward and avoids mixing YAML/type sync with generated design-helper changes.
+
+### What worked
+- TypeScript passed after isolating the contract changes from unrelated dirty working-tree edits.
+- The commit only includes the YAML, Panel type file, and task state update.
+
+### What didn't work
+- A first `cd web && npx tsc --noEmit` run failed because unrelated partial data-display widget edits were still in the working tree:
+  - `src/admin-dsl/widgets/molecules/ActivityFeed/ActivityFeed.tsx(7,30): error TS2307: Cannot find module '../ActionButton' or its corresponding type declarations.`
+  - `src/admin-dsl/widgets/molecules/ActivityFeed/ActivityFeed.tsx(22,99): error TS7006: Parameter 'action' implicitly has an 'any' type.`
+  - `src/admin-dsl/widgets/molecules/EmptyState/EmptyState.tsx(17,64): error TS2322: Type '"center"' is not assignable to type '"end" | "start" | "between" | undefined'.`
+- I did not commit those partial data-display edits because they are not playbook-complete and still need story hardening.
+
+### What I learned
+- The cleanest way to validate a focused change in this dirty tree is to stage the intended files, temporarily `git stash push --keep-index`, validate, commit, then pop the stash.
+- `CommonWidgetProps` inheritance is useful, but when a widget's YAML prose/examples/adapter treat a prop as central, the widget-specific contract should still list it.
+
+### What was tricky to build
+- The tricky part was respecting both instructions: commit appropriate work and avoid sweeping unrelated dirty files into the commit. I used explicit staging and temporary stashing so validation matched the staged density change.
+
+### What warrants a second pair of eyes
+- Review whether other widget-specific uses of `CommonWidgetProps` should also be made explicit in YAML when they are central to the widget semantics.
+
+### What should be done in the future
+- Continue Phase 21 by hardening layout Storybook files and cleaning remaining adapter casts.
+
+### Code review instructions
+- Review `05-layout-widgets.yaml` around the `PanelProps` contract.
+- Review `Panel.types.ts` for the manual edit changelog and explicit `density` field.
+- Validate with `cd web && npx tsc --noEmit` after stashing unrelated partial widget edits or once those are fixed.
+
+### Technical details
+- Validation used temporary stash isolation:
+  - `git stash push --keep-index -m 'temp: unrelated dirty files before panel density validation'`
+  - `cd web && npx tsc --noEmit`
+  - `git stash pop`
+
+## Step 97: Share Panel Density Helpers
+
+After the contract sync, I moved Panel density spacing into the generated shared design-language helpers and removed the duplicated local helper from `Panel.tsx`. I also removed the now-unused duplicate `densityPadding(...)` definition from `render.tsx` and replaced Panel's manual density data attribute with a `dataAttrsFromRecord(...)` pattern.
+
+This step keeps the visual rule reproducible through `15-design-language.yaml` and `06-generate-admin-dsl-design-language.py`, rather than leaving density spacing as one-off local code.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 96)
+
+**Assistant interpretation:** Continue the density cleanup tasks after the YAML/type contract sync by moving implementation details into shared generated helpers and updating task state.
+
+**Inferred user intent:** Resolve the design-system drift around Panel density spacing and data attributes in a reviewable commit.
+
+**Commit (code):** e3c7846 — "HAIR-041 Step 97: Share Panel density helpers"
+
+### What I did
+- Added `layout_primitives.densityPadding` to `sources/admin-dsl-widget-ir/15-design-language.yaml`.
+- Updated `scripts/06-generate-admin-dsl-design-language.py` to generate `adminDensityPadding(...)` in `layoutStyles.ts`.
+- Regenerated `web/src/admin-dsl/widgets/shared/*` with the design-language generator.
+- Refactored `Panel.tsx` to import and use `adminDensityPadding(...)`.
+- Replaced `data-admin-dsl-density={density}` with `dataAttrsFromRecord({ "admin-dsl-density": density, ...dataAttributes })`.
+- Removed the unused `densityPadding(...)` helper from `render.tsx`.
+- Marked the Phase 21 density-helper and density-data-attribute tasks complete.
+- Ran `python3 -m py_compile .../scripts/06-generate-admin-dsl-design-language.py`.
+- Ran `cd web && npx tsc --noEmit` successfully with unrelated dirty edits temporarily stashed.
+- Ran `scripts/07-lint-admin-dsl-design-system.py` and confirmed Panel-specific density/data-attribute findings no longer appear; remaining findings are shell follow-ups and `render.tsx` casts.
+
+### Why
+- Density spacing was a repeated visual rule, so it belongs in generated shared design helpers.
+- Manual `data-admin-dsl-*` attributes are a design-system review smell unless intentionally local and documented.
+- `render.tsx` should not keep stale helpers after visual responsibility moves into typed widgets.
+
+### What worked
+- The generated helper compiled cleanly.
+- `Panel.tsx` no longer has a local `densityPadding(...)` function.
+- The design-system linter dropped the Panel density/data-attribute findings. It now reports 18 errors / 3 warnings in the isolated tree, down from 25 errors / 3 warnings in the audit report.
+
+### What didn't work
+- The full working tree still cannot be used as a clean validation target because partial data-display edits remain uncommitted and TypeScript-broken. I again used `git stash push --keep-index` for focused validation.
+
+### What I learned
+- The design-language generator currently emits the helper literally rather than mechanically lowering every detail from the YAML `densityPadding` entry. The YAML still records the semantic contract, and the generated output is reproducible.
+- Removing the stale renderer helper shifted linter line numbers for the remaining `as unknown as` findings, but did not change those outstanding cast issues.
+
+### What was tricky to build
+- The data-attribute cleanup needed to preserve caller-provided `dataAttributes` while guaranteeing the Panel density attribute exists. The current order `{ "admin-dsl-density": density, ...dataAttributes }` allows an explicit caller-provided data attribute to override the default if needed.
+
+### What warrants a second pair of eyes
+- Review whether `adminDensityPadding(...)` should accept only the shared density union instead of `string | undefined`; the wider type is convenient for adapters, but stricter typing may be preferable.
+- Review whether Panel density should eventually get a dedicated generated `panelDataAttributes(...)` helper rather than the documented `dataAttrsFromRecord(...)` pattern.
+
+### What should be done in the future
+- Continue with layout Storybook hardening, which remains the primary compliance failure.
+- Clean `render.tsx` casts as a separate Phase 21 task.
+
+### Code review instructions
+- Start with `15-design-language.yaml` and `render_layout_styles(...)` in `06-generate-admin-dsl-design-language.py`.
+- Inspect generated `web/src/admin-dsl/widgets/shared/layoutStyles.ts` for `adminDensityPadding(...)`.
+- Review `Panel.tsx` for the helper import and data attribute pattern.
+- Confirm `render.tsx` no longer defines `densityPadding(...)`.
+- Validate with:
+  - `python3 -m py_compile ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py`
+  - `cd web && npx tsc --noEmit`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/07-lint-admin-dsl-design-system.py`
+
+### Technical details
+- Design-system lint after isolated Step 97 validation: 18 errors, 3 warnings. Remaining findings are outside the completed Panel density cleanup.

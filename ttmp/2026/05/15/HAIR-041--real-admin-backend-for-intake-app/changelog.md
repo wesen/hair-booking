@@ -583,3 +583,13 @@ Step 95: Verified the layout widget compliance audit, added a current-source ver
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/08-widget-playbook-compliance-audit-report.md` — report now has frontmatter and verification addendum.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/playbooks/03-widget-playbook-compliance-audit-guide.md` — audit guide now requires dirty-tree scoping, current-source verification, and task-state backfill.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md` — Phase 21 remediation tasks added.
+
+Step 96: Synced the Panel density contract into `05-layout-widgets.yaml` and `Panel.types.ts` without force-regenerating the hand-promoted Panel widget (commit 4cec4bc).
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/05-layout-widgets.yaml` — explicit Panel `density` field.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/Panel/Panel.types.ts` — explicit typed density contract.
+
+Step 97: Added generated shared Panel density padding helper, refactored Panel density/data attributes, and removed the stale renderer density helper (commit e3c7846).
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/15-design-language.yaml` — density padding design-language source.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py` — emits `adminDensityPadding(...)`.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/Panel/Panel.tsx` — consumes shared density helper and dataAttrsFromRecord density pattern.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — removed unused duplicate density helper.
