@@ -8,7 +8,7 @@ schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/des
 widgets:
 - id: admin.data-display.metric-card
   name: MetricCard
-  status: scaffolded
+  status: promoted
   classification:
     level: molecule
     description: MetricCard participates in the Admin DSL component system as a molecule; its level controls scaffold location
@@ -118,7 +118,7 @@ widgets:
     doc: Replace generated scaffold placeholder with final implementation.
 - id: admin.data-display.status-text
   name: StatusText
-  status: scaffolded
+  status: promoted
   classification:
     level: atom
     description: StatusText participates in the Admin DSL component system as an atom; its level controls scaffold location
@@ -232,7 +232,7 @@ widgets:
     doc: Replace generated scaffold placeholder with final implementation.
 - id: admin.data-display.comparison-table
   name: ComparisonTable
-  status: scaffolded
+  status: promoted
   classification:
     level: organism
     description: ComparisonTable participates in the Admin DSL component system as a organism; its level controls scaffold
@@ -389,7 +389,7 @@ widgets:
     doc: Replace generated scaffold placeholder with final implementation.
 - id: admin.data-display.key-value-list
   name: KeyValueList
-  status: scaffolded
+  status: promoted
   classification:
     level: molecule
     description: KeyValueList participates in the Admin DSL component system as a molecule; its level controls scaffold location
@@ -484,7 +484,7 @@ widgets:
     doc: Replace generated scaffold placeholder with final implementation.
 - id: admin.data-display.activity-feed
   name: ActivityFeed
-  status: scaffolded
+  status: promoted
   classification:
     level: molecule
     description: ActivityFeed participates in the Admin DSL component system as a molecule; its level controls scaffold location
@@ -623,7 +623,7 @@ widgets:
     doc: Replace generated scaffold placeholder with final implementation.
 - id: admin.data-display.markdown-block
   name: MarkdownBlock
-  status: scaffolded
+  status: promoted
   classification:
     level: molecule
     description: MarkdownBlock participates in the Admin DSL component system as a molecule; its level controls scaffold location
@@ -710,7 +710,7 @@ widgets:
     doc: Replace generated scaffold placeholder with final implementation.
 - id: admin.data-display.empty-state
   name: EmptyState
-  status: scaffolded
+  status: promoted
   classification:
     level: molecule
     description: EmptyState participates in the Admin DSL component system as a molecule; its level controls scaffold location
@@ -812,7 +812,7 @@ widgets:
     doc: Replace generated scaffold placeholder with final implementation.
 - id: admin.data-display.loading-state
   name: LoadingState
-  status: scaffolded
+  status: promoted
   classification:
     level: molecule
     description: LoadingState participates in the Admin DSL component system as a molecule; its level controls scaffold location
@@ -891,7 +891,7 @@ widgets:
     doc: Replace generated scaffold placeholder with final implementation.
 - id: admin.data-display.inline-error
   name: InlineError
-  status: scaffolded
+  status: promoted
   classification:
     level: molecule
     description: InlineError participates in the Admin DSL component system as a molecule; its level controls scaffold location

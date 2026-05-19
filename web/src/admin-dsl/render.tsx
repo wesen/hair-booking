@@ -6,13 +6,20 @@ import { WorkbenchShell as WorkbenchShellWidget } from "./widgets/organisms/Work
 import { DefaultAdminShell } from "./widgets/organisms/DefaultAdminShell";
 import { ActionGroup } from "./widgets/molecules/ActionGroup";
 import { FilterBar } from "./widgets/molecules/FilterBar";
+import { ActivityFeed } from "./widgets/molecules/ActivityFeed";
+import type { ActivityFeedItem } from "./widgets/molecules/ActivityFeed/ActivityFeed.types";
+import { EmptyState } from "./widgets/molecules/EmptyState";
 import { InlineError } from "./widgets/molecules/InlineError";
+import { KeyValueList } from "./widgets/molecules/KeyValueList";
 import { LoadingState } from "./widgets/molecules/LoadingState";
+import { MarkdownBlock } from "./widgets/molecules/MarkdownBlock";
 import { MetricCard } from "./widgets/molecules/MetricCard";
 import { SearchBox } from "./widgets/molecules/SearchBox";
 import { Tabs } from "./widgets/molecules/Tabs";
 import { Toolbar } from "./widgets/molecules/Toolbar";
 import { DashboardGrid, DashboardGridItem } from "./widgets/organisms/DashboardGrid";
+import { ComparisonTable } from "./widgets/organisms/ComparisonTable";
+import type { ComparisonTableRow } from "./widgets/organisms/ComparisonTable/ComparisonTable.types";
 import { PageHeader } from "./widgets/organisms/PageHeader";
 import { Panel } from "./widgets/organisms/Panel";
 import { ResourceTable } from "./widgets/organisms/ResourceTable";
@@ -171,33 +178,16 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     }
 
     case "comparisonTable": {
-      const rows = jsonArray<AdminJsonObject>(props, "rows");
-      if (!rows.length) return renderAdminNode({ kind: "emptyState", props: { title: str(props, "emptyTitle", "No changes"), body: str(props, "emptyBody", "There are no draft changes to review.") }, meta: node.meta }, ctx, key);
-      return (
-        <div key={key} {...common} className="adminDslComparisonTable" style={{ overflowX: "auto", ...style(props) }}>
-          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 760 }}>
-            <thead>
-              <tr>
-                {["Field", "Current", "Draft", "Scheduled", "Actions"].map((label) => <th key={label} style={{ ...type.meta, color: color.softInk, textAlign: label === "Actions" ? "right" : "left", padding: "10px 14px", borderBottom: `1px solid ${color.rule}` }}>{label}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row, i) => {
-                const rowActions = Array.isArray(row.actions) ? row.actions.filter(isActionRef) : [];
-                return (
-                  <tr key={String(row.id || row.field || i)} style={{ borderBottom: i === rows.length - 1 ? "none" : `1px solid ${color.ruleSoft}` }}>
-                    <td data-label="Field" style={{ ...type.bodySm, fontWeight: 800, padding: "10px 14px" }}>{String(row.field || row.label || "Field")}</td>
-                    <td data-label="Current" style={{ ...type.bodySm, color: color.softInk, padding: "10px 14px" }}>{String(row.current ?? row.before ?? "—")}</td>
-                    <td data-label="Draft" style={{ ...type.bodySm, fontWeight: 800, padding: "10px 14px" }}>{String(row.draft ?? row.after ?? "—")}</td>
-                    <td data-label="Scheduled" style={{ ...type.bodySm, color: color.softInk, padding: "10px 14px" }}>{String(row.scheduled || "—")}</td>
-                    <td data-label="Actions" style={{ padding: "8px 14px", textAlign: "right" }}>{rowActions.length > 0 && renderActions(node, ctx, rowActions)}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      );
+      const rows = jsonArray<AdminJsonObject>(props, "rows").map((row): ComparisonTableRow => ({
+        id: row.id == null ? undefined : String(row.id),
+        field: String(row.field || row.label || "Field"),
+        current: String(row.current ?? row.before ?? "—"),
+        draft: String(row.draft ?? row.after ?? "—"),
+        scheduled: String(row.scheduled || "—"),
+        actions: Array.isArray(row.actions) ? row.actions.filter(isActionRef).map(actionViewModel) : undefined,
+      }));
+      const empty = renderAdminNode({ kind: "emptyState", props: { title: str(props, "emptyTitle", "No changes"), body: str(props, "emptyBody", "There are no draft changes to review.") }, meta: node.meta }, ctx, key);
+      return <ComparisonTable key={key} id={nodeDomId(node)} tableId={str(props, "tableId", node.meta?.id || "comparison-table")} rows={rows} empty={empty} style={style(props)} onRowAction={(action, value) => dispatchWidgetAction(ctx, node, action, value.row)} />;
     }
 
     case "monthCalendar": {
@@ -322,35 +312,28 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       );
     }
 
-    case "emptyState":
-      return (
-        <div key={key} {...common} style={{ ...surface, padding: 28, textAlign: "center", background: color.cream, ...style(props) }}>
-          <h3 style={{ ...type.h2, margin: 0 }}>{str(props, "title", "Nothing here yet")}</h3>
-          {str(props, "body") && <p style={{ ...type.body, color: color.softInk, maxWidth: 420, margin: "10px auto 18px" }}>{str(props, "body")}</p>}
-          {renderActions(node, ctx, singleActionArray(jsonObject(props, "action")))}
-        </div>
-      );
+    case "emptyState": {
+      const action = jsonObject(props, "action");
+      const actionView = isActionRef(action) ? actionViewModel(action) : undefined;
+      return <EmptyState key={key} id={nodeDomId(node)} title={str(props, "title", "Nothing here yet")} body={str(props, "body") || undefined} action={actionView} style={style(props)} onAction={(clickedAction, value) => dispatchWidgetAction(ctx, node, clickedAction, value)} />;
+    }
 
     case "kvList": {
-      const items = jsonArray<AdminJsonObject>(props, "items");
-      return (
-        <dl key={key} {...common} style={{ display: "grid", gap: 10, margin: 0, ...style(props) }}>
-          {items.map((item, i) => (
-            <div key={i} style={{ display: "grid", gridTemplateColumns: "120px 1fr", gap: 12, borderBottom: `1px solid ${color.ruleSoft}`, paddingBottom: 8 }}>
-              <dt style={{ ...type.meta, color: color.soft }}>{String(item.label || "")}</dt>
-              <dd style={{ ...type.body, margin: 0 }}>{String(item.value || "")}</dd>
-            </div>
-          ))}
-        </dl>
-      );
+      const items = jsonArray<AdminJsonObject>(props, "items").map((item) => ({ label: String(item.label || ""), value: String(item.value || "") }));
+      return <KeyValueList key={key} id={nodeDomId(node)} items={items} labelWidth={typeof props.labelWidth === "number" || typeof props.labelWidth === "string" ? props.labelWidth : undefined} style={style(props)} />;
     }
 
     case "markdownBlock":
-      return <p key={key} {...common} style={{ ...type.body, color: color.softInk, margin: 0, whiteSpace: "pre-wrap", ...style(props) }}>{str(props, "markdown")}</p>;
+      return <MarkdownBlock key={key} id={nodeDomId(node)} markdown={str(props, "markdown")} tone={str(props, "tone", "neutral") as "neutral" | "muted"} style={style(props)} />;
 
     case "activityFeed": {
-      const items = jsonArray<AdminJsonObject>(props, "items");
-      return <div key={key} {...common} style={{ display: "grid", gap: 10, ...style(props) }}>{items.map((item, i) => <div key={i} style={{ display: "grid", gridTemplateColumns: "72px 1fr", gap: 12, paddingBottom: 10, borderBottom: `1px solid ${color.ruleSoft}` }}><div style={{ ...type.meta, color: color.softInk }}>{String(item.time || "")}</div><div><div style={{ ...type.body, fontWeight: 800 }}>{String(item.title || "")}</div>{item.body && <div style={{ ...type.bodySm, color: color.softInk, marginTop: 2 }}>{String(item.body)}</div>}</div></div>)}</div>;
+      const items = jsonArray<AdminJsonObject>(props, "items").map((item): ActivityFeedItem => ({
+        time: String(item.time || ""),
+        title: String(item.title || ""),
+        body: item.body == null ? undefined : String(item.body),
+        action: isActionRef(item.action) ? actionViewModel(item.action) : undefined,
+      }));
+      return <ActivityFeed key={key} id={nodeDomId(node)} items={items} style={style(props)} onItemAction={(action, value) => dispatchWidgetAction(ctx, node, action, value.item)} />;
     }
 
     case "imageGrid": {
