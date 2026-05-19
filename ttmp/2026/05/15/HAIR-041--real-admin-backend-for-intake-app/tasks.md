@@ -250,11 +250,11 @@ updated: 2026-05-15
 ## Phase 20 — Design-system remediation from intern review
 
 - [x] Add generated shared selection pill styling to the design-language IR/generator.
-- [ ] Refactor `Tabs` and `FilterBar` to use the shared selection pill helper instead of local pill CSS.
-- [ ] Replace raw token imports in `SearchBox` with `adminTokens`/`adminTextStyle` where possible.
-- [ ] Replace raw token imports in `ResourceTable`, `BulkActionBar`, and `PaginationBar` with shared design helpers where possible.
+- [x] Refactor `Tabs` and `FilterBar` to use the shared selection pill helper instead of local pill CSS.
+- [x] Replace raw token imports in `SearchBox` with `adminTokens`/`adminTextStyle` where possible.
+- [x] Replace raw token imports in `ResourceTable`, `BulkActionBar`, and `PaginationBar` with shared design helpers where possible.
 - [x] Move resource badge/status tone styling into a shared generated helper and refactor `ResourceTableCell`.
-- [ ] Fix `ResourceTable` pagination action semantics so pagination actions are not routed through bulk action callbacks.
-- [ ] Remove dead `renderTableCell(...)` from `render.tsx`.
-- [ ] Document or replace transitional `as unknown as` casts in the `resourceTable` adapter.
+- [x] Fix `ResourceTable` pagination action semantics so pagination actions are not routed through bulk action callbacks.
+- [x] Remove dead `renderTableCell(...)` from `render.tsx`.
+- [x] Document or replace transitional `as unknown as` casts in the `resourceTable` adapter.
 - [ ] Run `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet` after remediation.

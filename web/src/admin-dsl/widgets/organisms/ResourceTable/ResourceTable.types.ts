@@ -130,6 +130,10 @@ export interface ResourceTableProps<Row = Record<string, unknown>> extends Commo
    */
   onBulkAction?: TableBulkActionHandler<Row>;
   /**
+   * Callback invoked by ResourceTable pagination controls.
+   */
+  onPaginationAction?: (action: ActionViewModel, context: { tableId: string; page: number; total: number }) => void;
+  /**
    * Callback emitted when ResourceTable row selection changes.
    */
   onSelectionChange?: (context: { tableId: string; selectedRowIds: string[] }) => void;

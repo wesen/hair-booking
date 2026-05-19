@@ -13,6 +13,7 @@ import { DashboardGrid, DashboardGridItem } from "./widgets/organisms/DashboardG
 import { PageHeader } from "./widgets/organisms/PageHeader";
 import { Panel } from "./widgets/organisms/Panel";
 import { ResourceTable } from "./widgets/organisms/ResourceTable";
+import type { ResourceTableColumn } from "./widgets/organisms/ResourceTable/ResourceTable.types";
 import { SplitPane } from "./widgets/organisms/SplitPane";
 import type { ActionViewModel, SidebarNavItem } from "./widgets/shared";
 
@@ -71,36 +72,28 @@ function densityPadding(density: string, normal = 18) {
   return normal;
 }
 
-function renderTableCell(column: AdminJsonObject, row: AdminJsonObject, node: AdminNode, ctx?: AdminRenderContext) {
-  const id = String(column.id || column.accessor || "");
-  const accessor = String(column.accessor || id);
-  const value = row[accessor];
-  const kind = String(column.kind || "text");
-  if (kind === "dragHandle") return <span aria-hidden="true" style={{ ...type.meta, color: color.softInk }}>⋮⋮</span>;
-  if (kind === "badge") {
-    const map = jsonObject(column, "map");
-    const mapped = jsonObject(map, String(value || ""));
-    const label = String(mapped?.label || value || "—");
-    const tone = String(mapped?.tone || column.tone || "neutral");
-    const badgeColors = tone === "warning"
-      ? { background: "#fff0c2", color: "#674000", border: "#e0a52a" }
-      : tone === "success"
-        ? { background: "#e6f0df", color: "#345627", border: "#8baa7a" }
-        : tone === "danger"
-          ? { background: "#fff1ed", color: "#b3261e", border: "#e15a4f" }
-          : { background: color.paper, color: color.ink, border: color.rule };
-    return <span className="adminDslStatusText" style={{ display: "inline-flex", alignItems: "center", minHeight: 24, color: badgeColors.color, fontWeight: 700, ...type.bodySm }}>{label}</span>;
-  }
-  if (kind === "overflowActions" || kind === "actions") {
-    const rowActions = Array.isArray(row.actions) ? row.actions.filter(isActionRef) : [];
-    if (!rowActions.length) return "";
-    if (kind === "overflowActions") {
-      return <button type="button" className="adminDslOverflowAction" aria-label="Open row actions" onClick={() => dispatchAdminAction(ctx, node, rowActions[0], row)} style={{ minWidth: 32, minHeight: 32, border: "1px solid transparent", borderRadius: radius.md, background: "transparent", cursor: "pointer", fontSize: 18, lineHeight: 1, color: color.ink }}>…</button>;
-    }
-    return renderActions(node, ctx, rowActions);
-  }
-  if (kind === "boolean") return value ? "Yes" : "No";
-  return <span style={{ fontWeight: column.primary ? 800 : 400, color: column.tone === "muted" ? color.softInk : color.ink }}>{String(value ?? "")}</span>;
+function normalizeResourceTableColumns(columns: AdminJsonObject[]): ResourceTableColumn<AdminJsonObject>[] {
+  return columns.map((column) => {
+    const mapValue = jsonObject(column, "map");
+    const mappedEntries = mapValue
+      ? Object.fromEntries(
+        Object.entries(mapValue).map(([key, value]) => {
+          const item = value && typeof value === "object" && !Array.isArray(value) ? value as AdminJsonObject : {};
+          return [key, { label: String(item.label ?? key), tone: typeof item.tone === "string" ? item.tone : undefined }];
+        }),
+      )
+      : undefined;
+    return {
+      id: String(column.id || column.accessor || ""),
+      accessor: typeof column.accessor === "string" ? column.accessor : undefined,
+      label: typeof column.label === "string" ? column.label : undefined,
+      kind: typeof column.kind === "string" ? column.kind as ResourceTableColumn["kind"] : undefined,
+      primary: Boolean(column.primary),
+      tone: typeof column.tone === "string" ? column.tone : undefined,
+      width: typeof column.width === "string" || typeof column.width === "number" ? column.width : undefined,
+      map: mappedEntries,
+    };
+  });
 }
 
 function buildMonthCells(month: string) {
@@ -310,7 +303,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
           key={key}
           id={node.meta?.id || str(props, "id", undefined as unknown as string)}
           tableId={str(props, "tableId", node.meta?.id || "resource-table")}
-          columns={columns as unknown as Parameters<typeof ResourceTable<AdminJsonObject>>[0]["columns"]}
+          columns={normalizeResourceTableColumns(columns)}
           rows={rows}
           selectable={bool(props, "selectable") || bulkActions.length > 0}
           bulkLabel={str(props, "bulkLabel", "Bulk actions")}
@@ -324,6 +317,7 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
           style={style(props)}
           onRowAction={(action, value) => dispatchAdminAction(ctx, node, action as AdminActionRef, value.row)}
           onBulkAction={(action, value) => dispatchAdminAction(ctx, node, action as AdminActionRef, value)}
+          onPaginationAction={(action, value) => dispatchAdminAction(ctx, node, action as AdminActionRef, value)}
         />
       );
     }
