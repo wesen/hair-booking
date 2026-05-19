@@ -17,7 +17,7 @@ shared_design:
 widgets:
 - id: admin.form-field.field-shell
   name: FieldShell
-  status: planned
+  status: promoted
   classification:
     level: atom
     description: FieldShell participates in the Admin DSL field system as a atom; it extracts field-shell behavior from FieldPreview.

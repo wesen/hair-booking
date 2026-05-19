@@ -6827,3 +6827,70 @@ The IR keeps the current behavior conservative: fields are uncontrolled by defau
   - `python3 - <<'PY' ... yaml.safe_load(...) ... PY`
 - Parsed result:
   - `form_field_widgets 10 FieldShell,TextField,TextareaField,SelectField,SwitchField,DateField,TimeField,MoneyField,DurationField,ImageField`
+
+## Step 121: Promote Shared FieldShell
+
+I completed the second Phase 22 task by adding the shared field chrome primitive that concrete field widgets will reuse. `FieldShell` owns labels, required marks, disabled/read-only status hints, help text, error text, data attributes, and the basic vertical layout around a supplied control.
+
+This gives the upcoming field leaves a common accessibility and styling frame, so `TextField`, `SelectField`, and the other leaves can focus on native input semantics rather than duplicating label/error presentation.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 119)
+
+**Assistant interpretation:** Continue working Phase 22 tasks one by one after defining the form-field IR.
+
+**Inferred user intent:** Build the shared foundation before extracting every concrete field branch from `FieldPreview`.
+
+**Commit (code):** <pending> — "HAIR-041 Step 121: Promote FieldShell"
+
+### What I did
+- Added `web/src/admin-dsl/widgets/atoms/FieldShell/FieldShell.types.ts`.
+- Added `web/src/admin-dsl/widgets/atoms/FieldShell/FieldShell.tsx`.
+- Added `web/src/admin-dsl/widgets/atoms/FieldShell/FieldShell.stories.tsx`.
+- Added `web/src/admin-dsl/widgets/atoms/FieldShell/index.ts`.
+- Marked `FieldShell` as `promoted` in `10a-form-field-widgets.yaml`.
+- Checked the Phase 22 `FieldShell` task in `tasks.md`.
+
+### Why
+- Field leaves need a single place for label/help/error/disabled/read-only UI.
+- Centralizing this shell prevents each field widget from inventing different label and error styling.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed after correcting design helper usage.
+- Scoped widget promotion validation passed for `FieldShell`; Vitest passed 10 files / 49 tests.
+- `cd web && npx storybook build --quiet` passed with the known large chunk warning.
+
+### What didn't work
+- The first TypeScript pass failed because I used non-existent generated helper names:
+  - `adminTokens.spacing`
+  - `adminTokens.colors`
+  - `adminTextStyle("label")`
+  - `adminTextStyle("meta")`
+  - `adminTextStyle("bodySm")`
+- The generated design helpers currently expose `adminTokens.text`, `adminTokens.surfaces`, `adminTokens.borders`, `adminTokens.radii`, and typography roles such as `actionLabel`, `body`, and `bodyMuted`.
+- I corrected the component to use existing helper roles and literal spacing consistent with surrounding promoted widgets.
+
+### What I learned
+- The shared design-language helper API is narrower than the old renderer token vocabulary, so new widgets should inspect `widgets/shared/*` before assuming token names.
+
+### What was tricky to build
+- `FieldShell` needs to associate labels/help/errors with controls it does not create. I added `controlId` and a small `fieldDescriptionIds(...)` helper so leaf widgets can wire `htmlFor`, `aria-describedby`, and error ids consistently while still supplying the actual input.
+
+### What warrants a second pair of eyes
+- Review whether `FieldShell` should render the label as a `<label>` for every child, or whether non-input controls should opt into a different labeling mode later.
+- Review whether spacing should become a generated design-language helper rather than a local literal.
+
+### What should be done in the future
+- Promote `TextField` next and consume `FieldShell` from the concrete leaf widget.
+
+### Code review instructions
+- Start with `web/src/admin-dsl/widgets/atoms/FieldShell/FieldShell.tsx`.
+- Check that label/help/error ids are suitable for leaf widgets to reuse.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook web/src/admin-dsl/widgets/atoms/FieldShell`
+  - `cd web && npx storybook build --quiet`
+
+### Technical details
+- Known report-only design lint backlog still reports `DefaultAdminShell` and `WorkbenchShell` findings during scoped validation.

@@ -676,3 +676,9 @@ Step 120: Added dedicated form-field Widget IR source for the remaining `FieldPr
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml` — new form field widget contracts.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/00-index.yaml` — Widget IR index registration.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md` — Phase 22 first task checked.
+
+Step 121: Added promoted `FieldShell` shared form-field chrome with default/help/error/disabled/read-only/mobile stories and validation.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/atoms/FieldShell/FieldShell.tsx` — shared field chrome implementation.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/atoms/FieldShell/FieldShell.types.ts` — typed shell contract.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/atoms/FieldShell/FieldShell.stories.tsx` — field shell story coverage.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml` — `FieldShell` status update.
