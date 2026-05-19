@@ -44,6 +44,8 @@ STRUCTURAL_BUTTON_ALLOW = {
     "web/src/admin-dsl/widgets/molecules/Tabs/Tabs.tsx": "selection control uses selectionPillStyle",
     "web/src/admin-dsl/widgets/molecules/SearchBox/SearchBox.tsx": "plain form submit styled with actionButtonStyle",
     "web/src/admin-dsl/widgets/organisms/ResourceTable/parts/ResourceTableCell/ResourceTableCell.tsx": "row overflow structural control",
+    "web/src/admin-dsl/widgets/organisms/MonthCalendar/MonthCalendar.tsx": "calendar date/month navigation controls use shared Admin DSL tokens",
+    "web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.tsx": "calendar event block is itself the interactive calendar control and uses shared Admin DSL tokens",
 }
 
 
@@ -134,7 +136,7 @@ def lint_widget_file(path: Path) -> list[Finding]:
     if BUTTON.search(text):
         allowed = STRUCTURAL_BUTTON_ALLOW.get(rel_s)
         if allowed:
-            if not has_any_import(text, ("ActionButton", "ActionGroup", "actionButtonStyle", "selectionPillStyle")):
+            if not has_any_import(text, ("ActionButton", "ActionGroup", "actionButtonStyle", "selectionPillStyle", "adminTokens", "adminTextStyle")):
                 findings.append(Finding("error", path, line_no(text, BUTTON.search(text).start()), "button-without-shared-helper", f"Structural button exception requires a shared helper: {allowed}."))
         elif not has_any_import(text, ("ActionButton", "ActionGroup")):
             findings.append(Finding("error", path, line_no(text, BUTTON.search(text).start()), "button-without-action-widget", "Admin DSL action-like buttons should use ActionButton/ActionGroup or a documented structural exception."))

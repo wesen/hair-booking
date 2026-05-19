@@ -7,7 +7,7 @@ schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/des
 widgets:
 - id: admin.calendar.month-calendar
   name: MonthCalendar
-  status: scaffolded
+  status: promoted
   classification:
     level: organism
     description: MonthCalendar participates in the Admin DSL component system as a organism; its level controls scaffold location
@@ -105,19 +105,19 @@ widgets:
             required: false
             doc: 'selectDateAction configures month calendar. Type: ActionViewModel.'
           onMonthAction:
-            type: CalendarCellActionHandler
+            type: '(action: ActionViewModel, context: { calendarId: string; month: string; direction: "previous" | "next" }) => void'
             required: false
-            doc: 'onMonthAction configures month calendar. Type: CalendarCellActionHandler.'
+            doc: Callback invoked by MonthCalendar previous/next controls with calendar id, current month, and direction.
           onSelectDate:
-            type: CalendarCellActionHandler
+            type: '(action: ActionViewModel, context: { calendarId: string; date: string }) => void'
             required: false
-            doc: 'onSelectDate configures month calendar. Type: CalendarCellActionHandler.'
+            doc: Callback invoked by MonthCalendar date cells with selected date context.
         extends: CommonWidgetProps
     action_slots:
       previousMonth:
         doc: previousMonth action slot for MonthCalendar. The widget emits the declared context through onAction and adapters
           lower it to runtime dispatch.
-        callback: onAction
+        callback: onMonthAction
         action_type: ActionViewModel
         cardinality: many
         context_type: PreviousmonthContext
@@ -132,7 +132,7 @@ widgets:
       nextMonth:
         doc: nextMonth action slot for MonthCalendar. The widget emits the declared context through onAction and adapters
           lower it to runtime dispatch.
-        callback: onAction
+        callback: onMonthAction
         action_type: ActionViewModel
         cardinality: many
         context_type: NextmonthContext
@@ -147,7 +147,7 @@ widgets:
       selectDate:
         doc: selectDate action slot for MonthCalendar. The widget emits the declared context through onAction and adapters
           lower it to runtime dispatch.
-        callback: onAction
+        callback: onSelectDate
         action_type: ActionViewModel
         cardinality: many
         context_type: SelectdateContext
@@ -241,7 +241,7 @@ widgets:
     doc: Replace generated scaffold placeholder with final implementation.
 - id: admin.calendar.calendar-week
   name: CalendarWeek
-  status: scaffolded
+  status: promoted
   classification:
     level: organism
     description: CalendarWeek participates in the Admin DSL component system as a organism; its level controls scaffold location
@@ -296,7 +296,7 @@ widgets:
       child eventOpen actions:
         doc: child eventOpen actions action slot for CalendarWeek. The widget emits the declared context through onAction
           and adapters lower it to runtime dispatch.
-        callback: onAction
+        callback: onBlockAction
         action_type: ActionViewModel
         cardinality: many
         context_type: ChildEventopenActionsContext
@@ -374,7 +374,7 @@ widgets:
     doc: Replace generated scaffold placeholder with final implementation.
 - id: admin.calendar.calendar-event-block
   name: CalendarEventBlock
-  status: scaffolded
+  status: promoted
   classification:
     level: molecule
     description: CalendarEventBlock participates in the Admin DSL component system as a molecule; its level controls scaffold

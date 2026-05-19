@@ -1,13 +1,14 @@
 import type { CSSProperties, Key, ReactNode } from "react";
 import type { AdminActionRef, AdminJsonObject, AdminNode, AdminPage, AdminRenderContext } from "./schema";
 import { color, font, radius, shadow, type } from "../fringe-ui/tokens";
-import { AdminCalendarWeek } from "./calendar";
 import { WorkbenchShell as WorkbenchShellWidget } from "./widgets/organisms/WorkbenchShell";
 import { DefaultAdminShell } from "./widgets/organisms/DefaultAdminShell";
 import { ActionGroup } from "./widgets/molecules/ActionGroup";
 import { FilterBar } from "./widgets/molecules/FilterBar";
 import { ActivityFeed } from "./widgets/molecules/ActivityFeed";
 import type { ActivityFeedItem } from "./widgets/molecules/ActivityFeed/ActivityFeed.types";
+import { CalendarEventBlock } from "./widgets/molecules/CalendarEventBlock";
+import type { CalendarEventBlockProps } from "./widgets/molecules/CalendarEventBlock/CalendarEventBlock.types";
 import { EmptyState } from "./widgets/molecules/EmptyState";
 import { InlineError } from "./widgets/molecules/InlineError";
 import { KeyValueList } from "./widgets/molecules/KeyValueList";
@@ -24,6 +25,9 @@ import { ImageGallery } from "./widgets/organisms/ImageGallery";
 import type { GalleryImage } from "./widgets/organisms/ImageGallery/ImageGallery.types";
 import { ImageGrid } from "./widgets/organisms/ImageGrid";
 import type { ImageGridItem } from "./widgets/organisms/ImageGrid/ImageGrid.types";
+import { CalendarWeek } from "./widgets/organisms/CalendarWeek";
+import { MonthCalendar } from "./widgets/organisms/MonthCalendar";
+import type { MonthCalendarLegendItem, MonthCalendarMarker } from "./widgets/organisms/MonthCalendar/MonthCalendar.types";
 import { PageHeader } from "./widgets/organisms/PageHeader";
 import { Panel } from "./widgets/organisms/Panel";
 import { PreviewFrame } from "./widgets/organisms/PreviewFrame";
@@ -33,7 +37,7 @@ import { SplitPane } from "./widgets/organisms/SplitPane";
 import type { ActionViewModel, SidebarNavItem } from "./widgets/shared";
 
 import { actionIsDanger, actionIsPrimary, actionKey, actionList, dispatchAdminAction, isActionRef } from "./actions";
-import { bool, dataAttrs, jsonArray, jsonObject, nodeKey, str, style, toneColor } from "./renderUtils";
+import { bool, dataAttrs, jsonArray, jsonObject, nodeKey, num, str, style, toneColor } from "./renderUtils";
 
 function nodeDomId(node: AdminNode): string | undefined {
   return node.meta?.id || str(node.props, "id") || undefined;
@@ -196,37 +200,13 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     }
 
     case "monthCalendar": {
-      const month = str(props, "month", "2024-06");
-      const selectedDate = str(props, "selectedDate");
-      const markers = jsonArray<AdminJsonObject>(props, "markers");
-      const legend = jsonArray<AdminJsonObject>(props, "legend");
       const actions = jsonObject(props, "actions");
-      const selectAction = isActionRef(actions?.selectDate) ? actions.selectDate : actionList(props).find((actionRef) => actionRef.placement === "calendarCell") || actionList(props)[0];
-      const markerByDate = new Map<string, AdminJsonObject[]>();
-      markers.forEach((marker) => {
-        const date = String(marker.date || "");
-        if (!date) return;
-        markerByDate.set(date, [...(markerByDate.get(date) || []), marker]);
-      });
-      return (
-        <div key={key} {...common} className="adminDslMonthCalendar" style={{ display: "grid", gap: 12, ...style(props) }}>
-          <div style={{ display: "grid", gridTemplateColumns: "auto 1fr auto", alignItems: "center", gap: 10 }}>
-            <button type="button" aria-label="Previous month" disabled={!isActionRef(actions?.previousMonth)} onClick={() => isActionRef(actions?.previousMonth) && dispatchAdminAction(ctx, node, actions.previousMonth)} style={{ width: 30, height: 30, borderRadius: radius.md, border: `1px solid ${color.rule}`, background: color.paper, cursor: isActionRef(actions?.previousMonth) ? "pointer" : "default" }}>‹</button>
-            <div style={{ ...type.body, fontWeight: 800, textAlign: "center" }}>{str(props, "label", new Date(`${month}-01T00:00:00`).toLocaleString("en", { month: "long", year: "numeric" }))}</div>
-            <button type="button" aria-label="Next month" disabled={!isActionRef(actions?.nextMonth)} onClick={() => isActionRef(actions?.nextMonth) && dispatchAdminAction(ctx, node, actions.nextMonth)} style={{ width: 30, height: 30, borderRadius: radius.md, border: `1px solid ${color.rule}`, background: color.paper, cursor: isActionRef(actions?.nextMonth) ? "pointer" : "default" }}>›</button>
-          </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 6 }}>
-            {["S", "M", "T", "W", "T", "F", "S"].map((day, i) => <div key={`${day}-${i}`} style={{ ...type.meta, textAlign: "center", color: color.ink }}>{day}</div>)}
-            {buildMonthCells(month).map((cell) => {
-              const active = selectedDate === cell.date;
-              const cellMarkers = markerByDate.get(cell.date) || [];
-              const scheduled = cellMarkers.some((marker) => String(marker.kind) === "scheduled");
-              return <button key={cell.date} type="button" disabled={!selectAction} aria-pressed={active} onClick={() => selectAction && dispatchAdminAction(ctx, node, selectAction, { date: cell.date })} style={{ minHeight: 38, borderRadius: radius.md, border: `1px solid ${active ? color.ink : scheduled ? color.warn : "transparent"}`, background: active ? color.ink : scheduled ? "#fbefcf" : "transparent", color: active ? color.paper : cell.inMonth ? color.ink : color.soft, display: "grid", placeItems: "center", gap: 2, cursor: selectAction ? "pointer" : "default" }}><span style={{ ...type.bodySm, fontWeight: 800 }}>{cell.day}</span>{cellMarkers.some((marker) => String(marker.kind) === "published") && <span aria-hidden="true" style={{ width: 5, height: 5, borderRadius: radius.pill, background: color.success }} />}</button>;
-            })}
-          </div>
-          {legend.length > 0 && <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>{legend.map((item) => <span key={String(item.kind || item.label)} style={{ display: "inline-flex", alignItems: "center", gap: 6, ...type.bodySm, color: color.softInk }}><span aria-hidden="true" style={{ width: 7, height: 7, borderRadius: radius.pill, background: String(item.tone) === "warning" ? color.warn : color.success }} />{String(item.label || item.kind)}</span>)}</div>}
-        </div>
-      );
+      const previousMonthAction = isActionRef(actions?.previousMonth) ? actionViewModel(actions.previousMonth) : undefined;
+      const nextMonthAction = isActionRef(actions?.nextMonth) ? actionViewModel(actions.nextMonth) : undefined;
+      const selectDateAction = isActionRef(actions?.selectDate) ? actionViewModel(actions.selectDate) : actionList(props).find((actionRef) => actionRef.placement === "calendarCell") ? actionViewModel(actionList(props).find((actionRef) => actionRef.placement === "calendarCell")!) : actionList(props)[0] ? actionViewModel(actionList(props)[0]) : undefined;
+      const markers = jsonArray<AdminJsonObject>(props, "markers").map((marker): MonthCalendarMarker => ({ date: String(marker.date || ""), kind: String(marker.kind || "marker"), tone: typeof marker.tone === "string" ? marker.tone as MonthCalendarMarker["tone"] : undefined }));
+      const legend = jsonArray<AdminJsonObject>(props, "legend").map((item): MonthCalendarLegendItem => ({ kind: String(item.kind || item.label || "marker"), label: String(item.label || item.kind || "Marker"), tone: typeof item.tone === "string" ? item.tone as MonthCalendarLegendItem["tone"] : undefined }));
+      return <MonthCalendar key={key} id={nodeDomId(node)} calendarId={str(props, "calendarId", node.meta?.id || "month-calendar")} month={str(props, "month", "2024-06")} label={str(props, "label") || undefined} selectedDate={str(props, "selectedDate") || undefined} markers={markers} legend={legend} previousMonthAction={previousMonthAction} nextMonthAction={nextMonthAction} selectDateAction={selectDateAction} style={style(props)} onMonthAction={(action, value) => dispatchWidgetAction(ctx, node, action, value)} onSelectDate={(action, value) => dispatchWidgetAction(ctx, node, action, { date: value.date })} />;
     }
 
     case "toolbar":
@@ -429,19 +409,37 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
     case "saveBar":
       return <div key={key} {...common} className="adminDslSaveBar" style={{ borderTop: `1px solid ${color.rule}`, paddingTop: 12, display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, ...style(props) }}><span className="adminDslSaveStatus" style={{ ...type.meta, color: color.ink, fontWeight: 800, background: color.cream, border: `1px solid ${color.rule}`, borderRadius: radius.pill, padding: "6px 10px", justifySelf: "start" }}>{str(props, "status", "Ready")}</span>{renderActions(node, ctx, singleActionArray(jsonObject(props, "primary")))}</div>;
 
-    case "calendarWeek":
-      return <AdminCalendarWeek key={key} node={node} context={ctx} attrs={common} />;
+    case "calendarWeek": {
+      const days = jsonArray<string>(props, "days");
+      const hours = jsonArray<string>(props, "hours");
+      const blocks = (node.children || []).map((child, index): CalendarEventBlockProps => {
+        const childProps = child.props || {};
+        const action = actionList(childProps)[0];
+        return {
+          id: child.meta?.id || str(childProps, "id", `block-${index}`),
+          kind: child.kind === "timeOffBlock" ? "timeOff" : child.kind === "availabilityBlock" ? "availability" : "appointment",
+          clientName: str(childProps, "clientName") || undefined,
+          title: str(childProps, "title") || undefined,
+          service: str(childProps, "service") || undefined,
+          status: str(childProps, "status") || undefined,
+          startsAt: str(childProps, "startsAt") || undefined,
+          endsAt: str(childProps, "endsAt") || undefined,
+          column: num(childProps, "column", 1),
+          row: num(childProps, "row", 1),
+          span: num(childProps, "span", 1),
+          action: action ? actionViewModel(action) : undefined,
+        };
+      });
+      return <CalendarWeek key={key} id={nodeDomId(node)} calendarId={str(props, "calendarId", node.meta?.id || "calendar-week")} days={days} hours={hours} blocks={blocks} style={style(props)} onBlockAction={(action, value) => dispatchWidgetAction(ctx, node, action, value.block)} />;
+    }
 
     case "appointmentBlock":
     case "availabilityBlock":
-    case "timeOffBlock":
-      return (
-        <button key={key} {...common} type="button" onClick={() => actionList(props)[0] && dispatchAdminAction(ctx, node, actionList(props)[0])} style={{ textAlign: "left", border: `1px solid ${node.kind === "timeOffBlock" ? color.warn : color.plum}`, background: node.kind === "timeOffBlock" ? "#fbefcf" : color.paper, borderRadius: radius.md, padding: 12, boxShadow: shadow.sm, cursor: "pointer", ...style(props) }}>
-          <strong style={{ ...type.body, display: "block" }}>{str(props, "clientName", str(props, "title", "Appointment"))}</strong>
-          <span style={{ ...type.bodySm, color: color.softInk }}>{str(props, "service", str(props, "status"))}</span>
-          <span style={{ ...type.meta, display: "block", marginTop: 6 }}>{str(props, "startsAt")} – {str(props, "endsAt")}</span>
-        </button>
-      );
+    case "timeOffBlock": {
+      const action = actionList(props)[0];
+      const blockId = nodeDomId(node) || str(props, "id", String(key || node.kind));
+      return <CalendarEventBlock key={key} id={blockId} kind={node.kind === "timeOffBlock" ? "timeOff" : node.kind === "availabilityBlock" ? "availability" : "appointment"} clientName={str(props, "clientName") || undefined} title={str(props, "title") || undefined} service={str(props, "service") || undefined} status={str(props, "status") || undefined} startsAt={str(props, "startsAt") || undefined} endsAt={str(props, "endsAt") || undefined} action={action ? actionViewModel(action) : undefined} style={style(props)} onAction={(clickedAction) => dispatchWidgetAction(ctx, node, clickedAction, { blockId })} />;
+    }
 
     case "inlineError":
       return <InlineError key={key} id={nodeDomId(node)} title={str(props, "title", "Something went wrong")} body={str(props, "body") || undefined} style={style(props)} />;
