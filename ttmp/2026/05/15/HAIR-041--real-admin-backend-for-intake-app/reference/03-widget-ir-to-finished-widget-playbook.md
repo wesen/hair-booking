@@ -222,9 +222,9 @@ Interpret the result:
 - If the scaffold is stale and has not been hand-promoted, run targeted `--force` regeneration and commit that generated refresh before manual implementation.
 - If the scaffold is already hand-promoted, do not force-regenerate over it. Instead, decide whether to preserve the implementation, manually patch generator-era metadata, or intentionally rebuild from generated output.
 
-The widget scaffold generator now skips `web/src/admin-dsl/widgets/shared/types.ts` and `web/src/admin-dsl/widgets/shared/index.ts` by default because shared design helpers are owned by `06-generate-admin-dsl-design-language.py`. Only use `--write-shared` for legacy bootstrap cases where the design-language generator is intentionally not in play.
+The widget scaffold generator never writes `web/src/admin-dsl/widgets/shared/*`; shared design helpers are owned by `06-generate-admin-dsl-design-language.py`. If widget generation appears to touch shared files, stop and inspect the generator before committing.
 
-If regeneration ever touches shared design files, rerun the design-language generator before validation:
+If a separate design-language change touches shared design files, rerun the design-language generator before validation:
 
 ```bash
 python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py
@@ -235,8 +235,8 @@ The clean review sequence is:
 
 1. revert accidental manual edits for the target widget if they happened before regeneration;
 2. run targeted `--force` scaffold generation;
-3. confirm shared files were skipped unless `--write-shared` was intentional;
-4. rerun design-language generation only if shared helper files were overwritten or the design-language YAML changed;
+3. confirm `git diff -- web/src/admin-dsl/widgets/shared` is empty unless this step intentionally changed the design language;
+4. rerun design-language generation only if the design-language YAML changed;
 5. run TypeScript validation;
 6. commit generated refresh only;
 7. reapply manual implementation;
