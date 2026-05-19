@@ -5341,3 +5341,248 @@ See if the diary gives you feedback on how to make the review playbook better."
 
 ### Technical details
 - This step updates documentation only.
+
+## Step 85: Add Design Remediation Tasks
+
+I first translated the intern review findings into explicit HAIR-041 ticket tasks before touching implementation. This made the remediation track reviewable as a checklist instead of a loose set of code edits.
+
+The added task group focuses on generated design-language helpers, duplicated pill styles, raw token imports, resource-table callback semantics, dead renderer code, type-cast cleanup, and validation commands.
+
+### Prompt Context
+
+**User prompt (verbatim):** "add tasks to the ticket, then implement one by one, commit at appropriate intervals, keep a detailed diary as you work"
+
+**Assistant interpretation:** Add ticket tasks for the known Admin DSL design-system problems, then implement them incrementally with focused commits and diary entries.
+
+**Inferred user intent:** Keep the HAIR-041 remediation accountable and auditable while avoiding a large untracked cleanup batch.
+
+**Commit (code):** d68e84b — "HAIR-041 Step 85: Add design remediation tasks"
+
+### What I did
+- Added `Phase 20 — Design-system remediation from intern review` to `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md`.
+- Captured tasks for selection pills, raw token cleanup, badge tone helpers, pagination callback semantics, dead `renderTableCell(...)`, adapter casts, and validation.
+- Committed only the task file.
+
+### Why
+- The requested workflow explicitly asked to add tasks first.
+- The intern review findings spanned generator, generated shared files, widgets, renderer adapters, and validation; a task group makes those boundaries visible.
+
+### What worked
+- The task list cleanly separated generator-owned helper work from widget refactors and adapter semantics.
+
+### What didn't work
+- N/A.
+
+### What I learned
+- The remediation work was broad enough to justify its own phase rather than adding isolated checklist items to earlier widget extraction phases.
+
+### What was tricky to build
+- The main constraint was commit hygiene: the repository already had unrelated dirty files, so the task commit used an explicit path to avoid staging unrelated work.
+
+### What warrants a second pair of eyes
+- Review whether Phase 20 has the right granularity or whether remaining lint-script work should be split into a follow-up phase.
+
+### What should be done in the future
+- Add the design-system lint script as the next hardening pass.
+
+### Code review instructions
+- Start with `tasks.md` Phase 20 and compare it against `reference/04-admin-dsl-widget-design-system-review-playbook.md`.
+- Validate with `git show --stat d68e84b`.
+
+### Technical details
+- Task file: `ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md`.
+
+## Step 86: Generate Shared Selection and Badge Style Helpers
+
+I moved the shared visual rules that were missing from the Admin DSL design language into the IR/generator path rather than editing generated TypeScript directly. The generated shared helper module now includes reusable selection pill styling for structural selection controls and reusable badge tone styling for resource/data-display status cells.
+
+This step deliberately kept `FilterBar`, `Tabs`, and `ResourceTableCell` unchanged until the helper generation was committed, so the generator-owned boundary stayed clear.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 85)
+
+**Assistant interpretation:** Implement the first design-system remediation item through the source IR and generator, not ad hoc edits to generated helpers.
+
+**Inferred user intent:** Keep generated shared widget helpers reproducible and aligned with the Admin DSL design-language IR.
+
+**Commit (code):** 9c24194 — "HAIR-041 Step 86: Generate selection and badge style helpers"
+
+### What I did
+- Updated `sources/admin-dsl-widget-ir/15-design-language.yaml` with `selection_controls.pill` and `badge_tones` semantics.
+- Updated `scripts/06-generate-admin-dsl-design-language.py` to emit:
+  - `selectionPillStyle({ active, disabled })`
+  - `badgeToneStyle(tone)`
+- Regenerated `web/src/admin-dsl/widgets/shared/*` with the design-language generator.
+- Checked the first two related Phase 20 tasks as complete.
+- Ran `cd web && npx tsc --noEmit` successfully after generation.
+
+### Why
+- `FilterBar` and `Tabs` duplicated pill styling locally.
+- `ResourceTableCell` duplicated status/badge color recipes locally.
+- The review playbook now says these shared semantics should live in generated design-language helpers.
+
+### What worked
+- Regeneration succeeded and rewrote the shared helper files with updated provenance headers.
+- TypeScript compilation passed after the generated helper update.
+
+### What didn't work
+- My first `edit` attempt targeted a misspelled generator path (`06-generate-admin-dsl_design-language.py`) and failed before changing anything.
+- A broad import replacement also failed because the same token import text appeared in multiple generated sections; I then made the replacement with more surrounding context.
+
+### What I learned
+- The generated `actionStyles.ts` section was the right home for selection-control and badge-tone helpers because it already owns semantic control styling helpers such as `actionButtonStyle(...)` and `sidebarNavButtonStyle(...)`.
+
+### What was tricky to build
+- The generated helper currently emits literal badge tone colors from the generator rather than fully deriving each line from YAML values. The YAML now records the source design-language intent, and the generated output is reproducible, but a stricter future generator could lower those YAML values mechanically.
+
+### What warrants a second pair of eyes
+- Check whether `badgeToneStyle(...)` belongs in `actionStyles.ts` long-term or whether a future `dataDisplayStyles.ts` generated file would be cleaner once data-display widgets are extracted.
+
+### What should be done in the future
+- Consider generating badge-tone switch cases directly from `badge_tones` instead of keeping the emitted TypeScript mostly literal.
+
+### Code review instructions
+- Start with `15-design-language.yaml`, then inspect `render_action_styles(...)` in `06-generate-admin-dsl-design-language.py`.
+- Confirm generated exports with `rg "selectionPillStyle|badgeToneStyle" web/src/admin-dsl/widgets/shared`.
+- Validate with `cd web && npx tsc --noEmit`.
+
+### Technical details
+- Generator command: `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py`.
+- Validation command: `cd web && npx tsc --noEmit`.
+
+## Step 87: Refactor Widgets Onto Shared Design Helpers
+
+I then applied the generated helpers to the promoted widgets and cleaned the resource-table adapter issues identified in the review. `FilterBar` and `Tabs` now consume `selectionPillStyle(...)`; `SearchBox`, `ResourceTable`, `BulkActionBar`, `PaginationBar`, and `ResourceTableCell` use shared `adminTokens` and `adminTextStyle(...)` instead of importing raw Fringe tokens where practical.
+
+The resource-table pagination callback was also split away from bulk-action semantics. Pagination actions now call a dedicated `onPaginationAction` prop, and the renderer adapter dispatches those actions with page/table context rather than pretending they are bulk actions over selected rows.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 85)
+
+**Assistant interpretation:** Implement the widget and adapter remediations one by one after the shared helpers exist.
+
+**Inferred user intent:** Remove concrete code-quality violations from the promoted widgets without breaking the Admin DSL action trust boundary.
+
+**Commit (code):** 9f1a463 — "HAIR-041 Step 87: Refactor widgets onto shared design helpers"
+
+### What I did
+- Refactored `FilterBar.tsx` and `Tabs.tsx` to import and use `selectionPillStyle(...)`.
+- Refactored `SearchBox.tsx` to use `adminTokens` and `adminTextStyle(...)` instead of direct `fringe-ui/tokens` imports.
+- Refactored `ResourceTable.tsx`, `BulkActionBar.tsx`, `PaginationBar.tsx`, and `ResourceTableCell.tsx` toward shared design helpers.
+- Replaced local badge tone recipes in `ResourceTableCell.tsx` with `badgeToneStyle(...)`.
+- Added `onPaginationAction` to `ResourceTableProps` and wired `ResourceTable.tsx` pagination controls to that dedicated callback.
+- Removed dead `renderTableCell(...)` from `web/src/admin-dsl/render.tsx`.
+- Replaced the `columns as unknown as ...` resource-table adapter cast with `normalizeResourceTableColumns(...)`.
+- Checked the corresponding Phase 20 tasks.
+
+### Why
+- The intern review correctly identified duplicated local style helpers, raw token imports, dead renderer code, pagination/bulk callback confusion, and unsafe adapter casting.
+- Widgets should receive typed props, while `render.tsx` should normalize raw Admin DSL JSON before passing data into widgets.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed after the refactor.
+- The dedicated `onPaginationAction` path keeps table pagination context small and semantically accurate.
+- Removing `renderTableCell(...)` reduced duplicated badge/status/action rendering logic now owned by `ResourceTableCell`.
+
+### What didn't work
+- The first TypeScript run after raw-token cleanup failed because I guessed nonexistent `adminTokens` keys:
+  - `adminTokens.backgrounds.subtle`
+  - `adminTokens.backgrounds.surface`
+  - `adminTokens.radii.md`
+  - `adminTokens.text.default`
+- I fixed those by using existing keys:
+  - `adminTokens.surfaces.muted`
+  - `adminTokens.surfaces.panel`
+  - `adminTokens.radii.control`
+  - `adminTokens.text.primary`
+
+### What I learned
+- The generated `adminTokens` shape is intentionally small: `surfaces`, `text`, `borders`, and `radii`. Widget refactors should use that shape instead of inventing convenience aliases locally.
+- Pagination actions were already visually in the right place, but the callback context was semantically wrong because it reused `onBulkAction`.
+
+### What was tricky to build
+- The main adapter challenge was replacing the `as unknown as` column cast without over-engineering a full schema validator. The implemented `normalizeResourceTableColumns(...)` performs narrow conversion for the typed widget boundary: strings/numbers/booleans are copied only when they have expected runtime types, and badge maps are normalized into `{ label, tone }` entries.
+- Another subtle issue was preserving the backend-owned action boundary. The widget still emits typed callbacks; `render.tsx` remains responsible for lowering those callbacks into `dispatchAdminAction(...)`.
+
+### What warrants a second pair of eyes
+- Review `normalizeResourceTableColumns(...)` for whether unsupported column fields should be preserved, rejected, or surfaced as validation errors.
+- Review the new pagination action context shape `{ tableId, page, total }` against expected Admin DSL backend handlers.
+- Review whether `ResourceTableCell` should visually render badge backgrounds/borders or continue only applying text color as it currently does.
+
+### What should be done in the future
+- Add a lint script to prevent reintroducing raw promoted-widget token imports, local pill styles, dead renderer helpers, and undocumented `as unknown as` casts.
+
+### Code review instructions
+- Start in `web/src/admin-dsl/render.tsx` around `normalizeResourceTableColumns(...)` and the `resourceTable` branch.
+- Then review the widget files touched in `web/src/admin-dsl/widgets/molecules/*` and `web/src/admin-dsl/widgets/organisms/ResourceTable/*`.
+- Validate with `cd web && npx tsc --noEmit`.
+
+### Technical details
+- Key files:
+  - `web/src/admin-dsl/render.tsx`
+  - `web/src/admin-dsl/widgets/molecules/FilterBar/FilterBar.tsx`
+  - `web/src/admin-dsl/widgets/molecules/Tabs/Tabs.tsx`
+  - `web/src/admin-dsl/widgets/molecules/SearchBox/SearchBox.tsx`
+  - `web/src/admin-dsl/widgets/organisms/ResourceTable/ResourceTable.tsx`
+  - `web/src/admin-dsl/widgets/organisms/ResourceTable/ResourceTable.types.ts`
+  - `web/src/admin-dsl/widgets/organisms/ResourceTable/parts/ResourceTableCell/ResourceTableCell.tsx`
+
+## Step 88: Validate Design-System Remediation
+
+I finished the pass by running the agreed frontend validation commands and checking the validation task. TypeScript, Vitest, and Storybook production build all passed after the helper generation and widget refactors.
+
+The Storybook build still reports the known Vite/Rollup large chunk warning, which is unrelated to this remediation and has appeared in previous successful builds.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 85)
+
+**Assistant interpretation:** Validate the completed remediation and record the result in the ticket.
+
+**Inferred user intent:** Ensure the code changes are buildable and keep ticket state synchronized with implementation state.
+
+**Commit (code):** 9646410 — "HAIR-041 Step 88: Mark design remediation validated"
+
+### What I did
+- Ran `python3 -m py_compile ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py`.
+- Ran `cd web && npx tsc --noEmit`.
+- Ran `cd web && pnpm test -- --runInBand`.
+- Ran `cd web && npx storybook build --quiet`.
+- Checked the Phase 20 validation task in `tasks.md`.
+
+### Why
+- The remediation touched generator code, shared generated TypeScript, React widgets, and renderer adapter semantics, so both static and runtime/story validation were warranted.
+
+### What worked
+- `npx tsc --noEmit` passed.
+- Vitest passed: 10 test files / 49 tests.
+- Storybook build passed.
+
+### What didn't work
+- Storybook emitted the known warning about chunks larger than 500 kB after minification. This did not fail the build.
+
+### What I learned
+- The promoted widget story set still builds after replacing local styling with shared generated helpers.
+
+### What was tricky to build
+- Validation needed to be run after the final task-file update as well as after the code refactor because this repository has many generated and unrelated dirty files; explicit path commits prevented unrelated state from being swept in.
+
+### What warrants a second pair of eyes
+- Confirm the visual output of `FilterBar`, `Tabs`, and resource-table badge/status cells still matches the intended design language after centralizing helpers.
+
+### What should be done in the future
+- Capture fresh Storybook iframe screenshots if these visual helper changes need design review.
+- Implement the planned design-system lint script.
+
+### Code review instructions
+- Inspect commits `9c24194`, `9f1a463`, and `9646410` in order.
+- Re-run:
+  - `python3 -m py_compile ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py`
+  - `cd web && npx tsc --noEmit`
+  - `cd web && pnpm test -- --runInBand`
+  - `cd web && npx storybook build --quiet`
+
+### Technical details
+- Storybook warning observed: `Some chunks are larger than 500 kB after minification`.
