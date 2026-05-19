@@ -552,3 +552,18 @@ Step 84: Folded intern review feedback into widget implementation/review playboo
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/05-admin-dsl-widget-ir-review.md — Intern review input
 - /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/reference/06-widget-ir-review-diary.md — Intern review diary input
 
+
+- Step 85: Added Phase 20 design-system remediation tasks for intern-review findings (commit d68e84b).
+  - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md` — tracked remediation work before implementation.
+- Step 86: Added Admin DSL design-language IR/generator support for shared selection pill and badge tone helpers, then regenerated shared helper files (commit 9c24194).
+  - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/15-design-language.yaml` — records helper semantics.
+  - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/06-generate-admin-dsl-design-language.py` — emits the helpers.
+  - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/shared/actionStyles.ts` — generated helper output.
+- Step 87: Refactored promoted widgets and the resource-table adapter onto shared helpers; split pagination actions from bulk callbacks; removed dead table-cell renderer; replaced resource-table column cast with normalization (commit 9f1a463).
+  - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — adapter cleanup and pagination dispatch.
+  - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/FilterBar/FilterBar.tsx` — shared selection pill helper.
+  - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/Tabs/Tabs.tsx` — shared selection pill helper.
+  - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ResourceTable/ResourceTable.tsx` — shared token helpers and pagination callback split.
+  - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ResourceTable/parts/ResourceTableCell/ResourceTableCell.tsx` — shared badge tone helper.
+- Step 88: Validated the remediation with Python compile, TypeScript, Vitest, and Storybook build; marked the validation task complete (commit 9646410).
+- Step 89: Recorded the detailed design remediation diary (commit eabf888).
