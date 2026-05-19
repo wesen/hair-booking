@@ -283,7 +283,7 @@ updated: 2026-05-15
 
 ## Phase 22 — Form field widget extraction
 
-- [ ] Add a dedicated form-field Widget IR source for concrete field widgets that are still rendered by `FieldPreview` in `render.tsx`.
+- [x] Add a dedicated form-field Widget IR source for concrete field widgets that are still rendered by `FieldPreview` in `render.tsx`.
 - [ ] Define and scaffold shared field chrome (`FieldShell`) so label/help/error/disabled/read-only styling is not duplicated across field widgets.
 - [ ] Promote `TextField` with typed props, Storybook variants, and renderer adapter coverage.
 - [ ] Promote `TextareaField` with typed props, Storybook variants, and renderer adapter coverage.

@@ -671,3 +671,8 @@ Step 117: Promoted `10-form-widgets.yaml` widgets (`AdminForm`, `FieldGroup`, `S
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/AdminForm/AdminForm.tsx` — promoted admin form widget.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/FieldGroup/FieldGroup.tsx` — promoted field group widget.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/SaveBar/SaveBar.tsx` — promoted save bar widget.
+
+Step 120: Added dedicated form-field Widget IR source for the remaining `FieldPreview` extraction work and registered it in the Widget IR index.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml` — new form field widget contracts.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/00-index.yaml` — Widget IR index registration.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/tasks.md` — Phase 22 first task checked.

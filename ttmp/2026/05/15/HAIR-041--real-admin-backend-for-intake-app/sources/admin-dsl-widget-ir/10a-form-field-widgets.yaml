@@ -1,0 +1,1463 @@
+schema_version: 2
+artifact_type: admin_dsl_widget_definition_ir
+category: form_field_widgets
+summary: Concrete form field leaf widgets extracted from the legacy FieldPreview helper in render.tsx.
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md
+status: planned
+shared_design:
+  field_shell:
+    widget_id: admin.form-field.field-shell
+    purpose: Shared label, help, error, disabled, and read-only chrome used by concrete field leaves.
+    boundary: FieldShell owns visual/control-adjacent chrome only; concrete leaf widgets own actual input semantics.
+  value_model:
+    mode: uncontrolled-by-default
+    rationale: Preserve existing FieldPreview/defaultValue behavior and AdminForm FormData collection before introducing controlled
+      form sessions.
+widgets:
+- id: admin.form-field.field-shell
+  name: FieldShell
+  status: planned
+  classification:
+    level: atom
+    description: FieldShell participates in the Admin DSL field system as a atom; it extracts field-shell behavior from FieldPreview.
+  source_mapping:
+    current_constructs:
+    - field-shell
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Legacy FieldPreview branch and form-field adapter source.
+  intent:
+    purpose: Shared label/help/error/status chrome around concrete field controls.
+    design_rationale: FieldShell creates a typed field boundary so label/error styling and input semantics can be reviewed
+      independently.
+    adapter_boundary: The Admin DSL adapter converts raw field node props into typed FieldShell props; the widget does not
+      import AdminNode or dispatch helpers.
+    implementation_notes:
+    - Preserve uncontrolled defaultValue/defaultChecked behavior unless a future form-session task explicitly moves fields
+      to controlled state.
+    - Use FieldShell for label/help/error chrome where the widget renders a concrete control.
+    accessibility_notes:
+    - Associate labels, descriptions, and errors with the underlying input using stable ids.
+    - Preserve native keyboard behavior for the field control.
+  contract:
+    props:
+      FieldShellProps:
+        doc: Props for FieldShell. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
+        extends: CommonWidgetProps
+        fields:
+          label:
+            type: string
+            required: true
+            doc: Visible field label.
+          name:
+            type: string
+            required: false
+            doc: Optional field name used for htmlFor/default id derivation.
+          helpText:
+            type: string
+            required: false
+            doc: Secondary helper copy.
+          error:
+            type: string
+            required: false
+            doc: Validation error text.
+          disabled:
+            type: boolean
+            required: false
+            doc: Whether the wrapped control is disabled.
+          readOnly:
+            type: boolean
+            required: false
+            doc: Whether the wrapped control is read-only.
+          required:
+            type: boolean
+            required: false
+            doc: Whether the field is required.
+          children:
+            type: React.ReactNode
+            required: true
+            doc: Concrete input/control supplied by the field leaf.
+    action_slots: {}
+  examples:
+    BasicUsage:
+      doc: Demonstrates normalized FieldShell props after adapter lowering.
+      demonstrates:
+      - Typed props without raw Admin DSL parsing.
+      - Shared field chrome and accessibility wiring.
+      code: <FieldShell name="label" label="Label" />
+  stories:
+    Default:
+      doc: Baseline production-like FieldShell rendering.
+      viewport: desktop
+      fixtures:
+        scenario: default
+      asserts:
+      - FieldShell renders its visible label and current value/state.
+    WithHelp:
+      doc: Helper text remains associated with FieldShell.
+      viewport: desktop
+      fixtures:
+        scenario: withHelp
+      asserts:
+      - Help text is visible and associated with the input.
+    WithError:
+      doc: Validation error state is visible and accessible for FieldShell.
+      viewport: desktop
+      fixtures:
+        scenario: withError
+      asserts:
+      - Error text is visible and associated with the input.
+    DisabledOrReadOnly:
+      doc: Disabled/read-only states are visible for FieldShell.
+      viewport: desktop
+      fixtures:
+        scenario: disabledOrReadOnly
+      asserts:
+      - Disabled/read-only state is visible.
+    Mobile:
+      doc: FieldShell remains usable in narrow containers.
+      viewport: mobile
+      fixtures:
+        scenario: mobile
+      asserts:
+      - The field remains readable and touch-friendly.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/atoms/FieldShell/FieldShell.tsx
+    types:
+      path: web/src/admin-dsl/widgets/atoms/FieldShell/FieldShell.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/atoms/FieldShell/FieldShell.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/atoms/FieldShell/index.ts
+  implementation_todos:
+  - id: scaffold-and-promote-field-widget
+    severity: required
+    doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
+- id: admin.form-field.text-field
+  name: TextField
+  status: planned
+  classification:
+    level: molecule
+    description: TextField participates in the Admin DSL field system as a molecule; it extracts textField behavior from FieldPreview.
+  source_mapping:
+    current_constructs:
+    - textField
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Legacy FieldPreview branch and form-field adapter source.
+  intent:
+    purpose: Single-line text input for string values.
+    design_rationale: TextField creates a typed field boundary so label/error styling and input semantics can be reviewed
+      independently.
+    adapter_boundary: The Admin DSL adapter converts raw field node props into typed TextField props; the widget does not
+      import AdminNode or dispatch helpers.
+    implementation_notes:
+    - Preserve uncontrolled defaultValue/defaultChecked behavior unless a future form-session task explicitly moves fields
+      to controlled state.
+    - Use FieldShell for label/help/error chrome where the widget renders a concrete control.
+    accessibility_notes:
+    - Associate labels, descriptions, and errors with the underlying input using stable ids.
+    - Preserve native keyboard behavior for the field control.
+  contract:
+    props:
+      TextFieldProps:
+        doc: Props for TextField. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
+        extends: CommonWidgetProps
+        fields:
+          name:
+            type: string
+            required: true
+            doc: Form field name.
+          label:
+            type: string
+            required: true
+            doc: Visible field label.
+          helpText:
+            type: string
+            required: false
+            doc: Secondary helper copy.
+          error:
+            type: string
+            required: false
+            doc: Validation error text.
+          disabled:
+            type: boolean
+            required: false
+            doc: Disable the field.
+          readOnly:
+            type: boolean
+            required: false
+            doc: Render as read-only.
+          required:
+            type: boolean
+            required: false
+            doc: Mark field required.
+          value:
+            type: string
+            required: false
+            doc: Initial field value.
+          placeholder:
+            type: string
+            required: false
+            doc: Placeholder copy.
+    action_slots:
+      valueChange:
+        doc: Optional typed callback emitted by TextField; adapters may lower it only when the DSL declares an action.
+        callback: onValueChange
+        action_type: ActionViewModel
+        cardinality: zero_or_one
+        context_type: FieldValueChangeContext
+        context:
+          name:
+            type: string
+            required: true
+            doc: Field name.
+          value:
+            type: unknown
+            required: false
+            doc: Current field value or action payload.
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter-owned; not all field changes dispatch backend actions.
+  examples:
+    BasicUsage:
+      doc: Demonstrates normalized TextField props after adapter lowering.
+      demonstrates:
+      - Typed props without raw Admin DSL parsing.
+      - Shared field chrome and accessibility wiring.
+      code: <TextField name="label" label="Label" />
+  stories:
+    Default:
+      doc: Baseline production-like TextField rendering.
+      viewport: desktop
+      fixtures:
+        scenario: default
+      asserts:
+      - TextField renders its visible label and current value/state.
+    WithHelp:
+      doc: Helper text remains associated with TextField.
+      viewport: desktop
+      fixtures:
+        scenario: withHelp
+      asserts:
+      - Help text is visible and associated with the input.
+    WithError:
+      doc: Validation error state is visible and accessible for TextField.
+      viewport: desktop
+      fixtures:
+        scenario: withError
+      asserts:
+      - Error text is visible and associated with the input.
+    DisabledOrReadOnly:
+      doc: Disabled/read-only states are visible for TextField.
+      viewport: desktop
+      fixtures:
+        scenario: disabledOrReadOnly
+      asserts:
+      - Disabled/read-only state is visible.
+    Mobile:
+      doc: TextField remains usable in narrow containers.
+      viewport: mobile
+      fixtures:
+        scenario: mobile
+      asserts:
+      - The field remains readable and touch-friendly.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/TextField/TextField.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/TextField/TextField.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/TextField/TextField.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/TextField/index.ts
+  implementation_todos:
+  - id: scaffold-and-promote-field-widget
+    severity: required
+    doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
+- id: admin.form-field.textarea-field
+  name: TextareaField
+  status: planned
+  classification:
+    level: molecule
+    description: TextareaField participates in the Admin DSL field system as a molecule; it extracts textareaField behavior
+      from FieldPreview.
+  source_mapping:
+    current_constructs:
+    - textareaField
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Legacy FieldPreview branch and form-field adapter source.
+  intent:
+    purpose: Multi-line text input for longer string values.
+    design_rationale: TextareaField creates a typed field boundary so label/error styling and input semantics can be reviewed
+      independently.
+    adapter_boundary: The Admin DSL adapter converts raw field node props into typed TextareaField props; the widget does
+      not import AdminNode or dispatch helpers.
+    implementation_notes:
+    - Preserve uncontrolled defaultValue/defaultChecked behavior unless a future form-session task explicitly moves fields
+      to controlled state.
+    - Use FieldShell for label/help/error chrome where the widget renders a concrete control.
+    accessibility_notes:
+    - Associate labels, descriptions, and errors with the underlying input using stable ids.
+    - Preserve native keyboard behavior for the field control.
+  contract:
+    props:
+      TextareaFieldProps:
+        doc: Props for TextareaField. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
+        extends: CommonWidgetProps
+        fields:
+          name:
+            type: string
+            required: true
+            doc: Form field name.
+          label:
+            type: string
+            required: true
+            doc: Visible field label.
+          helpText:
+            type: string
+            required: false
+            doc: Secondary helper copy.
+          error:
+            type: string
+            required: false
+            doc: Validation error text.
+          disabled:
+            type: boolean
+            required: false
+            doc: Disable the field.
+          readOnly:
+            type: boolean
+            required: false
+            doc: Render as read-only.
+          required:
+            type: boolean
+            required: false
+            doc: Mark field required.
+          value:
+            type: string
+            required: false
+            doc: Initial field value.
+          placeholder:
+            type: string
+            required: false
+            doc: Placeholder copy.
+          rows:
+            type: number
+            required: false
+            doc: Preferred visible row count.
+    action_slots:
+      valueChange:
+        doc: Optional typed callback emitted by TextareaField; adapters may lower it only when the DSL declares an action.
+        callback: onValueChange
+        action_type: ActionViewModel
+        cardinality: zero_or_one
+        context_type: FieldValueChangeContext
+        context:
+          name:
+            type: string
+            required: true
+            doc: Field name.
+          value:
+            type: unknown
+            required: false
+            doc: Current field value or action payload.
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter-owned; not all field changes dispatch backend actions.
+  examples:
+    BasicUsage:
+      doc: Demonstrates normalized TextareaField props after adapter lowering.
+      demonstrates:
+      - Typed props without raw Admin DSL parsing.
+      - Shared field chrome and accessibility wiring.
+      code: <TextareaField name="label" label="Label" />
+  stories:
+    Default:
+      doc: Baseline production-like TextareaField rendering.
+      viewport: desktop
+      fixtures:
+        scenario: default
+      asserts:
+      - TextareaField renders its visible label and current value/state.
+    WithHelp:
+      doc: Helper text remains associated with TextareaField.
+      viewport: desktop
+      fixtures:
+        scenario: withHelp
+      asserts:
+      - Help text is visible and associated with the input.
+    WithError:
+      doc: Validation error state is visible and accessible for TextareaField.
+      viewport: desktop
+      fixtures:
+        scenario: withError
+      asserts:
+      - Error text is visible and associated with the input.
+    DisabledOrReadOnly:
+      doc: Disabled/read-only states are visible for TextareaField.
+      viewport: desktop
+      fixtures:
+        scenario: disabledOrReadOnly
+      asserts:
+      - Disabled/read-only state is visible.
+    Mobile:
+      doc: TextareaField remains usable in narrow containers.
+      viewport: mobile
+      fixtures:
+        scenario: mobile
+      asserts:
+      - The field remains readable and touch-friendly.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/TextareaField/TextareaField.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/TextareaField/TextareaField.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/TextareaField/TextareaField.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/TextareaField/index.ts
+  implementation_todos:
+  - id: scaffold-and-promote-field-widget
+    severity: required
+    doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
+- id: admin.form-field.select-field
+  name: SelectField
+  status: planned
+  classification:
+    level: molecule
+    description: SelectField participates in the Admin DSL field system as a molecule; it extracts selectField behavior from
+      FieldPreview.
+  source_mapping:
+    current_constructs:
+    - selectField
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Legacy FieldPreview branch and form-field adapter source.
+  intent:
+    purpose: Select control for enumerated values.
+    design_rationale: SelectField creates a typed field boundary so label/error styling and input semantics can be reviewed
+      independently.
+    adapter_boundary: The Admin DSL adapter converts raw field node props into typed SelectField props; the widget does not
+      import AdminNode or dispatch helpers.
+    implementation_notes:
+    - Preserve uncontrolled defaultValue/defaultChecked behavior unless a future form-session task explicitly moves fields
+      to controlled state.
+    - Use FieldShell for label/help/error chrome where the widget renders a concrete control.
+    accessibility_notes:
+    - Associate labels, descriptions, and errors with the underlying input using stable ids.
+    - Preserve native keyboard behavior for the field control.
+  contract:
+    props:
+      SelectFieldProps:
+        doc: Props for SelectField. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
+        extends: CommonWidgetProps
+        fields:
+          name:
+            type: string
+            required: true
+            doc: Form field name.
+          label:
+            type: string
+            required: true
+            doc: Visible field label.
+          helpText:
+            type: string
+            required: false
+            doc: Secondary helper copy.
+          error:
+            type: string
+            required: false
+            doc: Validation error text.
+          disabled:
+            type: boolean
+            required: false
+            doc: Disable the field.
+          readOnly:
+            type: boolean
+            required: false
+            doc: Render as read-only.
+          required:
+            type: boolean
+            required: false
+            doc: Mark field required.
+          value:
+            type: string
+            required: false
+            doc: Initial selected value.
+          options:
+            type: SelectFieldOption[]
+            required: true
+            doc: Options available to choose.
+          placeholder:
+            type: string
+            required: false
+            doc: Placeholder option.
+    action_slots:
+      valueChange:
+        doc: Optional typed callback emitted by SelectField; adapters may lower it only when the DSL declares an action.
+        callback: onValueChange
+        action_type: ActionViewModel
+        cardinality: zero_or_one
+        context_type: FieldValueChangeContext
+        context:
+          name:
+            type: string
+            required: true
+            doc: Field name.
+          value:
+            type: unknown
+            required: false
+            doc: Current field value or action payload.
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter-owned; not all field changes dispatch backend actions.
+  examples:
+    BasicUsage:
+      doc: Demonstrates normalized SelectField props after adapter lowering.
+      demonstrates:
+      - Typed props without raw Admin DSL parsing.
+      - Shared field chrome and accessibility wiring.
+      code: <SelectField name="label" label="Label" />
+  stories:
+    Default:
+      doc: Baseline production-like SelectField rendering.
+      viewport: desktop
+      fixtures:
+        scenario: default
+      asserts:
+      - SelectField renders its visible label and current value/state.
+    WithHelp:
+      doc: Helper text remains associated with SelectField.
+      viewport: desktop
+      fixtures:
+        scenario: withHelp
+      asserts:
+      - Help text is visible and associated with the input.
+    WithError:
+      doc: Validation error state is visible and accessible for SelectField.
+      viewport: desktop
+      fixtures:
+        scenario: withError
+      asserts:
+      - Error text is visible and associated with the input.
+    DisabledOrReadOnly:
+      doc: Disabled/read-only states are visible for SelectField.
+      viewport: desktop
+      fixtures:
+        scenario: disabledOrReadOnly
+      asserts:
+      - Disabled/read-only state is visible.
+    Mobile:
+      doc: SelectField remains usable in narrow containers.
+      viewport: mobile
+      fixtures:
+        scenario: mobile
+      asserts:
+      - The field remains readable and touch-friendly.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/SelectField/SelectField.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/SelectField/SelectField.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/SelectField/SelectField.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/SelectField/index.ts
+  implementation_todos:
+  - id: scaffold-and-promote-field-widget
+    severity: required
+    doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
+- id: admin.form-field.switch-field
+  name: SwitchField
+  status: planned
+  classification:
+    level: molecule
+    description: SwitchField participates in the Admin DSL field system as a molecule; it extracts switchField behavior from
+      FieldPreview.
+  source_mapping:
+    current_constructs:
+    - switchField
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Legacy FieldPreview branch and form-field adapter source.
+  intent:
+    purpose: Boolean toggle field rendered with explicit on/off state.
+    design_rationale: SwitchField creates a typed field boundary so label/error styling and input semantics can be reviewed
+      independently.
+    adapter_boundary: The Admin DSL adapter converts raw field node props into typed SwitchField props; the widget does not
+      import AdminNode or dispatch helpers.
+    implementation_notes:
+    - Preserve uncontrolled defaultValue/defaultChecked behavior unless a future form-session task explicitly moves fields
+      to controlled state.
+    - Use FieldShell for label/help/error chrome where the widget renders a concrete control.
+    accessibility_notes:
+    - Associate labels, descriptions, and errors with the underlying input using stable ids.
+    - Preserve native keyboard behavior for the field control.
+  contract:
+    props:
+      SwitchFieldProps:
+        doc: Props for SwitchField. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
+        extends: CommonWidgetProps
+        fields:
+          name:
+            type: string
+            required: true
+            doc: Form field name.
+          label:
+            type: string
+            required: true
+            doc: Visible field label.
+          helpText:
+            type: string
+            required: false
+            doc: Secondary helper copy.
+          error:
+            type: string
+            required: false
+            doc: Validation error text.
+          disabled:
+            type: boolean
+            required: false
+            doc: Disable the field.
+          readOnly:
+            type: boolean
+            required: false
+            doc: Render as read-only.
+          required:
+            type: boolean
+            required: false
+            doc: Mark field required.
+          checked:
+            type: boolean
+            required: false
+            doc: Initial checked state.
+    action_slots:
+      valueChange:
+        doc: Optional typed callback emitted by SwitchField; adapters may lower it only when the DSL declares an action.
+        callback: onValueChange
+        action_type: ActionViewModel
+        cardinality: zero_or_one
+        context_type: FieldValueChangeContext
+        context:
+          name:
+            type: string
+            required: true
+            doc: Field name.
+          value:
+            type: unknown
+            required: false
+            doc: Current field value or action payload.
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter-owned; not all field changes dispatch backend actions.
+  examples:
+    BasicUsage:
+      doc: Demonstrates normalized SwitchField props after adapter lowering.
+      demonstrates:
+      - Typed props without raw Admin DSL parsing.
+      - Shared field chrome and accessibility wiring.
+      code: <SwitchField name="label" label="Label" />
+  stories:
+    Default:
+      doc: Baseline production-like SwitchField rendering.
+      viewport: desktop
+      fixtures:
+        scenario: default
+      asserts:
+      - SwitchField renders its visible label and current value/state.
+    WithHelp:
+      doc: Helper text remains associated with SwitchField.
+      viewport: desktop
+      fixtures:
+        scenario: withHelp
+      asserts:
+      - Help text is visible and associated with the input.
+    WithError:
+      doc: Validation error state is visible and accessible for SwitchField.
+      viewport: desktop
+      fixtures:
+        scenario: withError
+      asserts:
+      - Error text is visible and associated with the input.
+    DisabledOrReadOnly:
+      doc: Disabled/read-only states are visible for SwitchField.
+      viewport: desktop
+      fixtures:
+        scenario: disabledOrReadOnly
+      asserts:
+      - Disabled/read-only state is visible.
+    Mobile:
+      doc: SwitchField remains usable in narrow containers.
+      viewport: mobile
+      fixtures:
+        scenario: mobile
+      asserts:
+      - The field remains readable and touch-friendly.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/SwitchField/SwitchField.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/SwitchField/SwitchField.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/SwitchField/SwitchField.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/SwitchField/index.ts
+  implementation_todos:
+  - id: scaffold-and-promote-field-widget
+    severity: required
+    doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
+- id: admin.form-field.date-field
+  name: DateField
+  status: planned
+  classification:
+    level: molecule
+    description: DateField participates in the Admin DSL field system as a molecule; it extracts dateField behavior from FieldPreview.
+  source_mapping:
+    current_constructs:
+    - dateField
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Legacy FieldPreview branch and form-field adapter source.
+  intent:
+    purpose: Date input preserving native browser date behavior.
+    design_rationale: DateField creates a typed field boundary so label/error styling and input semantics can be reviewed
+      independently.
+    adapter_boundary: The Admin DSL adapter converts raw field node props into typed DateField props; the widget does not
+      import AdminNode or dispatch helpers.
+    implementation_notes:
+    - Preserve uncontrolled defaultValue/defaultChecked behavior unless a future form-session task explicitly moves fields
+      to controlled state.
+    - Use FieldShell for label/help/error chrome where the widget renders a concrete control.
+    accessibility_notes:
+    - Associate labels, descriptions, and errors with the underlying input using stable ids.
+    - Preserve native keyboard behavior for the field control.
+  contract:
+    props:
+      DateFieldProps:
+        doc: Props for DateField. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
+        extends: CommonWidgetProps
+        fields:
+          name:
+            type: string
+            required: true
+            doc: Form field name.
+          label:
+            type: string
+            required: true
+            doc: Visible field label.
+          helpText:
+            type: string
+            required: false
+            doc: Secondary helper copy.
+          error:
+            type: string
+            required: false
+            doc: Validation error text.
+          disabled:
+            type: boolean
+            required: false
+            doc: Disable the field.
+          readOnly:
+            type: boolean
+            required: false
+            doc: Render as read-only.
+          required:
+            type: boolean
+            required: false
+            doc: Mark field required.
+          value:
+            type: string
+            required: false
+            doc: Initial ISO date value.
+          min:
+            type: string
+            required: false
+            doc: Minimum date.
+          max:
+            type: string
+            required: false
+            doc: Maximum date.
+    action_slots:
+      valueChange:
+        doc: Optional typed callback emitted by DateField; adapters may lower it only when the DSL declares an action.
+        callback: onValueChange
+        action_type: ActionViewModel
+        cardinality: zero_or_one
+        context_type: FieldValueChangeContext
+        context:
+          name:
+            type: string
+            required: true
+            doc: Field name.
+          value:
+            type: unknown
+            required: false
+            doc: Current field value or action payload.
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter-owned; not all field changes dispatch backend actions.
+  examples:
+    BasicUsage:
+      doc: Demonstrates normalized DateField props after adapter lowering.
+      demonstrates:
+      - Typed props without raw Admin DSL parsing.
+      - Shared field chrome and accessibility wiring.
+      code: <DateField name="label" label="Label" />
+  stories:
+    Default:
+      doc: Baseline production-like DateField rendering.
+      viewport: desktop
+      fixtures:
+        scenario: default
+      asserts:
+      - DateField renders its visible label and current value/state.
+    WithHelp:
+      doc: Helper text remains associated with DateField.
+      viewport: desktop
+      fixtures:
+        scenario: withHelp
+      asserts:
+      - Help text is visible and associated with the input.
+    WithError:
+      doc: Validation error state is visible and accessible for DateField.
+      viewport: desktop
+      fixtures:
+        scenario: withError
+      asserts:
+      - Error text is visible and associated with the input.
+    DisabledOrReadOnly:
+      doc: Disabled/read-only states are visible for DateField.
+      viewport: desktop
+      fixtures:
+        scenario: disabledOrReadOnly
+      asserts:
+      - Disabled/read-only state is visible.
+    Mobile:
+      doc: DateField remains usable in narrow containers.
+      viewport: mobile
+      fixtures:
+        scenario: mobile
+      asserts:
+      - The field remains readable and touch-friendly.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/DateField/DateField.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/DateField/DateField.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/DateField/DateField.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/DateField/index.ts
+  implementation_todos:
+  - id: scaffold-and-promote-field-widget
+    severity: required
+    doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
+- id: admin.form-field.time-field
+  name: TimeField
+  status: planned
+  classification:
+    level: molecule
+    description: TimeField participates in the Admin DSL field system as a molecule; it extracts timeField behavior from FieldPreview.
+  source_mapping:
+    current_constructs:
+    - timeField
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Legacy FieldPreview branch and form-field adapter source.
+  intent:
+    purpose: Time input preserving native browser time behavior.
+    design_rationale: TimeField creates a typed field boundary so label/error styling and input semantics can be reviewed
+      independently.
+    adapter_boundary: The Admin DSL adapter converts raw field node props into typed TimeField props; the widget does not
+      import AdminNode or dispatch helpers.
+    implementation_notes:
+    - Preserve uncontrolled defaultValue/defaultChecked behavior unless a future form-session task explicitly moves fields
+      to controlled state.
+    - Use FieldShell for label/help/error chrome where the widget renders a concrete control.
+    accessibility_notes:
+    - Associate labels, descriptions, and errors with the underlying input using stable ids.
+    - Preserve native keyboard behavior for the field control.
+  contract:
+    props:
+      TimeFieldProps:
+        doc: Props for TimeField. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
+        extends: CommonWidgetProps
+        fields:
+          name:
+            type: string
+            required: true
+            doc: Form field name.
+          label:
+            type: string
+            required: true
+            doc: Visible field label.
+          helpText:
+            type: string
+            required: false
+            doc: Secondary helper copy.
+          error:
+            type: string
+            required: false
+            doc: Validation error text.
+          disabled:
+            type: boolean
+            required: false
+            doc: Disable the field.
+          readOnly:
+            type: boolean
+            required: false
+            doc: Render as read-only.
+          required:
+            type: boolean
+            required: false
+            doc: Mark field required.
+          value:
+            type: string
+            required: false
+            doc: Initial time value.
+          step:
+            type: number
+            required: false
+            doc: Native time step in seconds.
+    action_slots:
+      valueChange:
+        doc: Optional typed callback emitted by TimeField; adapters may lower it only when the DSL declares an action.
+        callback: onValueChange
+        action_type: ActionViewModel
+        cardinality: zero_or_one
+        context_type: FieldValueChangeContext
+        context:
+          name:
+            type: string
+            required: true
+            doc: Field name.
+          value:
+            type: unknown
+            required: false
+            doc: Current field value or action payload.
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter-owned; not all field changes dispatch backend actions.
+  examples:
+    BasicUsage:
+      doc: Demonstrates normalized TimeField props after adapter lowering.
+      demonstrates:
+      - Typed props without raw Admin DSL parsing.
+      - Shared field chrome and accessibility wiring.
+      code: <TimeField name="label" label="Label" />
+  stories:
+    Default:
+      doc: Baseline production-like TimeField rendering.
+      viewport: desktop
+      fixtures:
+        scenario: default
+      asserts:
+      - TimeField renders its visible label and current value/state.
+    WithHelp:
+      doc: Helper text remains associated with TimeField.
+      viewport: desktop
+      fixtures:
+        scenario: withHelp
+      asserts:
+      - Help text is visible and associated with the input.
+    WithError:
+      doc: Validation error state is visible and accessible for TimeField.
+      viewport: desktop
+      fixtures:
+        scenario: withError
+      asserts:
+      - Error text is visible and associated with the input.
+    DisabledOrReadOnly:
+      doc: Disabled/read-only states are visible for TimeField.
+      viewport: desktop
+      fixtures:
+        scenario: disabledOrReadOnly
+      asserts:
+      - Disabled/read-only state is visible.
+    Mobile:
+      doc: TimeField remains usable in narrow containers.
+      viewport: mobile
+      fixtures:
+        scenario: mobile
+      asserts:
+      - The field remains readable and touch-friendly.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/TimeField/TimeField.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/TimeField/TimeField.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/TimeField/TimeField.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/TimeField/index.ts
+  implementation_todos:
+  - id: scaffold-and-promote-field-widget
+    severity: required
+    doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
+- id: admin.form-field.money-field
+  name: MoneyField
+  status: planned
+  classification:
+    level: molecule
+    description: MoneyField participates in the Admin DSL field system as a molecule; it extracts moneyField behavior from
+      FieldPreview.
+  source_mapping:
+    current_constructs:
+    - moneyField
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Legacy FieldPreview branch and form-field adapter source.
+  intent:
+    purpose: Currency-like numeric input for monetary values.
+    design_rationale: MoneyField creates a typed field boundary so label/error styling and input semantics can be reviewed
+      independently.
+    adapter_boundary: The Admin DSL adapter converts raw field node props into typed MoneyField props; the widget does not
+      import AdminNode or dispatch helpers.
+    implementation_notes:
+    - Preserve uncontrolled defaultValue/defaultChecked behavior unless a future form-session task explicitly moves fields
+      to controlled state.
+    - Use FieldShell for label/help/error chrome where the widget renders a concrete control.
+    accessibility_notes:
+    - Associate labels, descriptions, and errors with the underlying input using stable ids.
+    - Preserve native keyboard behavior for the field control.
+  contract:
+    props:
+      MoneyFieldProps:
+        doc: Props for MoneyField. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
+        extends: CommonWidgetProps
+        fields:
+          name:
+            type: string
+            required: true
+            doc: Form field name.
+          label:
+            type: string
+            required: true
+            doc: Visible field label.
+          helpText:
+            type: string
+            required: false
+            doc: Secondary helper copy.
+          error:
+            type: string
+            required: false
+            doc: Validation error text.
+          disabled:
+            type: boolean
+            required: false
+            doc: Disable the field.
+          readOnly:
+            type: boolean
+            required: false
+            doc: Render as read-only.
+          required:
+            type: boolean
+            required: false
+            doc: Mark field required.
+          value:
+            type: string | number
+            required: false
+            doc: Initial money value.
+          currency:
+            type: string
+            required: false
+            doc: Currency code or suffix.
+          min:
+            type: number
+            required: false
+            doc: Minimum numeric value.
+          max:
+            type: number
+            required: false
+            doc: Maximum numeric value.
+          step:
+            type: number
+            required: false
+            doc: Numeric step.
+    action_slots:
+      valueChange:
+        doc: Optional typed callback emitted by MoneyField; adapters may lower it only when the DSL declares an action.
+        callback: onValueChange
+        action_type: ActionViewModel
+        cardinality: zero_or_one
+        context_type: FieldValueChangeContext
+        context:
+          name:
+            type: string
+            required: true
+            doc: Field name.
+          value:
+            type: unknown
+            required: false
+            doc: Current field value or action payload.
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter-owned; not all field changes dispatch backend actions.
+  examples:
+    BasicUsage:
+      doc: Demonstrates normalized MoneyField props after adapter lowering.
+      demonstrates:
+      - Typed props without raw Admin DSL parsing.
+      - Shared field chrome and accessibility wiring.
+      code: <MoneyField name="label" label="Label" />
+  stories:
+    Default:
+      doc: Baseline production-like MoneyField rendering.
+      viewport: desktop
+      fixtures:
+        scenario: default
+      asserts:
+      - MoneyField renders its visible label and current value/state.
+    WithHelp:
+      doc: Helper text remains associated with MoneyField.
+      viewport: desktop
+      fixtures:
+        scenario: withHelp
+      asserts:
+      - Help text is visible and associated with the input.
+    WithError:
+      doc: Validation error state is visible and accessible for MoneyField.
+      viewport: desktop
+      fixtures:
+        scenario: withError
+      asserts:
+      - Error text is visible and associated with the input.
+    DisabledOrReadOnly:
+      doc: Disabled/read-only states are visible for MoneyField.
+      viewport: desktop
+      fixtures:
+        scenario: disabledOrReadOnly
+      asserts:
+      - Disabled/read-only state is visible.
+    Mobile:
+      doc: MoneyField remains usable in narrow containers.
+      viewport: mobile
+      fixtures:
+        scenario: mobile
+      asserts:
+      - The field remains readable and touch-friendly.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/MoneyField/MoneyField.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/MoneyField/MoneyField.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/MoneyField/MoneyField.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/MoneyField/index.ts
+  implementation_todos:
+  - id: scaffold-and-promote-field-widget
+    severity: required
+    doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
+- id: admin.form-field.duration-field
+  name: DurationField
+  status: planned
+  classification:
+    level: molecule
+    description: DurationField participates in the Admin DSL field system as a molecule; it extracts durationField behavior
+      from FieldPreview.
+  source_mapping:
+    current_constructs:
+    - durationField
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Legacy FieldPreview branch and form-field adapter source.
+  intent:
+    purpose: Duration numeric input for minute/hour quantities.
+    design_rationale: DurationField creates a typed field boundary so label/error styling and input semantics can be reviewed
+      independently.
+    adapter_boundary: The Admin DSL adapter converts raw field node props into typed DurationField props; the widget does
+      not import AdminNode or dispatch helpers.
+    implementation_notes:
+    - Preserve uncontrolled defaultValue/defaultChecked behavior unless a future form-session task explicitly moves fields
+      to controlled state.
+    - Use FieldShell for label/help/error chrome where the widget renders a concrete control.
+    accessibility_notes:
+    - Associate labels, descriptions, and errors with the underlying input using stable ids.
+    - Preserve native keyboard behavior for the field control.
+  contract:
+    props:
+      DurationFieldProps:
+        doc: Props for DurationField. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
+        extends: CommonWidgetProps
+        fields:
+          name:
+            type: string
+            required: true
+            doc: Form field name.
+          label:
+            type: string
+            required: true
+            doc: Visible field label.
+          helpText:
+            type: string
+            required: false
+            doc: Secondary helper copy.
+          error:
+            type: string
+            required: false
+            doc: Validation error text.
+          disabled:
+            type: boolean
+            required: false
+            doc: Disable the field.
+          readOnly:
+            type: boolean
+            required: false
+            doc: Render as read-only.
+          required:
+            type: boolean
+            required: false
+            doc: Mark field required.
+          value:
+            type: string | number
+            required: false
+            doc: Initial duration value.
+          unit:
+            type: string
+            required: false
+            doc: Duration unit label such as minutes.
+          min:
+            type: number
+            required: false
+            doc: Minimum numeric value.
+          max:
+            type: number
+            required: false
+            doc: Maximum numeric value.
+          step:
+            type: number
+            required: false
+            doc: Numeric step.
+    action_slots:
+      valueChange:
+        doc: Optional typed callback emitted by DurationField; adapters may lower it only when the DSL declares an action.
+        callback: onValueChange
+        action_type: ActionViewModel
+        cardinality: zero_or_one
+        context_type: FieldValueChangeContext
+        context:
+          name:
+            type: string
+            required: true
+            doc: Field name.
+          value:
+            type: unknown
+            required: false
+            doc: Current field value or action payload.
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter-owned; not all field changes dispatch backend actions.
+  examples:
+    BasicUsage:
+      doc: Demonstrates normalized DurationField props after adapter lowering.
+      demonstrates:
+      - Typed props without raw Admin DSL parsing.
+      - Shared field chrome and accessibility wiring.
+      code: <DurationField name="label" label="Label" />
+  stories:
+    Default:
+      doc: Baseline production-like DurationField rendering.
+      viewport: desktop
+      fixtures:
+        scenario: default
+      asserts:
+      - DurationField renders its visible label and current value/state.
+    WithHelp:
+      doc: Helper text remains associated with DurationField.
+      viewport: desktop
+      fixtures:
+        scenario: withHelp
+      asserts:
+      - Help text is visible and associated with the input.
+    WithError:
+      doc: Validation error state is visible and accessible for DurationField.
+      viewport: desktop
+      fixtures:
+        scenario: withError
+      asserts:
+      - Error text is visible and associated with the input.
+    DisabledOrReadOnly:
+      doc: Disabled/read-only states are visible for DurationField.
+      viewport: desktop
+      fixtures:
+        scenario: disabledOrReadOnly
+      asserts:
+      - Disabled/read-only state is visible.
+    Mobile:
+      doc: DurationField remains usable in narrow containers.
+      viewport: mobile
+      fixtures:
+        scenario: mobile
+      asserts:
+      - The field remains readable and touch-friendly.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/DurationField/DurationField.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/DurationField/DurationField.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/DurationField/DurationField.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/DurationField/index.ts
+  implementation_todos:
+  - id: scaffold-and-promote-field-widget
+    severity: required
+    doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.
+- id: admin.form-field.image-field
+  name: ImageField
+  status: planned
+  classification:
+    level: molecule
+    description: ImageField participates in the Admin DSL field system as a molecule; it extracts imageField behavior from
+      FieldPreview.
+  source_mapping:
+    current_constructs:
+    - imageField
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Legacy FieldPreview branch and form-field adapter source.
+  intent:
+    purpose: Image reference/upload placeholder field for media-backed forms.
+    design_rationale: ImageField creates a typed field boundary so label/error styling and input semantics can be reviewed
+      independently.
+    adapter_boundary: The Admin DSL adapter converts raw field node props into typed ImageField props; the widget does not
+      import AdminNode or dispatch helpers.
+    implementation_notes:
+    - Preserve uncontrolled defaultValue/defaultChecked behavior unless a future form-session task explicitly moves fields
+      to controlled state.
+    - Use FieldShell for label/help/error chrome where the widget renders a concrete control.
+    accessibility_notes:
+    - Associate labels, descriptions, and errors with the underlying input using stable ids.
+    - Preserve native keyboard behavior for the field control.
+  contract:
+    props:
+      ImageFieldProps:
+        doc: Props for ImageField. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
+        extends: CommonWidgetProps
+        fields:
+          name:
+            type: string
+            required: true
+            doc: Form field name.
+          label:
+            type: string
+            required: true
+            doc: Visible field label.
+          helpText:
+            type: string
+            required: false
+            doc: Secondary helper copy.
+          error:
+            type: string
+            required: false
+            doc: Validation error text.
+          disabled:
+            type: boolean
+            required: false
+            doc: Disable the field.
+          readOnly:
+            type: boolean
+            required: false
+            doc: Render as read-only.
+          required:
+            type: boolean
+            required: false
+            doc: Mark field required.
+          src:
+            type: string
+            required: false
+            doc: Current image URL/reference.
+          alt:
+            type: string
+            required: false
+            doc: Accessible image description.
+          placeholder:
+            type: string
+            required: false
+            doc: Empty-state text.
+          action:
+            type: ActionViewModel
+            required: false
+            doc: Optional image action such as choose/remove.
+    action_slots:
+      fieldAction:
+        doc: Optional typed callback emitted by ImageField; adapters may lower it only when the DSL declares an action.
+        callback: onFieldAction
+        action_type: ActionViewModel
+        cardinality: zero_or_one
+        context_type: FieldActionContext
+        context:
+          name:
+            type: string
+            required: true
+            doc: Field name.
+          value:
+            type: unknown
+            required: false
+            doc: Current field value or action payload.
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter-owned; not all field changes dispatch backend actions.
+  examples:
+    BasicUsage:
+      doc: Demonstrates normalized ImageField props after adapter lowering.
+      demonstrates:
+      - Typed props without raw Admin DSL parsing.
+      - Shared field chrome and accessibility wiring.
+      code: <ImageField name="label" label="Label" />
+  stories:
+    Default:
+      doc: Baseline production-like ImageField rendering.
+      viewport: desktop
+      fixtures:
+        scenario: default
+      asserts:
+      - ImageField renders its visible label and current value/state.
+    WithHelp:
+      doc: Helper text remains associated with ImageField.
+      viewport: desktop
+      fixtures:
+        scenario: withHelp
+      asserts:
+      - Help text is visible and associated with the input.
+    WithError:
+      doc: Validation error state is visible and accessible for ImageField.
+      viewport: desktop
+      fixtures:
+        scenario: withError
+      asserts:
+      - Error text is visible and associated with the input.
+    DisabledOrReadOnly:
+      doc: Disabled/read-only states are visible for ImageField.
+      viewport: desktop
+      fixtures:
+        scenario: disabledOrReadOnly
+      asserts:
+      - Disabled/read-only state is visible.
+    Mobile:
+      doc: ImageField remains usable in narrow containers.
+      viewport: mobile
+      fixtures:
+        scenario: mobile
+      asserts:
+      - The field remains readable and touch-friendly.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/ImageField/ImageField.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/ImageField/ImageField.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/ImageField/ImageField.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/ImageField/index.ts
+  implementation_todos:
+  - id: scaffold-and-promote-field-widget
+    severity: required
+    doc: Create typed implementation, hand-authored stories, renderer adapter mapping, validation, diary, and changelog.

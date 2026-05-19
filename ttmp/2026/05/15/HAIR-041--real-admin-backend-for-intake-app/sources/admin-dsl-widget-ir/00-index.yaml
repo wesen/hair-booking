@@ -48,6 +48,10 @@ files:
   category: form_widgets
   artifact_type: admin_dsl_widget_definition_ir
   schema_version: 2
+- path: 10a-form-field-widgets.yaml
+  category: form_field_widgets
+  artifact_type: admin_dsl_widget_definition_ir
+  schema_version: 2
 - path: 11-surface-widgets.yaml
   category: surface_widgets
   artifact_type: admin_dsl_widget_definition_ir

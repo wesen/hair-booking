@@ -6756,3 +6756,74 @@ This keeps the ticket honest: `10-form-widgets.yaml` promoted `AdminForm`, `Fiel
 
 ### Technical details
 - Current inline field kinds are `textField`, `textareaField`, `moneyField`, `durationField`, `dateField`, `timeField`, `selectField`, `switchField`, and `imageField`.
+
+## Step 120: Define Form Field Widget IR
+
+I completed the first Phase 22 task by adding a dedicated Widget IR source for concrete form field extraction. The new IR enumerates the shared field chrome (`FieldShell`) and every field kind currently handled by `FieldPreview`, so future commits can promote one widget group at a time instead of inventing contracts in component code.
+
+The IR keeps the current behavior conservative: fields are uncontrolled by default and form-level `FormData` collection remains the submission mechanism until a separate form-session design changes that intentionally.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 119)
+
+**Assistant interpretation:** Start executing the new Phase 22 tasks, beginning with a dedicated form-field Widget IR artifact.
+
+**Inferred user intent:** Establish a source-of-truth contract before generating or hand-promoting the concrete field widgets.
+
+**Commit (code):** <pending> — "HAIR-041 Step 120: Define form field widget IR"
+
+### What I did
+- Added `sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml`.
+- Added the new artifact to `sources/admin-dsl-widget-ir/00-index.yaml`.
+- Marked the first Phase 22 task complete in `tasks.md`.
+- Defined IR entries for:
+  - `FieldShell`
+  - `TextField`
+  - `TextareaField`
+  - `SelectField`
+  - `SwitchField`
+  - `DateField`
+  - `TimeField`
+  - `MoneyField`
+  - `DurationField`
+  - `ImageField`
+
+### Why
+- `FieldPreview` currently mixes label styling, accessibility, input semantics, and per-kind rendering in one renderer helper.
+- The new IR makes the remaining extraction work explicit and script-readable before component files are created or changed.
+
+### What worked
+- Parsed the new YAML with `yaml.safe_load` and confirmed it contains 10 widgets.
+- The index now lists `10a-form-field-widgets.yaml` between `10-form-widgets.yaml` and `11-surface-widgets.yaml`.
+
+### What didn't work
+- My first attempt to generate the YAML with a Python string-building script failed with:
+  - `SyntaxError: unterminated string literal (detected at line 71)`
+- Because the shell command did not use `set -e`, the later index/task updates still ran before the missing YAML load failed:
+  - `FileNotFoundError: [Errno 2] No such file or directory: 'ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml'`
+- I corrected this by rewriting the generator as a Python dictionary plus `yaml.safe_dump`, then re-parsed the resulting file.
+
+### What I learned
+- For long YAML creation steps, building a Python object and using `yaml.safe_dump` is less fragile than composing large nested YAML strings manually.
+
+### What was tricky to build
+- The IR needed to be detailed enough for future scaffolding and review, but not over-prescribe a controlled form model. I encoded `uncontrolled-by-default` in `shared_design.value_model` so future reviewers understand that preserving `defaultValue`/`defaultChecked` behavior is intentional.
+
+### What warrants a second pair of eyes
+- Review whether `MoneyField` and `DurationField` should stay separate or collapse into a future `NumericField` primitive with semantic wrappers.
+- Review whether `SelectFieldOption[]` should be added to shared widget type IR before code generation.
+
+### What should be done in the future
+- Complete the next Phase 22 task: scaffold/promote shared `FieldShell` before implementing the individual field leaves.
+
+### Code review instructions
+- Start with `sources/admin-dsl-widget-ir/10a-form-field-widgets.yaml`.
+- Confirm every `FieldPreview` branch in `render.tsx` has a corresponding widget entry.
+- Confirm the task and index updates match the new artifact.
+
+### Technical details
+- Validation command used:
+  - `python3 - <<'PY' ... yaml.safe_load(...) ... PY`
+- Parsed result:
+  - `form_field_widgets 10 FieldShell,TextField,TextareaField,SelectField,SwitchField,DateField,TimeField,MoneyField,DurationField,ImageField`
