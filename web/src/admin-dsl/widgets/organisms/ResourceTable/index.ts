@@ -10,7 +10,13 @@
  *
  * This file is generated from schema-v2 Widget Definition IR. Keep raw Admin DSL
  * JSON decoding in adapters; generated widgets should receive typed props only.
+ *
+ * Manual edits after generation:
+ * - 2026-05-18 / HAIR-041 Step 80: Export composed ResourceTable part widgets.
  */
 export { ResourceTable } from "./ResourceTable";
+export { BulkActionBar } from "./parts/BulkActionBar";
+export { PaginationBar } from "./parts/PaginationBar";
+export { ResourceTableCell } from "./parts/ResourceTableCell";
 export { resourceTableWidgetMetadata } from "./ResourceTable.metadata";
 export type * from "./ResourceTable.types";

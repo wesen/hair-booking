@@ -12,6 +12,7 @@ import { Toolbar } from "./widgets/molecules/Toolbar";
 import { DashboardGrid, DashboardGridItem } from "./widgets/organisms/DashboardGrid";
 import { PageHeader } from "./widgets/organisms/PageHeader";
 import { Panel } from "./widgets/organisms/Panel";
+import { ResourceTable } from "./widgets/organisms/ResourceTable";
 import { SplitPane } from "./widgets/organisms/SplitPane";
 import type { ActionViewModel, SidebarNavItem } from "./widgets/shared";
 
@@ -299,36 +300,31 @@ export function renderAdminNode(node: AdminNode, ctx?: AdminRenderContext, key?:
       const columns = jsonArray<AdminJsonObject>(props, "columns");
       const rows = jsonArray<AdminJsonObject>(props, "rows");
       const tableActions = actionList(props);
-      const rowAction = tableActions.find((a) => a.placement === "row") || tableActions[0];
+      const rowActions = tableActions.filter((a) => a.placement === "row");
+      const fallbackRowActions = rowActions.length ? rowActions : tableActions.length && !jsonObject(props, "pagination") ? [tableActions[0]] : [];
       const bulkActions = jsonArray<AdminActionRef>(props, "bulkActions").filter(isActionRef);
       const pagination = jsonObject(props, "pagination");
-      const selectable = bool(props, "selectable") || bulkActions.length > 0;
-      if (!rows.length) return renderInlineNode(jsonObject(props, "empty"), ctx) || renderAdminNode({ kind: "emptyState", props: { title: str(props, "emptyTitle", "No records"), body: str(props, "emptyBody") }, meta: node.meta }, ctx, key);
+      const empty = renderInlineNode(jsonObject(props, "empty"), ctx) || renderAdminNode({ kind: "emptyState", props: { title: str(props, "emptyTitle", "No records"), body: str(props, "emptyBody") }, meta: node.meta }, ctx, key);
       return (
-        <div key={key} {...common} className="adminDslResourceTable" style={{ ...surface, overflow: "hidden", ...style(props) }}>
-          {bulkActions.length > 0 && <div className="adminDslBulkActionBar" style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", padding: 12, borderBottom: `1px solid ${color.rule}`, background: color.cream }}><span style={{ ...type.meta, color: color.softInk }}>{str(props, "bulkLabel", "Bulk actions")}</span><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>{bulkActions.map((bulkAction, i) => <button key={actionKey(bulkAction, i)} type="button" className="adminDslActionButton" onClick={() => dispatchAdminAction(ctx, node, bulkAction, { scope: "visible", rows })} style={{ minHeight: 34, border: `1px solid ${actionIsDanger(bulkAction) ? color.danger : color.ink}`, background: actionIsPrimary(bulkAction) ? color.ink : color.paper, color: actionIsPrimary(bulkAction) ? color.paper : actionIsDanger(bulkAction) ? color.danger : color.ink, borderRadius: radius.pill, padding: "7px 11px", fontFamily: font.mono, fontSize: 10, letterSpacing: 0.5, textTransform: "uppercase", cursor: "pointer" }}>{bulkAction.label || bulkAction.target}</button>)}</div></div>}
-          <div style={{ overflowX: "auto" }}>
-            <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 620 }}>
-              <thead>
-                <tr>
-                  {selectable && <th style={{ width: 42, padding: "12px 14px", borderBottom: `1px solid ${color.rule}` }}><span className="sr-only">Select</span></th>}
-                  {columns.map((column) => <th key={String(column.id)} style={{ ...type.meta, color: color.softInk, textAlign: "left", padding: "12px 14px", borderBottom: `1px solid ${color.rule}` }}>{String(column.label || column.id)}</th>)}
-                  {rowAction && <th style={{ ...type.meta, color: color.softInk, textAlign: "right", padding: "12px 14px", borderBottom: `1px solid ${color.rule}` }}>Action</th>}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row, i) => (
-                  <tr key={String(row.id || i)} style={{ borderBottom: i === rows.length - 1 ? "none" : `1px solid ${color.ruleSoft}` }}>
-                    {selectable && <td style={{ padding: "12px 14px" }}><input type="checkbox" aria-label={`Select ${String(row.id || i)}`} style={{ width: 22, height: 22 }} /></td>}
-                    {columns.map((column) => <td key={String(column.id)} data-label={String(column.label || column.id || "")} data-column-kind={String(column.kind || "text")} style={{ ...type.bodySm, padding: "12px 14px", verticalAlign: "top" }}>{renderTableCell(column, row, node, ctx)}</td>)}
-                    {rowAction && <td style={{ padding: "10px 14px", textAlign: "right" }}><button type="button" className="adminDslActionButton" aria-label={rowAction.label || "Open"} onClick={() => dispatchAdminAction(ctx, node, rowAction, row)} style={{ minHeight: 34, border: `1px solid ${color.ink}`, background: color.ink, color: color.paper, borderRadius: radius.pill, padding: "7px 11px", fontFamily: font.mono, fontSize: 10, letterSpacing: 0.5, textTransform: "uppercase", cursor: "pointer" }}>{rowAction.label || "Open"}</button></td>}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          {pagination && <div className="adminDslPagination" style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", padding: 12, borderTop: `1px solid ${color.rule}`, background: color.paper }}><span style={{ ...type.meta, color: color.softInk }}>Page {String(pagination.page || 1)} · {String(pagination.total || rows.length)} total</span>{renderActions(node, ctx, tableActions.filter((a) => a.placement !== "row"))}</div>}
-        </div>
+        <ResourceTable
+          key={key}
+          id={node.meta?.id || str(props, "id", undefined as unknown as string)}
+          tableId={str(props, "tableId", node.meta?.id || "resource-table")}
+          columns={columns as unknown as Parameters<typeof ResourceTable<AdminJsonObject>>[0]["columns"]}
+          rows={rows}
+          selectable={bool(props, "selectable") || bulkActions.length > 0}
+          bulkLabel={str(props, "bulkLabel", "Bulk actions")}
+          empty={empty}
+          rowActions={fallbackRowActions.map(actionViewModel)}
+          bulkActions={bulkActions.map(actionViewModel)}
+          pagination={pagination}
+          page={Number(pagination?.page || props.page || 1)}
+          total={Number(pagination?.total || props.total || rows.length)}
+          actions={tableActions.filter((a) => a.placement !== "row").map(actionViewModel)}
+          style={style(props)}
+          onRowAction={(action, value) => dispatchAdminAction(ctx, node, action as AdminActionRef, value.row)}
+          onBulkAction={(action, value) => dispatchAdminAction(ctx, node, action as AdminActionRef, value)}
+        />
       );
     }
 
