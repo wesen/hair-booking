@@ -246,3 +246,15 @@ updated: 2026-05-15
 - [ ] Capture Storybook iframe screenshots for promoted widget families when visual behavior changes materially.
 - [ ] Update the diary, changelog, related files, and tasks after each reviewable widget family boundary.
 - [ ] Upload or locally render final widget extraction docs once reMarkable sync works again.
+
+## Phase 20 — Design-system remediation from intern review
+
+- [ ] Add generated shared selection pill styling to the design-language IR/generator.
+- [ ] Refactor `Tabs` and `FilterBar` to use the shared selection pill helper instead of local pill CSS.
+- [ ] Replace raw token imports in `SearchBox` with `adminTokens`/`adminTextStyle` where possible.
+- [ ] Replace raw token imports in `ResourceTable`, `BulkActionBar`, and `PaginationBar` with shared design helpers where possible.
+- [ ] Move resource badge/status tone styling into a shared generated helper and refactor `ResourceTableCell`.
+- [ ] Fix `ResourceTable` pagination action semantics so pagination actions are not routed through bulk action callbacks.
+- [ ] Remove dead `renderTableCell(...)` from `render.tsx`.
+- [ ] Document or replace transitional `as unknown as` casts in the `resourceTable` adapter.
+- [ ] Run `cd web && npx tsc --noEmit`, `cd web && pnpm test -- --runInBand`, and `cd web && npx storybook build --quiet` after remediation.
