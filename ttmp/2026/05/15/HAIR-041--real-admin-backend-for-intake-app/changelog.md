@@ -656,3 +656,11 @@ Step 113: Promoted `08-media-widgets.yaml` widgets (`PreviewFrame`, `ImageGrid`,
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/PreviewFrame/PreviewFrame.tsx` — promoted preview frame.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ImageGrid/ImageGrid.tsx` — promoted image grid.
 - Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/ImageGallery/ImageGallery.tsx` — promoted image gallery and image action context.
+
+Step 115: Promoted `09-calendar-widgets.yaml` widgets (`MonthCalendar`, `CalendarWeek`, `CalendarEventBlock`), updated calendar renderer adapters, hardened calendar stories, validated TypeScript/tests/Storybook, and marked the calendar Phase 21 task complete (commit db429bc).
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/sources/admin-dsl-widget-ir/09-calendar-widgets.yaml` — calendar widget statuses and callback contracts.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx` — month/week/event renderer adapters.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/MonthCalendar/MonthCalendar.tsx` — promoted month calendar.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/organisms/CalendarWeek/CalendarWeek.tsx` — promoted week calendar.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.tsx` — promoted event block.
+- Related: `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/07-lint-admin-dsl-design-system.py` — documented calendar structural button exceptions.

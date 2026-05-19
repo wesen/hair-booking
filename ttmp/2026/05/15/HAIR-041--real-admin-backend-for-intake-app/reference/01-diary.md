@@ -6568,3 +6568,73 @@ The media pass covers preview embeds, media summary cards, and clickable image g
 
 ### Technical details
 - The validation target still reports only the known shell-widget design lint backlog in report-only mode.
+
+## Step 115: Promote Calendar Widgets
+
+I promoted the `09-calendar-widgets.yaml` category using the same clean playbook pass used for data-display and media widgets. The calendar pass extracted month calendar rendering, week grid/agenda rendering, and event/time-off blocks into typed widgets while keeping JSON normalization and backend action dispatch in `render.tsx`.
+
+The implementation preserves existing Admin DSL test contracts, including date-cell accessible names such as `23`, while adding Storybook callback probes for date selection, month navigation, and event block actions.
+
+### Prompt Context
+
+**User prompt (verbatim):** "move on to 09"
+
+**Assistant interpretation:** Continue Phase 21 by promoting `09-calendar-widgets.yaml` with the full widget playbook workflow.
+
+**Inferred user intent:** Finish the next widget category cleanly and avoid another partial promotion that would need intern re-audit.
+
+**Commit (code):** db429bc — "HAIR-041 Step 115: Promote calendar widgets"
+
+### What I did
+- Read `09-calendar-widgets.yaml`, `render.tsx`, and `calendar.tsx` to preserve existing month/week/event behavior.
+- Promoted:
+  - `MonthCalendar`
+  - `CalendarWeek`
+  - `CalendarEventBlock`
+- Added manual edit changelogs to component, type, and story files.
+- Converted `render.tsx` branches for `monthCalendar`, `calendarWeek`, `appointmentBlock`, `availabilityBlock`, and `timeOffBlock` to typed widget adapters.
+- Added Storybook variants for markers, selection, previous/next actions, read-only state, mixed appointments/time-off, empty weeks, mobile agenda, and event action probes.
+- Updated `09-calendar-widgets.yaml` statuses to `promoted` and reconciled callback names/context types.
+- Updated the design-system lint allow-list for documented calendar structural buttons that use shared Admin DSL tokens.
+- Marked the Phase 21 calendar promotion task complete.
+
+### Why
+- Calendar widgets were still scaffold-only and visual logic remained in `render.tsx`/`calendar.tsx`.
+- Calendar action semantics are callback-heavy, so they needed explicit typed callbacks and Storybook probes before being considered playbook-complete.
+
+### What worked
+- `cd web && npx tsc --noEmit` passed.
+- Scoped `scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook` passed for `MonthCalendar`, `CalendarWeek`, and `CalendarEventBlock`.
+- Vitest passed through the validation target: 10 files / 49 tests.
+- `cd web && npx storybook build --quiet` passed with the known large chunk warning.
+
+### What didn't work
+- The first validation run failed because the date-cell buttons used `aria-label="Select YYYY-MM-DD"`, while an existing Admin DSL test expects the date cell button accessible name to be just the day number (`23`). I removed the aria-label and kept the full date in `title`, preserving the test/user-facing name.
+- The design-system lint initially flagged calendar structural `<button>` controls. I added explicit allow-list entries for `MonthCalendar` and `CalendarEventBlock` because these controls are the semantic calendar cells/events themselves and use shared Admin DSL tokens.
+
+### What I learned
+- Calendar date-cell accessible names are part of the existing renderer contract and should not be changed casually during extraction.
+- Structural controls need to be explicitly documented in the design-system lint allow-list when they are not generic backend action buttons but still represent semantic widget interaction.
+
+### What was tricky to build
+- The hardest part was preserving action trust boundaries across nested calendar blocks. `CalendarEventBlock` emits `{ blockId }`; `CalendarWeek` lifts that to `{ block }`; and `render.tsx` lowers the typed callback to `dispatchWidgetAction` with the raw normalized block context.
+- `MonthCalendar` has three different action slots: previous month, next month, and date selection. The widget emits typed contexts, while the adapter maps Admin DSL `actions.previousMonth`, `actions.nextMonth`, and `actions.selectDate` into typed props.
+
+### What warrants a second pair of eyes
+- Review whether the `calendar.tsx` legacy helper should now be deleted or kept until all callers are confirmed migrated. `render.tsx` no longer imports `AdminCalendarWeek` after this pass.
+- Review the calendar structural-button lint exceptions to confirm they are the right policy rather than requiring a specialized calendar action primitive.
+
+### What should be done in the future
+- Continue with `10-form-widgets.yaml` or perform a strict intern compliance audit over 07/08/09 now that all three categories are promoted.
+- Optionally remove or archive `web/src/admin-dsl/calendar.tsx` if no imports remain.
+
+### Code review instructions
+- Start in `web/src/admin-dsl/render.tsx` and review the month/week/block adapters.
+- Review `MonthCalendar`, `CalendarWeek`, and `CalendarEventBlock` component/type/story files.
+- Validate with:
+  - `cd web && npx tsc --noEmit`
+  - `python3 ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/scripts/08-validate-widget-promotion.py --strict-triage --skip-storybook web/src/admin-dsl/widgets/organisms/MonthCalendar web/src/admin-dsl/widgets/organisms/CalendarWeek web/src/admin-dsl/widgets/molecules/CalendarEventBlock`
+  - `cd web && npx storybook build --quiet`
+
+### Technical details
+- The validation target still reports only the known shell-widget design lint backlog in report-only mode.
