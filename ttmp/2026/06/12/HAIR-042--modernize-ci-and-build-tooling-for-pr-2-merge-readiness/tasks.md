@@ -9,4 +9,4 @@
 - [x] Phase 3: Fix gosec Docker action Go mismatch (go install)
 - [x] Phase 4: Replace bump-glazed with bump-go-go-golems
 - [x] Phase 5: Add glazed-lint targets and CI step
-- [ ] Phase 6: Adopt logcopter
+- [x] Phase 6: Adopt logcopter

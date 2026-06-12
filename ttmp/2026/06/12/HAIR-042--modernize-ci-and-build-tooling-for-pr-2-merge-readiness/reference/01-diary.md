@@ -1,51 +1,78 @@
-# Diary
+# Diary — HAIR-042: Modernize CI and Build Tooling
 
 ## Goal
 
-Modernize hair-booking CI and build tooling so PR #2 can merge with green CI, and bring the repo up to current go-go-golems practices (go-template, glazed-lint, logcopter, golangci-lint version management).
+Bring hair-booking's CI, Makefile, and Go code up to current go-go-golems practices so that PR #2 (`task/hair-v2` → `main`, 349 commits) can merge with green CI, and the repo follows the same patterns as go-template and the infra-tooling playbooks.
+
+## Context for Handoff
+
+**Repository:** `github.com:wesen/hair-booking`, branch `task/hair-v2`
+**PR:** https://github.com/wesen/hair-booking/pull/2
+**Local path:** `/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/`
+**Ticket:** HAIR-042 in `ttmp/2026/06/12/HAIR-042--modernize-ci-and-build-tooling-for-pr-2-merge-readiness/`
+
+### Reference documents used
+
+- **Glazed linting playbook:** `~/code/wesen/go-go-golems/infra-tooling/docs/go-go-golems/glazed-linting-rollout-playbook.md`
+- **Package publishing playbook:** `~/code/wesen/go-go-golems/infra-tooling/docs/go-go-golems/package-publishing-release-train.md`
+- **Logcopter rollout playbook:** `~/code/wesen/go-go-golems/infra-tooling/docs/go-go-golems/playbooks/logcopter-package-rollout-playbook.md`
+- **Go-template reference repo:** `~/code/wesen/go-go-golems/go-template/`
+
+### How to validate locally
+
+```bash
+cd /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking
+GOWORK=off go test ./...
+GOWORK=off golangci-lint run --timeout=5m ./...
+make logcopter-check
+make glazed-lint
+```
+
+All should pass clean.
+
+---
 
 ## Step 0: Ticket setup and planning
-
-Created HAIR-042 ticket with implementation guide and 6 tasks covering the 6 phases identified during the PR #2 CI analysis.
 
 ### Prompt Context
 
 **User prompt (verbatim):** "do 1-6. Create a new docmgr ticket for "modernize for merge" and create an implementation guide in the ticket and a set of task, then work on the tasks sequentially and commit at appropriate intervals, and keep a frequent diary"
 
-**Assistant interpretation:** Create a docmgr ticket, write an implementation guide, add tasks for each of the 6 phases, then work through them one by one with commits and diary updates.
+**Assistant interpretation:** Create a docmgr ticket with implementation guide and tasks for each of the 6 phases identified during the PR #2 CI analysis, then work through them with commits and diary updates.
 
 **Inferred user intent:** Get PR #2 to green CI and bring hair-booking up to current go-go-golems standards in a tracked, auditable way.
 
 ### What I did
-- Created HAIR-042 ticket
-- Wrote implementation guide in `design/01-implementation-guide.md`
+- Created HAIR-042 ticket with docmgr
+- Wrote implementation guide in `design/01-implementation-guide.md` with 6 phases
 - Added 6 tasks (one per phase)
-- Created diary
+- Created this diary
+- Related key files to the ticket (go.mod, go.sum, lint.yml, dependency-scanning.yml, Makefile)
 
 ### Why
-- Need structured tracking for a multi-phase change touching CI, Makefile, and Go code
+Multi-phase change touching CI, Makefile, and Go code needs structured tracking for review and continuation.
 
 ### What worked
-- docmgr ticket creation smooth, tasks line up with the 6 phases
+docmgr ticket creation was smooth, tasks lined up with the 6 phases.
 
 ### What didn't work
-- N/A
+N/A
 
 ### What I learned
-- N/A
+N/A
 
 ### What was tricky to build
-- N/A
+N/A
 
 ### What warrants a second pair of eyes
-- The go-template `.golangci-lint-version` is v2.12.2 — should verify this is current enough for go 1.26.1
+N/A
 
 ### What should be done in the future
-- N/A
+N/A
 
 ### Code review instructions
 - Start with `design/01-implementation-guide.md` for the full plan
-- Check tasks.md for progress tracking
+- Check `tasks.md` for progress tracking
 
 ### Technical details
 - Ticket path: `ttmp/2026/06/12/HAIR-042--modernize-ci-and-build-tooling-for-pr-2-merge-readiness/`
@@ -54,268 +81,558 @@ Created HAIR-042 ticket with implementation guide and 6 tasks covering the 6 pha
 
 ## Step 1: Fix stale go.sum
 
-Missing entries for `goja_nodejs/require` and `hashicorp/vault/api` caused all CI failures (test, govulncheck, gosec, publish-image).
+PR #2 had 4 failing CI jobs. Root cause #1: `go.sum` was missing entries for two transitive dependencies.
 
 ### What I did
-- Ran `go mod tidy`
-- Verified `GOWORK=off go test ./...` passes
-- Committed go.mod go.sum
+- Ran `go mod tidy` which pulled in:
+  - `github.com/dop251/goja_nodejs` (imported directly by `pkg/admindsl/script_runtime.go` and `pkg/dslgoja/modules_dsl.go`)
+  - `github.com/hashicorp/vault/api` (transitive via `glazed@v1.2.5/pkg/cmds/sources/vault.go`)
+- Verified `GOWORK=off go test ./...` passes (all 16 packages OK)
+- Committed `go.mod go.sum`
 
 ### Why
-- The go.sum was stale because new imports (goja_nodejs/require in admindsl, hashicorp/vault/api from glazed) were added without updating the sum
+The go.sum was stale because new imports were added without running `go mod tidy`. The `goja_nodejs/require` package is imported directly but wasn't in go.sum. The `hashicorp/vault/api` package is pulled in by glazed's vault source, which glazed@v1.2.5 includes even though hair-booking doesn't use it directly.
 
 ### What worked
-- `go mod tidy` resolved everything in one pass
+`go mod tidy` resolved everything in one pass.
 
 ### What didn't work
-- N/A
+N/A
 
 ### What I learned
-- The `goja_nodejs/require` import in `pkg/admindsl/script_runtime.go` and `pkg/dslgoja/modules_dsl.go` is a direct import, not a transitive dep. It was in go.mod but not go.sum.
+- The `goja_nodejs/require` import is direct (not transitive) — it's used in `pkg/admindsl/script_runtime.go` and `pkg/dslgoja/modules_dsl.go` for the Goja JavaScript runtime's Node.js require compatibility layer.
+- The `hashicorp/vault/api` is transitive from glazed's vault source package. When glazed gets upgraded to v1.3.6 in Phase 6, this dependency changes.
 
 ### What was tricky to build
-- N/A
+N/A
 
 ### What warrants a second pair of eyes
-- The glazed@v1.2.5 vault.go import is transitive — when glazed is upgraded to v1.3.6 (Phase 6), the vault dependency may change
+When glazed was upgraded to v1.3.6 in Phase 6, the vault dependency was updated automatically. No issues observed.
 
 ### What should be done in the future
-- Run `go mod tidy` more frequently, or add a CI check for go.sum freshness
+Consider adding a CI check for go.sum freshness (e.g., `go mod tidy && git diff --exit-code go.sum`).
 
 ### Code review instructions
 - `git show 2cdc317` — only go.mod and go.sum changed
 
 ### Technical details
-- Commit: 2cdc317
+- Commit: `2cdc317`
 
 ---
 
 ## Step 2: Fix golangci-lint Go version mismatch
 
-`lint.yml` pinned `version: v2.4.0` which was built with Go 1.25. Project uses `go 1.26.1`.
+Root cause #2: `lint.yml` hardcoded `version: v2.4.0` which was built with Go 1.25. The project uses `go 1.26.1`, so golangci-lint refused to load the config with: "the Go language version (go1.25) used to build golangci-lint is lower than the targeted Go version (1.26.1)".
 
 ### What I did
-- Created `.golangci-lint-version` with `v2.12.2`
-- Updated `lint.yml` to use `version-file` instead of `version`
-- Verified golangci-lint runs locally
+1. Created `.golangci-lint-version` at repo root with `v2.12.2` (matches go-template reference repo)
+2. Updated `.github/workflows/lint.yml` to use `version-file: .golangci-lint-version` instead of `version: v2.4.0`
+3. Verified `golangci-lint run --timeout=5m` works locally (8 pre-existing issues, but no version mismatch error)
 
 ### Why
-- The go-template reference repo uses this pattern — decouples lint version from workflow YAML
+The go-template reference repo uses this pattern. It decouples the lint version from the workflow YAML, making it easy to bump without editing CI. The `golangci-lint-action` reads the version from the file automatically.
 
 ### What worked
-- Direct copy of the go-template pattern
+Direct copy of the go-template pattern worked immediately.
 
 ### What didn't work
-- N/A
+N/A
 
 ### What I learned
-- The `version-file` parameter in golangci-lint-action reads the version from a file, making it easy to bump without editing CI YAML
+The `version-file` parameter in `golangci-lint-action@v9` reads the first line of the file and strips leading `v` if present.
 
 ### What was tricky to build
-- N/A
+N/A
 
 ### What warrants a second pair of eyes
-- Verify v2.12.2 is still current when this merges
+Verify v2.12.2 is still current when this merges — newer Go versions may need newer golangci-lint.
 
 ### What should be done in the future
-- Consider adding `.golangci-lint-version` to a bump-automation script
+Consider adding `.golangci-lint-version` to a bump-automation script.
 
 ### Code review instructions
-- `git show dfa7a82` — `.golangci-lint-version` + `lint.yml` change
+- `git show dfa7a82` — `.golangci-lint-version` (new file) + `lint.yml` (version → version-file)
 
 ### Technical details
-- Commit: dfa7a82
+- Commit: `dfa7a82`
+- New version: v2.12.2 (was v2.4.0)
 
 ---
 
 ## Step 3: Fix gosec Docker action Go mismatch
 
-The `securego/gosec@master` Docker action runs with its own Go version, which can be older than what `actions/setup-go` installs.
+Root cause #3: `securego/gosec@master` runs in a Docker container with its own Go version, which was older than what `actions/setup-go@v6` installed. This caused type errors when gosec couldn't resolve `goja_nodejs/require` and other packages.
 
 ### What I did
-- Replaced `uses: securego/gosec@master` with `go install github.com/securego/gosec/v2/cmd/gosec@latest` after setup-go
-- Run `gosec` as a binary step instead of Docker action
+Replaced the Docker action with two steps after `setup-go`:
+```yaml
+- name: Install gosec
+  run: go install github.com/securego/gosec/v2/cmd/gosec@latest
+
+- name: Run Gosec Security Scanner
+  run: gosec -exclude=G101,G304,G301,G306,G204 -exclude-dir=.history ./...
+```
 
 ### Why
-- Per the package-publishing playbook "Common gotchas": "If `securego/gosec@master` runs with an older Go than `actions/setup-go`, prefer installing `gosec` with `go install` after setup and running the binary directly."
+Per the package-publishing playbook's "Common gotchas" section: "If `securego/gosec@master` runs with an older Go than `actions/setup-go`, prefer installing `gosec` with `go install` after setup and running the binary directly." The go-template reference repo already had this pattern applied.
 
 ### What worked
-- Exact copy of the go-template pattern for gosec
+Exact copy of the go-template pattern.
 
 ### What didn't work
-- N/A
+N/A
 
 ### What I learned
-- The go-template already had this fix applied. Hair-booking was still on the old Docker action.
+The Docker action approach is fundamentally fragile because the Docker image's Go version is pinned independently from the project's `go.mod`. Using `go install` after `setup-go` guarantees the same toolchain.
 
 ### What was tricky to build
-- N/A
+N/A
 
 ### What warrants a second pair of eyes
-- N/A
+N/A
 
 ### What should be done in the future
-- N/A
+N/A
 
 ### Code review instructions
-- `git show 70c67e3` — only dependency-scanning.yml changed
+- `git show 70c67e3` — only `dependency-scanning.yml` changed
 
 ### Technical details
-- Commit: 70c67e3
+- Commit: `70c67e3`
 
 ---
 
 ## Step 4: Replace bump-glazed with bump-go-go-golems
 
-The Makefile had a hand-maintained `bump-glazed` target listing only glazed and clay.
-
 ### What I did
-- Added generic `bump-go-go-golems` target that auto-discovers all `github.com/go-go-golems/...` direct deps from go.mod
-- Kept `bump-glazed` as compatibility alias
+Replaced the hand-maintained `bump-glazed` target:
+```make
+bump-glazed:
+	GOWORK=off go get github.com/go-go-golems/glazed@latest
+	GOWORK=off go get github.com/go-go-golems/clay@latest
+	GOWORK=off go mod tidy
+```
+
+With the generic auto-discovering `bump-go-go-golems` target:
+```make
+bump-go-go-golems:
+	@deps="$$(awk '/^require[[:space:]]+github\.com\/go-go-golems\// { print $$2 } /^[[:space:]]*github\.com\/go-go-golems\// { print $$1 }' go.mod | sort -u)"; \
+	if [ -z "$$deps" ]; then \
+		echo "No github.com/go-go-golems dependencies in go.mod"; \
+	else \
+		echo "Bumping go-go-golems dependencies:"; \
+		echo "$$deps"; \
+		for dep in $$deps; do GOWORK=off go get "$${dep}@latest"; done; \
+	fi
+	GOWORK=off go mod tidy
+
+bump-glazed: bump-go-go-golems
+```
 
 ### Why
-- Per logcopter playbook Step 10: "Do not maintain repository-specific `bump-glazed` target bodies... Those lists go stale as repositories gain or lose go-go-golems dependencies."
+Per logcopter playbook Step 10: "Do not maintain repository-specific `bump-glazed` target bodies... Those lists go stale as repositories gain or lose go-go-golems dependencies." Hair-booking now depends on glazed, clay, go-go-goja, and logcopter — the old target only listed glazed and clay.
 
 ### What worked
-- `make -n bump-go-go-golems` shows correct deps
-- Identical pattern to go-template
+`make -n bump-go-go-golems` shows correct deps. Identical pattern to go-template.
 
 ### What didn't work
-- N/A
+N/A
 
 ### What I learned
-- N/A
+The awk pattern captures both block-style requires (indented on their own lines) and single-line requires. The `sort -u` deduplicates.
 
 ### What was tricky to build
-- N/A
+N/A
 
 ### What warrants a second pair of eyes
-- N/A
+N/A
 
 ### What should be done in the future
-- Remove `bump-glazed` alias once no callers use it
+Remove `bump-glazed` alias once no callers use it.
 
 ### Code review instructions
 - `git show 014ef70` — only Makefile changed
 
 ### Technical details
-- Commit: 014ef70
+- Commit: `014ef70`
 
 ---
 
 ## Step 5: Add glazed-lint targets and CI step
 
-No Glazed CLI policy linting was configured despite the repo depending on glazed.
-
 ### What I did
-- Added `glazed-lint-build` and `glazed-lint` Makefile targets per the glazed-linting-rollout-playbook
-- Added fallback to `@latest` when pinned glazed version doesn't contain the tool (v1.2.5 didn't have it)
-- Set `GLAZED_LINT_FLAGS` with allow-paths for `pkg/auth/` and `pkg/config/` (intentional os.Getenv in Glazed defaults)
-- Wired glazed-lint into `lint` and `lintmax` targets
-- Added `make glazed-lint` step to `lint.yml` CI workflow
-- Used `GOWORK=off` for all vettool invocations to avoid go.work interference
+1. Added Makefile variables for glazed-lint:
+   ```make
+   GLAZED_LINT_BIN ?= /tmp/glazed-lint
+   GLAZED_LINT_PKG ?= github.com/go-go-golems/glazed/cmd/tools/glazed-lint
+   GLAZED_VERSION ?= $(shell GOWORK=off go list -m -f '{{.Version}}' github.com/go-go-golems/glazed 2>/dev/null)
+   GLAZED_LINT_FLAGS ?= -glazedclilint.allow-paths=pkg/auth/,pkg/config/
+   ```
+
+2. Added `glazed-lint-build` target with **fallback to @latest** when the pinned glazed version doesn't contain the tool (v1.2.5 didn't have it; v1.3.6 does after Phase 6 upgrade).
+
+3. Added `glazed-lint` target that runs `go vet -vettool=...` with the flags.
+
+4. Wired `glazed-lint-build` into `lint` and `lintmax` targets so the vettool runs alongside golangci-lint.
+
+5. Added `make glazed-lint` step to `.github/workflows/lint.yml`.
+
+6. Set `GLAZED_LINT_FLAGS` with allow-paths for `pkg/auth/` and `pkg/config/` — these packages use `os.Getenv` intentionally in Glazed field defaults (the established pattern for loading env var defaults into Glazed sections).
 
 ### Why
-- Per glazed-linting-rollout-playbook: every repo depending on glazed should enforce CLI conventions
+Per the glazed-linting-rollout-playbook, every repo depending on glazed should enforce CLI conventions. The linter checks for: direct `os.Getenv` usage (should use Glazed config/env middleware), raw cobra/pflag flags (should use Glazed fields), and missing `RunIntoGlazeProcessor` implementations.
 
 ### What worked
-- glazed-lint found real violations in `pkg/config/backend.go` (4 os.Getenv calls)
+- glazed-lint found real violations in `pkg/config/backend.go` (4 `os.Getenv` calls)
 - Adding `pkg/config/` to allow-paths resolved them (same pattern as `pkg/auth/`)
 
 ### What didn't work
-- glazed-lint couldn't install from v1.2.5 — the tool didn't exist in that version
-- Had to add fallback logic to the Makefile
+- **glazed-lint couldn't install from v1.2.5** — the tool didn't exist in that version. Had to add fallback logic: try `@$(GLAZED_VERSION)` first, then fall back to `@latest`.
+- **go.work interference**: `go vet -vettool=...` was reading go.work and failing because other modules in the workspace require newer Go versions. Fixed by adding `GOWORK=off` to all vettool invocations.
 
 ### What I learned
-- The glazed-lint tool was added in v1.3.6. When glazed gets upgraded (Phase 6), the fallback is no longer needed but is kept for robustness.
+- The glazed-lint tool was added in glazed v1.3.6. After Phase 6 upgraded glazed, the fallback is no longer triggered but is kept for robustness.
+- The `GOWORK=off` requirement applies to all `go vet -vettool` calls, not just `go build`/`go test`.
 
 ### What was tricky to build
-- The go.work interference: `go vet -vettool=...` was reading go.work and failing because other modules in the workspace require newer Go versions. Fixed by adding `GOWORK=off` to all vettool invocations.
-- The allow-paths for `pkg/auth/` and `pkg/config/` are needed because these packages use `os.Getenv` intentionally in Glazed field defaults — this is the established pattern for loading env var defaults into Glazed sections.
+The go.work interference was unexpected. The symptom was:
+```
+go: module ../geppetto listed in go.work file requires go >= 1.26.3, but go.work lists go 1.26.1
+```
+The fix was adding `GOWORK=off` to the `go vet -vettool` invocations. This is now applied in the `glazed-lint`, `lint`, and `lintmax` targets.
 
 ### What warrants a second pair of eyes
-- The allow-paths `pkg/auth/,pkg/config/` — these are intentional, but should be reviewed per the playbook's preference for narrow exclusions
+The allow-paths `pkg/auth/,pkg/config/` are intentional (both packages use `os.Getenv` in Glazed field default values), but should be reviewed per the playbook's preference for narrow exclusions. Consider using reasoned `//glazedclilint:ignore` suppressions on individual lines instead.
 
 ### What should be done in the future
-- After glazed v1.3.6 is confirmed stable, could simplify the glazed-lint-build target to remove the fallback
-- Consider adding reasoned `//glazedclilint:ignore` suppressions in the config files instead of broad allow-paths
+- After glazed v1.3.6 is confirmed stable, could simplify the `glazed-lint-build` target to remove the fallback logic
+- Consider `//glazedclilint:ignore` suppressions in the config files instead of broad allow-paths
 
 ### Code review instructions
 - `git show 63e3994` — Makefile + lint.yml
 
 ### Technical details
-- Commit: 63e3994
+- Commit: `63e3994`
 - Allow-paths: `pkg/auth/`, `pkg/config/`
 
 ---
 
 ## Step 6: Adopt logcopter
 
-The repo had no logcopter adoption — packages used `github.com/rs/zerolog/log` directly for diagnostics.
+### 6a: Add dependency and upgrade glazed
+
+### What I did
+```bash
+GOWORK=off go get github.com/go-go-golems/logcopter@latest
+GOWORK=off go get -tool github.com/go-go-golems/logcopter/cmd/logcopter-gen@latest
+```
+
+This also upgraded glazed v1.2.5 → v1.3.6 (required by logcopter) and pulled in updated transitive deps (zerolog, x/crypto, x/net, x/sys, x/text, jsonparser).
+
+### Why
+Logcopter provides generated area-scoped package loggers. The tool must be registered as a Go tool (`go get -tool`) for `go tool logcopter-gen` to work.
+
+### What worked
+All tests pass after the upgrade. The glazed upgrade (v1.2.5 → v1.3.6) was seamless — no API breakage observed.
+
+### What didn't work
+N/A
+
+### What I learned
+The glazed upgrade also resolved the glazed-lint version skew from Phase 5 — now the tool installs at the pinned version v1.3.6 without needing the fallback.
+
+### Code review instructions
+- `git show a1fba4c` — go.mod go.sum only
+
+### Technical details
+- Commit: `a1fba4c`
+- Key upgrades: glazed v1.2.5→v1.3.6, zerolog v1.34.0→v1.35.1, x/crypto v0.49.0→v0.51.0
+
+---
+
+### 6b: Add logcopter generate entry point
+
+### What I did
+Created `logcopter_generate.go` at repo root:
+```go
+package hairbooking
+
+//go:generate go tool logcopter-gen -area-prefix go-go-golems.hair-booking -strip-prefix github.com/go-go-golems/hair-booking ./pkg/... ./cmd/...
+```
+
+### Why
+Per the logcopter playbook, every logcopter-adopting repo needs a root generate entry point. The package name must NOT be `package main` unless the root is a command package — a `package main` without a `main()` function breaks `go build ./...`.
+
+### What was tricky to build
+The package name `hairbooking` (not `main`) was required because the repo root is a library module, not a command. The repo's entry point is `cmd/hair-booking/main.go`.
+
+### Code review instructions
+- `git show deef22d` — new file `logcopter_generate.go`
+
+### Technical details
+- Commit: `deef22d`
+- Area prefix: `go-go-golems.hair-booking`
+- Initially only `./pkg/...`, later extended to `./pkg/... ./cmd/...` (see Step 7)
+
+---
+
+### 6c: Generate package loggers
+
+### What I did
+Ran `go generate ./...` which created `pkg/*/logcopter.go` in 15 packages. Each file looks like:
+```go
+// Code generated by logcopter-gen; DO NOT EDIT.
+
+package server
+
+import logcopter "github.com/go-go-golems/logcopter/pkg/logcopter"
+
+var log = logcopter.Package("go-go-golems.hair-booking.pkg.server")
+```
+
+### Why
+The generated `var log` provides an area-scoped zerolog logger that can be filtered at runtime via `--log-area` flags or a logcopter config file.
+
+### Code review instructions
+- `git show 43f64ca` — 15 new `logcopter.go` files
+
+### Technical details
+- Commit: `43f64ca`
+
+---
+
+### 6d: Convert package diagnostics
+
+### What I did
+Removed `import "github.com/rs/zerolog/log"` from 4 files:
+- `pkg/appointments/postgres.go`
+- `pkg/appointments/service.go`
+- `pkg/server/handlers_public.go`
+- `pkg/server/http.go`
+
+No other code changes needed — the generated `var log` has the same zerolog call shape as the global logger, so `log.Error().Err(err).Msg("...")` calls work identically.
+
+### Why
+Per the logcopter playbook: "Convert package diagnostics: calls that currently use the global zerolog `log` package only because the package needs a convenient local logger." The generated variable replaces the global import without changing call sites.
+
+### What worked
+All conversions were trivial — just remove the import line. The generated `var log` takes over with zero call-site changes.
+
+### What didn't work
+N/A
+
+### What I learned
+The logcopter adoption was surprisingly smooth because all diagnostic uses were simple `log.Error()...Msg()` calls that match the generated variable's call shape exactly.
+
+### Code review instructions
+- `git show 5f5c61a` — 4 files, each with one import line removed
+
+### Technical details
+- Commit: `5f5c61a`
+
+---
+
+### 6e: Add Makefile targets and CI steps
+
+### What I did
+1. Added Makefile targets:
+   ```make
+   logcopter-generate:
+       GOWORK=off go generate ./...
+
+   logcopter-check:
+       GOWORK=off go tool logcopter-gen ... -check ./pkg/... ./cmd/...
+   ```
+
+2. Added 3 steps to `.github/workflows/push.yml`:
+   ```yaml
+   - name: Verify logcopter package loggers
+     run: make logcopter-check
+   - name: Verify generated files are up to date
+     run: git diff --exit-code -- '*.go'
+   - name: Run unit tests
+     run: go test ./...
+   ```
+
+### Why
+Per the logcopter playbook: "In CI, run `logcopter-check` **before** any mutating `go generate ./...` step." The ordering is critical — if you run `go generate` first, it rewrites the files, and the check only validates the regenerated workspace instead of the checked-in PR contents.
+
+The `git diff --exit-code -- '*.go'` checks that no `.go` files are out of date. It scopes to `*.go` only because the web frontend build (which `go generate` also triggers) needs pnpm which isn't available in CI.
+
+### What was tricky to build
+The CI generate step originally ran `go generate ./...` which triggered the web frontend build (`pkg/web/generate.go` calls `npm ci` which needs pnpm). CI doesn't have pnpm installed. Fixed by removing the `go generate` step and only checking for drift with `git diff --exit-code -- '*.go'`. The logcopter files are validated by `make logcopter-check` (non-mutating), and the frontend dist is already committed.
+
+### What warrants a second pair of eyes
+The `git diff --exit-code -- '*.go'` step may need adjustment if other `.go` files are expected to be regenerated in CI (e.g., protobuf).
+
+### What should be done in the future
+- Consider adding a pnpm setup step to CI if full `go generate` coverage is desired
+- Verify that `git diff --exit-code -- '*.go'` works correctly in CI for protobuf-generated files
+
+### Code review instructions
+- `git show 2bc09f9` — Makefile + push.yml
+
+### Technical details
+- Commit: `2bc09f9`
+
+---
+
+## Step 7: Extend logcopter to cmd/ packages
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead and add the logcopter for cmd/ , then continue with the rest."
+
+**Inferred user intent:** Generate logcopter loggers for `cmd/` packages too, and convert the remaining `zerolog/log` import in `cmd/hair-booking/cmds/serve.go`.
+
+### What I did
+1. Updated `logcopter_generate.go` directive from `./pkg/...` to `./pkg/... ./cmd/...`
+2. Ran `go generate ./...` which created `cmd/hair-booking/cmds/logcopter.go`:
+   ```go
+   var log = logcopter.Package("go-go-golems.hair-booking.cmd.hair-booking.cmds")
+   ```
+3. Removed `import "github.com/rs/zerolog/log"` from `cmd/hair-booking/cmds/serve.go`
+4. Updated `logcopter-check` Makefile target to include `./cmd/...`
+5. Verified: zero remaining `zerolog/log` direct imports anywhere in the project
+
+### Why
+Extending logcopter to `cmd/` means `--log-area go-go-golems.hair-booking.cmd.hair-booking.cmds=debug` works from the CLI for filtering the serve command's own diagnostics by area.
+
+### What worked
+Same as pkg/ — just remove the import, the generated `var log` takes over with no call-site changes.
+
+### What didn't work
+N/A
+
+### What I learned
+The Pinocchio playbook example shows `./pkg/... ./cmd/...` — it's the standard for repos that have diagnostic logging in command packages too.
+
+### Code review instructions
+- `git show e1b6e44` — logcopter_generate.go, new cmd logcopter.go, serve.go, Makefile
+
+### Technical details
+- Commit: `e1b6e44`
+
+---
+
+## Step 8: Fix pre-existing lint issues and adjust CI
+
+After pushing to remote, CI still failed on:
+1. **golangci-lint**: 8 pre-existing issues (exhaustive, unused, predeclared, copylocks)
+2. **test** (push.yml): `go generate ./...` triggered web frontend build which needs pnpm (not in CI)
+3. **govulncheck/gosec**: Same go.sum issues (these should be fixed now with the new go.sum)
 
 ### What I did
 
-**6a: Add dependency and upgrade glazed**
-- `go get github.com/go-go-golems/logcopter@latest`
-- `go get -tool github.com/go-go-golems/logcopter/cmd/logcopter-gen@latest`
-- This also upgraded glazed v1.2.5 → v1.3.6 (required by logcopter)
-- All tests pass with upgraded deps
+**Lint fixes:**
+- `pkg/admindsl/builder.go`: Removed unused `cloneNode` and `cloneAction` functions
+- `pkg/admindsl/validate.go`: Added `//nolint:exhaustive` comments to 4 intentional partial switches (validation functions that only care about specific node kinds)
+- `pkg/intakeadmin/store.go`: Renamed `min`/`max` to `minVal`/`maxVal` to avoid shadowing predeclared `min` (Go 1.21+ built-in)
+- `pkg/server/handlers_admin_dsl_test.go`: Changed `postAdminEvent` to return `*admindslv1.AdminFlowState` instead of value (protobuf messages contain `sync.Mutex` which must not be copied)
 
-**6b: Add logcopter generate entry point**
-- Created `logcopter_generate.go` with `package hairbooking`
-- Generate directive: `//go:generate go tool logcopter-gen -area-prefix go-go-golems.hair-booking -strip-prefix github.com/go-go-golems/hair-booking ./pkg/...`
-
-**6c: Generate package loggers**
-- `go generate ./...` created `pkg/*/logcopter.go` in 15 packages
-- Each has `var log = logcopter.Package("go-go-golems.hair-booking.pkg.XXX")`
-
-**6d: Convert package diagnostics**
-- Removed `import "github.com/rs/zerolog/log"` from 4 files:
-  - `pkg/appointments/postgres.go`
-  - `pkg/appointments/service.go`
-  - `pkg/server/handlers_public.go`
-  - `pkg/server/http.go`
-- The generated `var log` preserves the exact same zerolog call shape
-- `cmd/hair-booking/cmds/serve.go` still uses global zerolog log — this is intentional (application entry point)
-
-**6e: Add Makefile targets and CI steps**
-- Added `logcopter-generate` and `logcopter-check` Makefile targets
-- Added 3 steps to push.yml: `make logcopter-check`, `go generate ./...`, `git diff --exit-code`
-- The ordering is critical: check before generate (per playbook)
+**CI fix:**
+- Removed `go generate ./...` step from push.yml (web frontend build needs pnpm)
+- Changed `git diff --exit-code` to `git diff --exit-code -- '*.go'` (only check Go files for drift)
 
 ### Why
-- Per logcopter-package-rollout-playbook: convert package diagnostics from global zerolog to area-scoped logcopter loggers
-
-### What worked
-- All 4 file conversions were trivial — just remove the import, the generated `var log` takes over
-- The glazed upgrade (v1.2.5 → v1.3.6) also makes glazed-lint install cleanly at the pinned version
-
-### What didn't work
-- N/A
-
-### What I learned
-- The logcopter adoption was surprisingly smooth because all diagnostic uses were simple `log.Error()...Msg()` calls that match the generated variable's call shape exactly
-- The glazed upgrade that came with logcopter also fixed the glazed-lint version skew from Phase 5
+These are pre-existing issues not caused by the modernization work, but they block CI. The `//nolint:exhaustive` is appropriate because these are allowlist switches where new kinds should default to "no special validation needed."
 
 ### What was tricky to build
-- The generate entry point uses `package hairbooking` (not `package main`) because the repo root is not a command package. Per playbook: "A root `package main` file in a library module causes `go build ./...` to fail with `function main is undeclared in the main package`."
-- The CI step ordering: `logcopter-check` must run BEFORE `go generate ./...` per the playbook, otherwise `go generate` rewrites files first and the check only validates the regenerated workspace, not the checked-in PR contents.
+- The `//exhaustive:ignore` comment syntax didn't work with golangci-lint v2 — had to use `//nolint:exhaustive` instead
+- I accidentally ate a `case` line during one edit and had to fix it — always verify the file after editing switch statements
 
 ### What warrants a second pair of eyes
-- The `git diff --exit-code` step in CI may fail if `go generate` produces output that differs from what's committed (e.g., web frontend build artifacts). Need to verify in CI.
-- The `cmd/hair-booking/cmds/serve.go` still uses `github.com/rs/zerolog/log` — acceptable for now as an application entry point, but could be converted to logcopter in a follow-up.
+- The `git diff --exit-code -- '*.go'` in CI may need pnpm setup if protobuf or other Go generation is added
+- The `//nolint:exhaustive` comments should have reasons explaining why the switch is intentionally partial
 
 ### What should be done in the future
-- Consider extending logcopter generation to `./cmd/...` packages
-- Verify that `go generate ./...` in CI doesn't produce unexpected diffs (web build, protobuf, etc.)
-- The glazed upgrade v1.2.5 → v1.3.6 should be validated for API compatibility
+- When new NodeKind values are added, the `//nolint:exhaustive` switches should be reviewed to see if they need new cases
+- Consider adding pnpm setup to CI for full `go generate` coverage
 
 ### Code review instructions
-- `git log a1fba4c..2bc09f9 --oneline` — 5 commits in this phase
-- Key files: `logcopter_generate.go`, `pkg/*/logcopter.go`, `pkg/appointments/postgres.go`, `pkg/server/http.go`, `Makefile`, `.github/workflows/push.yml`
+- `git show b9430b2` — 5 files changed
 
 ### Technical details
-- Commits: a1fba4c, deef22d, 43f64ca, 5f5c61a, 2bc09f9
-- Logcopter area prefix: `go-go-golems.hair-booking`
-- 15 generated logcopter.go files
-- 4 files converted from zerolog/log to logcopter
+- Commit: `b9430b2`
+
+---
+
+## Current State
+
+### Commits pushed to `task/hair-v2` (most recent first)
+
+```
+b9430b2 HAIR-042: Fix pre-existing lint issues and adjust CI generate step
+e1b6e44 HAIR-042: Extend logcopter to cmd/ packages
+776c20c Diary: record HAIR-042 Steps 0-6 (all phases complete)
+2bc09f9 HAIR-042 Phase 6e: Add logcopter Makefile targets and CI steps
+5f5c61a HAIR-042 Phase 6d: Convert package diagnostics to logcopter
+43f64ca HAIR-042 Phase 6c: Add generated logcopter package loggers
+deef22d HAIR-042 Phase 6b: Add logcopter generate entry point
+a1fba4c HAIR-042 Phase 6a: Add logcopter dependency and upgrade glazed
+63e3994 HAIR-042 Phase 5: Add glazed-lint targets and CI step
+014ef70 HAIR-042 Phase 4: Replace bump-glazed with generic bump-go-go-golems
+70c67e3 HAIR-042 Phase 3: Replace gosec Docker action with go install
+dfa7a82 HAIR-042 Phase 2: Switch golangci-lint to version-file pattern
+2cdc317 HAIR-042 Phase 1: Fix stale go.sum with go mod tidy
+```
+
+### Local validation status
+
+| Check | Status |
+|-------|--------|
+| `GOWORK=off go test ./...` | ✅ All pass |
+| `GOWORK=off golangci-lint run --timeout=5m` | ✅ 0 issues |
+| `make logcopter-check` | ✅ Clean |
+| `make glazed-lint` | ✅ Clean |
+| `GOWORK=off go build ./...` | ✅ Builds |
+
+### CI status (last push: `e1b6e44` — before lint fixes)
+
+| Job | Status | Note |
+|-----|--------|------|
+| test | ❌ | `go generate` needed pnpm — fixed in `b9430b2` |
+| lint | ❌ | 8 pre-existing issues — fixed in `b9430b2` |
+| publish-image | ❌ | Cascading from test — should be fixed now |
+| govulncheck | ❌ | Was missing go.sum entries — should be fixed now |
+| gosec | ❌ | Docker Go mismatch + missing go.sum — should be fixed now |
+| Secret Scanning | ✅ | — |
+| Dependency Review | ✅ | — |
+| CodeQL | ✅ | — |
+
+### What still needs to happen
+
+1. **Push `b9430b2` to remote** — the lint fixes and CI adjustments haven't been pushed yet. This should fix all remaining CI failures.
+
+2. **Verify CI goes green** after pushing. Watch with:
+   ```bash
+   gh pr view 2 --repo wesen/hair-booking --json statusCheckRollup
+   ```
+
+3. **The `web.deprecated/` directory** showed up as untracked in `git status`. This is likely from a previous refactoring and should be added to `.gitignore` or committed/deleted as appropriate.
+
+4. **The `pkg/web/public/` assets** changed during local `go generate` (new JS/CSS hashes). These should be committed if they're the latest build, or the frontend should be rebuilt before merge.
+
+5. **Consider the PR merge strategy.** The playbook says "Never use squash merges for release-train work" and to use `gh pr merge --merge --delete-branch`. This preserves commit history for auditability.
+
+### Key files to understand the project
+
+| File | Purpose |
+|------|---------|
+| `pkg/auth/` | Full OIDC + dev-mode auth system (NOT a placeholder — production quality) |
+| `pkg/server/http.go` | HTTP server with all routes, auth wiring |
+| `pkg/admindsl/` | Admin DSL runtime (Goja JS + protobuf) |
+| `pkg/dslgoja/` | Client-facing DSL runtime |
+| `pkg/dslhost/` | DSL persistence (SQLite configDb + stateDb) |
+| `cmd/hair-booking/cmds/serve.go` | Main serve command |
+| `.golangci.yml` | Lint config (version "2", enables errcheck/govet/ineffassign/staticcheck/unused/exhaustive/nonamedreturns/predeclared) |
+| `Makefile` | Build targets including local dev/oidc modes, docker, keycloak |
+
+### Glossary
+
+- **DSL**: Domain-Specific Language — the backend-driven UI system that renders pages from protobuf schemas
+- **Goja**: Go JavaScript runtime — used to execute DSL flow scripts
+- **logcopter**: Area-scoped logging system — generates `var log` per package instead of using global zerolog
+- **glazed-lint**: Vettool that enforces Glazed CLI conventions (no raw os.Getenv, no raw cobra flags)
+- **ggg**: `go-go-golems` CLI tool for PR readiness, release tagging, batch operations
+- **GOWORK=off**: Disables go.work file, forcing resolution from go.mod only (critical for CI where workspace doesn't exist)
