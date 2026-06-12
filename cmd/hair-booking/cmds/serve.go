@@ -22,7 +22,6 @@ import (
 	"github.com/go-go-golems/hair-booking/pkg/server"
 	hairstorage "github.com/go-go-golems/hair-booking/pkg/storage"
 	pkgerrors "github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 )
 
 type ServeCommand struct {
