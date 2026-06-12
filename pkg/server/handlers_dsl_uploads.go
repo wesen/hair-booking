@@ -114,7 +114,8 @@ func (h *appHandler) handleDSLUpload(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseMultipartForm(intent.MaxBytes); err != nil {
+	r.Body = http.MaxBytesReader(w, r.Body, intent.MaxBytes+multipartUploadOverhead)
+	if err := r.ParseMultipartForm(intent.MaxBytes); err != nil { // #nosec G120 -- request body is bounded with http.MaxBytesReader above
 		writeDSLProtoError(w, http.StatusBadRequest, "invalid_dsl_upload_form", "Request body must be multipart/form-data")
 		return
 	}

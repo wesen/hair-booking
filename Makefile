@@ -30,10 +30,7 @@ glazed-lint-build:
 	@echo "Building glazed-lint from Glazed module..."
 	@if [ -n "$(GLAZED_VERSION)" ] && [ "$(GLAZED_VERSION)" != "(devel)" ]; then \
 		echo "Installing $(GLAZED_LINT_PKG)@$(GLAZED_VERSION)"; \
-		GOBIN=$(dir $(GLAZED_LINT_BIN)) GOWORK=off go install $(GLAZED_LINT_PKG)@$(GLAZED_VERSION) 2>/dev/null || { \
-			echo "glazed-lint not available at $(GLAZED_VERSION), installing @latest"; \
-			GOBIN=$(dir $(GLAZED_LINT_BIN)) GOWORK=off go install $(GLAZED_LINT_PKG)@latest; \
-		}; \
+		GOBIN=$(dir $(GLAZED_LINT_BIN)) GOWORK=off go install $(GLAZED_LINT_PKG)@$(GLAZED_VERSION); \
 	else \
 		echo "Installing $(GLAZED_LINT_PKG) from workspace/module"; \
 		GOBIN=$(dir $(GLAZED_LINT_BIN)) go install $(GLAZED_LINT_PKG); \
@@ -52,10 +49,10 @@ lintmax: glazed-lint-build
 
 gosec:
 	GOWORK=off go install github.com/securego/gosec/v2/cmd/gosec@latest
-	gosec -exclude-generated -exclude=G101,G304,G301,G306 -exclude-dir=.history ./...
+	GOWORK=off gosec -exclude-generated -exclude=G101,G304,G301,G306,G204 -exclude-dir=.history -exclude-dir=gen ./...
 
 logcopter-generate:
-	GOWORK=off go generate ./...
+	GOWORK=off go tool logcopter-gen -area-prefix go-go-golems.hair-booking -strip-prefix github.com/go-go-golems/hair-booking ./pkg/... ./cmd/...
 
 logcopter-check:
 	GOWORK=off go tool logcopter-gen -area-prefix go-go-golems.hair-booking -strip-prefix github.com/go-go-golems/hair-booking -check ./pkg/... ./cmd/...

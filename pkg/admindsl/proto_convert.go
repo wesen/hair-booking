@@ -2,6 +2,7 @@ package admindsl
 
 import (
 	"fmt"
+	"math"
 
 	admindslv1 "github.com/go-go-golems/hair-booking/gen/proto/fringe/admin_dsl/v1"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -45,8 +46,13 @@ func PageToProto(page Page) (*admindslv1.AdminPage, error) {
 	if err != nil {
 		return nil, err
 	}
+	schemaVersion, err := uint32FromInt("page schemaVersion", page.SchemaVersion)
+	if err != nil {
+		return nil, err
+	}
+
 	return &admindslv1.AdminPage{
-		SchemaVersion: uint32(page.SchemaVersion),
+		SchemaVersion: schemaVersion,
 		Id:            page.ID,
 		Title:         page.Title,
 		Description:   page.Description,
@@ -114,7 +120,25 @@ func FlowStateFromResult(result *FlowResult) (*admindslv1.AdminFlowState, error)
 	for _, effect := range result.Effects {
 		effects = append(effects, &admindslv1.AdminEffect{Kind: effect.Kind, Tone: effect.Tone, Message: effect.Message})
 	}
-	return &admindslv1.AdminFlowState{SessionId: result.SessionID, PageVersion: uint32(result.PageVersion), Page: page, Effects: effects}, nil
+	pageVersion, err := uint32FromInt64("pageVersion", result.PageVersion)
+	if err != nil {
+		return nil, err
+	}
+	return &admindslv1.AdminFlowState{SessionId: result.SessionID, PageVersion: pageVersion, Page: page, Effects: effects}, nil
+}
+
+func uint32FromInt(field string, value int) (uint32, error) {
+	if value < 0 || value > math.MaxUint32 {
+		return 0, fmt.Errorf("%s must fit uint32, got %d", field, value)
+	}
+	return uint32(value), nil
+}
+
+func uint32FromInt64(field string, value int64) (uint32, error) {
+	if value < 0 || value > math.MaxUint32 {
+		return 0, fmt.Errorf("%s must fit uint32, got %d", field, value)
+	}
+	return uint32(value), nil
 }
 
 func InteractionEventFromProto(event *admindslv1.AdminInteractionEvent) FlowEvent {

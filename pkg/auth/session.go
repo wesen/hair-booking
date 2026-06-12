@@ -72,7 +72,7 @@ func (m *SessionManager) WriteSession(w http.ResponseWriter, r *http.Request, cl
 		maxAge = 0
 	}
 
-	http.SetCookie(w, &http.Cookie{
+	http.SetCookie(w, &http.Cookie{ // #nosec G124 -- Secure is set dynamically for HTTPS/proxied production and local HTTP dev
 		Name:     m.cookieName,
 		Value:    token,
 		Path:     "/",
@@ -111,7 +111,7 @@ func (m *SessionManager) ReadSession(r *http.Request) (*SessionClaims, error) {
 }
 
 func (m *SessionManager) ClearSession(w http.ResponseWriter, r *http.Request) {
-	http.SetCookie(w, &http.Cookie{
+	http.SetCookie(w, &http.Cookie{ // #nosec G124 -- Secure matches the session cookie mode so deletion works in dev and production
 		Name:     m.cookieName,
 		Value:    "",
 		Path:     "/",

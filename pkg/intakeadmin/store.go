@@ -661,7 +661,10 @@ func (s *Store) listConfigTimeSlots(ctx context.Context, id string) ([]ConfigTim
 }
 
 func (s *Store) ensureConfigRowIsDraft(ctx context.Context, tx *sql.Tx, table, id string) (string, string, error) {
-	query := fmt.Sprintf(`SELECT config_version_id, (SELECT status FROM dsl_config_versions WHERE id = %s.config_version_id) FROM %s WHERE id = ?`, table, table)
+	if !isConfigEntityTable(table) {
+		return "", "", fmt.Errorf("unsupported config entity table %q", table)
+	}
+	query := fmt.Sprintf(`SELECT config_version_id, (SELECT status FROM dsl_config_versions WHERE id = %s.config_version_id) FROM %s WHERE id = ?`, table, table) // #nosec G201 -- table is validated by isConfigEntityTable before formatting
 	var configVersionID, status string
 	if err := tx.QueryRowContext(ctx, query, id).Scan(&configVersionID, &status); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -855,6 +858,15 @@ func (s *Store) CreateConfigEntity(ctx context.Context, input ConfigEntityInput,
 	return id, nil
 }
 
+func isConfigEntityTable(table string) bool {
+	switch table {
+	case "dsl_service_options", "dsl_tone_options", "dsl_budget_options", "dsl_price_ranges", "dsl_availability_days", "dsl_time_slots":
+		return true
+	default:
+		return false
+	}
+}
+
 func (s *Store) DeleteConfigEntity(ctx context.Context, kind, id string, actor Actor) error {
 	if s == nil || s.ConfigDB == nil {
 		return fmt.Errorf("intake admin config DB is not configured")
@@ -877,7 +889,7 @@ func (s *Store) DeleteConfigEntity(ctx context.Context, kind, id string, actor A
 	if err != nil {
 		return err
 	}
-	result, err := tx.ExecContext(ctx, fmt.Sprintf(`DELETE FROM %s WHERE id = ?`, table), id)
+	result, err := tx.ExecContext(ctx, fmt.Sprintf(`DELETE FROM %s WHERE id = ?`, table), id) // #nosec G201 -- table comes from fixed kind-to-table allowlist
 	if err != nil {
 		return err
 	}

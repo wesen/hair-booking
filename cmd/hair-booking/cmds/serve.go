@@ -203,7 +203,7 @@ func (c *ServeCommand) Run(ctx context.Context, parsedValues *values.Values) err
 
 	go func() {
 		<-serverCtx.Done()
-		shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		shutdownCtx, cancel := context.WithTimeout(context.WithoutCancel(serverCtx), 5*time.Second)
 		defer cancel()
 		if err := httpServer.Shutdown(shutdownCtx); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Warn().Err(err).Msg("failed to shutdown server cleanly")

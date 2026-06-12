@@ -156,7 +156,8 @@ func (h *appHandler) handleStylistAppointmentPhoto(w http.ResponseWriter, r *htt
 		return
 	}
 
-	if err := r.ParseMultipartForm(maxPhotoUploadBytes); err != nil {
+	r.Body = http.MaxBytesReader(w, r.Body, maxMultipartUploadBytes)
+	if err := r.ParseMultipartForm(maxPhotoUploadBytes); err != nil { // #nosec G120 -- request body is bounded with http.MaxBytesReader above
 		writeAPIError(w, http.StatusBadRequest, "invalid-form", "Request body must be multipart/form-data.")
 		return
 	}

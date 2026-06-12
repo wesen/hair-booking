@@ -2,6 +2,7 @@ package dslgoja
 
 import (
 	"fmt"
+	"math"
 
 	dslv1 "github.com/go-go-golems/hair-booking/gen/proto/fringe/dsl/v1"
 	"google.golang.org/protobuf/types/known/structpb"
@@ -31,8 +32,13 @@ func PageToProto(page Page) (*dslv1.Page, error) {
 		return nil, err
 	}
 
+	schemaVersion, err := uint32FromInt("page schemaVersion", page.SchemaVersion)
+	if err != nil {
+		return nil, err
+	}
+
 	return &dslv1.Page{
-		SchemaVersion: uint32(page.SchemaVersion),
+		SchemaVersion: schemaVersion,
 		Id:            page.ID,
 		Title:         page.Title,
 		Description:   page.Description,
@@ -122,9 +128,13 @@ func FlowStateFromResult(result *InteractionResult) (*dslv1.FlowState, error) {
 	if err != nil {
 		return nil, err
 	}
+	pageVersion, err := uint32FromInt64("pageVersion", result.PageVersion)
+	if err != nil {
+		return nil, err
+	}
 	return &dslv1.FlowState{
 		SessionId:   result.SessionID,
-		PageVersion: uint32(result.PageVersion),
+		PageVersion: pageVersion,
 		Page:        page,
 		Effects:     effects,
 	}, nil
@@ -135,9 +145,13 @@ func FlowStateFromSnapshot(sessionID string, pageVersion int64, page Page) (*dsl
 	if err != nil {
 		return nil, err
 	}
+	protoPageVersion, err := uint32FromInt64("pageVersion", pageVersion)
+	if err != nil {
+		return nil, err
+	}
 	return &dslv1.FlowState{
 		SessionId:   sessionID,
-		PageVersion: uint32(pageVersion),
+		PageVersion: protoPageVersion,
 		Page:        protoPage,
 	}, nil
 }
@@ -152,6 +166,20 @@ func EffectsToProto(effects []Effect) ([]*dslv1.Effect, error) {
 		protoEffects = append(protoEffects, protoEffect)
 	}
 	return protoEffects, nil
+}
+
+func uint32FromInt(field string, value int) (uint32, error) {
+	if value < 0 || value > math.MaxUint32 {
+		return 0, fmt.Errorf("%s must fit uint32, got %d", field, value)
+	}
+	return uint32(value), nil
+}
+
+func uint32FromInt64(field string, value int64) (uint32, error) {
+	if value < 0 || value > math.MaxUint32 {
+		return 0, fmt.Errorf("%s must fit uint32, got %d", field, value)
+	}
+	return uint32(value), nil
 }
 
 func InteractionEventFromProto(event *dslv1.InteractionEvent) InteractionEvent {

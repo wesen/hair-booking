@@ -128,7 +128,7 @@ func writeProtoJSON(w http.ResponseWriter, status int, msg proto.Message) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_, _ = w.Write(payload)
+	_, _ = w.Write(payload) // #nosec G705 -- payload is protobuf JSON with application/json content type, not HTML
 }
 
 func writeDSLProtoError(w http.ResponseWriter, status int, code, message string) {
