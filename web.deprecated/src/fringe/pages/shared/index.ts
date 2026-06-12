@@ -1,1 +1,0 @@
-export { AuthGatePage } from "./AuthGatePage";
