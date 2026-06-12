@@ -98,7 +98,7 @@ func collectSurfaceIDs(seen map[string]string, path string, node Node) error {
 }
 
 func isSurfaceKind(kind NodeKind) bool {
-	switch kind {
+	switch kind { //nolint:exhaustive // intentional allowlist, new kinds default to false
 	case NodeModal, NodeDrawer, NodeSheet, NodeDetailPanel, NodeInlinePanel, NodeConfirmDialog:
 		return true
 	default:
@@ -143,7 +143,7 @@ func validateNodeActions(node Node) error {
 }
 
 func validateV2NodeShape(node Node) error {
-	switch node.Kind {
+	switch node.Kind { //nolint:exhaustive // validation only covers node kinds with shape constraints
 	case NodePageHeader:
 		if stringProp(node.Props, "title") == "" {
 			return fmt.Errorf("pageHeader requires props.title")
@@ -265,7 +265,7 @@ func validateV2Layout(path string, props JSONObject) error {
 }
 
 func isFieldKind(kind NodeKind) bool {
-	switch kind {
+	switch kind { //nolint:exhaustive // intentional allowlist, new field kinds must be added
 	case NodeTextField, NodeTextareaField, NodeMoneyField, NodeDurationField, NodeDateField, NodeTimeField, NodeSelectField, NodeSwitchField, NodeImageField:
 		return true
 	default:
@@ -285,7 +285,7 @@ func validateV2Field(path string, node Node) error {
 	if !hasValue || value == nil {
 		return nil
 	}
-	switch node.Kind {
+	switch node.Kind { //nolint:exhaustive // validation only covers field kinds with value constraints
 	case NodeSwitchField:
 		if _, ok := value.(bool); !ok {
 			return fmt.Errorf("%s switchField value must be boolean", path)

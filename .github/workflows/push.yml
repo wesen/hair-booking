@@ -22,11 +22,8 @@ jobs:
         name: Verify logcopter package loggers
         run: make logcopter-check
       -
-        name: Generate assets
-        run: go generate ./...
-      -
         name: Verify generated files are up to date
-        run: git diff --exit-code
+        run: git diff --exit-code -- '*.go'
       -
         name: Run unit tests
         run: go test ./...

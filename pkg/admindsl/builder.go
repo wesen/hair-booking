@@ -497,30 +497,6 @@ func clonePage(page Page) (Page, error) {
 	return out, nil
 }
 
-func cloneNode(node Node) Node {
-	data, err := json.Marshal(node)
-	if err != nil {
-		panic(fmt.Errorf("marshal admin dsl node: %w", err))
-	}
-	var out Node
-	if err := json.Unmarshal(data, &out); err != nil {
-		panic(fmt.Errorf("unmarshal admin dsl node clone: %w", err))
-	}
-	return out
-}
-
-func cloneAction(action ActionRef) ActionRef {
-	data, err := json.Marshal(action)
-	if err != nil {
-		panic(fmt.Errorf("marshal admin dsl action: %w", err))
-	}
-	var out ActionRef
-	if err := json.Unmarshal(data, &out); err != nil {
-		panic(fmt.Errorf("unmarshal admin dsl action clone: %w", err))
-	}
-	return out
-}
-
 func cloneObject(obj JSONObject) JSONObject {
 	if obj == nil {
 		return nil

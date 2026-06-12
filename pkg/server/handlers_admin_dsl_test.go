@@ -244,7 +244,7 @@ func TestAdminDSLHTTPStartGetDispatch(t *testing.T) {
 	}
 }
 
-func postAdminEvent(t *testing.T, handler http.Handler, sessionID string, pageVersion uint32, actionID string, value *structpb.Value) admindslv1.AdminFlowState {
+func postAdminEvent(t *testing.T, handler http.Handler, sessionID string, pageVersion uint32, actionID string, value *structpb.Value) *admindslv1.AdminFlowState {
 	t.Helper()
 	event := &admindslv1.AdminInteractionEvent{EventId: "evt-test", SessionId: sessionID, PageVersion: pageVersion, ActionId: actionID, Event: "click", Value: value}
 	body, err := protojson.Marshal(event)
@@ -257,8 +257,8 @@ func postAdminEvent(t *testing.T, handler http.Handler, sessionID string, pageVe
 	if rec.Code != http.StatusOK {
 		t.Fatalf("event status %d body %s", rec.Code, rec.Body.String())
 	}
-	var state admindslv1.AdminFlowState
-	if err := protojson.Unmarshal(rec.Body.Bytes(), &state); err != nil {
+	state := &admindslv1.AdminFlowState{}
+	if err := protojson.Unmarshal(rec.Body.Bytes(), state); err != nil {
 		t.Fatalf("decode event: %v", err)
 	}
 	return state

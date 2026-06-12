@@ -604,16 +604,16 @@ func (s *Store) listConfigPriceRanges(ctx context.Context, id string) ([]ConfigP
 	var out []ConfigPriceRange
 	for rows.Next() {
 		var item ConfigPriceRange
-		var min, max sql.NullInt64
-		if err := rows.Scan(&item.ID, &item.ServiceValue, &item.BudgetValue, &item.Label, &min, &max); err != nil {
+		var minVal, maxVal sql.NullInt64
+		if err := rows.Scan(&item.ID, &item.ServiceValue, &item.BudgetValue, &item.Label, &minVal, &maxVal); err != nil {
 			return nil, err
 		}
-		if min.Valid {
-			v := int(min.Int64)
+		if minVal.Valid {
+			v := int(minVal.Int64)
 			item.MinCents = &v
 		}
-		if max.Valid {
-			v := int(max.Int64)
+		if maxVal.Valid {
+			v := int(maxVal.Int64)
 			item.MaxCents = &v
 		}
 		out = append(out, item)
