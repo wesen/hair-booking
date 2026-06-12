@@ -25,7 +25,6 @@ import (
 	hairstylist "github.com/go-go-golems/hair-booking/pkg/stylist"
 	"github.com/go-go-golems/hair-booking/pkg/web"
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 )
 
 type ServerOptions struct {

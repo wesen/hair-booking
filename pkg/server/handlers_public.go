@@ -9,7 +9,6 @@ import (
 	hairintake "github.com/go-go-golems/hair-booking/pkg/intake"
 	hairservices "github.com/go-go-golems/hair-booking/pkg/services"
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 )
 
 type servicesResponse struct {
