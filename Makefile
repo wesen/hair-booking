@@ -1,4 +1,4 @@
-.PHONY: gifs local-keycloak-up local-keycloak-down local-keycloak-config local-seed-stylist-workflows run-local-dev run-local-oidc tmux-local-oidc-up tmux-local-oidc-down tmux-local-oidc-logs docker-build glazed-lint-build glazed-lint
+.PHONY: gifs local-keycloak-up local-keycloak-down local-keycloak-config local-seed-stylist-workflows run-local-dev run-local-oidc tmux-local-oidc-up tmux-local-oidc-down tmux-local-oidc-logs docker-build glazed-lint-build glazed-lint logcopter-generate logcopter-check
 
 all: gifs
 
@@ -53,6 +53,12 @@ lintmax: glazed-lint-build
 gosec:
 	GOWORK=off go install github.com/securego/gosec/v2/cmd/gosec@latest
 	gosec -exclude-generated -exclude=G101,G304,G301,G306 -exclude-dir=.history ./...
+
+logcopter-generate:
+	GOWORK=off go generate ./...
+
+logcopter-check:
+	GOWORK=off go tool logcopter-gen -area-prefix go-go-golems.hair-booking -strip-prefix github.com/go-go-golems/hair-booking -check ./pkg/...
 
 govulncheck:
 	GOWORK=off go install golang.org/x/vuln/cmd/govulncheck@latest
