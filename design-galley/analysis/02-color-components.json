@@ -1,0 +1,200 @@
+[
+  {
+    "name": "TopNavBar",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 72
+    },
+    "description": "Header with back control, centered brand wordmark, and step counter '02 / 09'."
+  },
+  {
+    "name": "BackChevronButton",
+    "type": "atom",
+    "bounds": {
+      "x": 16,
+      "y": 22,
+      "width": 24,
+      "height": 24
+    },
+    "description": "Left-facing chevron to return to previous screen."
+  },
+  {
+    "name": "BrandWordmark",
+    "type": "atom",
+    "bounds": {
+      "x": 164,
+      "y": 18,
+      "width": 62,
+      "height": 28
+    },
+    "description": "Centered text logo 'FRINGE'."
+  },
+  {
+    "name": "StepCounter",
+    "type": "atom",
+    "bounds": {
+      "x": 328,
+      "y": 18,
+      "width": 46,
+      "height": 24
+    },
+    "description": "Small right-aligned progress text '02 / 09'."
+  },
+  {
+    "name": "HeaderDivider",
+    "type": "atom",
+    "bounds": {
+      "x": 0,
+      "y": 70,
+      "width": 390,
+      "height": 1
+    },
+    "description": "Thin rule separating header from content."
+  },
+  {
+    "name": "HeaderAccentBar",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 68,
+      "width": 64,
+      "height": 3
+    },
+    "description": "Short maroon accent line under the header."
+  },
+  {
+    "name": "SectionBreadcrumb",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 90,
+      "width": 250,
+      "height": 20
+    },
+    "description": "Uppercase helper text 'CHAPTER II \u00b7 THE TONE'."
+  },
+  {
+    "name": "ScreenTitle",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 116,
+      "width": 300,
+      "height": 58
+    },
+    "description": "Prominent title 'CURRENT LEVEL'."
+  },
+  {
+    "name": "InstructionText",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 178,
+      "width": 342,
+      "height": 48
+    },
+    "description": "Secondary copy explaining the scale: 'Slide to your starting point. 1 is black, 10 is platinum.'"
+  },
+  {
+    "name": "LevelScaleSlider",
+    "type": "organism",
+    "bounds": {
+      "x": 24,
+      "y": 316,
+      "width": 342,
+      "height": 92
+    },
+    "description": "Horizontal level picker with ticks 1\u201310 and a marker indicating the selected level."
+  },
+  {
+    "name": "LevelNumbersRow",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 344,
+      "width": 342,
+      "height": 24
+    },
+    "description": "Evenly spaced numerals from 1 to 10 below the slider track."
+  },
+  {
+    "name": "SelectedLevelMarker",
+    "type": "atom",
+    "bounds": {
+      "x": 192,
+      "y": 330,
+      "width": 44,
+      "height": 6
+    },
+    "description": "Small maroon bar above number 7 indicating the current selection."
+  },
+  {
+    "name": "SelectedLevelInfoCard",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 416,
+      "width": 342,
+      "height": 72
+    },
+    "description": "Beige info card with left accent line describing the chosen level: 'You're at Level 7 \u2014 dark blonde with warm undertones.'"
+  },
+  {
+    "name": "TargetSectionLabel",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 500,
+      "width": 220,
+      "height": 20
+    },
+    "description": "Uppercase label 'TARGET (OPTIONAL)'."
+  },
+  {
+    "name": "TargetOptionsChips",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 528,
+      "width": 342,
+      "height": 144
+    },
+    "description": "Pill chip group offering: 'STAY THE SAME', 'GO 1 SHADE LIGHTER' (selected), 'GO 2 SHADES LIGHTER', 'DARKER', 'DIMENSIONAL'."
+  },
+  {
+    "name": "StickyActionBar",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 744,
+      "width": 390,
+      "height": 100
+    },
+    "description": "Sticky footer with two actions over a colored background."
+  },
+  {
+    "name": "SkipButton",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 756,
+      "width": 120,
+      "height": 56
+    },
+    "description": "Secondary outlined button labeled 'SKIP'."
+  },
+  {
+    "name": "PrimaryCtaButton",
+    "type": "atom",
+    "bounds": {
+      "x": 156,
+      "y": 756,
+      "width": 210,
+      "height": 56
+    },
+    "description": "Filled primary button labeled 'KEEP GOING \u2192'."
+  }
+]

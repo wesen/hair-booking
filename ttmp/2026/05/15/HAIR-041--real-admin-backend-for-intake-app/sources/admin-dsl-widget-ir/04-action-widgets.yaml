@@ -1,0 +1,420 @@
+schema_version: 2
+artifact_type: admin_dsl_widget_definition_ir
+category: action_widgets
+summary: Action widgets extracted from renderActions, table overflow handling, and special-case action buttons.
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md
+widgets:
+- id: admin.action.action-button
+  name: ActionButton
+  status: scaffolded
+  classification:
+    level: atom
+    description: ActionButton participates in the Admin DSL component system as an atom; its level controls scaffold location
+      and Storybook grouping.
+  source_mapping:
+    current_constructs:
+    - renderActions button branch in web/src/admin-dsl/render.tsx plus row/bulk/search special buttons
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current source referenced by the v1 widget IR.
+  intent:
+    purpose: Render one action with consistent disabled, loading, primary, danger, subtle, and placement-aware styling.
+    design_rationale: Unifies visual treatment for action metadata so primary, danger, subtle, loading, disabled, and touch-target
+      rules do not get reimplemented in every table/panel/form branch.
+    adapter_boundary: The widget receives an ActionViewModel and context. It should not know AdminNode or dispatchAdminAction
+      directly.
+    implementation_notes:
+    - Implement ActionButton using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
+    accessibility_notes:
+    - Ensure ActionButton exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
+  contract:
+    props:
+      ActionButtonProps:
+        doc: Props for ActionButton. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
+        fields:
+          action:
+            type: ActionViewModel
+            required: true
+            doc: Action metadata rendered or invoked by ActionButton. The widget receives metadata only; adapters own backend
+              dispatch.
+          context:
+            type: C
+            required: false
+            doc: Typed contextual payload passed back when ActionButton invokes an action.
+          variant:
+            type: '"solid" | "soft" | "subtle" | "danger" | "overflow"'
+            required: false
+            doc: Visual variant for ActionButton; this should select a design-system treatment without changing action semantics.
+          size:
+            type: '"sm" | "md" | "touch"'
+            required: false
+            doc: Size/touch-target variant for ActionButton. Mobile stories should verify minimum usable targets.
+          onAction:
+            type: '(action: ActionViewModel, context: C) => void'
+            required: false
+            doc: Callback invoked by ActionButton with action metadata and typed context.
+        extends: <C = unknown>  CommonWidgetProps
+    action_slots:
+      self:
+        doc: The caller chooses the semantic slot and passes an onAction callback; ActionButton only renders and invokes.
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: SelfContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the self slot on ActionButton.
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by ActionButton. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed ActionButton props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <ActionButton />
+  stories:
+    Primary:
+      doc: Tests primary action treatment for ActionButton.
+      viewport: desktop
+      fixtures:
+        scenario: primary
+      asserts:
+      - ActionButton renders the Primary scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    Secondary:
+      doc: Tests secondary/neutral action treatment for ActionButton.
+      viewport: desktop
+      fixtures:
+        scenario: secondary
+      asserts:
+      - ActionButton renders the Secondary scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    Danger:
+      doc: Tests danger/destructive action treatment for ActionButton.
+      viewport: desktop
+      fixtures:
+        scenario: danger
+      asserts:
+      - ActionButton renders the Danger scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    SubtleLink:
+      doc: Tests subtle link-style presentation for low-emphasis row or footer actions in ActionButton.
+      viewport: desktop
+      fixtures:
+        scenario: subtleLink
+      asserts:
+      - ActionButton renders the SubtleLink scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    Loading:
+      doc: Tests loading state and aria-busy/disabled behavior for ActionButton.
+      viewport: desktop
+      fixtures:
+        scenario: loading
+      asserts:
+      - ActionButton renders the Loading scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    Disabled:
+      doc: Tests disabled state styling and interaction suppression for ActionButton.
+      viewport: desktop
+      fixtures:
+        scenario: disabled
+      asserts:
+      - ActionButton renders the Disabled scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    TouchTargetMobile:
+      doc: Tests mobile touch-target sizing for ActionButton.
+      viewport: desktop
+      fixtures:
+        scenario: touchTargetMobile
+      asserts:
+      - ActionButton renders the TouchTargetMobile scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.tsx
+    types:
+      path: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/atoms/ActionButton/ActionButton.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/atoms/ActionButton/index.ts
+  implementation_todos:
+  - id: replace-placeholder-with-actual-button-element-styles-from-desig
+    severity: required
+    doc: Replace placeholder with actual button element styles from design tokens.
+  - id: map-variant-slot-semantics-without-reintroducing-placement-speci
+    severity: recommended
+    doc: Map variant/slot semantics without reintroducing placement-specific conditionals everywhere.
+- id: admin.action.action-group
+  name: ActionGroup
+  status: scaffolded
+  classification:
+    level: molecule
+    description: ActionGroup participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
+  source_mapping:
+    current_constructs:
+    - renderActions wrapper in web/src/admin-dsl/render.tsx
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current source referenced by the v1 widget IR.
+  intent:
+    purpose: Render a list of actions with consistent spacing, wrapping, and slot-specific visual treatment.
+    design_rationale: Provides the flex/wrap/alignment behavior for a slot of actions. It is the main bridge between semantic
+      action slots and repeated ActionButton atoms.
+    adapter_boundary: Adapters should choose slot names such as pageHeader or bulkToolbar; the widget chooses spacing and
+      presentation defaults for that slot.
+    implementation_notes:
+    - Implement ActionGroup using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
+    accessibility_notes:
+    - Ensure ActionGroup exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
+  contract:
+    props:
+      ActionGroupProps:
+        doc: Props for ActionGroup. These are normalized widget props produced by adapters or callers, not raw Admin DSL JSON.
+        fields:
+          actions:
+            type: ActionViewModel[]
+            required: true
+            doc: Ordered action list for the ActionGroup slot. Presentation should be derived from semantic slot and action
+              intent.
+          context:
+            type: C
+            required: false
+            doc: Typed contextual payload passed back when ActionGroup invokes an action.
+          slot:
+            type: '"pageHeader" | "toolbar" | "panelToolbar" | "panelFooter" | "row" | "rowOverflow" | "bulkToolbar" | "formFooter"
+              | "calendarCell" | "sidebarNav" | "footer" | "detail" | "overflow"'
+            required: true
+            doc: Semantic action slot rendered by ActionGroup; this controls spacing, hierarchy, and default presentation.
+          align:
+            type: '"start" | "end" | "between"'
+            required: false
+            doc: Alignment policy for ActionGroup content within its available row or toolbar.
+          onAction:
+            type: '(action: ActionViewModel, context: C) => void'
+            required: false
+            doc: Callback invoked by ActionGroup with action metadata and typed context.
+        extends: <C = unknown>  CommonWidgetProps
+    action_slots:
+      actions:
+        doc: A group represents one semantic slot, not an arbitrary pile of buttons. The slot name should influence density,
+          wrapping, and hierarchy.
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: ActionsContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the actions slot on ActionGroup.
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by ActionGroup. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed ActionGroup props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <ActionGroup />
+  stories:
+    PageHeaderActions:
+      doc: Tests the PageHeaderActions scenario for ActionGroup with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: pageHeaderActions
+      asserts:
+      - ActionGroup renders the PageHeaderActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    PanelFooterActions:
+      doc: Tests the PanelFooterActions scenario for ActionGroup with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: panelFooterActions
+      asserts:
+      - ActionGroup renders the PanelFooterActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    RowActions:
+      doc: Tests row-scoped actions in ActionGroup.
+      viewport: desktop
+      fixtures:
+        scenario: rowActions
+      asserts:
+      - ActionGroup renders the RowActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    BulkToolbarActions:
+      doc: Tests the BulkToolbarActions scenario for ActionGroup with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: bulkToolbarActions
+      asserts:
+      - ActionGroup renders the BulkToolbarActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    FormFooterActions:
+      doc: Tests the FormFooterActions scenario for ActionGroup with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: formFooterActions
+      asserts:
+      - ActionGroup renders the FormFooterActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    OverflowActions:
+      doc: Tests compact overflow action presentation in ActionGroup.
+      viewport: desktop
+      fixtures:
+        scenario: overflowActions
+      asserts:
+      - ActionGroup renders the OverflowActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    WrappingMobile:
+      doc: Tests narrow-width wrapping behavior for ActionGroup.
+      viewport: desktop
+      fixtures:
+        scenario: wrappingMobile
+      asserts:
+      - ActionGroup renders the WrappingMobile scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/ActionGroup/ActionGroup.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/ActionGroup/ActionGroup.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/ActionGroup/ActionGroup.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/ActionGroup/index.ts
+  implementation_todos:
+  - id: replace-placeholder-with-action-button-composition
+    severity: required
+    doc: Replace placeholder with ActionButton composition.
+  - id: define-exact-wrapping-rules-for-mobile-and-dense-row-contexts
+    severity: recommended
+    doc: Define exact wrapping rules for mobile and dense row contexts.
+- id: admin.action.overflow-action-button
+  name: OverflowActionButton
+  status: scaffolded
+  classification:
+    level: atom
+    description: OverflowActionButton participates in the Admin DSL component system as an atom; its level controls scaffold
+      location and Storybook grouping.
+  source_mapping:
+    current_constructs:
+    - renderTableCell branch for kind === "overflowActions"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: Render the ellipsis affordance for row overflow menus. First implementation can dispatch the first action, matching
+      current behavior. Later implementation can open a real menu.
+    design_rationale: Represents row overflow affordance as a named atom so the current ellipsis behavior can later grow into
+      a real menu without changing ResourceTable cell contracts.
+    adapter_boundary: The table cell passes row context and available actions. The widget should not fetch row actions from
+      raw row JSON.
+    implementation_notes:
+    - Implement OverflowActionButton using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
+    accessibility_notes:
+    - Ensure OverflowActionButton exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to
+      its rendered controls.
+  contract:
+    props:
+      OverflowActionButtonProps:
+        doc: Props for OverflowActionButton. These are normalized widget props produced by adapters or callers, not raw Admin
+          DSL JSON.
+        fields:
+          label:
+            type: string
+            required: false
+            doc: Human-readable label rendered by OverflowActionButton.
+          actions:
+            type: ActionViewModel[]
+            required: true
+            doc: Ordered action list for the OverflowActionButton slot. Presentation should be derived from semantic slot
+              and action intent.
+          context:
+            type: C
+            required: true
+            doc: Typed contextual payload passed back when OverflowActionButton invokes an action.
+          onAction:
+            type: '(action: ActionViewModel, context: C) => void'
+            required: false
+            doc: Callback invoked by OverflowActionButton with action metadata and typed context.
+    action_slots:
+      overflowActions:
+        doc: Overflow actions are row-scoped actions with compact presentation. Initial scaffold can invoke the first action,
+          but final implementation should open a menu.
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: OverflowactionsContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the overflowActions slot on OverflowActionButton.
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by OverflowActionButton. Use this as a scaffold for real stories and
+        implementation tests.
+      demonstrates:
+      - Typed OverflowActionButton props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <OverflowActionButton />
+  stories:
+    SingleOverflowAction:
+      doc: Tests the SingleOverflowAction scenario for OverflowActionButton with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: singleOverflowAction
+      asserts:
+      - OverflowActionButton renders the SingleOverflowAction scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    NoActionsDisabled:
+      doc: Tests OverflowActionButton with no available actions and verifies disabled/noninteractive affordance.
+      viewport: desktop
+      fixtures:
+        scenario: noActionsDisabled
+      asserts:
+      - OverflowActionButton renders the NoActionsDisabled scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    FutureMenuPreview:
+      doc: Documents the intended future multi-action menu shape for OverflowActionButton.
+      viewport: desktop
+      fixtures:
+        scenario: futureMenuPreview
+      asserts:
+      - OverflowActionButton renders the FutureMenuPreview scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/atoms/OverflowActionButton/OverflowActionButton.tsx
+    types:
+      path: web/src/admin-dsl/widgets/atoms/OverflowActionButton/OverflowActionButton.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/atoms/OverflowActionButton/OverflowActionButton.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/atoms/OverflowActionButton/index.ts
+  implementation_todos:
+  - id: implement-menu-behavior-before-supporting-multiple-overflow-acti
+    severity: required
+    doc: Implement menu behavior before supporting multiple overflow actions.

@@ -1,0 +1,233 @@
+[
+  {
+    "name": "TopNavBar",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 88
+    },
+    "description": "Top navigation with back button, centered brand wordmark, and step counter."
+  },
+  {
+    "name": "BackIconButton",
+    "type": "atom",
+    "bounds": {
+      "x": 16,
+      "y": 28,
+      "width": 24,
+      "height": 24
+    },
+    "description": "Left-pointing chevron icon used to go back."
+  },
+  {
+    "name": "BrandWordmark",
+    "type": "atom",
+    "bounds": {
+      "x": 165,
+      "y": 26,
+      "width": 60,
+      "height": 28
+    },
+    "description": "FRINGE brand text centered in the nav."
+  },
+  {
+    "name": "StepCounter",
+    "type": "molecule",
+    "bounds": {
+      "x": 322,
+      "y": 28,
+      "width": 52,
+      "height": 24
+    },
+    "description": "Progress text showing current step and total (e.g., 03 / 09)."
+  },
+  {
+    "name": "SectionUnderline",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 88,
+      "width": 120,
+      "height": 4
+    },
+    "description": "Short maroon rule under the header establishing section context."
+  },
+  {
+    "name": "ChapterKicker",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 104,
+      "width": 200,
+      "height": 18
+    },
+    "description": "Uppercase small label 'Chapter III \u2022 The Length'."
+  },
+  {
+    "name": "PageTitle",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 128,
+      "width": 342,
+      "height": 48
+    },
+    "description": "Large headline 'How long is it now?'."
+  },
+  {
+    "name": "PageSubtitle",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 180,
+      "width": 342,
+      "height": 24
+    },
+    "description": "Helper text prompting the user to pick the matching silhouette."
+  },
+  {
+    "name": "LengthOptionsRow",
+    "type": "organism",
+    "bounds": {
+      "x": 16,
+      "y": 226,
+      "width": 358,
+      "height": 198
+    },
+    "description": "Row of four selectable hair length cards with illustrations and labels."
+  },
+  {
+    "name": "LengthCardPixie",
+    "type": "molecule",
+    "bounds": {
+      "x": 16,
+      "y": 226,
+      "width": 82,
+      "height": 198
+    },
+    "description": "Card with minimal length silhouette and caption 'Pixie'."
+  },
+  {
+    "name": "LengthCardBob",
+    "type": "molecule",
+    "bounds": {
+      "x": 110,
+      "y": 226,
+      "width": 82,
+      "height": 198
+    },
+    "description": "Card with bob-length silhouette and caption 'Bob'."
+  },
+  {
+    "name": "LengthCardShoulder",
+    "type": "molecule",
+    "bounds": {
+      "x": 204,
+      "y": 226,
+      "width": 82,
+      "height": 198
+    },
+    "description": "Card with shoulder-length silhouette and caption 'Shoulder'."
+  },
+  {
+    "name": "LengthCardMidBackSelected",
+    "type": "molecule",
+    "bounds": {
+      "x": 298,
+      "y": 226,
+      "width": 82,
+      "height": 198
+    },
+    "description": "Selected card with mid-back silhouette; highlighted with colored background and border."
+  },
+  {
+    "name": "ExtensionsLabel",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 440,
+      "width": 150,
+      "height": 18
+    },
+    "description": "Section label 'Extensions' in small uppercase."
+  },
+  {
+    "name": "ExtensionsSegmentedControl",
+    "type": "organism",
+    "bounds": {
+      "x": 16,
+      "y": 468,
+      "width": 358,
+      "height": 44
+    },
+    "description": "Three-option segmented selector with outlined container."
+  },
+  {
+    "name": "ExtensionsOptionNoneSelected",
+    "type": "molecule",
+    "bounds": {
+      "x": 16,
+      "y": 468,
+      "width": 116,
+      "height": 44
+    },
+    "description": "Left segment 'None' in filled dark style indicating current selection."
+  },
+  {
+    "name": "ExtensionsOptionTapeIn",
+    "type": "molecule",
+    "bounds": {
+      "x": 132,
+      "y": 468,
+      "width": 116,
+      "height": 44
+    },
+    "description": "Middle segment 'Tape-In' with outline."
+  },
+  {
+    "name": "ExtensionsOptionHandTied",
+    "type": "molecule",
+    "bounds": {
+      "x": 248,
+      "y": 468,
+      "width": 126,
+      "height": 44
+    },
+    "description": "Right segment 'Hand-Tied' with outline."
+  },
+  {
+    "name": "BottomActionBar",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 700,
+      "width": 390,
+      "height": 144
+    },
+    "description": "Sticky footer area with primary and secondary actions on a light background."
+  },
+  {
+    "name": "SecondaryButtonSkip",
+    "type": "molecule",
+    "bounds": {
+      "x": 16,
+      "y": 716,
+      "width": 112,
+      "height": 56
+    },
+    "description": "Outlined button labeled 'Skip'."
+  },
+  {
+    "name": "PrimaryButtonKeepGoing",
+    "type": "molecule",
+    "bounds": {
+      "x": 144,
+      "y": 716,
+      "width": 230,
+      "height": 56
+    },
+    "description": "Filled maroon button labeled 'Keep Going' with right arrow."
+  }
+]

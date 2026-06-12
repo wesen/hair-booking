@@ -1,0 +1,45 @@
+==> bootstrap package test
+ok  	github.com/go-go-golems/css-visual-diff/internal/cssvisualdiff/llm	0.025s
+
+==> llm-review help
+Compare a region and ask an LLM for a multimodal review using Pinocchio profile settings
+
+Usage:
+  css-visual-diff llm-review [flags]
+
+Flags:
+      --attrs string                 Comma-delimited attributes to capture (default: id,class) (default "id,class")
+      --config-file string           Optional Pinocchio config file used for profile/bootstrap resolution
+  -h, --help                         help for llm-review
+      --out string                   Output directory (default: ./css-visual-diff-compare-YYYYMMDD_HHMMSS)
+      --profile string               Pinocchio/Geppetto engine profile to resolve
+      --profile-registries strings   Comma-separated or repeated Pinocchio/Geppetto profile registry sources
+      --props string                 Comma-delimited CSS properties to compare (default: a curated list)
+      --question string              Question to ask about the compared regions (default "What are the main visual differences and their likely CSS causes?")
+      --selector1 string             CSS selector for URL1 element
+      --selector2 string             CSS selector for URL2 element (defaults to selector1)
+      --threshold int                Pixel diff threshold (0-255) (default 30)
+      --url1 string                  First URL to compare
+      --url2 string                  Second URL to compare
+      --viewport-h int               Viewport height (default 720)
+      --viewport-w int               Viewport width (default 1280)
+      --wait-ms1 int                 Wait after navigation for URL1 (ms)
+      --wait-ms2 int                 Wait after navigation for URL2 (ms)
+      --write-json                   Write compare.json (default true)
+      --write-markdown               Write compare.md (default true)
+      --write-pngs                   Write screenshots and diff images (default true)
+      --write-review-json            Write llm-review.json (default true)
+      --write-review-markdown        Write llm-review.md (default true)
+
+Global Flags:
+      --log-file string               Log file (default: stderr)
+      --log-format string             Log format (json, text) (default "text")
+      --log-level string              Log level (trace, debug, info, warn, error, fatal) (default "error")
+      --log-to-stdout                 Log to stdout even when log-file is set
+      --logstash-app-name string      Application name for Logstash logs (default "css-visual-diff")
+      --logstash-enabled              Enable logging to Logstash
+      --logstash-environment string   Environment name for Logstash logs (development, staging, production) (default "development")
+      --logstash-host string          Logstash host (default "logstash")
+      --logstash-port int             Logstash port (default 5044)
+      --logstash-protocol string      Logstash protocol (tcp, udp) (default "tcp")
+      --with-caller                   Log caller information

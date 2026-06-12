@@ -1,0 +1,392 @@
+schema_version: 2
+artifact_type: admin_dsl_widget_definition_ir
+category: shell_widgets
+summary: Shell widget definitions extracted from AdminPageRenderer and WorkbenchShell.
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md
+
+widgets:
+  - id: admin.shell.workbench
+    name: WorkbenchShell
+    status: scaffolded
+    classification:
+      level: organism
+      role: shell
+      description: Full page-frame organism for information-dense admin workbench screens.
+
+    source_mapping:
+      current_constructs:
+        - shell.kind=admin
+        - shell.props.variant=workbench
+      current_files:
+        - path: web/src/admin-dsl/render.tsx
+          symbol: WorkbenchShell
+          notes: Current inline workbench shell implementation with desktop sidebar, mobile topbar, user footer, and content region.
+        - path: web/src/admin-dsl/schema.ts
+          symbol: AdminPage.shell
+          notes: Current transport shape whose shell props must be adapted before reaching this widget.
+
+    intent:
+      purpose: >-
+        Render the information-dense admin workbench frame: persistent desktop sidebar, sticky mobile topbar, global admin
+        background, content max width, page body region, and optional user identity footer.
+      design_rationale: >-
+        The workbench shell should make frame-level admin UI explicit instead of hiding it inside a renderer switch. It is the
+        boundary between page chrome and page content: navigation, user identity, content width, and responsive shell behavior
+        live here; node interpretation lives elsewhere.
+      adapter_boundary: >-
+        The Admin DSL adapter translates raw `page.shell.props.sidebar` into `SidebarNavProps`, binds each sidebar item action,
+        and passes already-rendered page body children. WorkbenchShell must not parse raw `AdminPage` objects or inspect
+        `AdminNode` values.
+      implementation_notes:
+        - Desktop layout should show a persistent left sidebar and content region with dense workbench spacing.
+        - Mobile layout should hide the desktop sidebar and expose a sticky topbar/menu affordance.
+        - The user footer is optional and must collapse cleanly when absent.
+        - Navigation actions may be frontend-local or backend-bound, but the widget only invokes `onSidebarAction`.
+      accessibility_notes:
+        - Sidebar nav must use a named `nav` region.
+        - Active item should expose `aria-current="page"`.
+        - Mobile menu affordance needs keyboard and screen-reader behavior before production use.
+
+    contract:
+      props:
+        WorkbenchShellProps:
+          doc: >-
+            Props for the workbench shell organism. The shell receives already-normalized navigation, user identity, and page
+            body content; it should not receive raw Admin DSL JSON or parse Admin DSL node props directly.
+          fields:
+            pageId:
+              type: string
+              required: true
+              doc: Stable page identifier used for data attributes, traceability, screenshots, and shell-level action context.
+            title:
+              type: string
+              required: true
+              doc: Human-readable page or product title used by shell chrome, mobile topbar labels, and accessibility context.
+            sidebar:
+              type: SidebarNavProps
+              required: true
+              doc: >-
+                Normalized sidebar navigation view model. The adapter should construct this from shell props and bind each nav
+                item action before it reaches the widget.
+            user:
+              type: WorkbenchUser
+              required: false
+              doc: >-
+                Optional signed-in admin identity shown in the desktop sidebar footer. Absence of this prop must not break layout
+                or mobile chrome.
+            children:
+              type: React.ReactNode
+              required: true
+              doc: Already-rendered page body content. WorkbenchShell owns page frame layout, not child node interpretation.
+        WorkbenchUser:
+          doc: Minimal display identity for the admin sidebar footer. This is presentation data, not an auth model.
+          fields:
+            name:
+              type: string
+              required: true
+              doc: Display name for the current admin user.
+            role:
+              type: string
+              required: false
+              doc: Optional role subtitle such as Administrator or Stylist Manager.
+            initials:
+              type: string
+              required: false
+              doc: Optional compact avatar text. If absent, the implementation should derive or fall back gracefully.
+      action_slots:
+        sidebarNav:
+          doc: >-
+            Navigation action slot for sidebar items. Actions are rendered in the frontend but may dispatch to the backend flow.
+            The context must include both the clicked item and the active item id so handlers can update shell/page state
+            deterministically.
+          callback: onSidebarAction
+          action_type: ActionViewModel
+          cardinality: many
+          context_type: WorkbenchSidebarNavContext
+          context:
+            item:
+              type: SidebarNavItem
+              required: true
+              doc: The clicked navigation item, including its id, label, icon, and normalized action metadata.
+            activeItemId:
+              type: string
+              required: false
+              doc: The sidebar item id that was active before the click.
+          lowering:
+            adapter: dispatchAdminAction
+            note: >-
+              The adapter converts this typed callback into the current Admin DSL event dispatch shape. The widget should not
+              call `dispatchAdminAction` directly.
+
+    examples:
+      BasicWorkbench:
+        doc: >-
+          Demonstrates the intended adapter boundary. The caller passes normalized sidebar items, optional user identity, a
+          sidebar action callback, and already-rendered child widgets. The example should not be copied into production with raw
+          Admin DSL JSON parsing inside WorkbenchShell.
+        demonstrates:
+          - Normalized sidebar props.
+          - Optional user footer.
+          - Child content slot populated by rendered widgets.
+          - Sidebar action callback boundary.
+        code: |-
+          <WorkbenchShell
+            pageId="admin-intake"
+            title="Fringe Admin"
+            sidebar={{ activeItemId: "requests", items }}
+            user={{ name: "Admin User", role: "Administrator", initials: "AD" }}
+            onSidebarAction={handleSidebarAction}
+          >
+            <PageHeader title="Request Triage" />
+            <DashboardGrid>{/* panels */}</DashboardGrid>
+          </WorkbenchShell>
+
+    stories:
+      DefaultDesktop:
+        doc: >-
+          Tests the normal desktop workbench frame with persistent sidebar, active navigation item, user footer, max-width content
+          region, and dense page body spacing.
+        viewport: desktop
+        fixtures:
+          sidebar: normal
+          user: present
+          active_item: requests
+        asserts:
+          - Sidebar is visible.
+          - Active navigation item is highlighted and exposes aria-current.
+          - User footer is visible.
+          - Content region is offset from the sidebar.
+      MobileTopbar:
+        doc: >-
+          Tests the mobile shell transformation where sidebar navigation is hidden and the sticky topbar becomes the primary shell
+          chrome. This story should catch viewport-specific regressions.
+        viewport: mobile
+        fixtures:
+          sidebar: normal
+          user: present
+        asserts:
+          - Desktop sidebar is hidden.
+          - Sticky topbar is visible.
+          - Topbar label reflects active navigation or page title.
+      LongNavigation:
+        doc: >-
+          Tests sidebar overflow and spacing when many navigation items are present. It should prove that the footer user block and
+          active item remain usable with dense nav lists.
+        viewport: desktop
+        fixtures:
+          sidebar: many_items
+          user: present
+        asserts:
+          - Navigation items remain readable.
+          - Active item remains visible and visually distinct.
+          - User footer does not overlap navigation.
+      NoUser:
+        doc: >-
+          Tests that the shell works without optional user identity. The sidebar footer should disappear or collapse cleanly without
+          leaving broken spacing.
+        viewport: desktop
+        fixtures:
+          sidebar: normal
+          user: absent
+        asserts:
+          - No user footer is rendered.
+          - Sidebar grid still fills available height cleanly.
+      ActionDispatch:
+        doc: >-
+          Tests the sidebar action slot contract. Clicking a nav item should call `onSidebarAction` with the clicked
+          `SidebarNavItem` and active item id so adapters can lower it into Admin DSL dispatch.
+        viewport: desktop
+        fixtures:
+          sidebar: normal_with_actions
+          user: present
+        interactions:
+          - click nav item Services
+        asserts:
+          - onSidebarAction receives action metadata.
+          - callback context includes clicked item and previous activeItemId.
+
+    outputs:
+      component:
+        path: web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.tsx
+      types:
+        path: web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.types.ts
+      stories:
+        path: web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.stories.tsx
+      tests:
+        path: web/src/admin-dsl/widgets/organisms/WorkbenchShell/WorkbenchShell.test.tsx
+      barrel:
+        path: web/src/admin-dsl/widgets/organisms/WorkbenchShell/index.ts
+
+    implementation_todos:
+      - id: replace-placeholder
+        severity: required
+        doc: Replace generated scaffold placeholder with final visual implementation.
+      - id: adapter-boundary
+        severity: required
+        doc: Keep raw Admin DSL JSON parsing in adapters, not in this widget.
+      - id: mobile-navigation-a11y
+        severity: required
+        doc: Add keyboard and screen-reader behavior for mobile navigation before production use.
+
+  - id: admin.shell.default
+    name: DefaultAdminShell
+    status: scaffolded
+    classification:
+      level: organism
+      role: shell
+      description: Compatibility/default page-frame organism for non-workbench Admin DSL pages.
+
+    source_mapping:
+      current_constructs:
+        - AdminPageRenderer fallback shell
+        - shell.kind=admin|dashboard|resource|calendar|settings|bare
+      current_files:
+        - path: web/src/admin-dsl/render.tsx
+          symbol: AdminPageRenderer fallback branch
+          notes: Current non-workbench page chrome and optional side-column implementation.
+        - path: web/src/admin-dsl/schema.ts
+          symbol: AdminShellKind
+          notes: Current shell kind vocabulary consumed by this fallback shell.
+
+    intent:
+      purpose: >-
+        Render non-workbench Admin DSL pages with optional side surfaces. This keeps the legacy/default page shell separate from
+        workbench chrome.
+      design_rationale: >-
+        The default shell provides a compatibility path while the new WorkbenchShell becomes the primary dense admin frame. It
+        prevents fallback page chrome, side-surface layout, and calendar/resource variants from remaining hidden inside
+        AdminPageRenderer.
+      adapter_boundary: >-
+        The adapter receives `AdminPage`, separates main region from side surfaces, renders those regions, and passes React nodes
+        to DefaultAdminShell. The widget receives already-rendered `main` and `side` content and should not traverse Admin DSL
+        nodes.
+      implementation_notes:
+        - Main-only pages should remain simple and readable.
+        - Optional side content should align with the main region on desktop and stack predictably on mobile.
+        - Shell kind should influence coarse page chrome only, not detailed child behavior.
+      accessibility_notes:
+        - Main content should be exposed as the primary page region.
+        - Side content should be labeled when it represents drawers, details, or modal previews.
+
+    contract:
+      props:
+        DefaultAdminShellProps:
+          doc: >-
+            Props for the fallback Admin DSL shell. This widget owns generic page chrome and optional side-surface layout for
+            non-workbench shells while keeping page/node rendering outside the shell itself.
+          fields:
+            pageId:
+              type: string
+              required: true
+              doc: Stable page identifier used for data attributes, screenshot naming, and shell-level trace context.
+            shellKind:
+              type: '"admin" | "dashboard" | "resource" | "calendar" | "settings" | "bare"'
+              required: true
+              doc: The normalized Admin DSL shell kind. It should choose coarse page-level visual treatment only.
+            eyebrow:
+              type: string
+              required: false
+              doc: Optional small label above the title, commonly used for legacy Admin DSL pages or section context.
+            title:
+              type: string
+              required: true
+              doc: Main page title rendered by the shell chrome.
+            description:
+              type: string
+              required: false
+              doc: Optional page description under the title. Long descriptions should wrap without breaking side layout.
+            main:
+              type: React.ReactNode
+              required: true
+              doc: Already-rendered primary content region. The shell should not inspect or interpret the nodes that produced it.
+            side:
+              type: React.ReactNode
+              required: false
+              doc: >-
+                Optional already-rendered side content, typically drawers, modals, or detail panels shown as a side column in the
+                non-workbench renderer.
+      action_slots: {}
+
+    examples:
+      WithSidePreview:
+        doc: >-
+          Demonstrates how the fallback shell receives rendered main and side regions after adapter/layout separation. Use this
+          for legacy or non-workbench pages while WorkbenchShell becomes the primary dense admin shell.
+        demonstrates:
+          - Rendered main region input.
+          - Rendered side region input.
+          - Shell kind as coarse visual mode.
+        code: |-
+          <DefaultAdminShell
+            pageId="admin-services"
+            shellKind="admin"
+            eyebrow="Admin DSL"
+            title="Services"
+            description="Manage services, pricing, and availability."
+            main={<ServiceOperationsContent />}
+            side={<DraftDrawerPreview />}
+          />
+
+    stories:
+      MainOnly:
+        doc: >-
+          Tests the simplest fallback page shape with header chrome and one primary content column. It should remain useful for
+          legacy admin pages and smoke fixtures.
+        viewport: desktop
+        fixtures:
+          side: absent
+        asserts:
+          - Header title is visible.
+          - Main region renders without side-column spacing artifacts.
+      WithSideSurfaces:
+        doc: >-
+          Tests the optional side region used for drawers, modals, or detail panels. It should prove that side content aligns with
+          the main region without requiring WorkbenchShell.
+        viewport: desktop
+        fixtures:
+          side: present
+        asserts:
+          - Main and side regions form a two-column layout.
+          - Side region remains aligned with top of main content.
+      CalendarShell:
+        doc: >-
+          Tests shell-level visual treatment for calendar pages, especially background and spacing differences inherited from the
+          current default renderer.
+        viewport: desktop
+        fixtures:
+          shellKind: calendar
+        asserts:
+          - Calendar shell background treatment is applied.
+          - Main content remains readable on calendar background.
+      MobileSideColumn:
+        doc: >-
+          Tests responsive behavior when a side region exists. The side region should stack predictably and remain readable on
+          narrow screens.
+        viewport: mobile
+        fixtures:
+          side: present
+        asserts:
+          - Side region stacks after main content.
+          - No horizontal overflow is introduced.
+
+    outputs:
+      component:
+        path: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.tsx
+      types:
+        path: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.types.ts
+      stories:
+        path: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/DefaultAdminShell.stories.tsx
+      barrel:
+        path: web/src/admin-dsl/widgets/organisms/DefaultAdminShell/index.ts
+
+    implementation_todos:
+      - id: replace-placeholder
+        severity: required
+        doc: Replace generated scaffold placeholder with final implementation.
+      - id: adapter-boundary
+        severity: required
+        doc: Keep raw Admin DSL JSON parsing in adapters, not in this widget.
+      - id: compatibility-decision
+        severity: recommended
+        doc: Decide whether this shell remains long-term or becomes a compatibility wrapper after WorkbenchShell migration.

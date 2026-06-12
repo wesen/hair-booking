@@ -2,13 +2,15 @@ FROM node:22-bookworm AS web-builder
 
 WORKDIR /src/web
 
-COPY web/package.json web/package-lock.json ./
-RUN npm ci
+RUN corepack enable && corepack prepare pnpm@10.15.1 --activate
+
+COPY web/package.json web/pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY web/ ./
-RUN npm run build
+RUN pnpm build
 
-FROM golang:1.25.8-bookworm AS builder
+FROM golang:1.26.4-bookworm AS builder
 
 WORKDIR /src
 

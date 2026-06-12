@@ -1,0 +1,79 @@
+[
+  {
+    "name": "AppHeader",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 88
+    },
+    "description": "Top bar with back arrow on left, centered brand title 'FRINGE', and step counter '05 / 09' on the right."
+  },
+  {
+    "name": "StepProgressBar",
+    "type": "molecule",
+    "bounds": {
+      "x": 16,
+      "y": 76,
+      "width": 358,
+      "height": 3
+    },
+    "description": "Thin progress bar indicating form step completion under the header."
+  },
+  {
+    "name": "SectionIntro",
+    "type": "organism",
+    "bounds": {
+      "x": 16,
+      "y": 96,
+      "width": 358,
+      "height": 72
+    },
+    "description": "Intro block with small chapter label 'CHAPTER V \u00b7 THE RECORD' and large page title 'HAIR HISTORY'."
+  },
+  {
+    "name": "LastServiceCard",
+    "type": "organism",
+    "bounds": {
+      "x": 16,
+      "y": 176,
+      "width": 358,
+      "height": 116
+    },
+    "description": "Card for '01 \u2014 Last Service' with vertical accent bar, service name 'Partial Highlights', relative date '3 months ago', and an 'edit' link."
+  },
+  {
+    "name": "CurrentConditionSection",
+    "type": "organism",
+    "bounds": {
+      "x": 16,
+      "y": 304,
+      "width": 358,
+      "height": 200
+    },
+    "description": "Section '02 \u2014 Current Condition' with pill chips to select hair attributes (e.g., Healthy, Dry, Damaged, Brittle, Oily, Frizzy, Fine, Thick, Color-treated)."
+  },
+  {
+    "name": "RateConditionSection",
+    "type": "organism",
+    "bounds": {
+      "x": 16,
+      "y": 516,
+      "width": 358,
+      "height": 200
+    },
+    "description": "Section '03 \u2014 Rate Condition' listing items (Breakage, Split Ends, Dryness, Frizz) each with segmented rating bars and a numeric score at the right."
+  },
+  {
+    "name": "CTABar",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 724,
+      "width": 390,
+      "height": 120
+    },
+    "description": "Bottom action area with two buttons: secondary outlined 'Skip' on the left and primary filled 'Keep Going \u2192' on the right."
+  }
+]

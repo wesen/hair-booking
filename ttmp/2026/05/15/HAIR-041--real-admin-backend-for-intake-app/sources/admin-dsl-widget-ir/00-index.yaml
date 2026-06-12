@@ -1,0 +1,76 @@
+schema_version: 2
+artifact_type: admin_dsl_widget_ir_index
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+category: index
+summary: Index for YAML artifacts converted from the Admin DSL React Widget IR markdown catalog.
+files:
+- path: 00-index.yaml
+  category: index
+  artifact_type: admin_dsl_widget_support_ir
+  schema_version: 2
+- path: 01-pass-model.yaml
+  category: artifact_pass_model
+  artifact_type: admin_dsl_widget_support_ir
+  schema_version: 2
+- path: 02-shared-types.yaml
+  category: shared_widget_types
+  artifact_type: admin_dsl_widget_support_ir
+  schema_version: 2
+- path: 03-shell-widgets.yaml
+  category: shell_widgets
+  artifact_type: admin_dsl_widget_definition_ir
+  schema_version: 2
+- path: 04-action-widgets.yaml
+  category: action_widgets
+  artifact_type: admin_dsl_widget_definition_ir
+  schema_version: 2
+- path: 05-layout-widgets.yaml
+  category: layout_widgets
+  artifact_type: admin_dsl_widget_definition_ir
+  schema_version: 2
+- path: 06-resource-widgets.yaml
+  category: resource_widgets
+  artifact_type: admin_dsl_widget_definition_ir
+  schema_version: 2
+- path: 07-data-display-widgets.yaml
+  category: data_display_widgets
+  artifact_type: admin_dsl_widget_definition_ir
+  schema_version: 2
+- path: 08-media-widgets.yaml
+  category: media_widgets
+  artifact_type: admin_dsl_widget_definition_ir
+  schema_version: 2
+- path: 09-calendar-widgets.yaml
+  category: calendar_widgets
+  artifact_type: admin_dsl_widget_definition_ir
+  schema_version: 2
+- path: 10-form-widgets.yaml
+  category: form_widgets
+  artifact_type: admin_dsl_widget_definition_ir
+  schema_version: 2
+- path: 10a-form-field-widgets.yaml
+  category: form_field_widgets
+  artifact_type: admin_dsl_widget_definition_ir
+  schema_version: 2
+- path: 11-surface-widgets.yaml
+  category: surface_widgets
+  artifact_type: admin_dsl_widget_definition_ir
+  schema_version: 2
+- path: 13-storybook-scenario-matrix.yaml
+  category: storybook_scenario_matrix
+  artifact_type: admin_dsl_widget_support_ir
+  schema_version: 2
+- path: 14-unsupported-constructs.yaml
+  category: unsupported_or_ambiguous_constructs
+  artifact_type: admin_dsl_widget_support_ir
+  schema_version: 2
+source_inputs:
+- web/src/admin-dsl/render.tsx
+- web/src/admin-dsl/calendar.tsx
+- web/src/admin-dsl/schema.ts
+- web/src/admin-dsl/builder.ts
+- web/src/admin-dsl/actions.ts
+- web/src/admin-dsl/renderUtils.ts
+- web/src/admin-dsl/AdminDslWorkbench.stories.tsx
+- ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/meta-dsl-comments.md
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md

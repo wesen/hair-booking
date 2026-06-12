@@ -13,7 +13,6 @@ import (
 	hairstorage "github.com/go-go-golems/hair-booking/pkg/storage"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"github.com/rs/zerolog/log"
 )
 
 var (

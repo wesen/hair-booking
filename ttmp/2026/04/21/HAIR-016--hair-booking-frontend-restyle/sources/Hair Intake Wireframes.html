@@ -1,0 +1,348 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Hair Intake — Wireframes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Instrument+Serif&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Patrick+Hand&display=swap" rel="stylesheet"/>
+<style>
+  html, body {
+    margin: 0; padding: 0; background: #e8e3d6;
+    font-family: 'Inter', system-ui, sans-serif;
+    color: #1a1a1a;
+    min-height: 100vh;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background-image:
+      radial-gradient(circle at 20% 10%, rgba(255,255,255,0.3), transparent 40%),
+      radial-gradient(circle at 80% 90%, rgba(196,99,74,0.06), transparent 50%);
+  }
+  .app { min-height: 100vh; display: flex; flex-direction: column; }
+
+  .topbar {
+    padding: 20px 28px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px dashed rgba(0,0,0,0.12);
+    background: rgba(251,248,242,0.6);
+    backdrop-filter: blur(6px);
+    position: sticky; top: 0; z-index: 10;
+  }
+  .brand { font-family: 'Instrument Serif', serif; font-size: 22px; }
+  .brand small {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 2px;
+    color: #8a8680; text-transform: uppercase;
+    display: block; margin-bottom: 2px;
+  }
+  .tabs { display: flex; gap: 4px; }
+  .tab {
+    padding: 8px 14px; border-radius: 999px; cursor: pointer;
+    font-size: 13px; font-weight: 500;
+    color: #1a1a1a;
+    border: 1.5px solid transparent;
+    white-space: nowrap;
+  }
+  .tab:hover { background: rgba(0,0,0,0.04); }
+  .tab.active { background: #1a1a1a; color: #fbf8f2; }
+
+  .stage {
+    flex: 1;
+    padding: 28px;
+    display: flex; gap: 28px;
+    justify-content: center; align-items: flex-start;
+  }
+
+  .phone-wrap { display: flex; flex-direction: column; gap: 10px; align-items: center; }
+  .phone-label {
+    font-family: 'Caveat', cursive; font-size: 22px;
+    color: #1a1a1a;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .phone-label::before, .phone-label::after {
+    content: ''; display: block; width: 20px; height: 1px; background: currentColor;
+  }
+  .phone {
+    width: 320px; height: 660px;
+    border-radius: 38px;
+    background: #fbf8f2;
+    border: 2px solid #1a1a1a;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 8px 10px 0 rgba(26,26,26,0.08), 0 30px 60px rgba(0,0,0,0.12);
+  }
+  .phone::before {
+    content: ''; position: absolute;
+    top: 10px; left: 50%; transform: translateX(-50%);
+    width: 90px; height: 18px; border-radius: 999px;
+    background: #1a1a1a; z-index: 100;
+  }
+  .screen {
+    width: 100%; height: 100%;
+    overflow-y: auto;
+    padding-top: 38px;
+    font-size: 14px;
+    scrollbar-width: thin;
+  }
+  .screen::-webkit-scrollbar { width: 4px; }
+  .screen::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.15); border-radius: 2px; }
+
+  .variant-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 1.5px;
+    color: #8a8680; text-transform: uppercase;
+  }
+
+  .tweaks-panel {
+    position: fixed; right: 20px; bottom: 20px;
+    width: 280px;
+    background: #fbf8f2;
+    border: 2px solid #1a1a1a;
+    border-radius: 14px;
+    padding: 16px;
+    box-shadow: 6px 8px 0 rgba(26,26,26,0.1);
+    z-index: 20;
+    display: none;
+  }
+  .tweaks-panel.open { display: block; }
+  .tweaks-panel h3 {
+    margin: 0 0 12px; font-family: 'Instrument Serif', serif;
+    font-size: 18px; font-weight: 400;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .tweaks-panel .close {
+    cursor: pointer; font-family: 'JetBrains Mono', monospace;
+    font-size: 14px; color: #8a8680;
+  }
+  .tweak-row { margin-bottom: 14px; }
+  .tweak-row label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    color: #8a8680; display: block; margin-bottom: 6px;
+  }
+  .tweak-opts { display: flex; gap: 4px; }
+  .tweak-opt {
+    flex: 1; padding: 6px 8px; border-radius: 6px;
+    border: 1.5px solid #1a1a1a;
+    text-align: center; cursor: pointer;
+    font-size: 12px; font-weight: 500;
+    background: transparent; color: #1a1a1a;
+  }
+  .tweak-opt.active { background: #1a1a1a; color: #fbf8f2; }
+
+  .footer-meta {
+    padding: 20px 28px; text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: #8a8680;
+    border-top: 1px dashed rgba(0,0,0,0.08);
+  }
+
+  .tabs-wrap {
+    padding: 14px 28px;
+    display: flex; gap: 12px; align-items: center;
+    overflow-x: auto;
+    border-bottom: 1px dashed rgba(0,0,0,0.08);
+    background: rgba(251,248,242,0.4);
+  }
+
+  .mode-hint {
+    font-family: 'Caveat', cursive; font-size: 18px;
+    color: #c4634a;
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <div class="topbar">
+    <div class="brand">
+      <small>Hair intake · wireframes v1</small>
+      Luxe Hair Studio
+    </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <span class="mode-hint">↓ use tabs to browse →</span>
+      <div id="tweaks-toggle" style="display:none; padding:8px 14px; border:1.5px solid #1a1a1a; border-radius:999px; cursor:pointer; font-size:13px; font-weight:500;">
+        Tweaks
+      </div>
+    </div>
+  </div>
+
+  <div class="tabs-wrap">
+    <div class="tabs" id="screen-tabs"></div>
+  </div>
+
+  <div class="stage" id="stage"></div>
+
+  <div class="footer-meta">
+    low-fi wireframes · 3 input-pattern variations per screen · mobile-first
+  </div>
+</div>
+
+<div class="tweaks-panel" id="tweaks-panel">
+  <h3>Tweaks <span class="close" id="tweaks-close">×</span></h3>
+  <div class="tweak-row">
+    <label>Input pattern variation</label>
+    <div class="tweak-opts" id="variant-opts">
+      <div class="tweak-opt" data-v="0">A</div>
+      <div class="tweak-opt" data-v="1">B</div>
+      <div class="tweak-opt" data-v="2">C</div>
+    </div>
+  </div>
+  <div class="tweak-row">
+    <label>View</label>
+    <div class="tweak-opts" id="view-opts">
+      <div class="tweak-opt" data-view="single">Single</div>
+      <div class="tweak-opt" data-view="compare">Compare all 3</div>
+    </div>
+  </div>
+  <div style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: #8a8680; line-height: 1.5; margin-top: 10px;">
+    Compare mode shows all 3 variations side-by-side for the current screen.
+  </div>
+</div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script type="text/babel" src="screens.jsx"></script>
+
+<script type="text/babel">
+  const SCREENS = [
+    { id: 'service',    name: '01 Service',     comp: window.Screen_Service },
+    { id: 'color',      name: '02 Color',       comp: window.Screen_Color },
+    { id: 'extensions', name: '03 Extensions',  comp: window.Screen_Extensions },
+    { id: 'photos',     name: '04 Photos',      comp: window.Screen_Photos },
+    { id: 'history',    name: '05 History',     comp: window.Screen_History },
+    { id: 'budget',     name: '06 Budget',      comp: window.Screen_Budget },
+    { id: 'estimate',   name: '07 Estimate',    comp: window.Screen_Estimate },
+    { id: 'booking',    name: '08 Booking',     comp: window.Screen_Booking },
+    { id: 'confirm',    name: '09 Confirm',     comp: window.Screen_Confirm },
+  ];
+
+  const LS_KEY = 'hair-wireframe-state-v1';
+  const loadState = () => {
+    try { return JSON.parse(localStorage.getItem(LS_KEY)) || {}; } catch { return {}; }
+  };
+  const saveState = (s) => localStorage.setItem(LS_KEY, JSON.stringify(s));
+
+  function App() {
+    const [state, setState] = React.useState(() => ({
+      screen: 'service',
+      variant: 0,
+      view: 'compare',
+      ...loadState(),
+    }));
+    React.useEffect(() => { saveState(state); }, [state]);
+
+    const set = (patch) => setState(s => ({ ...s, ...patch }));
+
+    const Current = SCREENS.find(s => s.id === state.screen) || SCREENS[0];
+    const Comp = Current.comp;
+
+    const phone = (v, labelSuffix) => (
+      <div className="phone-wrap" key={v}>
+        <div className="phone-label">Variation {'ABC'[v]}{labelSuffix ? ` · ${labelSuffix}` : ''}</div>
+        <div className="phone" data-screen-label={`${Current.name} · var ${'ABC'[v]}`}>
+          <div className="screen">
+            <Comp variant={v} />
+          </div>
+        </div>
+      </div>
+    );
+
+    return (
+      <div style={{ display: 'flex', gap: 32, flexWrap: 'wrap', justifyContent: 'center' }}>
+        {state.view === 'compare'
+          ? [0, 1, 2].map(v => phone(v))
+          : phone(state.variant)
+        }
+      </div>
+    );
+  }
+
+  // ── Tab rendering + wiring ──
+  const tabsEl = document.getElementById('screen-tabs');
+  const stageEl = document.getElementById('stage');
+  const tweakToggle = document.getElementById('tweaks-toggle');
+  const tweakPanel = document.getElementById('tweaks-panel');
+  const tweakClose = document.getElementById('tweaks-close');
+  const variantOpts = document.getElementById('variant-opts');
+  const viewOpts = document.getElementById('view-opts');
+
+  const root = ReactDOM.createRoot(stageEl);
+
+  let current = {
+    screen: 'service', variant: 0, view: 'compare',
+    ...(JSON.parse(localStorage.getItem(LS_KEY) || '{}')),
+  };
+
+  function renderTabs() {
+    tabsEl.innerHTML = '';
+    SCREENS.forEach(s => {
+      const el = document.createElement('div');
+      el.className = 'tab' + (s.id === current.screen ? ' active' : '');
+      el.textContent = s.name;
+      el.onclick = () => { current.screen = s.id; persist(); renderTabs(); renderStage(); };
+      tabsEl.appendChild(el);
+    });
+  }
+  function renderTweaks() {
+    variantOpts.querySelectorAll('.tweak-opt').forEach(el => {
+      el.classList.toggle('active', parseInt(el.dataset.v) === current.variant);
+      el.onclick = () => { current.variant = parseInt(el.dataset.v); persist(); renderTweaks(); renderStage(); };
+    });
+    viewOpts.querySelectorAll('.tweak-opt').forEach(el => {
+      el.classList.toggle('active', el.dataset.view === current.view);
+      el.onclick = () => { current.view = el.dataset.view; persist(); renderTweaks(); renderStage(); };
+    });
+  }
+  function persist() { localStorage.setItem(LS_KEY, JSON.stringify(current)); }
+
+  function renderStage() {
+    const Current = SCREENS.find(s => s.id === current.screen) || SCREENS[0];
+    const Comp = Current.comp;
+    const content = current.view === 'compare'
+      ? [0, 1, 2].map(v => (
+          <div key={v} className="phone-wrap">
+            <div className="phone-label">Variation {'ABC'[v]}</div>
+            <div className="phone" data-screen-label={`${Current.name} · var ${'ABC'[v]}`}>
+              <div className="screen"><Comp variant={v} /></div>
+            </div>
+          </div>
+        ))
+      : [(
+          <div key="single" className="phone-wrap">
+            <div className="phone-label">Variation {'ABC'[current.variant]}</div>
+            <div className="phone" data-screen-label={`${Current.name} · var ${'ABC'[current.variant]}`}>
+              <div className="screen"><Comp variant={current.variant} /></div>
+            </div>
+          </div>
+        )];
+    root.render(<div style={{ display: 'flex', gap: 28, flexWrap: 'wrap', justifyContent: 'center' }}>{content}</div>);
+  }
+
+  // ── Tweaks mode listener ──
+  window.addEventListener('message', (e) => {
+    if (!e.data || typeof e.data !== 'object') return;
+    if (e.data.type === '__activate_edit_mode') {
+      tweakToggle.style.display = 'block';
+      tweakPanel.classList.add('open');
+    }
+    if (e.data.type === '__deactivate_edit_mode') {
+      tweakToggle.style.display = 'none';
+      tweakPanel.classList.remove('open');
+    }
+  });
+  window.parent.postMessage({ type: '__edit_mode_available' }, '*');
+
+  tweakToggle.onclick = () => tweakPanel.classList.toggle('open');
+  tweakClose.onclick = () => tweakPanel.classList.remove('open');
+
+  renderTabs();
+  renderTweaks();
+  renderStage();
+</script>
+
+</body>
+</html>

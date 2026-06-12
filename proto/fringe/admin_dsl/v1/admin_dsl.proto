@@ -1,0 +1,112 @@
+syntax = "proto3";
+
+package fringe.admin_dsl.v1;
+
+import "google/protobuf/struct.proto";
+
+option go_package = "github.com/go-go-golems/hair-booking/gen/proto/fringe/admin_dsl/v1;admindslv1";
+
+// AdminPage is the stable transport envelope for backend-authored Admin DSL
+// pages. Widget-specific props remain dynamic, but Admin-specific top-level
+// surface regions are modeled explicitly so drawers/modals are not smuggled
+// into generic page metadata.
+message AdminPage {
+  uint32 schema_version = 1;
+  string id = 2;
+  string title = 3;
+  string description = 4;
+  AdminShell shell = 5;
+  repeated AdminNode nodes = 6;
+  repeated AdminNode modals = 7;
+  repeated AdminNode drawers = 8;
+  google.protobuf.Struct meta = 9;
+}
+
+message AdminShell {
+  string kind = 1;
+  google.protobuf.Struct props = 2;
+}
+
+message AdminNode {
+  string kind = 1;
+  google.protobuf.Struct props = 2;
+  repeated AdminNode children = 3;
+  AdminNodeMeta meta = 4;
+}
+
+message AdminNodeMeta {
+  string id = 1;
+  string name = 2;
+  string data_component = 3;
+  string data_section = 4;
+  string data_part = 5;
+  string note = 6;
+  string region = 7;
+}
+
+// AdminActionRef documents the browser-visible action shape normally embedded
+// under AdminNode.props.actions. id/event are opaque runtime dispatch handles;
+// target and semantic metadata are renderer/logging policy inputs.
+message AdminActionRef {
+  string id = 1;
+  string event = 2;
+  string type = 3;
+  string target = 4;
+  string label = 5;
+  google.protobuf.Value payload = 6;
+  google.protobuf.Struct options = 7;
+  string intent = 8;
+  string priority = 9;
+  string presentation = 10;
+  string placement = 11;
+  bool requires_confirmation = 12;
+  bool disabled = 13;
+  bool loading = 14;
+  string accessibility_label = 15;
+}
+
+message AdminEffect {
+  string kind = 1;
+  string tone = 2;
+  string message = 3;
+  google.protobuf.Struct payload = 4;
+}
+
+message AdminInteractionEvent {
+  string event_id = 1;
+  string session_id = 2;
+  uint32 page_version = 3;
+  string node_id = 4;
+  string node_kind = 5;
+  string action_id = 6;
+  string event = 7;
+  google.protobuf.Value value = 8;
+  google.protobuf.Struct meta = 9;
+}
+
+message StartAdminFlowRequest {
+  string flow_id = 1;
+  google.protobuf.Struct input = 2;
+}
+
+message GetAdminFlowRequest {
+  string session_id = 1;
+}
+
+message DispatchAdminEventRequest {
+  string session_id = 1;
+  AdminInteractionEvent event = 2;
+}
+
+message AdminFlowState {
+  string session_id = 1;
+  uint32 page_version = 2;
+  AdminPage page = 3;
+  repeated AdminEffect effects = 4;
+}
+
+message AdminDslError {
+  string code = 1;
+  string message = 2;
+  google.protobuf.Struct details = 3;
+}

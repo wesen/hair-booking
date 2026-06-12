@@ -1,0 +1,32 @@
+[
+{
+  "classification": "internal",
+  "ended_at": "2026-04-22T10:48:55Z",
+  "session_id": "46f9ca87-f914-468b-8fc5-6fc4e99f10d1",
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-04-21T18:20:06Z",
+  "title": "Create a new docmgr to restyle / redo the hair-booking application frontend.   I",
+  "tool_call_count": 1412,
+  "turn_count": 1073
+}
+, {
+  "classification": "internal",
+  "ended_at": "2026-04-22T04:34:47Z",
+  "session_id": "e8eb2960-ae37-4bad-9a57-6af6f852aa9c",
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-04-22T04:30:09Z",
+  "title": "Look at the tickets in hair-booking about css visual diff and porting / importin",
+  "tool_call_count": 43,
+  "turn_count": 23
+}
+, {
+  "classification": "internal",
+  "ended_at": "2026-04-23T18:09:48Z",
+  "session_id": "1493fa82-d312-4d49-9f79-6510713cabf2",
+  "source_format": "pi-agent-jsonl-v3",
+  "started_at": "2026-04-23T18:06:43Z",
+  "title": "Create a new docmgr ticket about us catching up on this project after a break.  ",
+  "tool_call_count": 37,
+  "turn_count": 16
+}
+]

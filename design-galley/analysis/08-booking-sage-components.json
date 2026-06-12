@@ -1,0 +1,233 @@
+[
+  {
+    "name": "AppHeader",
+    "type": "chrome",
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 72
+    },
+    "description": "Top application bar containing brand, primary navigation, and user menu."
+  },
+  {
+    "name": "BrandLogo",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 18,
+      "width": 80,
+      "height": 36
+    },
+    "description": "Fringe wordmark at the left of the header."
+  },
+  {
+    "name": "PrimaryNav",
+    "type": "molecule",
+    "bounds": {
+      "x": 180,
+      "y": 20,
+      "width": 420,
+      "height": 32
+    },
+    "description": "Horizontal nav links: Services, Book, Stylists, Journal."
+  },
+  {
+    "name": "UserMenu",
+    "type": "molecule",
+    "bounds": {
+      "x": 1280,
+      "y": 18,
+      "width": 136,
+      "height": 36
+    },
+    "description": "User greeting and circular avatar button on the right of the header."
+  },
+  {
+    "name": "StepSidebar",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 72,
+      "width": 220,
+      "height": 828
+    },
+    "description": "Left intake steps panel with vertical list of booking steps and current step highlight."
+  },
+  {
+    "name": "StepSidebarTitle",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 96,
+      "width": 172,
+      "height": 20
+    },
+    "description": "Sidebar label 'Intake \u00b7 9 steps'."
+  },
+  {
+    "name": "StepList",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 128,
+      "width": 172,
+      "height": 700
+    },
+    "description": "Stacked list of numbered steps with radio bullets and active state on '08 Booking'."
+  },
+  {
+    "name": "MainContent",
+    "type": "organism",
+    "bounds": {
+      "x": 220,
+      "y": 72,
+      "width": 760,
+      "height": 828
+    },
+    "description": "Central booking content region with section eyebrow, title, month header, and calendar."
+  },
+  {
+    "name": "SectionEyebrow",
+    "type": "atom",
+    "bounds": {
+      "x": 240,
+      "y": 104,
+      "width": 220,
+      "height": 16
+    },
+    "description": "Small uppercase subheading 'Chapter VIII \u00b7 The Date'."
+  },
+  {
+    "name": "PageTitle",
+    "type": "atom",
+    "bounds": {
+      "x": 240,
+      "y": 132,
+      "width": 520,
+      "height": 64
+    },
+    "description": "Large display headline 'When suits you?'."
+  },
+  {
+    "name": "MonthHeader",
+    "type": "molecule",
+    "bounds": {
+      "x": 240,
+      "y": 212,
+      "width": 600,
+      "height": 40
+    },
+    "description": "Row with 'June 2025' label and weekday labels above the calendar."
+  },
+  {
+    "name": "MonthNavPrev",
+    "type": "atom",
+    "bounds": {
+      "x": 760,
+      "y": 212,
+      "width": 32,
+      "height": 32
+    },
+    "description": "Square button with chevron left to navigate months."
+  },
+  {
+    "name": "MonthNavNext",
+    "type": "atom",
+    "bounds": {
+      "x": 800,
+      "y": 212,
+      "width": 32,
+      "height": 32
+    },
+    "description": "Square button with chevron right to navigate months."
+  },
+  {
+    "name": "CalendarGrid",
+    "type": "organism",
+    "bounds": {
+      "x": 240,
+      "y": 256,
+      "width": 600,
+      "height": 520
+    },
+    "description": "7x6 month grid with dated square cells, open-slot badges, and selected-day styling."
+  },
+  {
+    "name": "RightInfoColumn",
+    "type": "organism",
+    "bounds": {
+      "x": 980,
+      "y": 72,
+      "width": 460,
+      "height": 828
+    },
+    "description": "Right rail with booking notes, stylist card in sage accent, alternatives list, and CTA."
+  },
+  {
+    "name": "AdvisoryNote",
+    "type": "atom",
+    "bounds": {
+      "x": 1000,
+      "y": 110,
+      "width": 420,
+      "height": 64
+    },
+    "description": "Italic note about open slots and $50 deposit."
+  },
+  {
+    "name": "StylistProfileCard",
+    "type": "organism",
+    "bounds": {
+      "x": 1000,
+      "y": 190,
+      "width": 420,
+      "height": 360
+    },
+    "description": "Sage panel showing primary stylist avatar initial, name, role, rate, rating, and languages."
+  },
+  {
+    "name": "AlternativesHeader",
+    "type": "atom",
+    "bounds": {
+      "x": 1000,
+      "y": 560,
+      "width": 420,
+      "height": 24
+    },
+    "description": "Label 'Not the right fit?'."
+  },
+  {
+    "name": "AlternativesList",
+    "type": "molecule",
+    "bounds": {
+      "x": 1000,
+      "y": 588,
+      "width": 420,
+      "height": 168
+    },
+    "description": "List of alternative stylists with role, price, and 'View' links."
+  },
+  {
+    "name": "HoldSlotCtaBar",
+    "type": "molecule",
+    "bounds": {
+      "x": 1000,
+      "y": 770,
+      "width": 420,
+      "height": 60
+    },
+    "description": "Full-width dark button 'Hold this slot' with arrow."
+  },
+  {
+    "name": "ViewportScrollbar",
+    "type": "chrome",
+    "bounds": {
+      "x": 1428,
+      "y": 72,
+      "width": 12,
+      "height": 828
+    },
+    "description": "Vertical page scrollbar."
+  }
+]

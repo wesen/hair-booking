@@ -1,0 +1,81 @@
+/* ============================================================
+   FRINGE DESIGN SYSTEM — CSS TOKENS
+   Import this in index.html or as: import './tokens/index.css'
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* ── Color ───────────────────────────────────────────────── */
+  --fringe-ink:          #111111;
+  --fringe-paper:        #ffffff;
+  --fringe-cream:        #f6efe4;
+  --fringe-cream-deep:   #efe6d4;
+  --fringe-rule:         #ebe7df;
+  --fringe-soft:         #9a958e;
+  --fringe-soft-ink:     #5b5852;
+
+  --fringe-plum:         #6b3a4a;
+  --fringe-plum-deep:    #4a2431;
+  --fringe-peach:        #f2b89a;
+  --fringe-peach-soft:   #faddc9;
+
+  --fringe-coral:        #e8573c;
+  --fringe-butter:       #f4c752;
+  --fringe-ochre:        #c48a34;
+  --fringe-sage:         #7a8f6b;
+  --fringe-blush:        #e6b8a8;
+
+  /* Semantic aliases */
+  --fringe-success:      #7a8f6b;
+  --fringe-warn:         #c48a34;
+  --fringe-danger:       #e8573c;
+
+  /* ── Font stacks ─────────────────────────────────────────── */
+  --fringe-font-block:  'Anton', 'Oswald', Impact, sans-serif;
+  --fringe-font-serif:   'Instrument Serif', Georgia, serif;
+  --fringe-font-sans:    'Inter', system-ui, sans-serif;
+  --fringe-font-mono:    'JetBrains Mono', ui-monospace, monospace;
+
+  /* ── Spacing scale (0–10) ────────────────────────────────── */
+  --fringe-space-0:  0px;
+  --fringe-space-1:  4px;
+  --fringe-space-2:  8px;
+  --fringe-space-3:  12px;
+  --fringe-space-4:  16px;
+  --fringe-space-5:  20px;
+  --fringe-space-6:  24px;
+  --fringe-space-7:  32px;
+  --fringe-space-8:  40px;
+  --fringe-space-9:  56px;
+  --fringe-space-10: 72px;
+
+  /* ── Border radius ───────────────────────────────────────── */
+  --fringe-radius-none: 0px;
+  --fringe-radius-sm:   2px;
+  --fringe-radius-md:   6px;
+  --fringe-radius-lg:   12px;
+  --fringe-radius-pill: 999px;
+
+  /* ── Shadows ─────────────────────────────────────────────── */
+  --fringe-shadow-sm: 0 2px  6px  rgba(17,17,17,0.06);
+  --fringe-shadow-md: 0 8px  24px rgba(17,17,17,0.08);
+  --fringe-shadow-lg: 0 24px 60px rgba(17,17,17,0.14);
+
+  /* ── Layout ──────────────────────────────────────────────── */
+  --fringe-phone-width: 390px;
+  --fringe-phone-height: 844px;
+  --fringe-phone-radius: 48px;
+  --fringe-tab-bar-height: 72px;
+}
+
+/* ── Base resets ──────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fringe-cream);
+  color: var(--fringe-ink);
+  font-family: var(--fringe-font-sans);
+  -webkit-font-smoothing: antialiased;
+}

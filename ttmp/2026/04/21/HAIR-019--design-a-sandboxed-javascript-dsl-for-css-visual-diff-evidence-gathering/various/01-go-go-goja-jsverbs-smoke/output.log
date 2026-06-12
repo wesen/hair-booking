@@ -1,0 +1,34 @@
+# go-go-goja jsverbs smoke
+
+## go test
+ok  	github.com/go-go-golems/go-go-goja/pkg/jsverbs	0.037s
+ok  	github.com/go-go-golems/go-go-goja/cmd/jsverbs-example	0.025s
+
+## list discovered verbs (debug logging)
+advanced numbers add	advanced/numbers.js#add
+advanced numbers list-names	advanced/numbers.js#listNames
+advanced numbers multiply	advanced/numbers.js#multiply
+basics banner	basics.js#banner
+basics echo	basics.js#echo
+basics greet	basics.js#greet
+basics list-issues	basics.js#listIssues
+basics summarize	basics.js#summarize
+meta pkg-demo ping	packaged.js#ping
+nested with-helper render	nested/with-helper.js#render
+
+## greet command
++----------------+
+| greeting       |
++----------------+
+| Hello, Manuel! |
++----------------+
+
+## text writer command
+=== Manuel ===
+
+## shared section + context binding command
++-----------------------------------+------------+-------------------------+------------------------------------------------------------------------+--------+
+| helper                            | labelCount | repo                    | rootDir                                                                | state  |
++-----------------------------------+------------+-------------------------+------------------------------------------------------------------------+--------+
+| decorated:go-go-golems/go-go-goja | 2          | go-go-golems/go-go-goja | /home/manuel/workspaces/2026-04-21/hair-v2/go-go-goja/testdata/jsverbs | closed |
++-----------------------------------+------------+-------------------------+------------------------------------------------------------------------+--------+

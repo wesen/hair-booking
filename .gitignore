@@ -20,6 +20,11 @@ dist/
 .envrc
 .direnv/
 .history
+__pycache__/
+*.py[cod]
+.devctl/logs/
+.devctl/state.json
+.devctl/tmp/
 var/
 
 # Terraform local state/cache

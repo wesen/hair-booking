@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -18,12 +19,12 @@ import (
 	hairclients "github.com/go-go-golems/hair-booking/pkg/clients"
 	hairdb "github.com/go-go-golems/hair-booking/pkg/db"
 	hairintake "github.com/go-go-golems/hair-booking/pkg/intake"
+	"github.com/go-go-golems/hair-booking/pkg/intakeadmin"
 	hairservices "github.com/go-go-golems/hair-booking/pkg/services"
 	hairstorage "github.com/go-go-golems/hair-booking/pkg/storage"
 	hairstylist "github.com/go-go-golems/hair-booking/pkg/stylist"
 	"github.com/go-go-golems/hair-booking/pkg/web"
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 )
 
 type ServerOptions struct {
@@ -40,6 +41,13 @@ type ServerOptions struct {
 	StylistService      *hairstylist.Service
 	LocalUploadsDir     string
 	FrontendDevProxyURL string
+	DSLSQLitePath       string
+	DSLSQLiteMigrate    bool
+	DSLDB               *sql.DB
+	DSLConfigSQLitePath string
+	DSLStateSQLitePath  string
+	DSLConfigDB         *sql.DB
+	DSLStateDB          *sql.DB
 }
 
 type HandlerOptions struct {
@@ -58,6 +66,13 @@ type HandlerOptions struct {
 	StylistService      *hairstylist.Service
 	LocalUploadsDir     string
 	FrontendDevProxyURL string
+	DSLSQLitePath       string
+	DSLSQLiteMigrate    bool
+	DSLDB               *sql.DB
+	DSLConfigSQLitePath string
+	DSLStateSQLitePath  string
+	DSLConfigDB         *sql.DB
+	DSLStateDB          *sql.DB
 }
 
 type infoResponse struct {
@@ -74,18 +89,25 @@ type infoResponse struct {
 }
 
 type appHandler struct {
-	version            string
-	startedAt          time.Time
-	authSettings       *hairauth.Settings
-	sessionManager     *hairauth.SessionManager
-	database           *hairdb.DB
-	appointmentService *hairappointments.Service
-	clientService      *hairclients.Service
-	catalogService     *hairservices.Service
-	intakeService      *hairintake.Service
-	stylistService     *hairstylist.Service
-	localUploadsDir    string
-	stylistAuthorizer  *hairstylist.Authorizer
+	version             string
+	startedAt           time.Time
+	authSettings        *hairauth.Settings
+	sessionManager      *hairauth.SessionManager
+	database            *hairdb.DB
+	appointmentService  *hairappointments.Service
+	clientService       *hairclients.Service
+	catalogService      *hairservices.Service
+	intakeService       *hairintake.Service
+	stylistService      *hairstylist.Service
+	localUploadsDir     string
+	stylistAuthorizer   *hairstylist.Authorizer
+	dslFlows            *dslFlowStore
+	adminDSLFlows       *adminDSLFlowStore
+	intakeAdminStore    *intakeadmin.Store
+	dslSQLitePath       string
+	dslSQLiteMigrate    bool
+	dslConfigSQLitePath string
+	dslStateSQLitePath  string
 }
 
 type apiEnvelope struct {
@@ -174,6 +196,13 @@ func NewHTTPServer(ctx context.Context, options ServerOptions) (*http.Server, er
 			StylistService:      stylistService,
 			LocalUploadsDir:     options.LocalUploadsDir,
 			FrontendDevProxyURL: options.FrontendDevProxyURL,
+			DSLSQLitePath:       options.DSLSQLitePath,
+			DSLSQLiteMigrate:    options.DSLSQLiteMigrate,
+			DSLDB:               options.DSLDB,
+			DSLConfigSQLitePath: options.DSLConfigSQLitePath,
+			DSLStateSQLitePath:  options.DSLStateSQLitePath,
+			DSLConfigDB:         options.DSLConfigDB,
+			DSLStateDB:          options.DSLStateDB,
 		}),
 		ReadHeaderTimeout: 10 * time.Second,
 	}, nil
@@ -190,19 +219,42 @@ func NewHandler(options HandlerOptions) http.Handler {
 		publicFS = web.PublicFS
 	}
 
+	stateDB := options.DSLStateDB
+	statePath := options.DSLStateSQLitePath
+	if stateDB == nil {
+		stateDB = options.DSLDB
+	}
+	if statePath == "" {
+		statePath = options.DSLSQLitePath
+	}
+
+	intakeAdminStore := intakeadmin.NewStore(stateDB, options.DSLConfigDB)
+	if options.DSLSQLiteMigrate && stateDB != nil {
+		if err := intakeadmin.ProvisionSchema(context.Background(), stateDB); err != nil {
+			panic(fmt.Sprintf("provision intake admin schema: %v", err))
+		}
+	}
+
 	h := &appHandler{
-		version:            options.Version,
-		startedAt:          options.StartedAt,
-		authSettings:       authSettings,
-		sessionManager:     options.SessionManager,
-		database:           options.Database,
-		appointmentService: options.AppointmentService,
-		clientService:      options.ClientService,
-		catalogService:     options.CatalogService,
-		intakeService:      options.IntakeService,
-		stylistService:     options.StylistService,
-		localUploadsDir:    options.LocalUploadsDir,
-		stylistAuthorizer:  hairstylist.NewAuthorizer(authSettings),
+		version:             options.Version,
+		startedAt:           options.StartedAt,
+		authSettings:        authSettings,
+		sessionManager:      options.SessionManager,
+		database:            options.Database,
+		appointmentService:  options.AppointmentService,
+		clientService:       options.ClientService,
+		catalogService:      options.CatalogService,
+		intakeService:       options.IntakeService,
+		stylistService:      options.StylistService,
+		localUploadsDir:     options.LocalUploadsDir,
+		stylistAuthorizer:   hairstylist.NewAuthorizer(authSettings),
+		dslFlows:            newDSLFlowStore(options.DSLConfigDB, stateDB, options.DSLConfigSQLitePath, statePath, options.Storage, intakeAdminStore),
+		adminDSLFlows:       newAdminDSLFlowStore(intakeAdminStore),
+		intakeAdminStore:    intakeAdminStore,
+		dslSQLitePath:       statePath,
+		dslSQLiteMigrate:    options.DSLSQLiteMigrate,
+		dslConfigSQLitePath: options.DSLConfigSQLitePath,
+		dslStateSQLitePath:  statePath,
 	}
 
 	mux := http.NewServeMux()
@@ -223,6 +275,13 @@ func NewHandler(options HandlerOptions) http.Handler {
 	mux.HandleFunc("POST /api/intake/{id}/photos", h.handleIntakePhoto)
 	mux.HandleFunc("GET /api/availability", h.handleAvailability)
 	mux.HandleFunc("POST /api/appointments", h.handleCreateAppointment)
+	mux.HandleFunc("POST /api/dsl/flows/{flowId}/start", h.handleDSLStartFlow)
+	mux.HandleFunc("GET /api/dsl/flows/{sessionId}", h.handleDSLGetFlow)
+	mux.HandleFunc("POST /api/dsl/flows/{sessionId}/events", h.handleDSLEvent)
+	mux.HandleFunc("POST /api/dsl/flows/{sessionId}/uploads/{uploadId}", h.handleDSLUpload)
+	mux.HandleFunc("POST /api/admin-dsl/flows/{flowId}/start", h.handleAdminDSLStartFlow)
+	mux.HandleFunc("GET /api/admin-dsl/flows/{sessionId}", h.handleAdminDSLGetFlow)
+	mux.HandleFunc("POST /api/admin-dsl/flows/{sessionId}/events", h.handleAdminDSLEvent)
 	mux.HandleFunc("GET /api/stylist/me", h.handleStylistMe)
 	mux.HandleFunc("GET /api/stylist/dashboard", h.handleStylistDashboard)
 	mux.HandleFunc("GET /api/stylist/intakes", h.handleStylistIntakes)

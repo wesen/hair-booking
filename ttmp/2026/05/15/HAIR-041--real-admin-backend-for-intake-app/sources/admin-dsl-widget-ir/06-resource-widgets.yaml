@@ -1,0 +1,712 @@
+schema_version: 2
+artifact_type: admin_dsl_widget_definition_ir
+category: resource_widgets
+summary: Resource table widgets extracted from resourceTable, renderTableCell, bulk bar, pagination, and mobile table CSS.
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md
+widgets:
+- id: admin.resource.resource-table
+  name: ResourceTable
+  status: scaffolded
+  classification:
+    level: organism
+    description: ResourceTable participates in the Admin DSL component system as a organism; its level controls scaffold location
+      and Storybook grouping.
+  source_mapping:
+    current_constructs:
+    - case "resourceTable", renderTableCell, bulk bar, pagination, and mobile table CSS in responsiveCss
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: Render semantic resource rows as a desktop table and mobile card list. This is the most important information-dense
+      Admin DSL widget.
+    design_rationale: Primary dense data organism. It owns desktop table/mobile card behavior, selection, row actions, bulk
+      actions, empty state, and pagination composition.
+    adapter_boundary: Adapter reads current Admin DSL columns/rows/actions and turns placements into rowActions, rowOverflow,
+      bulkActions, and pagination actions.
+    implementation_notes:
+    - Implement ResourceTable using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
+    accessibility_notes:
+    - Ensure ResourceTable exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
+  contract:
+    props:
+      ResourceTableColumn:
+        doc: Props for ResourceTable. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
+        fields:
+          id:
+            type: string
+            required: true
+            doc: Stable DOM/data id for the ResourceTable instance.
+          accessor:
+            type: keyof Row | string
+            required: false
+            doc: 'accessor configures resource table. Type: keyof Row | string.'
+          label:
+            type: string
+            required: false
+            doc: Human-readable label rendered by ResourceTable.
+          kind:
+            type: ResourceTableColumnKind
+            required: false
+            doc: 'kind configures resource table. Type: ResourceTableColumnKind.'
+          primary:
+            type: boolean
+            required: false
+            doc: 'primary configures resource table. Type: boolean.'
+          tone:
+            type: string
+            required: false
+            doc: Visual tone used for status, emphasis, or border treatment in ResourceTable.
+          width:
+            type: number | string
+            required: false
+            doc: 'width configures resource table. Type: number | string.'
+          map:
+            type: 'Record<string, { label: string; tone?: string }>'
+            required: false
+            doc: 'map configures resource table. Type: Record<string, { label: string; tone?: string }>.'
+      ResourceTableProps:
+        doc: Props for ResourceTable. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
+        fields:
+          tableId:
+            type: string
+            required: true
+            doc: Stable table id used by ResourceTable for selection state, action context, and test hooks.
+          columns:
+            type: ResourceTableColumn<Row>[]
+            required: true
+            doc: Column definitions that tell ResourceTable how to label, access, and render row values.
+          rows:
+            type: Row[]
+            required: true
+            doc: Row data rendered by ResourceTable. Row-specific actions receive entries from this collection as context.
+          selectable:
+            type: boolean
+            required: false
+            doc: Whether ResourceTable exposes row selection and bulk-toolbar behavior.
+          selectedRowIds:
+            type: string[]
+            required: false
+            doc: Currently selected row ids for controlled selection behavior in ResourceTable.
+          bulkLabel:
+            type: string
+            required: false
+            doc: Label describing the current bulk-action scope in ResourceTable.
+          empty:
+            type: React.ReactNode
+            required: false
+            doc: 'empty configures resource table. Type: React.ReactNode.'
+          rowActions:
+            type: ActionViewModel[]
+            required: false
+            doc: Actions that operate on an individual row in ResourceTable.
+          bulkActions:
+            type: ActionViewModel[]
+            required: false
+            doc: Actions that operate on selected or visible rows in ResourceTable.
+          pagination:
+            type: '{'
+            required: false
+            doc: Paging state and navigation actions for ResourceTable.
+          page:
+            type: number
+            required: true
+            doc: 'page configures resource table. Type: number.'
+          total:
+            type: number
+            required: true
+            doc: 'total configures resource table. Type: number.'
+          actions:
+            type: ActionViewModel[]
+            required: false
+            doc: Ordered action list for the ResourceTable slot. Presentation should be derived from semantic slot and action
+              intent.
+          onRowAction:
+            type: TableRowActionHandler<Row>
+            required: false
+            doc: Callback invoked by ResourceTable with table id, row, and optional row id.
+          onBulkAction:
+            type: TableBulkActionHandler<Row>
+            required: false
+            doc: Callback invoked by ResourceTable with table id, selected ids, scope, and row data.
+          onPaginationAction:
+            type: '(action: ActionViewModel, context: { tableId: string; page: number; total: number }) => void'
+            required: false
+            doc: Callback invoked by ResourceTable pagination controls with table id and page/total context.
+          onSelectionChange:
+            type: '(context: { tableId: string; selectedRowIds: string[] }) => void'
+            required: false
+            doc: Callback emitted when ResourceTable row selection changes.
+        extends: <Row = Record<string, unknown>>  CommonWidgetProps
+    action_slots:
+      rowActions:
+        doc: Row actions receive table and row context.
+        callback: onRowAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: RowactionsContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: { tableId, row, rowId }'
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+      rowOverflow:
+        doc: Overflow is row-scoped but compact and menu-oriented.
+        callback: onRowAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: RowoverflowContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: { tableId, row, rowId }'
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+      bulkToolbar:
+        doc: Bulk actions receive table, visible/selected scope, rows, and selected IDs.
+        callback: onBulkAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: BulktoolbarContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: { tableId, scope, rows, selectedRowIds }'
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+      pagination:
+        doc: Pagination actions receive page/total context.
+        callback: onPaginationAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: PaginationContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: table/page'
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples:
+    DefaultUsage:
+      doc: Demonstrates the intended normalized usage of ResourceTable after adapter lowering.
+      demonstrates:
+      - Normalized props for ResourceTable.
+      - Adapter boundary expectations.
+      code: "<ResourceTable\n  tableId=\"requests\"\n  columns={requestColumns}\n  rows={requestRows}\n  selectable\n  bulkLabel=\"\
+        3 visible requests\"\n  bulkActions={[assignAction]}\n  onRowAction={(action, ctx) => dispatch(action, ctx)}\n  onBulkAction={(action,\
+        \ ctx) => dispatch(action, ctx)}\n/>"
+  stories:
+    DefaultRows:
+      doc: Tests ResourceTable with normal populated rows and standard dense table spacing.
+      viewport: desktop
+      fixtures:
+        scenario: defaultRows
+      asserts:
+      - ResourceTable renders the DefaultRows scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    SelectableWithBulkToolbar:
+      doc: Tests selection-enabled ResourceTable with visible/selected bulk action toolbar.
+      viewport: desktop
+      fixtures:
+        scenario: selectableWithBulkToolbar
+      asserts:
+      - ResourceTable renders the SelectableWithBulkToolbar scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    RowActions:
+      doc: Tests row-scoped actions in ResourceTable.
+      viewport: desktop
+      fixtures:
+        scenario: rowActions
+      asserts:
+      - ResourceTable renders the RowActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    OverflowActions:
+      doc: Tests compact overflow action presentation in ResourceTable.
+      viewport: desktop
+      fixtures:
+        scenario: overflowActions
+      asserts:
+      - ResourceTable renders the OverflowActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    EmptyState:
+      doc: Tests empty-state substitution or composition in ResourceTable.
+      viewport: desktop
+      fixtures:
+        scenario: emptyState
+      asserts:
+      - ResourceTable renders the EmptyState scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    Pagination:
+      doc: Tests pagination footer state and actions in ResourceTable.
+      viewport: desktop
+      fixtures:
+        scenario: pagination
+      asserts:
+      - ResourceTable renders the Pagination scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    StatusBadgeCells:
+      doc: Tests mapped status cell rendering in ResourceTable.
+      viewport: desktop
+      fixtures:
+        scenario: statusBadgeCells
+      asserts:
+      - ResourceTable renders the StatusBadgeCells scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    DragHandleColumn:
+      doc: Tests drag-handle affordance cells in ResourceTable.
+      viewport: desktop
+      fixtures:
+        scenario: dragHandleColumn
+      asserts:
+      - ResourceTable renders the DragHandleColumn scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    MobileCards:
+      doc: Tests mobile card adaptation for ResourceTable.
+      viewport: desktop
+      fixtures:
+        scenario: mobileCards
+      asserts:
+      - ResourceTable renders the MobileCards scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    LongTextAndDenseRows:
+      doc: Tests long text, wrapping, and dense row spacing in ResourceTable.
+      viewport: desktop
+      fixtures:
+        scenario: longTextAndDenseRows
+      asserts:
+      - ResourceTable renders the LongTextAndDenseRows scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    ActionDispatchContexts:
+      doc: Tests row and bulk action callback contexts emitted by ResourceTable.
+      viewport: desktop
+      fixtures:
+        scenario: actionDispatchContexts
+      asserts:
+      - ResourceTable renders the ActionDispatchContexts scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/ResourceTable.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/ResourceTable.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/ResourceTable.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/index.ts
+    tests:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/ResourceTable.test.tsx
+  implementation_todos:
+  - id: replace-placeholder-with-desktop-table-plus-mobile-card-implemen
+    severity: required
+    doc: Replace placeholder with desktop table plus mobile card implementation.
+  - id: wire-real-selection-state-and-row-bulk-callback-contexts
+    severity: recommended
+    doc: Wire real selection state and row/bulk callback contexts.
+- id: admin.resource.resource-table-cell
+  name: ResourceTableCell
+  status: scaffolded
+  classification:
+    level: molecule
+    description: ResourceTableCell participates in the Admin DSL component system as a molecule; its level controls scaffold
+      location and Storybook grouping.
+  source_mapping:
+    current_constructs:
+    - renderTableCell
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: Localizes cell-kind rendering so ResourceTable is not a pile of conditional JSX. It can later become a registry
+      of cell renderers.
+    design_rationale: Localizes cell-kind rendering so ResourceTable is not a pile of conditional JSX. It can later become
+      a registry of cell renderers.
+    adapter_boundary: Receives already-normalized column and row data; should not parse AdminNode directly.
+    implementation_notes:
+    - Implement ResourceTableCell using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
+    accessibility_notes:
+    - Ensure ResourceTableCell exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its
+      rendered controls.
+  contract:
+    props:
+      ResourceTableCellProps:
+        doc: Props for ResourceTableCell. These are normalized widget props produced by adapters or callers, not raw Admin
+          DSL JSON.
+        fields:
+          column:
+            type: ResourceTableColumn<Row>
+            required: true
+            doc: 'column configures resource table cell. Type: ResourceTableColumn<Row>.'
+          row:
+            type: Row
+            required: true
+            doc: 'row configures resource table cell. Type: Row.'
+          tableId:
+            type: string
+            required: true
+            doc: Stable table id used by ResourceTableCell for selection state, action context, and test hooks.
+          onRowAction:
+            type: TableRowActionHandler<Row>
+            required: false
+            doc: Callback invoked by ResourceTableCell with table id, row, and optional row id.
+    action_slots:
+      rowAction:
+        doc: Only action/overflow cells invoke row-scoped callbacks; text/badge/boolean cells are pure display.
+        callback: onRowAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: RowactionContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: table row when column kind is actions/overflowActions'
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by ResourceTableCell. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed ResourceTableCell props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <ResourceTableCell />
+  stories:
+    TextCell:
+      doc: Tests the TextCell scenario for ResourceTableCell with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: textCell
+      asserts:
+      - ResourceTableCell renders the TextCell scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    PrimaryTextCell:
+      doc: Tests the PrimaryTextCell scenario for ResourceTableCell with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: primaryTextCell
+      asserts:
+      - ResourceTableCell renders the PrimaryTextCell scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    MutedTextCell:
+      doc: Tests the MutedTextCell scenario for ResourceTableCell with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: mutedTextCell
+      asserts:
+      - ResourceTableCell renders the MutedTextCell scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    BadgeMappedCell:
+      doc: Tests the BadgeMappedCell scenario for ResourceTableCell with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: badgeMappedCell
+      asserts:
+      - ResourceTableCell renders the BadgeMappedCell scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    BooleanCell:
+      doc: Tests the BooleanCell scenario for ResourceTableCell with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: booleanCell
+      asserts:
+      - ResourceTableCell renders the BooleanCell scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    DragHandleCell:
+      doc: Tests the DragHandleCell scenario for ResourceTableCell with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: dragHandleCell
+      asserts:
+      - ResourceTableCell renders the DragHandleCell scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    ActionsCell:
+      doc: Tests the ActionsCell scenario for ResourceTableCell with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: actionsCell
+      asserts:
+      - ResourceTableCell renders the ActionsCell scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    OverflowCell:
+      doc: Tests the OverflowCell scenario for ResourceTableCell with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: overflowCell
+      asserts:
+      - ResourceTableCell renders the OverflowCell scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/ResourceTableCell/ResourceTableCell.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/ResourceTableCell/ResourceTableCell.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/ResourceTableCell/ResourceTableCell.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/ResourceTableCell/index.ts
+  implementation_todos:
+  - id: implement-real-cell-kind-rendering-or-a-cell-renderer-registry
+    severity: required
+    doc: Implement real cell-kind rendering or a cell renderer registry.
+- id: admin.resource.bulk-action-bar
+  name: BulkActionBar
+  status: scaffolded
+  classification:
+    level: molecule
+    description: BulkActionBar participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
+  source_mapping:
+    current_constructs:
+    - bulk action bar inside resourceTable branch
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: Owns the selected/visible-row action strip and visual hierarchy for table-level operations.
+    design_rationale: Owns the selected/visible-row action strip and visual hierarchy for table-level operations.
+    adapter_boundary: ResourceTable computes selected/visible context and passes it down; BulkActionBar only renders and invokes
+      bulk callbacks.
+    implementation_notes:
+    - Implement BulkActionBar using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
+    accessibility_notes:
+    - Ensure BulkActionBar exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
+  contract:
+    props:
+      BulkActionBarProps:
+        doc: Props for BulkActionBar. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
+        fields:
+          tableId:
+            type: string
+            required: true
+            doc: Stable table id used by BulkActionBar for selection state, action context, and test hooks.
+          label:
+            type: string
+            required: false
+            doc: Human-readable label rendered by BulkActionBar.
+          rows:
+            type: Row[]
+            required: true
+            doc: Row data rendered by BulkActionBar. Row-specific actions receive entries from this collection as context.
+          selectedRowIds:
+            type: string[]
+            required: true
+            doc: Currently selected row ids for controlled selection behavior in BulkActionBar.
+          actions:
+            type: ActionViewModel[]
+            required: true
+            doc: Ordered action list for the BulkActionBar slot. Presentation should be derived from semantic slot and action
+              intent.
+          onBulkAction:
+            type: TableBulkActionHandler<Row>
+            required: false
+            doc: Callback invoked by BulkActionBar with table id, selected ids, scope, and row data.
+    action_slots:
+      bulkToolbar:
+        doc: Bulk toolbar actions are table-selection actions, not page or row actions.
+        callback: onBulkAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: BulktoolbarContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: visible/selected/allMatching rows'
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by BulkActionBar. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed BulkActionBar props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <BulkActionBar />
+  stories:
+    VisibleRowsScope:
+      doc: Tests the VisibleRowsScope scenario for BulkActionBar with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: visibleRowsScope
+      asserts:
+      - BulkActionBar renders the VisibleRowsScope scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    SelectedRowsScope:
+      doc: Tests the SelectedRowsScope scenario for BulkActionBar with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: selectedRowsScope
+      asserts:
+      - BulkActionBar renders the SelectedRowsScope scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    PrimaryBulkAction:
+      doc: Tests the PrimaryBulkAction scenario for BulkActionBar with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: primaryBulkAction
+      asserts:
+      - BulkActionBar renders the PrimaryBulkAction scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    DangerBulkAction:
+      doc: Tests the DangerBulkAction scenario for BulkActionBar with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: dangerBulkAction
+      asserts:
+      - BulkActionBar renders the DangerBulkAction scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    NoSelectionDisabled:
+      doc: Tests the NoSelectionDisabled scenario for BulkActionBar with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: noSelectionDisabled
+      asserts:
+      - BulkActionBar renders the NoSelectionDisabled scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/BulkActionBar/BulkActionBar.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/BulkActionBar/BulkActionBar.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/BulkActionBar/BulkActionBar.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/BulkActionBar/index.ts
+  implementation_todos:
+  - id: define-selected-row-disabled-behavior-before-production-use
+    severity: required
+    doc: Define selected-row disabled behavior before production use.
+- id: admin.resource.pagination-bar
+  name: PaginationBar
+  status: scaffolded
+  classification:
+    level: molecule
+    description: PaginationBar participates in the Admin DSL component system as a molecule; its level controls scaffold location
+      and Storybook grouping.
+  source_mapping:
+    current_constructs:
+    - pagination footer inside resourceTable branch
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: Owns table paging footer and keeps paging actions separate from row/table bulk actions.
+    design_rationale: Owns table paging footer and keeps paging actions separate from row/table bulk actions.
+    adapter_boundary: Adapter passes page/total/action state. Widget should not know query params or backend transport.
+    implementation_notes:
+    - Implement PaginationBar using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
+    accessibility_notes:
+    - Ensure PaginationBar exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
+  contract:
+    props:
+      PaginationBarProps:
+        doc: Props for PaginationBar. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
+        fields:
+          page:
+            type: number
+            required: true
+            doc: 'page configures pagination bar. Type: number.'
+          total:
+            type: number
+            required: true
+            doc: 'total configures pagination bar. Type: number.'
+          actions:
+            type: ActionViewModel[]
+            required: false
+            doc: Ordered action list for the PaginationBar slot. Presentation should be derived from semantic slot and action
+              intent.
+          onAction:
+            type: '(action: ActionViewModel, context: { page: number; total: number }) => void'
+            required: false
+            doc: Callback invoked by PaginationBar with action metadata and typed context.
+    action_slots:
+      paginationActions:
+        doc: Pagination actions carry page/total context and should be visually secondary.
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: PaginationactionsContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: { page, total }'
+        lowering:
+          adapter: dispatchAdminAction
+          note: The widget emits typed context through the callback; the Admin DSL adapter lowers it to dispatchAdminAction
+            or backend action transport.
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by PaginationBar. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed PaginationBar props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <PaginationBar />
+  stories:
+    Default:
+      doc: Tests the baseline PaginationBar rendering with representative production-like data.
+      viewport: desktop
+      fixtures:
+        scenario: default
+      asserts:
+      - PaginationBar renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    WithNextPrevious:
+      doc: Tests the WithNextPrevious scenario for PaginationBar with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: withNextPrevious
+      asserts:
+      - PaginationBar renders the WithNextPrevious scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    ManyResults:
+      doc: Tests the ManyResults scenario for PaginationBar with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: manyResults
+      asserts:
+      - PaginationBar renders the ManyResults scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/PaginationBar/PaginationBar.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/PaginationBar/PaginationBar.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/PaginationBar/PaginationBar.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/ResourceTable/parts/PaginationBar/index.ts
+  implementation_todos:
+  - id: define-paging-action-payload-contract-before-production-use
+    severity: required
+    doc: Define paging action payload contract before production use.

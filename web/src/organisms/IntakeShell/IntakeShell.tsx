@@ -1,0 +1,262 @@
+import { useEffect, useLayoutEffect, useRef } from 'react';
+import type { ReactNode, CSSProperties } from 'react';
+import { color, font, type as typeToken } from '../../fringe-ui/tokens';
+import { dslDebug, dslDomTraceEnabled } from '../../page-dsl/debug';
+
+interface IntakeShellProps {
+  step: number;
+  total: number;
+  title: string;
+  eyebrow?: string;
+  titleSize?: number;
+  children?: ReactNode;
+  style?: CSSProperties;
+  onNext?: () => void;
+  nextLabel?: string;
+  onSkip?: () => void;
+  onBack?: () => void;
+}
+
+/**
+ * Content shell for the 9-step intake flow.
+ *
+ * Renders (top to bottom):
+ *   StatusBar (iOS time + icons)
+ *   AppHeader (back · wordmark · step counter)
+ *   Progress bar
+ *   Eyebrow + title section
+ *   Scrollable children content
+ *   Bottom CTA bar (Skip + Keep going)
+ */
+export function IntakeShell({
+  step,
+  total,
+  title,
+  eyebrow,
+  titleSize = 40,
+  children,
+  style,
+  onNext,
+  nextLabel = 'Keep going →',
+  onSkip,
+  onBack,
+}: IntakeShellProps) {
+  const instance = useRef(Math.random().toString(36).slice(2));
+  const nextButtonRef = useRef<HTMLButtonElement | null>(null);
+  const previousNextButton = useRef<HTMLButtonElement | null>(null);
+
+  useEffect(() => {
+    dslDebug('IntakeShell mounted', { instance: instance.current });
+    return () => dslDebug('IntakeShell unmounted', { instance: instance.current });
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!dslDomTraceEnabled()) return;
+    const current = nextButtonRef.current;
+    dslDebug('IntakeShell next-button identity', {
+      instance: instance.current,
+      sameAsPreviousRender: previousNextButton.current === current,
+      label: nextLabel,
+      element: current,
+    });
+    previousNextButton.current = current;
+  });
+
+  dslDebug('IntakeShell render', { instance: instance.current, step, total, title, nextLabel, hasNext: !!onNext, hasSkip: !!onSkip, hasBack: !!onBack });
+
+  return (
+    <div data-component="IntakeShell" data-dsl-shell="intake" style={{
+      height: '100%',
+      background: color.paper,
+      display: 'flex',
+      flexDirection: 'column',
+      position: 'relative',
+      ...style,
+    }}>
+      {/* ── Status Bar ──────────────────────────────────────── */}
+      <div data-component="IntakeShellStatusBar" data-dsl-shell-part="status" style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        padding: '14px 24px 8px',
+        fontSize: 13,
+        fontWeight: 600,
+        color: color.ink,
+        fontFamily: '-apple-system, system-ui, sans-serif',
+      }}>
+        <span>9:41</span>
+        <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+          <svg width="17" height="11" viewBox="0 0 17 11" fill={color.ink}>
+            <rect x="0" y="7" width="3" height="4" rx="0.5" />
+            <rect x="4.5" y="5" width="3" height="6" rx="0.5" />
+            <rect x="9" y="2.5" width="3" height="8.5" rx="0.5" />
+            <rect x="13.5" y="0" width="3" height="11" rx="0.5" />
+          </svg>
+          <svg width="16" height="11" viewBox="0 0 16 11" fill={color.ink}>
+            <rect x="0.5" y="0.5" width="13" height="10" rx="2"
+              style={{ fill: 'none', stroke: color.ink, strokeOpacity: 0.4 }} />
+            <rect x="2" y="2" width="10" height="7" rx="1" />
+          </svg>
+        </div>
+      </div>
+
+      {/* ── App Header: back · wordmark · step counter ─────── */}
+      <div data-component="IntakeShellHeader" data-dsl-shell-part="header" style={{
+        padding: '6px 22px 0',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      }}>
+        <button
+          data-component="IntakeShellBack"
+          data-dsl-action="back"
+          onClick={onBack}
+          style={{
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            padding: 0,
+            display: 'flex',
+            alignItems: 'center',
+          }}
+        >
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none"
+            stroke={color.ink} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 4L5 9l6 5" />
+          </svg>
+        </button>
+
+        <div style={{
+          fontFamily: font.block,
+          fontSize: 14,
+          letterSpacing: 3.5,
+          textTransform: 'uppercase',
+          userSelect: 'none',
+        }}>
+          Fringe
+        </div>
+
+        <div style={{
+          fontFamily: font.mono,
+          fontSize: 11,
+          letterSpacing: 1.5,
+          color: color.soft,
+        }}>
+          {String(step).padStart(2, '0')} / {String(total).padStart(2, '0')}
+        </div>
+      </div>
+
+      {/* ── Progress bar ────────────────────────────────────── */}
+      <div data-component="IntakeShellProgress" data-dsl-shell-part="progress" style={{ height: 3, background: color.rule, width: '100%', marginTop: 8 }}>
+        <div style={{ height: 3, background: color.plum, width: `${(step / total) * 100}%` }} />
+      </div>
+
+      {/* ── Eyebrow + Title section ─────────────────────────── */}
+      {(eyebrow || title.trim()) && (
+      <div data-component="IntakeShellHeading" data-dsl-shell-part="heading" data-section="page-heading" style={{ padding: '20px 22px 0' }}>
+        {eyebrow && (
+          <div style={{
+            ...typeToken.eyebrow,
+            color: color.plum,
+            marginBottom: 8,
+          }}>
+            {eyebrow}
+          </div>
+        )}
+        <div style={{
+          fontFamily: font.block,
+          fontSize: titleSize,
+          lineHeight: 1,
+          letterSpacing: 0.3,
+          textTransform: 'uppercase',
+          color: color.ink,
+        }}>
+          {title}
+        </div>
+      </div>
+      )}
+
+      {/* ── Scrollable page content ─────────────────────────── */}
+      <div data-component="IntakeShellContent" data-dsl-shell-part="content" data-part="content" style={{ flex: 1, padding: '16px 24px 0' }}>
+        {children}
+      </div>
+
+      {/* ── Bottom CTA bar ──────────────────────────────────── */}
+      {onNext && (
+        <div data-component="IntakeShellCTA" data-dsl-shell-part="cta" style={{
+          padding: '10px 22px 20px',
+          borderTop: `1px solid ${color.rule}`,
+          display: 'flex',
+          gap: 10,
+          background: color.paper,
+        }} data-section="intake-cta">
+          <button
+            data-component="IntakeShellSkip"
+            data-dsl-action="skip"
+            onClick={onSkip}
+            style={{
+              fontFamily: font.block,
+              fontSize: 18,
+              letterSpacing: 1.2,
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              width: 75,
+              height: 66,
+              padding: '0',
+              border: `2px solid ${color.ink}`,
+              background: 'transparent',
+              color: color.ink,
+              cursor: onSkip ? 'pointer' : 'default',
+              borderRadius: 0,
+            }}
+          >
+            Skip
+          </button>
+          <button
+            ref={nextButtonRef}
+            data-component="IntakeShellNext"
+            data-dsl-action="next"
+            onClick={onNext}
+            style={{
+              fontFamily: font.block,
+              fontSize: 20,
+              letterSpacing: 2.4,
+              fontWeight: 800,
+              textTransform: 'uppercase',
+              height: 66,
+              padding: '0 32px',
+              border: 'none',
+              background: color.plum,
+              color: color.paper,
+              cursor: 'pointer',
+              flex: 1,
+              borderRadius: 0,
+            }}
+          >
+            {nextLabel}
+          </button>
+        </div>
+      )}
+
+      {/* ── Home indicator ──────────────────────────────────── */}
+      <div data-component="IntakeShellHomeIndicator" data-dsl-shell-part="home-indicator" style={{
+        position: 'absolute',
+        bottom: 6,
+        left: 0,
+        right: 0,
+        display: 'flex',
+        justifyContent: 'center',
+        pointerEvents: 'none',
+        zIndex: 50,
+      }}>
+        <div style={{
+          width: 120,
+          height: 4,
+          borderRadius: 2,
+          background: color.ink,
+          opacity: 0.65,
+        }} />
+      </div>
+    </div>
+  );
+}

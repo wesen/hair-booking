@@ -30,5 +30,7 @@ jobs:
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.4.0
+          version-file: .golangci-lint-version
           args: --timeout=5m
+      - name: Run Glazed CLI policy linters
+        run: make glazed-lint

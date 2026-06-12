@@ -1,0 +1,391 @@
+# Changelog
+
+## 2026-05-15
+
+- Initial workspace created
+
+
+## 2026-05-15
+
+Created HAIR-039 and wrote the intern-facing admin design system and DSL implementation guide centered on a one-stylist salon MVP.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/design-doc/01-admin-design-system-and-dsl-implementation-guide.md — Primary design guide for admin DSL and MVP implementation phases
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary recording ticket creation and design rationale
+
+
+## 2026-05-15
+
+Uploaded the HAIR-039 admin design system and DSL implementation guide to reMarkable at /ai/2026/05/15/HAIR-039/HAIR_039_Admin_Design_System_DSL_Guide.pdf.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/design-doc/01-admin-design-system-and-dsl-implementation-guide.md — Uploaded source document
+
+
+## 2026-05-15
+
+Expanded HAIR-039 into phased implementation tasks for admin DSL schema, builders, renderer, Storybook demos, validation, and follow-up backend/testing work.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records phase planning step
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Detailed phased implementation checklist
+
+
+## 2026-05-15
+
+Implemented the first admin DSL slice with schema, builders, examples, renderer, Storybook demos, and TypeScript validation. Full frontend tests were attempted but existing page-dsl interaction tests failed.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records validation and test failure details
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.stories.tsx — Storybook demos
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/builder.ts — Admin DSL builder API
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/examples.ts — Demo page JSON examples
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Renderer implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts — Admin DSL schema
+
+
+## 2026-05-15
+
+Added focused admin DSL tests for plain JSON builder output and rendered row action dispatch; TypeScript and targeted Vitest validation pass.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records focused validation commands
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — Admin DSL builder and renderer tests
+
+
+## 2026-05-15
+
+Extended admin DSL interaction coverage to assert confirm actions dispatch with target archiveService. (commit 7184a3a)
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Updated commit references
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — Confirm action interaction coverage
+
+
+## 2026-05-15
+
+Fixed existing page-dsl interaction test failures by aligning selectableGroup selector expectations with BudgetOption rendering and restoring direct local uploadTile action dispatch when no backend upload intent is configured.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records full frontend test fix and validation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/InteractiveDsl.test.tsx — Updated selectableGroup test selector to current renderer behavior
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/page-dsl/render.tsx — Restored direct uploadTile local action fallback without backend upload intent
+
+
+## 2026-05-15
+
+Added a devctl Storybook profile/service and started Storybook under devctl supervision for Admin DSL review at http://127.0.0.1:6006/?path=/story/admin-dsl-rendered-pages--services-pricing.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/.devctl.yaml — Added storybook profile for design review
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/plugins/devctl/hair_booking.py — Added storybook service selection and launch plan
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records devctl Storybook startup and verification
+
+
+## 2026-05-15
+
+Improved Admin DSL mobile responsiveness using cropped css-visual-diff screenshots and VLM review; tightened typography, stacked side panels, enlarged tap targets, improved status contrast, removed duplicate modal title, and made calendar horizontally scrollable on mobile.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records screenshot/VLM workflow and validation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/examples.ts — Removed duplicate modal form title and normalized calendar drawer time
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Responsive layout
+
+
+## 2026-05-15
+
+Fixed the Admin DSL calendar renderer so appointment blocks are constrained to their configured day column and hour-row span instead of stretching across the whole workweek.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records calendar constraint fix and validation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Calendar week now renders appointment children into day/hour CSS grid cells
+
+
+## 2026-05-15
+
+Added a mobile-specific Admin DSL calendar agenda view that replaces the horizontally scrollable week grid below the mobile breakpoint while preserving the desktop day/hour grid.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records mobile agenda decision
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — calendarWeek now renders a mobile agenda grouped by day
+
+
+## 2026-05-15
+
+Added Phase 6-8 hardening tasks for calendar extraction, mobile agenda tests, and reproducible css-visual-diff review scripts/documentation.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records next-phase planning
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Added follow-up hardening phases
+
+
+## 2026-05-15
+
+Extracted Admin DSL calendar rendering into a focused module and added regression tests for mobile agenda grouping plus calendar action dispatch; TypeScript and full frontend tests pass.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records extraction
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — Added mobile agenda and calendar action dispatch tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/calendar.tsx — Extracted calendar renderer
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Delegates calendarWeek nodes to AdminCalendarWeek and supports keyed action maps
+
+
+## 2026-05-15
+
+Added a tracked HAIR-039 script for refreshing cropped mobile Admin DSL css-visual-diff screenshots and documented Storybook/Admin DSL review URLs in the devctl README.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/plugins/devctl/README.md — Documented storybook profile and Admin DSL story URLs
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records script creation and successful run
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/scripts/01-capture-mobile-admin-dsl.sh — Repeatable cropped mobile screenshot workflow
+
+
+## 2026-05-15
+
+Added tasks for broad Admin DSL backend-admin layout coverage with desktop/mobile Storybook variants, correcting that application builders own config DB schemas and write semantics.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records layout story planning
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Added broad layout story tasks
+
+
+## 2026-05-15
+
+Added broad Admin DSL layout catalog Storybook coverage with desktop/mobile/matrix variants across commerce, course, CMS, support, media, analytics, and team settings use cases; added renderer support for split panes, tabs, search boxes, activity feeds, image grids, and loading states.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records implementation and validation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslLayouts.stories.tsx — New desktop/mobile/matrix layout catalog stories
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/layoutExamples.ts — New broad layout examples
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Renderer coverage for layout catalog nodes
+
+
+## 2026-05-15
+
+Set explicit desktop/mobile viewport parameters on Admin DSL layout catalog stories, reviewed desktop/mobile screenshot pairs with image analysis, and fixed mobile density/search/side-panel issues plus Analytics metric ambiguity.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records pair review and fixes
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslLayouts.stories.tsx — Explicit desktop/mobile Storybook viewport parameters
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/layoutExamples.ts — Analytics Ops metric text adjusted after desktop visual review
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Mobile layout density
+
+
+## 2026-05-15
+
+Added an intern-facing Admin DSL evolution brainstorm/design guide proposing richer action, surface, resource, form, layout, and adaptive-view semantics while keeping app-owned config schemas flexible.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/design-doc/02-admin-dsl-evolution-brainstorm-and-design-guide.md — New Admin DSL evolution guide
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records guide creation
+
+
+## 2026-05-15
+
+Uploaded the Admin DSL evolution guide to reMarkable at /ai/2026/05/15/HAIR-039/HAIR_039_Admin_DSL_Evolution_Guide.pdf.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/design-doc/02-admin-dsl-evolution-brainstorm-and-design-guide.md — Uploaded guide source
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records upload
+
+
+## 2026-05-15
+
+Wrote and committed an Obsidian/PARC deep-dive project report on the Admin DSL and React renderer technique. PARC commit 7e8d29d.
+
+### Related Files
+
+- /home/manuel/code/wesen/go-go-golems/go-go-parc/Projects/2026/05/15/PROJECT REPORT - Fringe Admin DSL and React Renderer Technique Deep Dive.md — Obsidian project report for Admin DSL React technique
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records report creation
+
+
+## 2026-05-15
+
+Uploaded the PARC Admin DSL React renderer report to reMarkable and pushed the PARC vault. reMarkable path: /ai/2026/05/15/HAIR-039/HAIR_039_Fringe_Admin_DSL_React_Renderer_Deep_Dive.pdf; PARC commits: 7e8d29d and d2e9296.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records report upload and PARC push
+
+
+## 2026-05-15
+
+Expanded HAIR-039 with detailed Admin DSL evolution phases covering Go-host fluent builders, semantic actions, surfaces, resource/form lifecycles, backend-driven flow spike, Storybook behavior scenarios, MSW harnesses, adaptive layout policies, and documentation readiness.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records planning step
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Detailed next-phase task plan
+
+
+## 2026-05-15
+
+Step 22: Added pkg/admindsl as the Go-host authoritative fluent Admin DSL builder and validation package; marked Phase 9 tasks complete. Validation: go test ./pkg/admindsl -count=1.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder.go — Fluent Go host Admin DSL builders
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder_test.go — Go host builder tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/doc.go — Documents Go-host authoritative Admin DSL builder boundary
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/types.go — Admin DSL host-side transport and semantic types
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/validate.go — Runtime schema and JSON-safety validation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records Phase 9 implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Phase 9 task completion
+
+
+## 2026-05-15
+
+Step 23: Extracted Admin DSL render utilities and action handling into shared modules; Phase 10 complete. Validation: cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (8 files, 32 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records Phase 10 implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Phase 10 task completion
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/actions.test.ts — Action utility tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/actions.ts — Shared Admin DSL action normalization and dispatch helpers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/calendar.tsx — Calendar renderer now imports shared helpers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Renderer now imports shared helpers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/renderUtils.ts — Shared renderer JSON/style/node utility helpers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts — Admin action metadata fields
+
+
+## 2026-05-15
+
+Step 24: Added semantic Admin DSL action metadata, fluent action helpers, renderer disabled/loading/accessibility handling, and Services behavior/action Storybook scenarios; Phase 11 complete. Validation: cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (8 files, 33 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records Phase 11 implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Phase 11 task completion
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — Semantic action serialization tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslBehavior.stories.tsx — Services behavior/action Storybook scenario catalog
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/builder.ts — Fluent semantic action helpers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Renderer honors action disabled/loading/accessibility metadata
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts — Semantic action metadata fields
+
+
+## 2026-05-15
+
+Step 25: Added the first Admin DSL surface subsystem layer with frontend surface builders, renderer surface cases, Go host surface builders, and duplicate surface id validation; Phase 12 complete. Validation: go test ./pkg/admindsl -count=1; cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (8 files, 34 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder.go — Go host surface builders
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder_test.go — Go host surface tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/types.go — Go host surface node kinds
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/validate.go — Duplicate surface id validation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records Phase 12 implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Phase 12 task completion
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — Frontend surface builder tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/builder.ts — surface.* frontend fixture builders
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Renderer surface cases
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/schema.ts — Surface node kinds
+
+
+## 2026-05-15
+
+Step 26: Added dedicated surface Storybook catalog stories and implemented resource/form lifecycle semantics with TypeScript and Go host helpers, renderer state handling, tests, and lifecycle stories; Phase 13 complete. Validation: go test ./pkg/admindsl -count=1; cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (8 files, 36 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder.go — Go host lifecycle helper methods
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder_test.go — Go host lifecycle tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records surface catalog and lifecycle implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Phase 13 task completion
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDsl.test.tsx — Lifecycle frontend tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslResourceLifecycle.stories.tsx — Resource/form lifecycle Storybook catalog
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslSurfaces.stories.tsx — Surface-specific Storybook catalog
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/builder.ts — Frontend lifecycle helper methods
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/render.tsx — Renderer lifecycle state handling
+
+
+## 2026-05-15
+
+Step 27: Implemented Phase 14 backend-driven Admin DSL services flow spike and Phase 15 Storybook Services scenario catalog with MSW-backed click-throughs and scenario screenshot script. Validation: go test ./... -count=1; cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (8 files, 36 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flow.go — Backend-driven Admin DSL services flow spike
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flow_test.go — Backend flow transition and stale action tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/goja_module.go — Controlled Goja exposure for Go host builders
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/goja_module_test.go — Goja host builder module test
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/types.go — Action refs now carry optional opaque id/event fields
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/validate.go — Keyed action validation accepts JSON-cloned object maps
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records Phase 14 and 15 implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/02-backend-admin-dsl-flow-spike.md — Documents backend-driven Admin DSL flow spike
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/scripts/02-capture-admin-dsl-scenarios.sh — Scenario screenshot capture script
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Phase 14 and 15 task completion
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslServiceScenarios.stories.tsx — Services scenario catalog with MSW click-through stories
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/mswHandlers.ts — MSW Admin DSL scenario handlers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/scenarioFixtures.ts — Shared Admin DSL Services scenario fixtures
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/mock/handlers.ts — Registers Admin DSL MSW handlers
+
+
+## 2026-05-15
+
+Step 28: Added dedicated Admin DSL protobuf transport schema, generated Go/TS bindings, and Admin DSL proto conversion tests. Validation: buf generate; go test ./... -count=1; cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (8 files, 36 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/gen/proto/fringe/admin_dsl/v1/admin_dsl.pb.go — Generated Go Admin DSL protobuf bindings
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/proto_convert.go — Admin DSL Go-to-protobuf conversion helpers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/proto_convert_test.go — Admin DSL protobuf JSON conversion test
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/proto/fringe/admin_dsl/v1/admin_dsl.proto — Dedicated Admin DSL protobuf transport schema
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records Admin DSL proto work
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/pb/proto/fringe/admin_dsl/v1/admin_dsl_pb.ts — Generated TypeScript Admin DSL protobuf bindings
+
+
+## 2026-05-15
+
+Step 29: Wired Admin DSL protobuf/HTTP transport as Phase 14B with start/get/dispatch endpoints, frontend backend client, server tests, and task/doc updates. Validation: go test ./... -count=1; cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (8 files, 36 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/flow.go — CurrentPage snapshot helper for Admin DSL GET
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl.go — Admin DSL protobuf/HTTP handlers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/handlers_admin_dsl_test.go — Admin DSL HTTP transport tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/server/http.go — Admin DSL route registration and store wiring
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records transport wiring
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/02-backend-admin-dsl-flow-spike.md — Explains transport vs Phase 16 slotting
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Adds completed Phase 14B transport tasks
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/backendClient.ts — Generated-protobuf Admin DSL frontend client
+
+
+## 2026-05-15
+
+Step 30: Completed Phases 16-18 with reusable MSW scenario harness, adaptive policy stories, expanded screenshot script, final authoring guides, and clean cut-over to surface.* without legacy admin modal/drawer/confirm wrappers. Validation: go test ./... -count=1; cd web && npx tsc --noEmit; cd web && pnpm test -- --runInBand (9 files, 39 tests passed).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/pkg/admindsl/builder.go — Go host layout/adaptive helpers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/01-diary.md — Diary records Phases 16-18 implementation
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/03-admin-dsl-backend-author-guide.md — Backend author guide
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/04-admin-dsl-frontend-renderer-guide.md — Frontend renderer guide
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/reference/05-admin-dsl-storybook-scenario-guide.md — Storybook scenario guide
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/05/15/HAIR-039--admin-design-system-and-dsl-for-one-stylist-salon-management/tasks.md — Phases 16-18 complete with no migration-notes task
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslAdaptivePolicies.stories.tsx — Adaptive policy Storybook stories
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/AdminDslServiceScenarios.stories.tsx — Uses reusable scenario harness
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/builder.ts — Clean surface.* cut-over and layout/adaptive helpers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/mswHandlers.ts — Uses declarative scenario handlers
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/scenarioHarness.test.ts — Scenario harness tests
+- /home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/web/src/admin-dsl/scenarioHarness.tsx — Reusable Admin DSL MSW/story scenario harness
+

@@ -1,0 +1,178 @@
+[
+  {
+    "name": "StatusBar",
+    "type": "chrome",
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 44
+    },
+    "description": "System status indicators area (time, signal, battery) on a light background."
+  },
+  {
+    "name": "AppHeader",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 44,
+      "width": 390,
+      "height": 72
+    },
+    "description": "Top app header with back navigation, centered brand title, and step counter."
+  },
+  {
+    "name": "BackButton",
+    "type": "atom",
+    "bounds": {
+      "x": 16,
+      "y": 68,
+      "width": 24,
+      "height": 24
+    },
+    "description": "Chevron icon to navigate back."
+  },
+  {
+    "name": "BrandTitle",
+    "type": "atom",
+    "bounds": {
+      "x": 140,
+      "y": 66,
+      "width": 110,
+      "height": 28
+    },
+    "description": "Centered wordmark 'FRINGE'."
+  },
+  {
+    "name": "ProgressCounter",
+    "type": "atom",
+    "bounds": {
+      "x": 318,
+      "y": 66,
+      "width": 56,
+      "height": 28
+    },
+    "description": "Step indicator text showing current step and total (e.g., 06/09)."
+  },
+  {
+    "name": "ProgressBar",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 116,
+      "width": 342,
+      "height": 6
+    },
+    "description": "Thin horizontal progress bar with a filled segment indicating current progress."
+  },
+  {
+    "name": "SectionEyebrow",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 134,
+      "width": 300,
+      "height": 22
+    },
+    "description": "Small uppercase breadcrumb text: 'Chapter VI \u2022 The Budget'."
+  },
+  {
+    "name": "PageTitle",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 160,
+      "width": 342,
+      "height": 56
+    },
+    "description": "Large headline asking 'Comfortable range?'."
+  },
+  {
+    "name": "HelperText",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 216,
+      "width": 342,
+      "height": 48
+    },
+    "description": "Supporting copy explaining purpose and that tips are not included."
+  },
+  {
+    "name": "BudgetOption1",
+    "type": "molecule",
+    "bounds": {
+      "x": 16,
+      "y": 284,
+      "width": 358,
+      "height": 82
+    },
+    "description": "Selectable card with radio for 'Under $150' and subtext 'Cut or single-service touch-up'."
+  },
+  {
+    "name": "BudgetOption2",
+    "type": "molecule",
+    "bounds": {
+      "x": 16,
+      "y": 374,
+      "width": 358,
+      "height": 86
+    },
+    "description": "Selected card with tinted background and checked radio for '$150 - $250' and subtext 'Partial color + cut'."
+  },
+  {
+    "name": "BudgetOption3",
+    "type": "molecule",
+    "bounds": {
+      "x": 16,
+      "y": 466,
+      "width": 358,
+      "height": 86
+    },
+    "description": "Selectable card with radio for '$250 - $400' and subtext 'Full color \u2022 highlights + cut'."
+  },
+  {
+    "name": "BudgetOption4",
+    "type": "molecule",
+    "bounds": {
+      "x": 16,
+      "y": 558,
+      "width": 358,
+      "height": 86
+    },
+    "description": "Selectable card with radio for '$400+' and subtext 'Extensions \u2022 correction \u2022 balayage'."
+  },
+  {
+    "name": "CTABar",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 724,
+      "width": 390,
+      "height": 120
+    },
+    "description": "Sticky bottom action area containing primary and secondary actions."
+  },
+  {
+    "name": "SkipButton",
+    "type": "molecule",
+    "bounds": {
+      "x": 16,
+      "y": 760,
+      "width": 96,
+      "height": 56
+    },
+    "description": "Secondary action button labeled 'Skip' with light background and border."
+  },
+  {
+    "name": "PrimaryButton",
+    "type": "molecule",
+    "bounds": {
+      "x": 128,
+      "y": 760,
+      "width": 246,
+      "height": 56
+    },
+    "description": "Primary action button labeled 'Keep Going' with right arrow and dark filled background."
+  }
+]

@@ -1,4 +1,4 @@
-.PHONY: gifs local-keycloak-up local-keycloak-down local-keycloak-config local-seed-stylist-workflows run-local-dev run-local-oidc tmux-local-oidc-up tmux-local-oidc-down tmux-local-oidc-logs docker-build
+.PHONY: gifs local-keycloak-up local-keycloak-down local-keycloak-config local-seed-stylist-workflows run-local-dev run-local-oidc tmux-local-oidc-up tmux-local-oidc-down tmux-local-oidc-logs docker-build glazed-lint-build glazed-lint logcopter-generate logcopter-check
 
 all: gifs
 
@@ -18,18 +18,44 @@ TAPES=$(wildcard doc/vhs/*tape)
 gifs: $(TAPES)
 	for i in $(TAPES); do vhs < $$i; done
 
+GLAZED_LINT_BIN ?= /tmp/glazed-lint
+GLAZED_LINT_PKG ?= github.com/go-go-golems/glazed/cmd/tools/glazed-lint
+GLAZED_VERSION ?= $(shell GOWORK=off go list -m -f '{{.Version}}' github.com/go-go-golems/glazed 2>/dev/null)
+GLAZED_LINT_FLAGS ?= -glazedclilint.allow-paths=pkg/auth/,pkg/config/
+
 docker-lint:
 	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:latest golangci-lint run -v
 
-lint:
-	GOWORK=off golangci-lint run -v
+glazed-lint-build:
+	@echo "Building glazed-lint from Glazed module..."
+	@if [ -n "$(GLAZED_VERSION)" ] && [ "$(GLAZED_VERSION)" != "(devel)" ]; then \
+		echo "Installing $(GLAZED_LINT_PKG)@$(GLAZED_VERSION)"; \
+		GOBIN=$(dir $(GLAZED_LINT_BIN)) GOWORK=off go install $(GLAZED_LINT_PKG)@$(GLAZED_VERSION); \
+	else \
+		echo "Installing $(GLAZED_LINT_PKG) from workspace/module"; \
+		GOBIN=$(dir $(GLAZED_LINT_BIN)) go install $(GLAZED_LINT_PKG); \
+	fi
 
-lintmax:
+glazed-lint: glazed-lint-build
+	GOWORK=off go vet -vettool=$(GLAZED_LINT_BIN) $(GLAZED_LINT_FLAGS) ./cmd/... ./pkg/...
+
+lint: glazed-lint-build
+	GOWORK=off golangci-lint run -v
+	GOWORK=off go vet -vettool=$(GLAZED_LINT_BIN) $(GLAZED_LINT_FLAGS) ./cmd/... ./pkg/...
+
+lintmax: glazed-lint-build
 	GOWORK=off golangci-lint run -v --max-same-issues=100
+	GOWORK=off go vet -vettool=$(GLAZED_LINT_BIN) $(GLAZED_LINT_FLAGS) ./cmd/... ./pkg/...
 
 gosec:
 	GOWORK=off go install github.com/securego/gosec/v2/cmd/gosec@latest
-	gosec -exclude-generated -exclude=G101,G304,G301,G306 -exclude-dir=.history ./...
+	GOWORK=off gosec -exclude-generated -exclude=G101,G304,G301,G306,G204 -exclude-dir=.history -exclude-dir=gen ./...
+
+logcopter-generate:
+	GOWORK=off go tool logcopter-gen -area-prefix go-go-golems.hair-booking -strip-prefix github.com/go-go-golems/hair-booking ./pkg/... ./cmd/...
+
+logcopter-check:
+	GOWORK=off go tool logcopter-gen -area-prefix go-go-golems.hair-booking -strip-prefix github.com/go-go-golems/hair-booking -check ./pkg/... ./cmd/...
 
 govulncheck:
 	GOWORK=off go install golang.org/x/vuln/cmd/govulncheck@latest
@@ -58,10 +84,18 @@ release:
 	git push origin --tags
 	GOWORK=off GOPROXY=proxy.golang.org go list -m github.com/go-go-golems/hair-booking@$(shell svu current)
 
-bump-glazed:
-	GOWORK=off go get github.com/go-go-golems/glazed@latest
-	GOWORK=off go get github.com/go-go-golems/clay@latest
+bump-go-go-golems:
+	@deps="$$(awk '/^require[[:space:]]+github\.com\/go-go-golems\// { print $$2 } /^[[:space:]]*github\.com\/go-go-golems\// { print $$1 }' go.mod | sort -u)"; \
+	if [ -z "$$deps" ]; then \
+		echo "No github.com/go-go-golems dependencies in go.mod"; \
+	else \
+		echo "Bumping go-go-golems dependencies:"; \
+		echo "$$deps"; \
+		for dep in $$deps; do GOWORK=off go get "$${dep}@latest"; done; \
+	fi
 	GOWORK=off go mod tidy
+
+bump-glazed: bump-go-go-golems
 
 HAIR_BOOKING_BINARY=$(shell which $(BINARY))
 install:

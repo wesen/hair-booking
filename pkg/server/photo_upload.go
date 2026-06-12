@@ -10,7 +10,11 @@ import (
 	"github.com/pkg/errors"
 )
 
-const maxPhotoUploadBytes = 10 << 20
+const (
+	maxPhotoUploadBytes     = 10 << 20
+	multipartUploadOverhead = 1 << 20
+	maxMultipartUploadBytes = maxPhotoUploadBytes + multipartUploadOverhead
+)
 
 func readValidatedPhotoUpload(file multipart.File, header *multipart.FileHeader) (*bytes.Reader, error) {
 	if file == nil || header == nil {

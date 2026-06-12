@@ -9,7 +9,6 @@ import (
 	hairintake "github.com/go-go-golems/hair-booking/pkg/intake"
 	hairservices "github.com/go-go-golems/hair-booking/pkg/services"
 	"github.com/google/uuid"
-	"github.com/rs/zerolog/log"
 )
 
 type servicesResponse struct {
@@ -133,7 +132,8 @@ func (h *appHandler) handleIntakePhoto(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := r.ParseMultipartForm(maxPhotoUploadBytes); err != nil {
+	r.Body = http.MaxBytesReader(w, r.Body, maxMultipartUploadBytes)
+	if err := r.ParseMultipartForm(maxPhotoUploadBytes); err != nil { // #nosec G120 -- request body is bounded with http.MaxBytesReader above
 		writeAPIError(w, http.StatusBadRequest, "invalid-form", "Request body must be multipart/form-data.")
 		return
 	}

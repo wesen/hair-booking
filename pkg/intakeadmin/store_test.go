@@ -1,0 +1,191 @@
+package intakeadmin
+
+import (
+	"context"
+	"database/sql"
+	"testing"
+
+	"github.com/go-go-golems/hair-booking/pkg/dslhost"
+	_ "github.com/mattn/go-sqlite3"
+)
+
+func openStateDB(t *testing.T) *sql.DB {
+	t.Helper()
+	host, err := dslhost.OpenDB(context.Background(), dslhost.DBOptions{Path: ":memory:", Migrate: true})
+	if err != nil {
+		t.Fatalf("open DSL DB: %v", err)
+	}
+	t.Cleanup(func() { _ = host.Close() })
+	if err := ProvisionSchema(context.Background(), host.DB); err != nil {
+		t.Fatalf("provision intake admin schema: %v", err)
+	}
+	return host.DB
+}
+
+func openConfigDB(t *testing.T) *sql.DB {
+	t.Helper()
+	host, err := dslhost.OpenConfigDB(context.Background(), dslhost.DBOptions{Path: ":memory:", Migrate: true})
+	if err != nil {
+		t.Fatalf("open config DB: %v", err)
+	}
+	t.Cleanup(func() { _ = host.Close() })
+	return host.DB
+}
+
+func TestStoreCreateListAndUpdateRequest(t *testing.T) {
+	store := NewStore(openStateDB(t), openConfigDB(t))
+	damage := 2
+	created, err := store.CreateRequest(context.Background(), RequestInput{
+		UserID:          "user_1",
+		ConfigVersionID: "cfg_default",
+		ServiceCategory: "color",
+		ServiceValue:    "highlights",
+		Tones:           []string{"dimensional"},
+		Damage:          &damage,
+		Photos:          map[string]any{"front": map[string]any{"uploadId": "upl_1"}},
+		BudgetValue:     "flexible",
+		DayValue:        "2026-06-19",
+		TimeValue:       "12:00",
+		EstimateLabel:   "$220–$420",
+	})
+	if err != nil {
+		t.Fatalf("CreateRequest: %v", err)
+	}
+	if created.ID == "" || created.Status != "new" || created.ServiceValue != "highlights" {
+		t.Fatalf("unexpected created request: %#v", created)
+	}
+
+	requests, err := store.ListRequests(context.Background(), RequestFilters{Status: "new"})
+	if err != nil {
+		t.Fatalf("ListRequests: %v", err)
+	}
+	if len(requests) != 1 || requests[0].ID != created.ID {
+		t.Fatalf("unexpected list: %#v", requests)
+	}
+
+	updated, err := store.UpdateRequestStatus(context.Background(), created.ID, "reviewing", Actor{UserID: "admin_1", Role: "admin"}, "Looks good")
+	if err != nil {
+		t.Fatalf("UpdateRequestStatus: %v", err)
+	}
+	if updated.Status != "reviewing" || updated.InternalNotes == "" {
+		t.Fatalf("unexpected updated request: %#v", updated)
+	}
+}
+
+func TestStoreDashboardStatsAndConfigDraftPublish(t *testing.T) {
+	store := NewStore(openStateDB(t), openConfigDB(t))
+	if _, err := store.CreateRequest(context.Background(), RequestInput{ConfigVersionID: "cfg_default", ServiceCategory: "color", ServiceValue: "cut"}); err != nil {
+		t.Fatalf("CreateRequest: %v", err)
+	}
+	stats, err := store.DashboardStats(context.Background())
+	if err != nil {
+		t.Fatalf("DashboardStats: %v", err)
+	}
+	if stats.NewRequests != 1 || stats.ActiveConfigID != "cfg_default" {
+		t.Fatalf("unexpected stats: %#v", stats)
+	}
+
+	draft, err := store.CreateDraftFromActive(context.Background(), "Summer draft", Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("CreateDraftFromActive: %v", err)
+	}
+	if draft.Status != "draft" || draft.ID == "cfg_default" {
+		t.Fatalf("unexpected draft: %#v", draft)
+	}
+	var copied int
+	if err := store.ConfigDB.QueryRow(`SELECT count(*) FROM dsl_service_options WHERE config_version_id = ?`, draft.ID).Scan(&copied); err != nil {
+		t.Fatalf("count copied services: %v", err)
+	}
+	if copied == 0 {
+		t.Fatalf("expected copied service options")
+	}
+	editor, err := store.GetConfigEditorData(context.Background(), draft.ID)
+	if err != nil {
+		t.Fatalf("GetConfigEditorData: %v", err)
+	}
+	if editor.Version.ID != draft.ID || len(editor.Services) == 0 || len(editor.Tones) == 0 || len(editor.Budgets) == 0 || len(editor.PriceRanges) == 0 || !editor.Validation.OK {
+		t.Fatalf("unexpected editor data: %#v", editor)
+	}
+	updatedService, err := store.UpdateServiceOption(context.Background(), ConfigServiceOptionInput{ID: editor.Services[0].ID, Category: editor.Services[0].Category, Value: editor.Services[0].Value, Title: "Precision Cut", Subtitle: "Updated subtitle", Badge: "$95+", SortOrder: 15, Enabled: true}, Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("UpdateServiceOption: %v", err)
+	}
+	if updatedService.Title != "Precision Cut" || updatedService.Badge != "$95+" || updatedService.SortOrder != 15 {
+		t.Fatalf("unexpected updated service: %#v", updatedService)
+	}
+	updatedTone, err := store.UpdateToneOption(context.Background(), ConfigToneOptionInput{ID: editor.Tones[0].ID, Value: editor.Tones[0].Value, Label: "Soft neutral", SortOrder: 12, Enabled: true}, Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("UpdateToneOption: %v", err)
+	}
+	if updatedTone.Label != "Soft neutral" || updatedTone.SortOrder != 12 {
+		t.Fatalf("unexpected updated tone: %#v", updatedTone)
+	}
+	updatedBudget, err := store.UpdateBudgetOption(context.Background(), ConfigBudgetOptionInput{ID: editor.Budgets[0].ID, Value: editor.Budgets[0].Value, Title: "Under $225", Subtitle: "Updated budget", SortOrder: 14, Enabled: true}, Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("UpdateBudgetOption: %v", err)
+	}
+	if updatedBudget.Title != "Under $225" || updatedBudget.SortOrder != 14 {
+		t.Fatalf("unexpected updated budget: %#v", updatedBudget)
+	}
+	minCents, maxCents := 9000, 18000
+	updatedPrice, err := store.UpdatePriceRange(context.Background(), ConfigPriceRangeInput{ID: editor.PriceRanges[0].ID, ServiceValue: editor.PriceRanges[0].ServiceValue, BudgetValue: editor.PriceRanges[0].BudgetValue, Label: "$90–$180", MinCents: &minCents, MaxCents: &maxCents}, Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("UpdatePriceRange: %v", err)
+	}
+	if updatedPrice.Label != "$90–$180" || updatedPrice.MinCents == nil || *updatedPrice.MinCents != 9000 {
+		t.Fatalf("unexpected updated price: %#v", updatedPrice)
+	}
+	updatedDay, err := store.UpdateAvailabilityDay(context.Background(), ConfigAvailabilityDayInput{ID: editor.AvailabilityDays[0].ID, Value: editor.AvailabilityDays[0].Value, Day: editor.AvailabilityDays[0].Day, Date: editor.AvailabilityDays[0].Date, Dot: false, Disabled: true, DisabledReason: "Private event", SortOrder: 11}, Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("UpdateAvailabilityDay: %v", err)
+	}
+	if !updatedDay.Disabled || updatedDay.DisabledReason != "Private event" {
+		t.Fatalf("unexpected updated day: %#v", updatedDay)
+	}
+	updatedSlot, err := store.UpdateTimeSlot(context.Background(), ConfigTimeSlotInput{ID: editor.TimeSlots[0].ID, Value: "11:00", Title: "11:00a", SortOrder: 16, Enabled: true}, Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("UpdateTimeSlot: %v", err)
+	}
+	if updatedSlot.Value != "11:00" || updatedSlot.Title != "11:00a" {
+		t.Fatalf("unexpected updated slot: %#v", updatedSlot)
+	}
+	createdServiceID, err := store.CreateConfigEntity(context.Background(), ConfigEntityInput{Kind: "service", ConfigVersionID: draft.ID, Values: map[string]any{"category": "color", "value": "consult", "title": "Consultation", "sortOrder": 99, "enabled": true}}, Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("CreateConfigEntity service: %v", err)
+	}
+	if createdServiceID == "" {
+		t.Fatalf("expected created service id")
+	}
+	if err := store.DeleteConfigEntity(context.Background(), "service", createdServiceID, Actor{UserID: "admin_1", Role: "admin"}); err != nil {
+		t.Fatalf("DeleteConfigEntity service: %v", err)
+	}
+
+	published, err := store.PublishConfigVersion(context.Background(), draft.ID, Actor{UserID: "admin_1", Role: "admin"})
+	if err != nil {
+		t.Fatalf("PublishConfigVersion: %v", err)
+	}
+	if published.Status != "active" {
+		t.Fatalf("expected active published config, got %#v", published)
+	}
+	var audits int
+	if err := store.StateDB.QueryRow(`SELECT count(*) FROM admin_audit_events WHERE entity_type = 'config_version'`).Scan(&audits); err != nil {
+		t.Fatalf("count config audit events: %v", err)
+	}
+	if audits < 2 {
+		t.Fatalf("expected create draft and publish audit events, got %d", audits)
+	}
+	events, err := store.ListAuditEvents(context.Background(), 10)
+	if err != nil {
+		t.Fatalf("ListAuditEvents: %v", err)
+	}
+	if len(events) == 0 {
+		t.Fatalf("expected audit events")
+	}
+	health, err := store.HealthDiagnostics(context.Background())
+	if err != nil {
+		t.Fatalf("HealthDiagnostics: %v", err)
+	}
+	if !health.OK || health.ActiveConfigID == "" || health.AuditEventCount == 0 {
+		t.Fatalf("unexpected health diagnostics: %#v", health)
+	}
+}

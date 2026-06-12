@@ -1,0 +1,64 @@
+--- pinocchio explicit gpt-5-nano-low ---
+48:        api_type: openai-responses
+52:        engine: gpt-5-nano
+53:        max_response_tokens: 128000
+71:        engine: text-embedding-3-small
+75:        reasoning_effort: low
+76:        reasoning_summary: concise
+99:        reasoning_effort: medium
+100:        reasoning_summary: auto
+179:        api_type:
+254:        engine:
+281:        max_response_tokens:
+509:        engine:
+542:        reasoning_effort:
+556:        reasoning_summary:
+757:        reasoning_effort:
+773:        reasoning_summary:
+
+--- pinocchio default ---
+48:        api_type: openai-responses
+52:        engine: gpt-5-nano
+53:        max_response_tokens: 20000
+71:        engine: text-embedding-3-small
+97:        reasoning_effort: medium
+98:        reasoning_summary: auto
+177:        api_type:
+252:        engine:
+279:        max_response_tokens:
+507:        engine:
+726:        reasoning_effort:
+742:        reasoning_summary:
+
+--- css-visual-diff explicit gpt-5-nano-low ---
+20:        api_type: openai-responses
+24:        engine: gpt-5-nano
+25:        max_response_tokens: 128000
+43:        engine: text-embedding-3-small
+47:        reasoning_effort: low
+48:        reasoning_summary: concise
+71:        reasoning_effort: medium
+72:        reasoning_summary: auto
+150:        api_type:
+201:        engine:
+222:        max_response_tokens:
+376:        engine:
+397:        reasoning_effort:
+411:        reasoning_summary:
+582:        reasoning_effort:
+592:        reasoning_summary:
+
+--- css-visual-diff default ---
+20:        api_type: openai-responses
+24:        engine: gpt-5-nano
+25:        max_response_tokens: 20000
+43:        engine: text-embedding-3-small
+69:        reasoning_effort: medium
+70:        reasoning_summary: auto
+148:        api_type:
+199:        engine:
+220:        max_response_tokens:
+374:        engine:
+551:        reasoning_effort:
+561:        reasoning_summary:
+

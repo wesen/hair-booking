@@ -11,16 +11,14 @@ import (
 )
 
 type LocalStore struct {
-	baseDir       string
-	publicBaseURL string
+	baseDir string
 }
 
 var _ BlobStore = (*LocalStore)(nil)
 
-func NewLocalStore(baseDir, publicBaseURL string) *LocalStore {
+func NewLocalStore(baseDir string) *LocalStore {
 	return &LocalStore{
-		baseDir:       strings.TrimSpace(baseDir),
-		publicBaseURL: strings.TrimRight(strings.TrimSpace(publicBaseURL), "/"),
+		baseDir: strings.TrimSpace(baseDir),
 	}
 }
 
@@ -53,9 +51,6 @@ func (s *LocalStore) Save(ctx context.Context, key string, reader io.Reader) (*S
 	}
 
 	url := "/uploads/" + cleanKey
-	if s.publicBaseURL != "" {
-		url = s.publicBaseURL + url
-	}
 
 	return &SavedObject{
 		StorageKey: cleanKey,

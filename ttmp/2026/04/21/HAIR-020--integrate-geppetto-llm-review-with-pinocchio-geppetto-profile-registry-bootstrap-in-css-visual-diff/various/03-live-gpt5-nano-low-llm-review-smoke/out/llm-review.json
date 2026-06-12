@@ -1,0 +1,44 @@
+{
+  "question": "What are the main visual differences and likely CSS causes?",
+  "answer": "Concise summary of differences\n\n Biggest visual shifts (Right vs Left):\n- Button size increases substantially\n  - Width: 106px → 135px\n  - Height: 42px → 57px\n  - Padding: top/bottom 12px → 18px; left/right 18px → 28px\n  - Font-size: 16px → 18px\n  Impact: a noticeably larger, more prominent control with more breathing room around the label.\n\n- Background and text color swap\n  - Background: rgb(47, 27, 58) (dark purple) → rgb(239, 141, 115) (peach)\n  - Text color: rgb(255, 255, 255) (white) → rgb(47, 27, 58) (dark purple)\n  Impact: readable but inverted contrast; the peach button with dark text reads very differently from the dark purple with white text.\n\n- Border radius and shadow\n  - Border-radius: 12px → 24px (more rounded)\n  - Box-shadow: none → rgba(47, 27, 58, 0.18) 0px 10px 30px 0px\n  Impact: button appears more pill-like and elevated on the right; shadow increases depth.\n\n- Likely CSS causes\n  - Different theme/color variables or direct color/test values applied to #cta in the right region (background-color and color changes).\n  - Increased padding and font-size from a mobile breakpoint or a “cta-large” variant in CSS (media query) causing width/height, padding, and font-size changes.\n  - Border-radius and shadow adjustments from the same variant or override, producing a more rounded, elevated button.\n  - The large pixel-diff and 97.9% changed pixels indicate comprehensive style changes to this element rather than layout-only tweaks.\n\nUser-facing impact\n- The right CTA appears larger, more touch-friendly, and visually distinct due to color shift to peach, stronger elevation, and rounded shape. This can affect perceived emphasis and readability against surrounding UI. The text color reversal (white on dark vs dark on peach) also alters contrast and legibility depending on the label text.\n\nNote on rules\n- The winning-rule selector changes were not observed in the provided property set, so these differences come from style overrides elsewhere (e.g., different class/theme rules for #cta) rather than a single selector changing its specificity.",
+  "model": "gpt-5-nano",
+  "provider": "open_responses",
+  "apiType": "openai-responses",
+  "profile": "gpt-5-nano-low",
+  "registry": "default",
+  "promptSummary": "question=\"What are the main visual differences and likely CSS causes?\" computedDiffs=11 winnerDiffs=26 pixelDiff=97.93%",
+  "artifacts": {
+    "comparison": "/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/04/21/HAIR-020--integrate-geppetto-llm-review-with-pinocchio-geppetto-profile-registry-bootstrap-in-css-visual-diff/various/03-live-gpt5-nano-low-llm-review-smoke/out/diff_comparison.png",
+    "left": "/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/04/21/HAIR-020--integrate-geppetto-llm-review-with-pinocchio-geppetto-profile-registry-bootstrap-in-css-visual-diff/various/03-live-gpt5-nano-low-llm-review-smoke/out/url1_screenshot.png",
+    "right": "/home/manuel/workspaces/2026-04-21/hair-v2/hair-booking/ttmp/2026/04/21/HAIR-020--integrate-geppetto-llm-review-with-pinocchio-geppetto-profile-registry-bootstrap-in-css-visual-diff/various/03-live-gpt5-nano-low-llm-review-smoke/out/url2_screenshot.png"
+  },
+  "inferenceResult": {
+    "provider": "open_responses",
+    "model": "gpt-5-nano",
+    "finish_class": "unknown",
+    "usage": {
+      "input_tokens": 386,
+      "output_tokens": 989
+    },
+    "max_tokens": 128000,
+    "duration_ms": 6843,
+    "extra": {
+      "reasoning_tokens": 448,
+      "saying_text": "Concise summary of differences\n\n Biggest visual shifts (Right vs Left):\n- Button size increases substantially\n  - Width: 106px → 135px\n  - Height: 42px → 57px\n  - Padding: top/bottom 12px → 18px; left/right 18px → 28px\n  - Font-size: 16px → 18px\n  Impact: a noticeably larger, more prominent control with more breathing room around the label.\n\n- Background and text color swap\n  - Background: rgb(47, 27, 58) (dark purple) → rgb(239, 141, 115) (peach)\n  - Text color: rgb(255, 255, 255) (white) → rgb(47, 27, 58) (dark purple)\n  Impact: readable but inverted contrast; the peach button with dark text reads very differently from the dark purple with white text.\n\n- Border radius and shadow\n  - Border-radius: 12px → 24px (more rounded)\n  - Box-shadow: none → rgba(47, 27, 58, 0.18) 0px 10px 30px 0px\n  Impact: button appears more pill-like and elevated on the right; shadow increases depth.\n\n- Likely CSS causes\n  - Different theme/color variables or direct color/test values applied to #cta in the right region (background-color and color changes).\n  - Increased padding and font-size from a mobile breakpoint or a “cta-large” variant in CSS (media query) causing width/height, padding, and font-size changes.\n  - Border-radius and shadow adjustments from the same variant or override, producing a more rounded, elevated button.\n  - The large pixel-diff and 97.9% changed pixels indicate comprehensive style changes to this element rather than layout-only tweaks.\n\nUser-facing impact\n- The right CTA appears larger, more touch-friendly, and visually distinct due to color shift to peach, stronger elevation, and rounded shape. This can affect perceived emphasis and readability against surrounding UI. The text color reversal (white on dark vs dark on peach) also alters contrast and legibility depending on the label text.\n\nNote on rules\n- The winning-rule selector changes were not observed in the provided property set, so these differences come from style overrides elsewhere (e.g., different class/theme rules for #cta) rather than a single selector changing its specificity.",
+      "settings": {
+        "ai-api-type": "openai-responses",
+        "ai-engine": "gpt-5-nano",
+        "ai-max-response-tokens": 128000,
+        "ai-temperature": 0.7,
+        "embeddings-dimensions": 1536,
+        "embeddings-engine": "text-embedding-3-small",
+        "embeddings-type": "openai",
+        "inference-reasoning-effort": "low",
+        "inference-reasoning-summary": "concise",
+        "ollama-temperature": 0.8,
+        "proxy-from-environment": true
+      },
+      "thinking_text": ""
+    }
+  }
+}

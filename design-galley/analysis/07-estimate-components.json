@@ -1,0 +1,189 @@
+[
+  {
+    "name": "StatusBar",
+    "type": "chrome",
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 44
+    },
+    "description": "System status area showing time, signal, and battery."
+  },
+  {
+    "name": "AppHeader",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 44,
+      "width": 390,
+      "height": 64
+    },
+    "description": "Top app bar with back chevron on the left, brand title 'FRINGE' centered, and step counter '07/09' on the right."
+  },
+  {
+    "name": "ProgressBar",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 104,
+      "width": 342,
+      "height": 4
+    },
+    "description": "Thin progress indicator beneath the header showing booking flow progress."
+  },
+  {
+    "name": "EstimateHeader",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 120,
+      "width": 342,
+      "height": 76
+    },
+    "description": "Section intro with subtitle 'Chapter VII \u2013 The Quote' and large title 'Your Estimate'."
+  },
+  {
+    "name": "EstimatedTotalCard",
+    "type": "organism",
+    "bounds": {
+      "x": 24,
+      "y": 206,
+      "width": 342,
+      "height": 120
+    },
+    "description": "Prominent card showing 'Estimated Total' with large price ($245) and a duration badge (e.g., 3h 15m)."
+  },
+  {
+    "name": "DividerAfterTotal",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 334,
+      "width": 342,
+      "height": 1
+    },
+    "description": "Hairline rule separating the total card from the summary list."
+  },
+  {
+    "name": "ServiceItem",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 348,
+      "width": 342,
+      "height": 72
+    },
+    "description": "Summary row: label 'Service', selected option 'Partial Highlights + Cut', and 'edit' link on the right."
+  },
+  {
+    "name": "DividerService",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 420,
+      "width": 342,
+      "height": 1
+    },
+    "description": "Hairline rule under the service row."
+  },
+  {
+    "name": "ColorLevelItem",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 432,
+      "width": 342,
+      "height": 72
+    },
+    "description": "Summary row: label 'Color Level', value 'Level 7 \u2192 Level 8', and 'edit' link on the right."
+  },
+  {
+    "name": "DividerColorLevel",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 504,
+      "width": 342,
+      "height": 1
+    },
+    "description": "Hairline rule under the color level row."
+  },
+  {
+    "name": "LengthItem",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 516,
+      "width": 342,
+      "height": 72
+    },
+    "description": "Summary row: label 'Length', value 'Mid-Back - No Extensions', and 'edit' link on the right."
+  },
+  {
+    "name": "DividerLength",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 588,
+      "width": 342,
+      "height": 1
+    },
+    "description": "Hairline rule under the length row."
+  },
+  {
+    "name": "AddOnsItem",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 600,
+      "width": 342,
+      "height": 56
+    },
+    "description": "Summary row: label 'Add-Ons' with selected add-on 'Olaplex Bond Treatment - $45'."
+  },
+  {
+    "name": "NoticeCard",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 666,
+      "width": 342,
+      "height": 88
+    },
+    "description": "Highlighted informational note stating the price is an estimate and may change after in-salon assessment."
+  },
+  {
+    "name": "CTABar",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 764,
+      "width": 390,
+      "height": 80
+    },
+    "description": "Sticky footer with two actions: secondary 'Skip' and primary 'Keep Going'."
+  },
+  {
+    "name": "SecondaryButton",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 780,
+      "width": 132,
+      "height": 48
+    },
+    "description": "Outlined button labeled 'Skip'."
+  },
+  {
+    "name": "PrimaryButton",
+    "type": "atom",
+    "bounds": {
+      "x": 174,
+      "y": 780,
+      "width": 192,
+      "height": 48
+    },
+    "description": "Filled primary button labeled 'Keep Going \u2192'."
+  }
+]

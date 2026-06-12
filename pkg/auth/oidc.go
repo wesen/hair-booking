@@ -511,7 +511,7 @@ func fetchOIDCDiscovery(ctx context.Context, client *http.Client, discoveryURL s
 }
 
 func setShortLivedCookie(w http.ResponseWriter, name, value string, secure bool) {
-	http.SetCookie(w, &http.Cookie{
+	http.SetCookie(w, &http.Cookie{ // #nosec G124 -- Secure is supplied by caller based on HTTPS/proxy/local-dev context
 		Name:     name,
 		Value:    value,
 		Path:     "/",
@@ -523,7 +523,7 @@ func setShortLivedCookie(w http.ResponseWriter, name, value string, secure bool)
 }
 
 func clearCookie(w http.ResponseWriter, name string, secure bool) {
-	http.SetCookie(w, &http.Cookie{
+	http.SetCookie(w, &http.Cookie{ // #nosec G124 -- Secure matches original cookie mode so deletion works in dev and production
 		Name:     name,
 		Value:    "",
 		Path:     "/",

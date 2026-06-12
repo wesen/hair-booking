@@ -1,0 +1,178 @@
+[
+  {
+    "name": "StatusBar",
+    "type": "chrome",
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 390,
+      "height": 44
+    },
+    "description": "System time and status icons."
+  },
+  {
+    "name": "AppHeader",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 44,
+      "width": 390,
+      "height": 64
+    },
+    "description": "Top app bar with back chevron on the left, FRINGE logo centered, and step counter 01/09 on the right."
+  },
+  {
+    "name": "SectionProgressBar",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 106,
+      "width": 56,
+      "height": 4
+    },
+    "description": "Short accent line under header indicating section."
+  },
+  {
+    "name": "ChapterKicker",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 120,
+      "width": 342,
+      "height": 20
+    },
+    "description": "Small uppercase label: Chapter 1 \u2022 The Ask."
+  },
+  {
+    "name": "PageTitle",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 148,
+      "width": 342,
+      "height": 64
+    },
+    "description": "Large headline: What brings you in?"
+  },
+  {
+    "name": "Subtitle",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 216,
+      "width": 342,
+      "height": 22
+    },
+    "description": "Helper text: Pick one to start \u2014 you can add more later."
+  },
+  {
+    "name": "ServiceList",
+    "type": "organism",
+    "bounds": {
+      "x": 16,
+      "y": 250,
+      "width": 358,
+      "height": 476
+    },
+    "description": "Vertical stack of selectable service cards."
+  },
+  {
+    "name": "ServiceOptionCut",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 270,
+      "width": 342,
+      "height": 84
+    },
+    "description": "Card: title CUT, subtitle chips (Trim, restyle, bangs), price $80+ at right."
+  },
+  {
+    "name": "ServiceOptionColor",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 362,
+      "width": 342,
+      "height": 84
+    },
+    "description": "Card: title COLOR, subtitle chips (Single process, gloss, root touch-up), price $120+."
+  },
+  {
+    "name": "ServiceOptionHighlights",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 454,
+      "width": 342,
+      "height": 86
+    },
+    "description": "Card (selected): title HIGHLIGHTS, subtitle chips (Partial, full, balayage), price $180+."
+  },
+  {
+    "name": "SelectedIndicator",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 454,
+      "width": 4,
+      "height": 86
+    },
+    "description": "Vertical accent bar indicating selected service."
+  },
+  {
+    "name": "ServiceOptionExtensions",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 546,
+      "width": 342,
+      "height": 84
+    },
+    "description": "Card: title EXTENSIONS, subtitle (Tape-in, hand-tied, consultation first), price $400+."
+  },
+  {
+    "name": "ServiceOptionTreatment",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 638,
+      "width": 342,
+      "height": 84
+    },
+    "description": "Card: title TREATMENT, subtitle (Olaplex, bond-repair, scalp), price $60+."
+  },
+  {
+    "name": "CTABar",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 736,
+      "width": 390,
+      "height": 108
+    },
+    "description": "Sticky action bar with secondary and primary actions."
+  },
+  {
+    "name": "SkipButton",
+    "type": "molecule",
+    "bounds": {
+      "x": 16,
+      "y": 752,
+      "width": 120,
+      "height": 56
+    },
+    "description": "Outlined button labeled SKIP."
+  },
+  {
+    "name": "PrimaryCTAButton",
+    "type": "molecule",
+    "bounds": {
+      "x": 148,
+      "y": 752,
+      "width": 226,
+      "height": 56
+    },
+    "description": "Primary filled button labeled KEEP GOING \u2192."
+  }
+]

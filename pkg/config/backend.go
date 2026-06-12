@@ -15,7 +15,6 @@ const (
 	StorageModeLocal       = "local"
 	StorageModeS3          = "s3"
 	DefaultStorageLocalDir = "./var/uploads"
-	DefaultPublicBaseURL   = "http://127.0.0.1:8080"
 	DefaultAutoMigrate     = true
 )
 
@@ -23,7 +22,6 @@ type Settings struct {
 	DatabaseURL         string `glazed:"database-url"`
 	StorageMode         string `glazed:"storage-mode"`
 	StorageLocalDir     string `glazed:"storage-local-dir"`
-	PublicBaseURL       string `glazed:"public-base-url"`
 	FrontendDevProxyURL string `glazed:"frontend-dev-proxy-url"`
 	AutoMigrate         bool   `glazed:"auto-migrate"`
 }
@@ -51,12 +49,6 @@ func NewSection() (schema.Section, error) {
 				fields.TypeString,
 				fields.WithHelp("Directory used for local upload storage"),
 				fields.WithDefault(envOr("HAIR_BOOKING_STORAGE_LOCAL_DIR", DefaultStorageLocalDir)),
-			),
-			fields.New(
-				"public-base-url",
-				fields.TypeString,
-				fields.WithHelp("Base URL used to build public upload URLs"),
-				fields.WithDefault(envOr("HAIR_BOOKING_PUBLIC_BASE_URL", DefaultPublicBaseURL)),
 			),
 			fields.New(
 				"frontend-dev-proxy-url",
@@ -106,10 +98,6 @@ func NormalizeSettings(settings *Settings) (*Settings, error) {
 		settings.StorageLocalDir = DefaultStorageLocalDir
 	}
 
-	settings.PublicBaseURL = strings.TrimSpace(settings.PublicBaseURL)
-	if settings.PublicBaseURL == "" {
-		settings.PublicBaseURL = DefaultPublicBaseURL
-	}
 	settings.FrontendDevProxyURL = strings.TrimSpace(settings.FrontendDevProxyURL)
 
 	return settings, nil

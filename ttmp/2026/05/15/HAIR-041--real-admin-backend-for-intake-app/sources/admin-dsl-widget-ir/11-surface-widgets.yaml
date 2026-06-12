@@ -1,0 +1,359 @@
+schema_version: 2
+artifact_type: admin_dsl_widget_definition_ir
+category: surface_widgets
+summary: Surface widgets extracted from modal/drawer/sheet/detailPanel/inlinePanel and confirmDialog branches.
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md
+widgets:
+- id: admin.surface.overlay-surface
+  name: OverlaySurface
+  status: promoted
+  classification:
+    level: organism
+    description: OverlaySurface participates in the Admin DSL component system as a organism; its level controls scaffold
+      location and Storybook grouping.
+  source_mapping:
+    current_constructs:
+    - shared branch for modal, drawer, sheet, detailPanel, inlinePanel
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: OverlaySurface widget.
+    design_rationale: OverlaySurface extracts a named React boundary from the old Admin DSL renderer so behavior, stories,
+      styling, and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed OverlaySurface props. OverlaySurface
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
+    implementation_notes:
+    - Implement OverlaySurface using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
+    accessibility_notes:
+    - Ensure OverlaySurface exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
+  contract:
+    props:
+      OverlaySurfaceProps:
+        doc: Props for OverlaySurface. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
+        fields:
+          surfaceId:
+            type: string
+            required: true
+            doc: 'surfaceId configures overlay surface. Type: string.'
+          kind:
+            type: OverlaySurfaceKind
+            required: true
+            doc: 'kind configures overlay surface. Type: OverlaySurfaceKind.'
+          title:
+            type: string
+            required: true
+            doc: Primary heading or title rendered by OverlaySurface.
+          open:
+            type: boolean
+            required: false
+            doc: 'open configures overlay surface. Type: boolean.'
+          children:
+            type: React.ReactNode
+            required: true
+            doc: Already-rendered child content owned by the caller/adapter and placed inside OverlaySurface.
+          closeAction:
+            type: ActionViewModel
+            required: false
+            doc: 'closeAction configures overlay surface. Type: ActionViewModel.'
+          footerActions:
+            type: ActionViewModel[]
+            required: false
+            doc: Panel-local actions rendered in the footer area of OverlaySurface.
+          onCloseAction:
+            type: '(action: ActionViewModel, context: { surfaceId: string; kind: OverlaySurfaceKind }) => void'
+            required: false
+            doc: 'onCloseAction configures overlay surface. Type: (action: ActionViewModel, context: { surfaceId: string;
+              kind: OverlaySurfaceKind }) => void.'
+          onFooterAction:
+            type: '(action: ActionViewModel, context: { surfaceId: string; kind: OverlaySurfaceKind }) => void'
+            required: false
+            doc: 'onFooterAction configures overlay surface. Type: (action: ActionViewModel, context: { surfaceId: string;
+              kind: OverlaySurfaceKind }) => void.'
+        extends: CommonWidgetProps
+    action_slots:
+      close:
+        doc: close action slot for OverlaySurface. The widget emits the declared context through onAction and adapters lower
+          it to runtime dispatch.
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: CloseContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the close slot on OverlaySurface.
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+      footer:
+        doc: footer action slot for OverlaySurface. The widget emits the declared context through onAction and adapters lower
+          it to runtime dispatch.
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: FooterContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the footer slot on OverlaySurface.
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by OverlaySurface. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed OverlaySurface props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <OverlaySurface />
+  stories:
+    Modal:
+      doc: Tests the Modal scenario for OverlaySurface with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: modal
+      asserts:
+      - OverlaySurface renders the Modal scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    Drawer:
+      doc: Tests the Drawer scenario for OverlaySurface with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: drawer
+      asserts:
+      - OverlaySurface renders the Drawer scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    Sheet:
+      doc: Tests the Sheet scenario for OverlaySurface with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: sheet
+      asserts:
+      - OverlaySurface renders the Sheet scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    DetailPanel:
+      doc: Tests the DetailPanel scenario for OverlaySurface with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: detailPanel
+      asserts:
+      - OverlaySurface renders the DetailPanel scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    InlinePanel:
+      doc: Tests the InlinePanel scenario for OverlaySurface with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: inlinePanel
+      asserts:
+      - OverlaySurface renders the InlinePanel scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    ClosedDashedPreview:
+      doc: Tests closed/preview styling for OverlaySurface.
+      viewport: desktop
+      fixtures:
+        scenario: closedDashedPreview
+      asserts:
+      - OverlaySurface renders the ClosedDashedPreview scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    WithFooterActions:
+      doc: Tests footer action slot rendering for OverlaySurface.
+      viewport: desktop
+      fixtures:
+        scenario: withFooterActions
+      asserts:
+      - OverlaySurface renders the WithFooterActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    MobileSurface:
+      doc: Tests the MobileSurface scenario for OverlaySurface with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: mobileSurface
+      asserts:
+      - OverlaySurface renders the MobileSurface scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/OverlaySurface/OverlaySurface.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/OverlaySurface/OverlaySurface.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/OverlaySurface/OverlaySurface.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/OverlaySurface/index.ts
+    tests:
+      path: web/src/admin-dsl/widgets/organisms/OverlaySurface/OverlaySurface.test.tsx
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+- id: admin.surface.confirm-dialog
+  name: ConfirmDialog
+  status: promoted
+  classification:
+    level: organism
+    description: ConfirmDialog participates in the Admin DSL component system as a organism; its level controls scaffold location
+      and Storybook grouping.
+  source_mapping:
+    current_constructs:
+    - case "confirmDialog"
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: ConfirmDialog widget.
+    design_rationale: ConfirmDialog extracts a named React boundary from the old Admin DSL renderer so behavior, stories,
+      styling, and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed ConfirmDialog props. ConfirmDialog
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
+    implementation_notes:
+    - Implement ConfirmDialog using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
+    accessibility_notes:
+    - Ensure ConfirmDialog exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
+  contract:
+    props:
+      ConfirmDialogProps:
+        doc: Props for ConfirmDialog. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
+        fields:
+          dialogId:
+            type: string
+            required: true
+            doc: 'dialogId configures confirm dialog. Type: string.'
+          title:
+            type: string
+            required: true
+            doc: Primary heading or title rendered by ConfirmDialog.
+          body:
+            type: string
+            required: false
+            doc: Optional body copy rendered by ConfirmDialog.
+          tone:
+            type: '"neutral" | "danger"'
+            required: false
+            doc: Visual tone used for status, emphasis, or border treatment in ConfirmDialog.
+          confirmLabel:
+            type: string
+            required: false
+            doc: 'confirmLabel configures confirm dialog. Type: string.'
+          confirmAction:
+            type: ActionViewModel
+            required: false
+            doc: 'confirmAction configures confirm dialog. Type: ActionViewModel.'
+          cancelAction:
+            type: ActionViewModel
+            required: false
+            doc: 'cancelAction configures confirm dialog. Type: ActionViewModel.'
+          onConfirm:
+            type: '(action: ActionViewModel, context: { dialogId: string }) => void'
+            required: false
+            doc: 'onConfirm configures confirm dialog. Type: (action: ActionViewModel, context: { dialogId: string }) => void.'
+          onCancel:
+            type: '(action: ActionViewModel, context: { dialogId: string }) => void'
+            required: false
+            doc: 'onCancel configures confirm dialog. Type: (action: ActionViewModel, context: { dialogId: string }) => void.'
+        extends: CommonWidgetProps
+    action_slots:
+      confirm:
+        doc: confirm action slot for ConfirmDialog. The widget emits the declared context through onAction and adapters lower
+          it to runtime dispatch.
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: ConfirmContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the confirm slot on ConfirmDialog.
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+      cancel:
+        doc: cancel action slot for ConfirmDialog. The widget emits the declared context through onAction and adapters lower
+          it to runtime dispatch.
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: CancelContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the cancel slot on ConfirmDialog.
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by ConfirmDialog. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed ConfirmDialog props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <ConfirmDialog />
+  stories:
+    Default:
+      doc: Tests the baseline ConfirmDialog rendering with representative production-like data.
+      viewport: desktop
+      fixtures:
+        scenario: default
+      asserts:
+      - ConfirmDialog renders the Default scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    Danger:
+      doc: Tests danger/destructive action treatment for ConfirmDialog.
+      viewport: desktop
+      fixtures:
+        scenario: danger
+      asserts:
+      - ConfirmDialog renders the Danger scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    LongBody:
+      doc: Tests the LongBody scenario for ConfirmDialog with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: longBody
+      asserts:
+      - ConfirmDialog renders the LongBody scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    WithCancel:
+      doc: Tests the WithCancel scenario for ConfirmDialog with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: withCancel
+      asserts:
+      - ConfirmDialog renders the WithCancel scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    DispatchConfirm:
+      doc: Tests confirm callback context in ConfirmDialog.
+      viewport: desktop
+      fixtures:
+        scenario: dispatchConfirm
+      asserts:
+      - ConfirmDialog renders the DispatchConfirm scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/ConfirmDialog/ConfirmDialog.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/ConfirmDialog/ConfirmDialog.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/ConfirmDialog/ConfirmDialog.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/ConfirmDialog/index.ts
+    tests:
+      path: web/src/admin-dsl/widgets/organisms/ConfirmDialog/ConfirmDialog.test.tsx
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.

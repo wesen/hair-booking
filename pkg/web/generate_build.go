@@ -23,9 +23,9 @@ func main() {
 
 	if os.Getenv("HAIR_BOOKING_SKIP_FRONTEND_BUILD") != "1" {
 		if _, err := os.Stat(filepath.Join(webDir, "node_modules")); os.IsNotExist(err) {
-			run(webDir, "npm", "ci")
+			run(webDir, "pnpm", "install", "--frozen-lockfile")
 		}
-		run(webDir, "npm", "run", "build")
+		run(webDir, "pnpm", "build")
 	} else if _, err := os.Stat(distDir); err != nil {
 		fail(fmt.Errorf("frontend dist missing while HAIR_BOOKING_SKIP_FRONTEND_BUILD=1: %w", err))
 	}

@@ -1,0 +1,31 @@
+Concise summary of differences
+
+ Biggest visual shifts (Right vs Left):
+- Button size increases substantially
+  - Width: 106px → 135px
+  - Height: 42px → 57px
+  - Padding: top/bottom 12px → 18px; left/right 18px → 28px
+  - Font-size: 16px → 18px
+  Impact: a noticeably larger, more prominent control with more breathing room around the label.
+
+- Background and text color swap
+  - Background: rgb(47, 27, 58) (dark purple) → rgb(239, 141, 115) (peach)
+  - Text color: rgb(255, 255, 255) (white) → rgb(47, 27, 58) (dark purple)
+  Impact: readable but inverted contrast; the peach button with dark text reads very differently from the dark purple with white text.
+
+- Border radius and shadow
+  - Border-radius: 12px → 24px (more rounded)
+  - Box-shadow: none → rgba(47, 27, 58, 0.18) 0px 10px 30px 0px
+  Impact: button appears more pill-like and elevated on the right; shadow increases depth.
+
+- Likely CSS causes
+  - Different theme/color variables or direct color/test values applied to #cta in the right region (background-color and color changes).
+  - Increased padding and font-size from a mobile breakpoint or a “cta-large” variant in CSS (media query) causing width/height, padding, and font-size changes.
+  - Border-radius and shadow adjustments from the same variant or override, producing a more rounded, elevated button.
+  - The large pixel-diff and 97.9% changed pixels indicate comprehensive style changes to this element rather than layout-only tweaks.
+
+User-facing impact
+- The right CTA appears larger, more touch-friendly, and visually distinct due to color shift to peach, stronger elevation, and rounded shape. This can affect perceived emphasis and readability against surrounding UI. The text color reversal (white on dark vs dark on peach) also alters contrast and legibility depending on the label text.
+
+Note on rules
+- The winning-rule selector changes were not observed in the provided property set, so these differences come from style overrides elsewhere (e.g., different class/theme rules for #cta) rather than a single selector changing its specificity.

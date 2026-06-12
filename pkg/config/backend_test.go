@@ -14,9 +14,6 @@ func TestNormalizeSettingsAppliesDefaults(t *testing.T) {
 	if settings.StorageLocalDir != DefaultStorageLocalDir {
 		t.Fatalf("expected storage dir %q, got %q", DefaultStorageLocalDir, settings.StorageLocalDir)
 	}
-	if settings.PublicBaseURL != DefaultPublicBaseURL {
-		t.Fatalf("expected public base URL %q, got %q", DefaultPublicBaseURL, settings.PublicBaseURL)
-	}
 }
 
 func TestNormalizeSettingsRejectsInvalidStorageMode(t *testing.T) {

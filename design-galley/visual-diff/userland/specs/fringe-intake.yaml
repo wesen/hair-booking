@@ -1,0 +1,167 @@
+# Fringe Intake Screens — Prototype vs React Implementation Comparison
+#
+# Left side: standalone HTML prototypes served by gallery server (port 7071)
+# Right side: Storybook iframe stories served by Storybook (port 6006)
+#
+# Usage:
+#   css-visual-diff verbs --repository design-galley/visual-diff/userland/verbs \
+#     fringe review from-spec --specFile design-galley/visual-diff/userland/specs/fringe-intake.yaml \
+#     --outDir /tmp/fringe-review
+#
+#   css-visual-diff serve --data-dir /tmp/fringe-review --port 18098 --open
+
+name: fringe-intake
+variant: mobile
+
+viewport:
+  width: 500
+  height: 920
+
+defaults:
+  waitMs: 3000
+  threshold: 30
+
+policy:
+  bands:
+    - name: accepted
+      maxChangedPercent: 0.5
+    - name: review
+      maxChangedPercent: 10
+    - name: tune-required
+      maxChangedPercent: 30
+    - name: major-mismatch
+      maxChangedPercent: 100
+
+computed:
+  - display
+  - position
+  - width
+  - height
+  - margin-top
+  - margin-right
+  - margin-bottom
+  - margin-left
+  - padding-top
+  - padding-right
+  - padding-bottom
+  - padding-left
+  - font-family
+  - font-size
+  - font-weight
+  - line-height
+  - letter-spacing
+  - text-transform
+  - color
+  - background-color
+  - border-radius
+  - border-left
+  - box-shadow
+  - overflow
+
+attributes:
+  - data-component
+  - data-page
+  - class
+
+pages:
+  service:
+    leftUrl: http://localhost:7071/standalone/mobile/01-service.html
+    rightUrl: http://localhost:6006/iframe.html?id=pages-servicepage--default&viewMode=story
+    sections:
+      screen:
+        leftSelector: '[data-page="service"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
+      heading:
+        leftSelector: '[data-page="service"] > div > div:nth-child(4)'
+        rightSelector: '[data-section="page-heading"]'
+      content:
+        leftSelector: '[data-page="service"] > div > div:nth-child(5)'
+        rightSelector: '[data-part="content"]'
+      first-card:
+        leftSelector: '[data-page="service"] > div > div:nth-child(5) > div:nth-child(2)'
+        rightSelector: '[data-section="service-content"] > div:nth-child(2)'
+      selected-card:
+        leftSelector: '[data-page="service"] > div > div:nth-child(5) > div:nth-child(4)'
+        rightSelector: '[data-section="service-content"] > div:nth-child(4)'
+      cta:
+        leftSelector: '[data-page="service"] > div > div:nth-child(6)'
+        rightSelector: '[data-section="intake-cta"]'
+
+  color:
+    leftUrl: http://localhost:7071/standalone/mobile/02-color.html
+    rightUrl: http://localhost:6006/iframe.html?id=pages-colorpage--default&viewMode=story
+    sections:
+      screen:
+        leftSelector: '[data-page="color"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
+
+  length:
+    leftUrl: http://localhost:7071/standalone/mobile/03-length.html
+    rightUrl: http://localhost:6006/iframe.html?id=pages-extensionspage--default&viewMode=story
+    sections:
+      screen:
+        leftSelector: '[data-page="length"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
+
+  photos:
+    leftUrl: http://localhost:7071/standalone/mobile/04-photos.html
+    rightUrl: http://localhost:6006/iframe.html?id=pages-photospage--default&viewMode=story
+    sections:
+      screen:
+        leftSelector: '[data-page="photos"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
+      heading:
+        leftSelector: '[data-page="photos"] > div > div:nth-child(4)'
+        rightSelector: '[data-section="page-heading"]'
+      intro:
+        leftSelector: '[data-page="photos"] > div > div:nth-child(5) > div:nth-child(1)'
+        rightSelector: '[data-section="photos-intro"]'
+      current-grid:
+        leftSelector: '[data-page="photos"] > div > div:nth-child(5) > div:nth-child(2)'
+        rightSelector: '[data-section="photos-current-grid"]'
+      inspiration-title:
+        leftSelector: '[data-page="photos"] > div > div:nth-child(5) > div:nth-child(3)'
+        rightSelector: '[data-section="photos-inspiration-title"]'
+      inspiration-grid:
+        leftSelector: '[data-page="photos"] > div > div:nth-child(5) > div:nth-child(4)'
+        rightSelector: '[data-section="photos-inspiration-grid"]'
+
+  history:
+    leftUrl: http://localhost:7071/standalone/mobile/05-history.html
+    rightUrl: http://localhost:6006/iframe.html?id=pages-historypage--default&viewMode=story
+    sections:
+      screen:
+        leftSelector: '[data-page="history"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
+
+  budget:
+    leftUrl: http://localhost:7071/standalone/mobile/06-budget.html
+    rightUrl: http://localhost:6006/iframe.html?id=pages-budgetpage--default&viewMode=story
+    sections:
+      screen:
+        leftSelector: '[data-page="budget"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
+
+  estimate:
+    leftUrl: http://localhost:7071/standalone/mobile/07-estimate.html
+    rightUrl: http://localhost:6006/iframe.html?id=pages-estimatepage--default&viewMode=story
+    sections:
+      screen:
+        leftSelector: '[data-page="estimate"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
+
+  booking:
+    leftUrl: http://localhost:7071/standalone/mobile/08-booking.html
+    rightUrl: http://localhost:6006/iframe.html?id=pages-bookingpage--default&viewMode=story
+    sections:
+      screen:
+        leftSelector: '[data-page="booking"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'
+
+  confirm:
+    leftUrl: http://localhost:7071/standalone/mobile/09-confirm.html
+    rightUrl: http://localhost:6006/iframe.html?id=pages-confirmpage--default&viewMode=story
+    sections:
+      screen:
+        leftSelector: '[data-page="confirm"]'
+        rightSelector: '[data-component="StoryPhoneFrame"]'

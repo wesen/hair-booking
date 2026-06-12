@@ -1,0 +1,804 @@
+/home/manuel/.hishtory/config.sh: line 72: bind: warning: line editing not enabled
+2026-04-21T23:44:10.765015466-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into []*fields.Definition\n  line 8: cannot unmarshal !!str `Write a...` into fields.Definition" file=code/go/concise-doc.yaml
+2026-04-21T23:44:10.765086039-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into []*fields.Definition\n  line 7: cannot unmarshal !!str `---\nWri...` into fields.Definition" file=code/go/doc-tldr.yaml
+2026-04-21T23:44:10.765150572-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!str `Write m...` into fields.Definition" file=code/go/docstring.yaml
+2026-04-21T23:44:10.765235131-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into []*fields.Definition\n  line 7: cannot unmarshal !!str `---\n\nWr...` into fields.Definition" file=code/go/sqlc-doc.yaml
+2026-04-21T23:44:10.769614133-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into []*fields.Definition\n  line 7: cannot unmarshal !!str `Write a...` into fields.Definition" file=code/php/concise-doc.yaml
+2026-04-21T23:44:10.769664659-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into []*fields.Definition\n  line 7: cannot unmarshal !!str `---\nWri...` into fields.Definition" file=code/php/doc-tldr.yaml
+2026-04-21T23:44:10.769714539-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!str `Write m...` into fields.Definition" file=code/php/docstring.yaml
+2026-04-21T23:44:10.778509912-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into []*fields.Definition\n  line 6: cannot unmarshal !!str `Suggest...` into fields.Definition" file=code/professional/suggest-unit-tests.yaml
+2026-04-21T23:44:10.791549012-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into []*fields.Definition\n  line 8: cannot unmarshal !!str `Write a...` into fields.Definition" file=code/typescript/concise-doc.yaml
+2026-04-21T23:44:10.791625546-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into []*fields.Definition\n  line 7: cannot unmarshal !!str `---\nWri...` into fields.Definition" file=code/typescript/doc-tldr.yaml
+2026-04-21T23:44:10.791674061-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into []*fields.Definition\n  line 6: cannot unmarshal !!str `Write d...` into fields.Definition" file=code/typescript/docstring.yaml
+2026-04-21T23:44:10.807057529-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into []*fields.Definition" file=examples/simple/example-driven/letter-concatenate-chain-of-thought.yaml
+2026-04-21T23:44:10.807113423-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into []*fields.Definition" file=examples/simple/example-driven/letter-concatenate-least-to-most.yaml
+2026-04-21T23:44:10.807146346-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into []*fields.Definition" file=examples/simple/example-driven/letter-concatenate-standard.yaml
+2026-04-21T23:44:10.807199403-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into []*fields.Definition" file=examples/simple/example-driven/letter-concatenate-step-by-step.yaml
+2026-04-21T23:44:10.829224769-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!str `Rewrite...` into fields.Definition" file=general/writing/ask-a-writer/1-3-1.yaml
+2026-04-21T23:44:10.852078695-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into []*fields.Definition" file=ttc/seo/meta-description/fun-fact-description.yaml
+2026-04-21T23:44:10.877032763-04:00 WRN Could not load command from file error="yaml: unmarshal errors:\n  line 4: cannot unmarshal !!map into []*fields.Definition\n  line 7: cannot unmarshal !!str `Use the...` into fields.Definition" file=code/web/create-msw-handler.yaml
+2026-04-21T23:44:10.915585793-04:00 WRN alias concise-doc (prefix: [code go], source embed:pinocchio/prompts/prompts/code/go/concise-doc.yaml) for go not found
+2026-04-21T23:44:10.915617245-04:00 WRN alias doc-tldr (prefix: [code go], source embed:pinocchio/prompts/prompts/code/go/doc-tldr.yaml) for go not found
+2026-04-21T23:44:10.915623941-04:00 WRN alias docstring (prefix: [code go], source embed:pinocchio/prompts/prompts/code/go/docstring.yaml) for go not found
+2026-04-21T23:44:10.915628778-04:00 WRN alias sqlc-doc (prefix: [code go], source embed:pinocchio/prompts/prompts/code/go/sqlc-doc.yaml) for go not found
+2026-04-21T23:44:10.915633657-04:00 WRN alias concise-doc (prefix: [code php], source embed:pinocchio/prompts/prompts/code/php/concise-doc.yaml) for php not found
+2026-04-21T23:44:10.915639144-04:00 WRN alias doc-tldr (prefix: [code php], source embed:pinocchio/prompts/prompts/code/php/doc-tldr.yaml) for php not found
+2026-04-21T23:44:10.915644687-04:00 WRN alias docstring (prefix: [code php], source embed:pinocchio/prompts/prompts/code/php/docstring.yaml) for php not found
+2026-04-21T23:44:10.915649571-04:00 WRN alias suggest-unit-tests (prefix: [code professional], source embed:pinocchio/prompts/prompts/code/professional/suggest-unit-tests.yaml) for professional not found
+2026-04-21T23:44:10.915654794-04:00 WRN alias concise-doc (prefix: [code typescript], source embed:pinocchio/prompts/prompts/code/typescript/concise-doc.yaml) for typescript not found
+2026-04-21T23:44:10.915659563-04:00 WRN alias doc-tldr (prefix: [code typescript], source embed:pinocchio/prompts/prompts/code/typescript/doc-tldr.yaml) for typescript not found
+2026-04-21T23:44:10.915664514-04:00 WRN alias docstring (prefix: [code typescript], source embed:pinocchio/prompts/prompts/code/typescript/docstring.yaml) for typescript not found
+2026-04-21T23:44:10.91567178-04:00 WRN alias letter-concatenate-chain-of-thought (prefix: [examples simple example-driven], source embed:pinocchio/prompts/prompts/examples/simple/example-driven/letter-concatenate-chain-of-thought.yaml) for example-driven not found
+2026-04-21T23:44:10.915677781-04:00 WRN alias letter-concatenate-least-to-most (prefix: [examples simple example-driven], source embed:pinocchio/prompts/prompts/examples/simple/example-driven/letter-concatenate-least-to-most.yaml) for example-driven not found
+2026-04-21T23:44:10.915683228-04:00 WRN alias letter-concatenate-standard (prefix: [examples simple example-driven], source embed:pinocchio/prompts/prompts/examples/simple/example-driven/letter-concatenate-standard.yaml) for example-driven not found
+2026-04-21T23:44:10.915689027-04:00 WRN alias letter-concatenate-step-by-step (prefix: [examples simple example-driven], source embed:pinocchio/prompts/prompts/examples/simple/example-driven/letter-concatenate-step-by-step.yaml) for example-driven not found
+2026-04-21T23:44:10.915695778-04:00 WRN alias 1-3-1 (prefix: [general writing ask-a-writer], source embed:pinocchio/prompts/prompts/general/writing/ask-a-writer/1-3-1.yaml) for ask-a-writer not found
+2026-04-21T23:44:10.915700883-04:00 WRN alias gec-docstrings (prefix: [code php], source file:/home/manuel/code/wesen/wesen-misc/pinocchio/code/php/gec-docstrings.yaml) for code php not found
+settings:
+    api_keys:
+        api_keys:
+            claude-api-key: ""
+            gemini-api-key: ""
+            openai-api-key: ""
+        base_urls:
+            claude-base-url: https://api.anthropic.com
+            gemini-base-url: https://generativelanguage.googleapis.com/
+            openai-base-url: https://api.openai.com/v1
+    chat:
+        api_type: openai-responses
+        cache_max_entries: 1000
+        cache_max_size: 1073741824
+        cache_type: none
+        engine: gpt-5-nano
+        max_response_tokens: 128000
+        stream: true
+        structured_output_mode: "off"
+        structured_output_strict: true
+        temperature: 0.7
+        top_p: 1
+    claude:
+        top_k: 1
+        user_id: ""
+    client:
+        organization: ""
+        proxy_from_environment: true
+    embeddings:
+        cachedirectory: ""
+        cachemaxentries: 1000
+        cachemaxsize: 1073741824
+        cachetype: none
+        dimensions: 1536
+        engine: text-embedding-3-small
+        type: openai
+    gemini: {}
+    inference:
+        reasoning_effort: low
+        reasoning_summary: concise
+    ollama:
+        mirostat: 0
+        mirostat-eta: 0.1
+        mirostat-tau: 5
+        num-ctx: 2048
+        num-gpu: 50
+        num-gqa: 1
+        num-predict: 128
+        num-thread: 1
+        repeat-last-n: 64
+        repeat-penalty: 1.1
+        seed: 0
+        temperature: 0.8
+        tfs-z: 1
+        top-k: 40
+        top-p: 0.9
+    openai:
+        frequency_penalty: 0
+        include_reasoning_encrypted: false
+        "n": 1
+        parallel_tool_calls: false
+        presence_penalty: 0
+        reasoning_effort: medium
+        reasoning_summary: auto
+        stream-include-usage: true
+sources:
+    api_keys:
+        api_keys:
+            claude-api-key:
+                log:
+                    - metadata: {}
+                      source: defaults
+                      value: ""
+                    - metadata: {}
+                      source: defaults
+                      value: ""
+                    - metadata: {}
+                      source: defaults
+                      value: ""
+                value: ""
+            gemini-api-key:
+                log:
+                    - metadata: {}
+                      source: defaults
+                      value: ""
+                    - metadata: {}
+                      source: defaults
+                      value: ""
+                    - metadata: {}
+                      source: defaults
+                      value: ""
+                value: ""
+            openai-api-key:
+                log:
+                    - metadata: {}
+                      source: defaults
+                      value: ""
+                    - metadata: {}
+                      source: defaults
+                      value: ""
+                    - metadata: {}
+                      source: defaults
+                      value: ""
+                value: ""
+        base_urls:
+            claude-base-url:
+                log:
+                    - metadata: {}
+                      source: defaults
+                      value: https://api.anthropic.com
+                    - metadata: {}
+                      source: defaults
+                      value: https://api.anthropic.com
+                    - metadata: {}
+                      source: defaults
+                      value: https://api.anthropic.com
+                value: https://api.anthropic.com
+            gemini-base-url:
+                log:
+                    - metadata: {}
+                      source: defaults
+                      value: https://generativelanguage.googleapis.com/
+                    - metadata: {}
+                      source: defaults
+                      value: https://generativelanguage.googleapis.com/
+                    - metadata: {}
+                      source: defaults
+                      value: https://generativelanguage.googleapis.com/
+                value: https://generativelanguage.googleapis.com/
+            openai-base-url:
+                log:
+                    - metadata: {}
+                      source: defaults
+                      value: https://api.openai.com/v1
+                    - metadata: {}
+                      source: defaults
+                      value: https://api.openai.com/v1
+                    - metadata: {}
+                      source: defaults
+                      value: https://api.openai.com/v1
+                value: https://api.openai.com/v1
+    chat:
+        api_type:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: openai
+                - metadata: {}
+                  source: defaults
+                  value: openai
+                - metadata: {}
+                  source: defaults
+                  value: openai
+                - metadata: {}
+                  source: defaults
+                  value: openai
+                - metadata:
+                    profile_slug: gpt-5-nano-low
+                    profile_source: ""
+                    registry_slug: default
+                    stack_lineage:
+                        - profile_slug: gpt-5-nano-low
+                          registry_slug: default
+                          source: ""
+                          version: 0
+                  source: profile
+                  value: openai-responses
+            value: openai-responses
+        cache_max_entries:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 1000
+                - metadata: {}
+                  source: defaults
+                  value: 1000
+                - metadata: {}
+                  source: defaults
+                  value: 1000
+                - metadata: {}
+                  source: defaults
+                  value: 1000
+            value: 1000
+        cache_max_size:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 1073741824
+                - metadata: {}
+                  source: defaults
+                  value: 1073741824
+                - metadata: {}
+                  source: defaults
+                  value: 1073741824
+                - metadata: {}
+                  source: defaults
+                  value: 1073741824
+            value: 1073741824
+        cache_type:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: none
+                - metadata: {}
+                  source: defaults
+                  value: none
+                - metadata: {}
+                  source: defaults
+                  value: none
+                - metadata: {}
+                  source: defaults
+                  value: none
+            value: none
+        engine:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: gpt-4
+                - metadata: {}
+                  source: defaults
+                  value: gpt-4
+                - metadata: {}
+                  source: defaults
+                  value: gpt-4
+                - metadata: {}
+                  source: defaults
+                  value: gpt-4
+                - metadata:
+                    profile_slug: gpt-5-nano-low
+                    profile_source: ""
+                    registry_slug: default
+                    stack_lineage:
+                        - profile_slug: gpt-5-nano-low
+                          registry_slug: default
+                          source: ""
+                          version: 0
+                  source: profile
+                  value: gpt-5-nano
+            value: gpt-5-nano
+        max_response_tokens:
+            log:
+                - metadata:
+                    profile_slug: gpt-5-nano-low
+                    profile_source: ""
+                    registry_slug: default
+                    stack_lineage:
+                        - profile_slug: gpt-5-nano-low
+                          registry_slug: default
+                          source: ""
+                          version: 0
+                  source: profile
+                  value: 128000
+            value: 128000
+        stream:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: true
+            value: true
+        structured_output_mode:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: "off"
+                - metadata: {}
+                  source: defaults
+                  value: "off"
+                - metadata: {}
+                  source: defaults
+                  value: "off"
+                - metadata: {}
+                  source: defaults
+                  value: "off"
+            value: "off"
+        structured_output_strict:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: true
+                - metadata: {}
+                  source: defaults
+                  value: true
+                - metadata: {}
+                  source: defaults
+                  value: true
+                - metadata: {}
+                  source: defaults
+                  value: true
+            value: true
+        temperature:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 0.7
+                - metadata: {}
+                  source: defaults
+                  value: 0.7
+                - metadata: {}
+                  source: defaults
+                  value: 0.7
+                - metadata: {}
+                  source: defaults
+                  value: 0.7
+            value: 0.7
+        top_p:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 1
+                - metadata: {}
+                  source: defaults
+                  value: 1
+                - metadata: {}
+                  source: defaults
+                  value: 1
+                - metadata: {}
+                  source: defaults
+                  value: 1
+            value: 1
+    claude:
+        top_k:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 1
+                - metadata: {}
+                  source: defaults
+                  value: 1
+                - metadata: {}
+                  source: defaults
+                  value: 1
+                - metadata: {}
+                  source: defaults
+                  value: 1
+            value: 1
+        user_id:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: ""
+                - metadata: {}
+                  source: defaults
+                  value: ""
+                - metadata: {}
+                  source: defaults
+                  value: ""
+                - metadata: {}
+                  source: defaults
+                  value: ""
+            value: ""
+    client:
+        organization:
+            log:
+                - metadata: {}
+                  source: defaults
+                  value: ""
+                - metadata: {}
+                  source: defaults
+                  value: ""
+                - metadata: {}
+                  source: defaults
+                  value: ""
+            value: ""
+        proxy_from_environment:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: true
+                - metadata: {}
+                  source: defaults
+                  value: true
+                - metadata: {}
+                  source: defaults
+                  value: true
+                - metadata: {}
+                  source: defaults
+                  value: true
+            value: true
+    embeddings:
+        cachedirectory:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: ""
+                - metadata: {}
+                  source: defaults
+                  value: ""
+                - metadata: {}
+                  source: defaults
+                  value: ""
+                - metadata: {}
+                  source: defaults
+                  value: ""
+            value: ""
+        cachemaxentries:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 1000
+                - metadata: {}
+                  source: defaults
+                  value: 1000
+                - metadata: {}
+                  source: defaults
+                  value: 1000
+                - metadata: {}
+                  source: defaults
+                  value: 1000
+            value: 1000
+        cachemaxsize:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 1073741824
+                - metadata: {}
+                  source: defaults
+                  value: 1073741824
+                - metadata: {}
+                  source: defaults
+                  value: 1073741824
+                - metadata: {}
+                  source: defaults
+                  value: 1073741824
+            value: 1073741824
+        cachetype:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: none
+                - metadata: {}
+                  source: defaults
+                  value: none
+                - metadata: {}
+                  source: defaults
+                  value: none
+                - metadata: {}
+                  source: defaults
+                  value: none
+            value: none
+        dimensions:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 1536
+                - metadata: {}
+                  source: defaults
+                  value: 1536
+                - metadata: {}
+                  source: defaults
+                  value: 1536
+                - metadata: {}
+                  source: defaults
+                  value: 1536
+            value: 1536
+        engine:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: text-embedding-3-small
+                - metadata: {}
+                  source: defaults
+                  value: text-embedding-3-small
+                - metadata: {}
+                  source: defaults
+                  value: text-embedding-3-small
+                - metadata: {}
+                  source: defaults
+                  value: text-embedding-3-small
+            value: text-embedding-3-small
+        type:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: openai
+                - metadata: {}
+                  source: defaults
+                  value: openai
+                - metadata: {}
+                  source: defaults
+                  value: openai
+                - metadata: {}
+                  source: defaults
+                  value: openai
+            value: openai
+    inference:
+        reasoning_effort:
+            log:
+                - metadata:
+                    profile_slug: gpt-5-nano-low
+                    profile_source: ""
+                    registry_slug: default
+                    stack_lineage:
+                        - profile_slug: gpt-5-nano-low
+                          registry_slug: default
+                          source: ""
+                          version: 0
+                  source: profile
+                  value: low
+            value: low
+        reasoning_summary:
+            log:
+                - metadata:
+                    profile_slug: gpt-5-nano-low
+                    profile_source: ""
+                    registry_slug: default
+                    stack_lineage:
+                        - profile_slug: gpt-5-nano-low
+                          registry_slug: default
+                          source: ""
+                          version: 0
+                  source: profile
+                  value: concise
+            value: concise
+    ollama:
+        mirostat:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 0
+            value: 0
+        mirostat-eta:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 0.1
+            value: 0.1
+        mirostat-tau:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 5
+            value: 5
+        num-ctx:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 2048
+            value: 2048
+        num-gpu:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 50
+            value: 50
+        num-gqa:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 1
+            value: 1
+        num-predict:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 128
+            value: 128
+        num-thread:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 1
+            value: 1
+        repeat-last-n:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 64
+            value: 64
+        repeat-penalty:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 1.1
+            value: 1.1
+        seed:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 0
+            value: 0
+        temperature:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 0.8
+            value: 0.8
+        tfs-z:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 1
+            value: 1
+        top-k:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 40
+            value: 40
+        top-p:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 0.9
+            value: 0.9
+    openai:
+        frequency_penalty:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 0
+                - metadata: {}
+                  source: defaults
+                  value: 0
+                - metadata: {}
+                  source: defaults
+                  value: 0
+                - metadata: {}
+                  source: defaults
+                  value: 0
+            value: 0
+        include_reasoning_encrypted:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: false
+                - metadata: {}
+                  source: defaults
+                  value: false
+                - metadata: {}
+                  source: defaults
+                  value: false
+                - metadata: {}
+                  source: defaults
+                  value: false
+            value: false
+        "n":
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 1
+                - metadata: {}
+                  source: defaults
+                  value: 1
+                - metadata: {}
+                  source: defaults
+                  value: 1
+                - metadata: {}
+                  source: defaults
+                  value: 1
+            value: 1
+        parallel_tool_calls:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: false
+                - metadata: {}
+                  source: defaults
+                  value: false
+                - metadata: {}
+                  source: defaults
+                  value: false
+                - metadata: {}
+                  source: defaults
+                  value: false
+            value: false
+        presence_penalty:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: 0
+                - metadata: {}
+                  source: defaults
+                  value: 0
+                - metadata: {}
+                  source: defaults
+                  value: 0
+                - metadata: {}
+                  source: defaults
+                  value: 0
+            value: 0
+        reasoning_effort:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: medium
+                - metadata: {}
+                  source: defaults
+                  value: medium
+                - metadata: {}
+                  source: defaults
+                  value: medium
+                - metadata: {}
+                  source: defaults
+                  value: medium
+            value: medium
+        reasoning_summary:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: auto
+                - metadata: {}
+                  source: defaults
+                  value: auto
+                - metadata: {}
+                  source: defaults
+                  value: auto
+                - metadata: {}
+                  source: defaults
+                  value: auto
+            value: auto
+        stream-include-usage:
+            log:
+                - metadata:
+                    kind: command-baseline
+                  source: command
+                  value: true
+                - metadata: {}
+                  source: defaults
+                  value: true
+                - metadata: {}
+                  source: defaults
+                  value: true
+                - metadata: {}
+                  source: defaults
+                  value: true
+            value: true

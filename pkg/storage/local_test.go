@@ -10,14 +10,14 @@ import (
 
 func TestLocalStoreSave(t *testing.T) {
 	dir := t.TempDir()
-	store := NewLocalStore(dir, "http://127.0.0.1:8080")
+	store := NewLocalStore(dir)
 
 	saved, err := store.Save(context.Background(), "intake/test/file.txt", strings.NewReader("hello"))
 	if err != nil {
 		t.Fatalf("Save returned error: %v", err)
 	}
 
-	if saved.URL != "http://127.0.0.1:8080/uploads/intake/test/file.txt" {
+	if saved.URL != "/uploads/intake/test/file.txt" {
 		t.Fatalf("unexpected URL %q", saved.URL)
 	}
 

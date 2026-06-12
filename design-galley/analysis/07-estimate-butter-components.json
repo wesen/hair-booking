@@ -1,0 +1,156 @@
+[
+  {
+    "name": "AppHeader",
+    "type": "chrome",
+    "bounds": {
+      "x": 0,
+      "y": 0,
+      "width": 1440,
+      "height": 80
+    },
+    "description": "Global top bar with brand, primary navigation (Services, Book, Stylists, Journal), and user menu."
+  },
+  {
+    "name": "BrandLogo",
+    "type": "atom",
+    "bounds": {
+      "x": 24,
+      "y": 18,
+      "width": 90,
+      "height": 44
+    },
+    "description": "Fringe wordmark at the left of the header."
+  },
+  {
+    "name": "PrimaryNav",
+    "type": "molecule",
+    "bounds": {
+      "x": 140,
+      "y": 18,
+      "width": 420,
+      "height": 44
+    },
+    "description": "Horizontal navigation links with active underline on Book."
+  },
+  {
+    "name": "UserMenu",
+    "type": "molecule",
+    "bounds": {
+      "x": 1280,
+      "y": 14,
+      "width": 136,
+      "height": 52
+    },
+    "description": "Compact user greeting and avatar button on the right side of the header."
+  },
+  {
+    "name": "LeftSidebarNav",
+    "type": "organism",
+    "bounds": {
+      "x": 0,
+      "y": 80,
+      "width": 220,
+      "height": 820
+    },
+    "description": "Beige intake sidebar showing 9-step progress with selectable steps and the current step highlighted."
+  },
+  {
+    "name": "StepList",
+    "type": "molecule",
+    "bounds": {
+      "x": 24,
+      "y": 128,
+      "width": 172,
+      "height": 652
+    },
+    "description": "Vertical list of steps (01 Service through 09 Confirm) with bullets, dividers, and the active '07 Estimate' state."
+  },
+  {
+    "name": "ContentArea",
+    "type": "organism",
+    "bounds": {
+      "x": 220,
+      "y": 80,
+      "width": 660,
+      "height": 820
+    },
+    "description": "Main white content column containing the estimate intro, selected options summary, and a disclaimer."
+  },
+  {
+    "name": "EstimateIntroBlock",
+    "type": "molecule",
+    "bounds": {
+      "x": 240,
+      "y": 110,
+      "width": 620,
+      "height": 180
+    },
+    "description": "Section header with chapter label and large 'Your Estimate' title followed by descriptive subtext."
+  },
+  {
+    "name": "SelectionSummaryList",
+    "type": "organism",
+    "bounds": {
+      "x": 240,
+      "y": 310,
+      "width": 620,
+      "height": 330
+    },
+    "description": "Stacked summary of chosen options (Service, Color Level, Length, Add\u2011ons, Condition) each with label, value, subtle divider, and 'edit' link."
+  },
+  {
+    "name": "DisclaimerBanner",
+    "type": "molecule",
+    "bounds": {
+      "x": 240,
+      "y": 660,
+      "width": 620,
+      "height": 60
+    },
+    "description": "Butter-tinted notice about potential adjustments to the final quote in-salon."
+  },
+  {
+    "name": "RightEstimatePanel",
+    "type": "organism",
+    "bounds": {
+      "x": 880,
+      "y": 80,
+      "width": 560,
+      "height": 820
+    },
+    "description": "Butter accent panel summarizing the estimated price, time, price range, and action buttons."
+  },
+  {
+    "name": "EstimateAmountHero",
+    "type": "molecule",
+    "bounds": {
+      "x": 900,
+      "y": 120,
+      "width": 520,
+      "height": 260
+    },
+    "description": "Large currency figure ($245) with small caption 'Estimated \u2014 USD' and duration line below."
+  },
+  {
+    "name": "PriceRangeList",
+    "type": "molecule",
+    "bounds": {
+      "x": 900,
+      "y": 470,
+      "width": 520,
+      "height": 150
+    },
+    "description": "Three-row list showing Low, Likely, and High amounts with horizontal dividers and right-aligned prices."
+  },
+  {
+    "name": "ActionButtons",
+    "type": "molecule",
+    "bounds": {
+      "x": 900,
+      "y": 700,
+      "width": 520,
+      "height": 80
+    },
+    "description": "Primary black 'Continue to Booking' CTA and secondary 'Adjust' button."
+  }
+]

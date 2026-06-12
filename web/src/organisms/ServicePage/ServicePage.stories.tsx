@@ -1,0 +1,18 @@
+import type { Meta, StoryObj } from "@storybook/react";
+import { ServicePage } from "./ServicePage";
+
+const meta: Meta<typeof ServicePage> = {
+  title: "Pages/ServicePage",
+  component: ServicePage,
+  parameters: { layout: "fullscreen", phone: true },
+};
+
+export default meta;
+type Story = StoryObj<typeof ServicePage>;
+
+export const Default: Story = {
+  args: {
+    onNext: () => console.log("next"),
+    onBack: () => console.log("back"),
+  },
+};

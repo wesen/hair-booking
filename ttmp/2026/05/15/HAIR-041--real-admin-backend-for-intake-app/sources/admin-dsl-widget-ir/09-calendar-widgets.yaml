@@ -1,0 +1,537 @@
+schema_version: 2
+artifact_type: admin_dsl_widget_definition_ir
+category: calendar_widgets
+summary: Calendar widgets extracted from monthCalendar and calendarWeek/appointment blocks.
+source_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/08-admin-dsl-react-widget-ir-catalog.md
+schema_document: ttmp/2026/05/15/HAIR-041--real-admin-backend-for-intake-app/design-doc/09-widget-definition-ir-yaml-format-spec.md
+widgets:
+- id: admin.calendar.month-calendar
+  name: MonthCalendar
+  status: promoted
+  classification:
+    level: organism
+    description: MonthCalendar participates in the Admin DSL component system as a organism; its level controls scaffold location
+      and Storybook grouping.
+  source_mapping:
+    current_constructs:
+    - case "monthCalendar" and buildMonthCells
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: MonthCalendar widget.
+    design_rationale: MonthCalendar extracts a named React boundary from the old Admin DSL renderer so behavior, stories,
+      styling, and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed MonthCalendar props. MonthCalendar
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
+    implementation_notes:
+    - Implement MonthCalendar using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
+    accessibility_notes:
+    - Ensure MonthCalendar exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
+  contract:
+    props:
+      MonthCalendarMarker:
+        doc: Props for MonthCalendar. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
+        fields:
+          date:
+            type: string
+            required: true
+            doc: 'date configures month calendar. Type: string.'
+          kind:
+            type: string
+            required: true
+            doc: 'kind configures month calendar. Type: string.'
+          tone:
+            type: '"success" | "warning" | "danger" | "neutral"'
+            required: false
+            doc: Visual tone used for status, emphasis, or border treatment in MonthCalendar.
+      MonthCalendarLegendItem:
+        doc: Props for MonthCalendar. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
+        fields:
+          kind:
+            type: string
+            required: true
+            doc: 'kind configures month calendar. Type: string.'
+          label:
+            type: string
+            required: true
+            doc: Human-readable label rendered by MonthCalendar.
+          tone:
+            type: '"success" | "warning" | "danger" | "neutral"'
+            required: false
+            doc: Visual tone used for status, emphasis, or border treatment in MonthCalendar.
+      MonthCalendarProps:
+        doc: Props for MonthCalendar. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
+        fields:
+          calendarId:
+            type: string
+            required: true
+            doc: 'calendarId configures month calendar. Type: string.'
+          month:
+            type: string; // YYYY-MM
+            required: true
+            doc: Month key rendered by MonthCalendar, typically YYYY-MM.
+          label:
+            type: string
+            required: false
+            doc: Human-readable label rendered by MonthCalendar.
+          selectedDate:
+            type: string
+            required: false
+            doc: Currently selected date rendered by MonthCalendar.
+          markers:
+            type: MonthCalendarMarker[]
+            required: false
+            doc: Date markers rendered by MonthCalendar.
+          legend:
+            type: MonthCalendarLegendItem[]
+            required: false
+            doc: Legend entries explaining markers rendered by MonthCalendar.
+          previousMonthAction:
+            type: ActionViewModel
+            required: false
+            doc: 'previousMonthAction configures month calendar. Type: ActionViewModel.'
+          nextMonthAction:
+            type: ActionViewModel
+            required: false
+            doc: 'nextMonthAction configures month calendar. Type: ActionViewModel.'
+          selectDateAction:
+            type: ActionViewModel
+            required: false
+            doc: 'selectDateAction configures month calendar. Type: ActionViewModel.'
+          onMonthAction:
+            type: '(action: ActionViewModel, context: { calendarId: string; month: string; direction: "previous" | "next" }) => void'
+            required: false
+            doc: Callback invoked by MonthCalendar previous/next controls with calendar id, current month, and direction.
+          onSelectDate:
+            type: '(action: ActionViewModel, context: { calendarId: string; date: string }) => void'
+            required: false
+            doc: Callback invoked by MonthCalendar date cells with selected date context.
+        extends: CommonWidgetProps
+    action_slots:
+      previousMonth:
+        doc: previousMonth action slot for MonthCalendar. The widget emits the declared context through onAction and adapters
+          lower it to runtime dispatch.
+        callback: onMonthAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: PreviousmonthContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the previousMonth slot on MonthCalendar.
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+      nextMonth:
+        doc: nextMonth action slot for MonthCalendar. The widget emits the declared context through onAction and adapters
+          lower it to runtime dispatch.
+        callback: onMonthAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: NextmonthContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: Optional contextual payload for the nextMonth slot on MonthCalendar.
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+      selectDate:
+        doc: selectDate action slot for MonthCalendar. The widget emits the declared context through onAction and adapters
+          lower it to runtime dispatch.
+        callback: onSelectDate
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: SelectdateContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: { calendarId, date }'
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by MonthCalendar. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed MonthCalendar props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <MonthCalendar />
+  stories:
+    DefaultMonth:
+      doc: Tests the normal month grid for MonthCalendar.
+      viewport: desktop
+      fixtures:
+        scenario: defaultMonth
+      asserts:
+      - MonthCalendar renders the DefaultMonth scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    WithPublishedMarkers:
+      doc: Tests the WithPublishedMarkers scenario for MonthCalendar with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: withPublishedMarkers
+      asserts:
+      - MonthCalendar renders the WithPublishedMarkers scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    WithScheduledMarkers:
+      doc: Tests the WithScheduledMarkers scenario for MonthCalendar with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: withScheduledMarkers
+      asserts:
+      - MonthCalendar renders the WithScheduledMarkers scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    SelectedDate:
+      doc: Tests selected date styling and callback context in MonthCalendar.
+      viewport: desktop
+      fixtures:
+        scenario: selectedDate
+      asserts:
+      - MonthCalendar renders the SelectedDate scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    NoActionsReadonly:
+      doc: Tests read-only behavior when MonthCalendar has no actions.
+      viewport: desktop
+      fixtures:
+        scenario: noActionsReadonly
+      asserts:
+      - MonthCalendar renders the NoActionsReadonly scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    PreviousNextActions:
+      doc: Tests previous/next month action slots in MonthCalendar.
+      viewport: desktop
+      fixtures:
+        scenario: previousNextActions
+      asserts:
+      - MonthCalendar renders the PreviousNextActions scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    MobileCalendar:
+      doc: Tests mobile calendar layout for MonthCalendar.
+      viewport: desktop
+      fixtures:
+        scenario: mobileCalendar
+      asserts:
+      - MonthCalendar renders the MobileCalendar scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/MonthCalendar/MonthCalendar.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/MonthCalendar/MonthCalendar.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/MonthCalendar/MonthCalendar.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/MonthCalendar/index.ts
+    tests:
+      path: web/src/admin-dsl/widgets/organisms/MonthCalendar/MonthCalendar.test.tsx
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+- id: admin.calendar.calendar-week
+  name: CalendarWeek
+  status: promoted
+  classification:
+    level: organism
+    description: CalendarWeek participates in the Admin DSL component system as a organism; its level controls scaffold location
+      and Storybook grouping.
+  source_mapping:
+    current_constructs:
+    - web/src/admin-dsl/calendar.tsx and case "calendarWeek"
+    current_files:
+    - path: web/src/admin-dsl/calendar.tsx
+      notes: Current source referenced by the v1 widget IR.
+  intent:
+    purpose: CalendarWeek widget.
+    design_rationale: CalendarWeek extracts a named React boundary from the old Admin DSL renderer so behavior, stories, styling,
+      and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed CalendarWeek props. CalendarWeek
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
+    implementation_notes:
+    - Implement CalendarWeek using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
+    accessibility_notes:
+    - Ensure CalendarWeek exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its rendered
+      controls.
+  contract:
+    props:
+      CalendarWeekProps:
+        doc: Props for CalendarWeek. These are normalized widget props produced by adapters or callers, not raw Admin DSL
+          JSON.
+        fields:
+          calendarId:
+            type: string
+            required: true
+            doc: 'calendarId configures calendar week. Type: string.'
+          days:
+            type: string[]
+            required: true
+            doc: 'days configures calendar week. Type: string[].'
+          hours:
+            type: string[]
+            required: true
+            doc: 'hours configures calendar week. Type: string[].'
+          blocks:
+            type: CalendarEventBlockProps[]
+            required: true
+            doc: 'blocks configures calendar week. Type: CalendarEventBlockProps[].'
+          onBlockAction:
+            type: '(action: ActionViewModel, context: { block: CalendarEventBlockProps }) => void'
+            required: false
+            doc: 'onBlockAction configures calendar week. Type: (action: ActionViewModel, context: { block: CalendarEventBlockProps
+              }) => void.'
+        extends: CommonWidgetProps
+    action_slots:
+      child eventOpen actions:
+        doc: child eventOpen actions action slot for CalendarWeek. The widget emits the declared context through onAction
+          and adapters lower it to runtime dispatch.
+        callback: onBlockAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: ChildEventopenActionsContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: { block }'
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by CalendarWeek. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed CalendarWeek props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <CalendarWeek />
+  stories:
+    DefaultWeek:
+      doc: Tests the normal week grid and block placement for CalendarWeek.
+      viewport: desktop
+      fixtures:
+        scenario: defaultWeek
+      asserts:
+      - CalendarWeek renders the DefaultWeek scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    AppointmentsAndTimeOff:
+      doc: Tests mixed appointment/time-off rendering in CalendarWeek.
+      viewport: desktop
+      fixtures:
+        scenario: appointmentsAndTimeOff
+      asserts:
+      - CalendarWeek renders the AppointmentsAndTimeOff scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    NoAppointments:
+      doc: Tests empty calendar week rendering in CalendarWeek.
+      viewport: desktop
+      fixtures:
+        scenario: noAppointments
+      asserts:
+      - CalendarWeek renders the NoAppointments scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    MobileAgenda:
+      doc: Tests mobile agenda fallback for CalendarWeek.
+      viewport: desktop
+      fixtures:
+        scenario: mobileAgenda
+      asserts:
+      - CalendarWeek renders the MobileAgenda scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    LongDayLabels:
+      doc: Tests long day labels and horizontal spacing in CalendarWeek.
+      viewport: desktop
+      fixtures:
+        scenario: longDayLabels
+      asserts:
+      - CalendarWeek renders the LongDayLabels scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/organisms/CalendarWeek/CalendarWeek.tsx
+    types:
+      path: web/src/admin-dsl/widgets/organisms/CalendarWeek/CalendarWeek.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/organisms/CalendarWeek/CalendarWeek.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/organisms/CalendarWeek/index.ts
+    tests:
+      path: web/src/admin-dsl/widgets/organisms/CalendarWeek/CalendarWeek.test.tsx
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
+- id: admin.calendar.calendar-event-block
+  name: CalendarEventBlock
+  status: promoted
+  classification:
+    level: molecule
+    description: CalendarEventBlock participates in the Admin DSL component system as a molecule; its level controls scaffold
+      location and Storybook grouping.
+  source_mapping:
+    current_constructs:
+    - appointmentBlock, availabilityBlock, timeOffBlock branches in render.tsx and calendar.tsx
+    current_files:
+    - path: web/src/admin-dsl/render.tsx
+      notes: Current renderer source to inspect for this construct.
+  intent:
+    purpose: CalendarEventBlock widget.
+    design_rationale: CalendarEventBlock extracts a named React boundary from the old Admin DSL renderer so behavior, stories,
+      styling, and action context can be reviewed independently.
+    adapter_boundary: The Admin DSL adapter should convert raw node props/actions into typed CalendarEventBlock props. CalendarEventBlock
+      should not parse AdminNode JSON or call backend dispatch helpers directly.
+    implementation_notes:
+    - Implement CalendarEventBlock using design tokens and typed props from this IR.
+    - Keep transport/adapter compatibility outside the visual component.
+    accessibility_notes:
+    - Ensure CalendarEventBlock exposes semantic roles, labels, focus behavior, and keyboard interaction appropriate to its
+      rendered controls.
+  contract:
+    props:
+      CalendarEventBlockProps:
+        doc: Props for CalendarEventBlock. These are normalized widget props produced by adapters or callers, not raw Admin
+          DSL JSON.
+        fields:
+          id:
+            type: string
+            required: true
+            doc: Stable DOM/data id for the CalendarEventBlock instance.
+          kind:
+            type: '"appointment" | "availability" | "timeOff"'
+            required: true
+            doc: 'kind configures calendar event block. Type: "appointment" | "availability" | "timeOff".'
+          clientName:
+            type: string
+            required: false
+            doc: 'clientName configures calendar event block. Type: string.'
+          title:
+            type: string
+            required: false
+            doc: Primary heading or title rendered by CalendarEventBlock.
+          service:
+            type: string
+            required: false
+            doc: 'service configures calendar event block. Type: string.'
+          status:
+            type: string
+            required: false
+            doc: 'status configures calendar event block. Type: string.'
+          startsAt:
+            type: string
+            required: false
+            doc: 'startsAt configures calendar event block. Type: string.'
+          endsAt:
+            type: string
+            required: false
+            doc: 'endsAt configures calendar event block. Type: string.'
+          column:
+            type: number
+            required: false
+            doc: 'column configures calendar event block. Type: number.'
+          row:
+            type: number
+            required: false
+            doc: 'row configures calendar event block. Type: number.'
+          span:
+            type: number
+            required: false
+            doc: 'span configures calendar event block. Type: number.'
+          action:
+            type: ActionViewModel
+            required: false
+            doc: Action metadata rendered or invoked by CalendarEventBlock. The widget receives metadata only; adapters own
+              backend dispatch.
+          onAction:
+            type: '(action: ActionViewModel, context: { blockId: string }) => void'
+            required: false
+            doc: Callback invoked by CalendarEventBlock with action metadata and typed context.
+        extends: CommonWidgetProps
+    action_slots:
+      eventOpen:
+        doc: eventOpen action slot for CalendarEventBlock. The widget emits the declared context through onAction and adapters
+          lower it to runtime dispatch.
+        callback: onAction
+        action_type: ActionViewModel
+        cardinality: many
+        context_type: EventopenContext
+        context:
+          value:
+            type: unknown
+            required: false
+            doc: 'Context described in v1 IR as: { blockId }'
+        lowering:
+          adapter: dispatchAdminAction
+          note: Adapter lowers this typed callback into Admin DSL dispatch.
+  examples:
+    BasicUsage:
+      doc: Demonstrates the normalized props expected by CalendarEventBlock. Use this as a scaffold for real stories and implementation
+        tests.
+      demonstrates:
+      - Typed CalendarEventBlock props after adapter lowering.
+      - Widget-level usage without raw Admin DSL parsing.
+      code: <CalendarEventBlock />
+  stories:
+    Appointment:
+      doc: Tests the Appointment scenario for CalendarEventBlock with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: appointment
+      asserts:
+      - CalendarEventBlock renders the Appointment scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    Availability:
+      doc: Tests the Availability scenario for CalendarEventBlock with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: availability
+      asserts:
+      - CalendarEventBlock renders the Availability scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    TimeOff:
+      doc: Tests the TimeOff scenario for CalendarEventBlock with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: timeOff
+      asserts:
+      - CalendarEventBlock renders the TimeOff scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    CompactBlock:
+      doc: Tests the CompactBlock scenario for CalendarEventBlock with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: compactBlock
+      asserts:
+      - CalendarEventBlock renders the CompactBlock scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+    AgendaItem:
+      doc: Tests the AgendaItem scenario for CalendarEventBlock with representative fixtures and assertions.
+      viewport: desktop
+      fixtures:
+        scenario: agendaItem
+      asserts:
+      - CalendarEventBlock renders the AgendaItem scenario without layout breakage.
+      - The relevant semantic state is visible to users and test selectors.
+  outputs:
+    component:
+      path: web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.tsx
+    types:
+      path: web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.types.ts
+    stories:
+      path: web/src/admin-dsl/widgets/molecules/CalendarEventBlock/CalendarEventBlock.stories.tsx
+    barrel:
+      path: web/src/admin-dsl/widgets/molecules/CalendarEventBlock/index.ts
+  implementation_todos:
+  - id: replace-generated-scaffold-placeholder-with-final-implementation
+    severity: required
+    doc: Replace generated scaffold placeholder with final implementation.
