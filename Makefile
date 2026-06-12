@@ -58,10 +58,18 @@ release:
 	git push origin --tags
 	GOWORK=off GOPROXY=proxy.golang.org go list -m github.com/go-go-golems/hair-booking@$(shell svu current)
 
-bump-glazed:
-	GOWORK=off go get github.com/go-go-golems/glazed@latest
-	GOWORK=off go get github.com/go-go-golems/clay@latest
+bump-go-go-golems:
+	@deps="$$(awk '/^require[[:space:]]+github\.com\/go-go-golems\// { print $$2 } /^[[:space:]]*github\.com\/go-go-golems\// { print $$1 }' go.mod | sort -u)"; \
+	if [ -z "$$deps" ]; then \
+		echo "No github.com/go-go-golems dependencies in go.mod"; \
+	else \
+		echo "Bumping go-go-golems dependencies:"; \
+		echo "$$deps"; \
+		for dep in $$deps; do GOWORK=off go get "$${dep}@latest"; done; \
+	fi
 	GOWORK=off go mod tidy
+
+bump-glazed: bump-go-go-golems
 
 HAIR_BOOKING_BINARY=$(shell which $(BINARY))
 install:
