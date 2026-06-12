@@ -1,4 +1,4 @@
-.PHONY: gifs local-keycloak-up local-keycloak-down local-keycloak-config local-seed-stylist-workflows run-local-dev run-local-oidc tmux-local-oidc-up tmux-local-oidc-down tmux-local-oidc-logs docker-build
+.PHONY: gifs local-keycloak-up local-keycloak-down local-keycloak-config local-seed-stylist-workflows run-local-dev run-local-oidc tmux-local-oidc-up tmux-local-oidc-down tmux-local-oidc-logs docker-build glazed-lint-build glazed-lint
 
 all: gifs
 
@@ -18,14 +18,37 @@ TAPES=$(wildcard doc/vhs/*tape)
 gifs: $(TAPES)
 	for i in $(TAPES); do vhs < $$i; done
 
+GLAZED_LINT_BIN ?= /tmp/glazed-lint
+GLAZED_LINT_PKG ?= github.com/go-go-golems/glazed/cmd/tools/glazed-lint
+GLAZED_VERSION ?= $(shell GOWORK=off go list -m -f '{{.Version}}' github.com/go-go-golems/glazed 2>/dev/null)
+GLAZED_LINT_FLAGS ?= -glazedclilint.allow-paths=pkg/auth/,pkg/config/
+
 docker-lint:
 	docker run --rm -v $(shell pwd):/app -w /app golangci/golangci-lint:latest golangci-lint run -v
 
-lint:
-	GOWORK=off golangci-lint run -v
+glazed-lint-build:
+	@echo "Building glazed-lint from Glazed module..."
+	@if [ -n "$(GLAZED_VERSION)" ] && [ "$(GLAZED_VERSION)" != "(devel)" ]; then \
+		echo "Installing $(GLAZED_LINT_PKG)@$(GLAZED_VERSION)"; \
+		GOBIN=$(dir $(GLAZED_LINT_BIN)) GOWORK=off go install $(GLAZED_LINT_PKG)@$(GLAZED_VERSION) 2>/dev/null || { \
+			echo "glazed-lint not available at $(GLAZED_VERSION), installing @latest"; \
+			GOBIN=$(dir $(GLAZED_LINT_BIN)) GOWORK=off go install $(GLAZED_LINT_PKG)@latest; \
+		}; \
+	else \
+		echo "Installing $(GLAZED_LINT_PKG) from workspace/module"; \
+		GOBIN=$(dir $(GLAZED_LINT_BIN)) go install $(GLAZED_LINT_PKG); \
+	fi
 
-lintmax:
+glazed-lint: glazed-lint-build
+	GOWORK=off go vet -vettool=$(GLAZED_LINT_BIN) $(GLAZED_LINT_FLAGS) ./cmd/... ./pkg/...
+
+lint: glazed-lint-build
+	GOWORK=off golangci-lint run -v
+	GOWORK=off go vet -vettool=$(GLAZED_LINT_BIN) $(GLAZED_LINT_FLAGS) ./cmd/... ./pkg/...
+
+lintmax: glazed-lint-build
 	GOWORK=off golangci-lint run -v --max-same-issues=100
+	GOWORK=off go vet -vettool=$(GLAZED_LINT_BIN) $(GLAZED_LINT_FLAGS) ./cmd/... ./pkg/...
 
 gosec:
 	GOWORK=off go install github.com/securego/gosec/v2/cmd/gosec@latest
