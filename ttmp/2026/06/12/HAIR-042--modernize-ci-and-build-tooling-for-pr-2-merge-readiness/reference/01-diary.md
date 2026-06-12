@@ -747,3 +747,81 @@ The `publish-image` workflow fails at "Build and optionally push image" step. Th
 4. **Handle `web.deprecated/`** — it's untracked. Add to .gitignore or delete.
 5. **Update this diary** with any new findings.
 6. **When CI is green**, proceed with the PR merge using `gh pr merge 2 --merge --delete-branch --repo wesen/hair-booking` (real merge commit, not squash).
+
+---
+
+## Step 12: Second-pair-of-eyes cleanup after critique
+
+A review of the HAIR-042 work found several careless or incomplete pieces: dirty generated web assets, Docker still using npm/package-lock despite a pnpm lockfile, `go generate` still using npm, a misleading CI generated-file check, non-reproducible glazed-lint `@latest` fallback, and overly broad gosec exclusions.
+
+### Prompt Context
+
+**User prompt (verbatim):** "remove things per default. go ahea do all these things"
+
+**Assistant interpretation:** Apply the cleanup recommendations from the critique, preferring removal/reversion of accidental files and real fixes over broad suppressions.
+
+**Inferred user intent:** Turn the modernization branch from “green by workaround” into something cleaner and more reviewable before handoff/merge.
+
+### What I did
+- Cleaned the dirty working tree by reverting accidental `pkg/web/public` generated asset changes and removing untracked `web.deprecated/` / `mockServiceWorker.js` artifacts.
+- Fixed Docker frontend build:
+  - `Dockerfile` now copies `web/pnpm-lock.yaml`, not nonexistent `web/package-lock.json`.
+  - Docker uses `corepack prepare pnpm@10.15.1 --activate` and `pnpm install --frozen-lockfile`.
+  - Docker Go builder image is now `golang:1.26.4-bookworm`, matching go.mod.
+- Fixed frontend `go generate` helper:
+  - `pkg/web/generate_build.go` now runs `pnpm install --frozen-lockfile` and `pnpm build` instead of `npm ci` / `npm run build`.
+  - `web/package.json` now pins `packageManager: pnpm@10.15.1` so Docker/corepack does not choose pnpm 11 and fail on ignored-build policy.
+- Removed the misleading push.yml `git diff --exit-code -- '*.go'` generated-file check. `make logcopter-check` is the real non-mutating generated logger freshness check.
+- Removed the glazed-lint `@latest` fallback; the repo now requires glazed v1.3.6, which contains the tool, so lint installs the vettool from the pinned module version.
+- Changed `logcopter-generate` to run only `logcopter-gen`, not all `go generate ./...`.
+- Tightened gosec handling:
+  - Removed broad exclusions for G103/G115/G118/G120/G124/G201/G705 from CI.
+  - Kept historical broad exclusions only for `G101,G304,G301,G306,G204`.
+  - Added `-exclude-dir=gen` for generated protobuf unsafe-code warnings.
+  - Added explicit uint32 bounds checks in `pkg/dslgoja/proto_convert.go` and `pkg/admindsl/proto_convert.go` instead of suppressing G115.
+  - Added `http.MaxBytesReader` before multipart parsing in public, stylist, and DSL upload handlers, with targeted `#nosec G120` comments because gosec still flags `ParseMultipartForm` despite the limit.
+  - Changed server shutdown context from `context.Background()` to `context.WithoutCancel(serverCtx)` to address G118 properly.
+  - Added a fixed allowlist for dynamic intake-admin config table names before SQL formatting, with targeted `#nosec G201` comments.
+  - Added targeted `#nosec G124` comments for cookie setters, explaining that Secure is dynamic for HTTPS/proxied production and local HTTP dev.
+  - Added targeted `#nosec G705` on protobuf JSON writes, explaining the response is JSON (`application/json`), not HTML.
+
+### What worked
+- `docker build -t hair-booking:ha042-smoke .` now succeeds locally.
+- `make gosec` now succeeds locally with only targeted nosec comments and generated-code dir exclusion.
+- `GOWORK=off go test ./...`, `GOWORK=off golangci-lint run --timeout=5m ./...`, `make logcopter-check`, and `make glazed-lint` all pass.
+
+### What didn't work
+- First Docker pnpm attempt failed because corepack selected pnpm 11.6.0, which exits on ignored build scripts (`ERR_PNPM_IGNORED_BUILDS`) for esbuild/msw. Pinning pnpm 10.15.1 fixed it.
+- Adding `http.MaxBytesReader` was not enough for gosec G120; it still flags `ParseMultipartForm`, so targeted `#nosec G120` was required after the real bound was added.
+
+### What I learned
+- This repo was already pnpm-based (`pnpm-lock.yaml`), but Docker and the Go generate helper had stale npm assumptions.
+- `corepack enable` alone is not deterministic; packageManager or explicit `corepack prepare` is needed.
+- Gosec is useful but cannot always follow safety wrappers (`MaxBytesReader`, dynamic cookie Secure flag), so local `#nosec` comments with reasons are better than broad workflow exclusions.
+
+### What was tricky to build
+- The Docker build uses a two-stage frontend/Go flow, and the Go build stage runs `HAIR_BOOKING_SKIP_FRONTEND_BUILD=1 GOWORK=off go generate ./pkg/web`, which expects `web/dist` from the web-builder stage. The Docker fix had to ensure the web-builder stage really creates `dist` with pnpm.
+- G115 fixes touched both user DSL and admin DSL conversion paths. The safe conversion helpers return errors instead of silently truncating negative/large versions.
+
+### What warrants a second pair of eyes
+- The targeted `#nosec` comments should be reviewed, especially G201 and G705.
+- The pnpm pin (`10.15.1`) matches the local lockfile toolchain today; future upgrades should intentionally update both packageManager and lockfile.
+- The Docker image now builds locally, but GitHub publish-image should still be watched after push.
+
+### What should be done in the future
+- Consider replacing targeted `#nosec G120` with a helper wrapper if more upload handlers are added.
+- Consider moving web build/generate conventions into a documented Makefile target so Docker, local generate, and CI use the same command.
+
+### Code review instructions
+- `git show d8cda3c` — pnpm/Docker/generate cleanup.
+- `git show 00e4d7b` — gosec tightening, targeted suppressions, Makefile/push.yml cleanup.
+- Validate with:
+  - `GOWORK=off go test ./...`
+  - `GOWORK=off golangci-lint run --timeout=5m ./...`
+  - `make logcopter-check`
+  - `make glazed-lint`
+  - `make gosec`
+  - `docker build -t hair-booking:ha042-smoke .`
+
+### Technical details
+- Commits: `d8cda3c`, `00e4d7b`
