@@ -1,6 +1,6 @@
 module github.com/go-go-golems/hair-booking
 
-go 1.26.4
+go 1.26.5
 
 require (
 	github.com/dop251/goja v0.0.0-20260311135729-065cd970411c
@@ -10,7 +10,7 @@ require (
 	github.com/go-go-golems/logcopter v0.1.1
 	github.com/go-jose/go-jose/v3 v3.0.5
 	github.com/google/uuid v1.6.0
-	github.com/jackc/pgx/v5 v5.8.0
+	github.com/jackc/pgx/v5 v5.9.2
 	github.com/mattn/go-sqlite3 v1.14.44
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.10.2
