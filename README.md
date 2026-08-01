@@ -12,7 +12,7 @@ This repo includes its own local Keycloak stack and realm import so it can be te
 For day-to-day operations, see [docs/operations-playbook.md](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/operations-playbook.md).
 For hosted deployment, see [docs/deployments/hair-booking-coolify.md](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/deployments/hair-booking-coolify.md).
 For the operator deployment runbook, see [docs/deployments/hair-booking-coolify-playbook.md](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/deployments/hair-booking-coolify-playbook.md).
-For Keycloak client provisioning, see the central infra repo at [keycloak/README.md](/home/manuel/code/wesen/terraform/keycloak/README.md).
+For the production ZITADEL identity runbook, see [docs/deployments/hair-booking-zitadel-production.md](docs/deployments/hair-booking-zitadel-production.md). Local development continues to use the standalone Keycloak stack.
 
 ## Features
 
@@ -189,11 +189,7 @@ Expected behavior:
 
 ## Production note
 
-The local stack is standalone, but production now points at the dedicated `hair-booking` realm on the shared Keycloak server. In production, the current supported path is:
-
-- build from the root [Dockerfile](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/Dockerfile)
-- provision the `hair-booking` realm plus the `hair-booking-web` client with the central Terraform config under [apps/hair-booking/envs/hosted](/home/manuel/code/wesen/terraform/keycloak/apps/hair-booking/envs/hosted/main.tf)
-- deploy the container to Coolify using the runbook at [docs/deployments/hair-booking-coolify.md](/home/manuel/workspaces/2026-03-19/hair-signup/hair-booking/docs/deployments/hair-booking-coolify.md)
+The local stack is standalone. Production uses the dedicated Hair Booking ZITADEL organization, where ZITADEL brokers Google, Apple, and Facebook and also provides password and passkey authentication. See [the ZITADEL production runbook](docs/deployments/hair-booking-zitadel-production.md) for the Terraform, Vault, callback, and smoke-test contracts.
 
 ## Environment variables
 
