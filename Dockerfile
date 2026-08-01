@@ -21,7 +21,7 @@ COPY . .
 COPY --from=web-builder /src/web/dist ./web/dist
 
 RUN HAIR_BOOKING_SKIP_FRONTEND_BUILD=1 GOWORK=off go generate ./pkg/web && \
-    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    CGO_ENABLED=1 GOOS=linux GOARCH=amd64 \
     go build -trimpath -ldflags="-s -w" -o /out/hair-booking ./cmd/hair-booking
 
 FROM debian:bookworm-slim
