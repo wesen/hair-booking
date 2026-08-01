@@ -78,7 +78,7 @@ func NewSection() (schema.Section, error) {
 			fields.New(
 				"oidc-issuer-url",
 				fields.TypeString,
-				fields.WithHelp("OIDC issuer URL exposed by Keycloak"),
+				fields.WithHelp("OIDC issuer URL exposed by the identity broker"),
 				fields.WithDefault(strings.TrimSpace(os.Getenv("HAIR_BOOKING_OIDC_ISSUER_URL"))),
 			),
 			fields.New(
@@ -96,14 +96,14 @@ func NewSection() (schema.Section, error) {
 			fields.New(
 				"oidc-redirect-url",
 				fields.TypeString,
-				fields.WithHelp("Redirect URL handled by this app after Keycloak login"),
+				fields.WithHelp("Redirect URL handled by this app after identity-broker login"),
 				fields.WithDefault(envOr("HAIR_BOOKING_OIDC_REDIRECT_URL", "http://127.0.0.1:8080/auth/callback")),
 			),
 			fields.New(
 				"oidc-scopes",
 				fields.TypeStringList,
 				fields.WithHelp("Scopes requested during browser login"),
-				fields.WithDefault([]string{"openid", "profile", "email"}),
+				fields.WithDefault(defaultOIDCScopes()),
 			),
 			fields.New(
 				"stylist-allowed-emails",
@@ -176,6 +176,13 @@ func normalizeMode(value string) string {
 	default:
 		return AuthModeOIDC
 	}
+}
+
+func defaultOIDCScopes() []string {
+	if configured := splitCSV(os.Getenv("HAIR_BOOKING_OIDC_SCOPES")); len(configured) > 0 {
+		return configured
+	}
+	return []string{"openid", "profile", "email"}
 }
 
 func envOr(key, fallback string) string {

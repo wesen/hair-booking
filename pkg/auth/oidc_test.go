@@ -10,6 +10,14 @@ import (
 	"golang.org/x/oauth2"
 )
 
+func TestPKCES256Challenge(t *testing.T) {
+	got := pkceS256Challenge("dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk")
+	want := "E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM"
+	if got != want {
+		t.Fatalf("pkceS256Challenge() = %q, want %q", got, want)
+	}
+}
+
 func TestResolveRequestedRedirectAllowsRelativePath(t *testing.T) {
 	authenticator := &OIDCAuthenticator{}
 	request := httptest.NewRequest("GET", "http://127.0.0.1:8080/auth/login?return_to=%2Fportal", nil)

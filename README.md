@@ -1,6 +1,6 @@
 # hair-booking
 
-`hair-booking` is a Go web app with a Go backend, browser login through Keycloak, and a React frontend under `web/`. The backend signs an HTTP-only session cookie after OIDC login and exposes the authenticated user through `/api/me`.
+`hair-booking` is a Go web app with a Go backend, browser login through an OIDC identity broker, and a React frontend under `web/`. The backend signs an HTTP-only session cookie after OIDC login and exposes the authenticated user through `/api/me`.
 
 In local development, the backend can either:
 
@@ -17,7 +17,7 @@ For Keycloak client provisioning, see the central infra repo at [keycloak/README
 ## Features
 
 - `hair-booking serve` Glazed command
-- `auth-mode=oidc` for Keycloak-backed browser login
+- `auth-mode=oidc` for identity-broker-backed browser login
 - `auth-mode=dev` for local UI work without Keycloak
 - `/auth/login`, `/auth/callback`, `/auth/logout`
 - `/api/info` and `/api/me`
@@ -207,6 +207,7 @@ These flags can also be driven by environment variables:
 - `HAIR_BOOKING_OIDC_CLIENT_ID`
 - `HAIR_BOOKING_OIDC_CLIENT_SECRET`
 - `HAIR_BOOKING_OIDC_REDIRECT_URL`
+- `HAIR_BOOKING_OIDC_SCOPES` (comma-separated; include the ZITADEL organization scope in production)
 - `HAIR_BOOKING_FRONTEND_DEV_PROXY_URL`
 
 ## Developer commands

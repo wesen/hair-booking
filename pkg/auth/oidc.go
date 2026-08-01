@@ -3,6 +3,7 @@ package auth
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -23,6 +24,7 @@ const (
 	defaultJWKSRefresh     = 5 * time.Minute
 	authStateCookieName    = "hair_booking_auth_state"
 	authNonceCookieName    = "hair_booking_auth_nonce"
+	authPKCECookieName     = "hair_booking_auth_pkce"
 	logoutReturnCookieName = "hair_booking_logout_return_to"
 )
 
@@ -159,6 +161,13 @@ func (a *OIDCAuthenticator) HandleLogin(w http.ResponseWriter, r *http.Request) 
 		http.Error(w, "invalid return_to parameter", http.StatusBadRequest)
 		return
 	}
+	verifier, err := a.newRandom()
+	if err != nil {
+		http.Error(w, "failed to create auth code verifier", http.StatusInternalServerError)
+		return
+	}
+	challenge := pkceS256Challenge(verifier)
+
 	stateValue, err := marshalOAuthState(oauthStatePayload{
 		ID:       state,
 		ReturnTo: returnTo,
@@ -169,8 +178,14 @@ func (a *OIDCAuthenticator) HandleLogin(w http.ResponseWriter, r *http.Request) 
 	}
 	setShortLivedCookie(w, authStateCookieName, state, secureCookies)
 	setShortLivedCookie(w, authNonceCookieName, nonce, secureCookies)
+	setShortLivedCookie(w, authPKCECookieName, verifier, secureCookies)
 
-	loginURL := a.oauthConfig.AuthCodeURL(stateValue, oauth2.SetAuthURLParam("nonce", nonce))
+	loginURL := a.oauthConfig.AuthCodeURL(
+		stateValue,
+		oauth2.SetAuthURLParam("nonce", nonce),
+		oauth2.SetAuthURLParam("code_challenge", challenge),
+		oauth2.SetAuthURLParam("code_challenge_method", "S256"),
+	)
 	http.Redirect(w, r, loginURL, http.StatusFound)
 }
 
@@ -198,12 +213,19 @@ func (a *OIDCAuthenticator) HandleCallback(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	pkceCookie, err := r.Cookie(authPKCECookieName)
+	if err != nil || strings.TrimSpace(pkceCookie.Value) == "" {
+		http.Error(w, "missing oauth code verifier", http.StatusBadRequest)
+		return
+	}
+
 	secureCookies := shouldUseSecureCookies(r, a.oauthConfig.RedirectURL)
 	clearCookie(w, authStateCookieName, secureCookies)
 	clearCookie(w, authNonceCookieName, secureCookies)
+	clearCookie(w, authPKCECookieName, secureCookies)
 
 	ctx := context.WithValue(r.Context(), oauth2.HTTPClient, a.httpClient)
-	token, err := a.oauthConfig.Exchange(ctx, code)
+	token, err := a.oauthConfig.Exchange(ctx, code, oauth2.SetAuthURLParam("code_verifier", pkceCookie.Value))
 	if err != nil {
 		http.Error(w, fmt.Sprintf("token exchange failed: %v", err), http.StatusBadGateway)
 		return
@@ -508,6 +530,11 @@ func fetchOIDCDiscovery(ctx context.Context, client *http.Client, discoveryURL s
 		return oidcDiscoveryDocument{}, err
 	}
 	return doc, nil
+}
+
+func pkceS256Challenge(verifier string) string {
+	digest := sha256.Sum256([]byte(verifier))
+	return base64.RawURLEncoding.EncodeToString(digest[:])
 }
 
 func setShortLivedCookie(w http.ResponseWriter, name, value string, secure bool) {
